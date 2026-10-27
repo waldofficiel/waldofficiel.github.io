@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="WALD OFF : cascades délire, défis Fortnite top 1 et cartes Pokémon.">
+<title>WALD OFF</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap">
+<style>
+/* Layout: link-in-bio gaming — hero tag, gros boutons réseaux, carte "défis top 1", bloc boutique Pokémon. Un seul look sombre assumé. */
+:root{
+  --bg:#0a0d1f; --bg2:#121735; --line:#2a3166;
+  --fg:#f2f3ff; --mute:#9aa0cc;
+  --hazard:#ffd60a; --cyan:#3de0ff; --live:#ff3b5c;
+  --display:"Bungee","Impact",system-ui,sans-serif;
+  --body:"Chakra Petch",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:radial-gradient(60% 40% at 85% 0%, rgba(61,224,255,.18), transparent 70%),
+                   radial-gradient(50% 35% at 0% 30%, rgba(255,214,10,.10), transparent 70%);
+  background-attachment:fixed}
+.wrap{max-width:560px;margin:0 auto;padding-block:28px 48px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex;flex-direction:column;gap:28px}
+
+/* HERO */
+.hero{display:flex;flex-direction:column;gap:10px}
+.tape{align-self:flex-start;font-family:var(--display);font-size:12px;letter-spacing:.08em;color:#111;
+  background:repeating-linear-gradient(-45deg,var(--hazard) 0 14px,#111 14px 28px);padding:4px 10px}
+.tape span{background:var(--hazard);padding:2px 8px}
+h1{font-family:var(--display);font-weight:400;margin:0;font-size:clamp(56px,17vw,92px);line-height:.9;letter-spacing:-.01em;
+  text-wrap:balance;color:var(--fg);text-shadow:4px 4px 0 var(--live), 8px 8px 0 rgba(61,224,255,.6)}
+.tagline{margin:6px 0 0;font-size:18px;color:var(--mute);max-width:42ch}
+.tagline b{color:var(--hazard);font-weight:700}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.chip{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);
+  padding:5px 10px;border-radius:999px;color:var(--fg);background:var(--bg2);display:inline-flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--live);box-shadow:0 0 10px var(--live);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* LIENS */
+h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 12px;letter-spacing:.01em}
+h2 em{font-style:normal;color:var(--hazard)}
+.links{display:flex;flex-direction:column;gap:10px}
+.link{display:flex;align-items:center;gap:14px;padding:14px 16px;text-decoration:none;color:var(--fg);
+  background:var(--bg2);border:2px solid var(--line);border-radius:14px;transition:transform .12s,border-color .12s,box-shadow .12s}
+.link:hover,.link:focus-visible{transform:translate(-2px,-2px);border-color:var(--c);box-shadow:4px 4px 0 var(--c);outline:none}
+.ic{flex:0 0 46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--c);color:#0a0d1f}
+.ic svg{width:24px;height:24px;fill:currentColor}
+.lt{min-width:0;flex:1}
+.lt strong{display:block;font-size:18px;font-weight:700;line-height:1.2}
+.lt small{display:block;color:var(--mute);font-size:14px}
+.arrow{font-family:var(--display);color:var(--mute);font-size:18px}
+
+/* DEFIS */
+.defis{background:var(--bg2);border:2px solid var(--hazard);border-radius:18px;padding:20px 18px;position:relative;overflow:hidden}
+.defis::after{content:"#1";position:absolute;right:-10px;top:-24px;font-family:var(--display);font-size:120px;color:rgba(255,214,10,.08);pointer-events:none}
+.defis p{margin:0 0 14px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cond{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-weight:600;font-size:15px;display:flex;gap:8px;align-items:center}
+.cond i{font-style:normal;font-family:var(--display);color:var(--hazard);font-size:12px}
+.cta{margin-top:14px;display:inline-flex;font-weight:700;color:var(--bg);background:var(--hazard);padding:10px 16px;border-radius:10px;text-decoration:none}
+.cta:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+/* POKEMON */
+.shop{border-radius:18px;padding:20px 18px;border:2px solid var(--cyan);
+  background:linear-gradient(160deg, rgba(61,224,255,.14), transparent 60%), var(--bg2)}
+.shop p{margin:0 0 14px;color:var(--mute)}
+.shop .links .link{background:var(--bg)}
+
+.photo{position:relative;margin:0 0 6px;border-radius:20px;overflow:hidden;border:2px solid var(--line);aspect-ratio:4/5;max-width:100%;box-shadow:8px 8px 0 var(--live)}
+.photo img{width:100%;height:100%;object-fit:cover;object-position:50% 40%;display:block}
+.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to top, rgba(10,13,31,.92) 0%, rgba(10,13,31,.2) 38%, transparent 60%)}
+.photo .tape{position:absolute;top:14px;left:14px;z-index:2}
+.photo h1{position:absolute;left:16px;bottom:12px;z-index:2}
+.gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gallery img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:2px solid var(--line);display:block}
+.timeline{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;border-left:3px solid var(--hazard);padding-left:16px}
+.timeline li{display:flex;flex-direction:column;gap:2px}
+.timeline .when{font-family:var(--display);font-size:12px;letter-spacing:.06em;color:var(--hazard);text-transform:uppercase}
+.timeline p{margin:0;color:var(--mute)}
+.timeline strong{color:var(--fg)}
+footer{text-align:center;color:var(--mute);font-size:13px}
+footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
+@media (max-width:380px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}.link{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <figure class="photo">
+      <img src="img/hero.jpg" alt="Wald off assis sur le pare-brise d'une Polo cabriolet, pot d'échappement qui sort du capot avec une boîte de conserve" width="1100" height="1498">
+      <div class="tape"><span>⚠ CONTENU DÉBILE ⚠</span></div>
+      <h1>WALD<br>OFF</h1>
+    </figure>
+    <p class="tagline">Cascades délire, défis <b>Fortnite top 1</b> dans des conditions impossibles. Abonne-toi, ça va partir loin.</p>
+    <div class="status">
+      <span class="chip"><span class="dot"></span>Lives TikTok bientôt</span>
+      <span class="chip">🎮 Fortnite PC</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Suis <em>WALD OFF</em></h2>
+    <nav class="links">
+      <a class="link" style="--c:#c86bff" href="https://www.instagram.com/wald_off/" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-8.9a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM12 3c-2.4 0-2.7 0-3.7.1C5 3.2 3.2 5 3.1 8.3 3 9.3 3 9.6 3 12s0 2.7.1 3.7c.1 3.3 1.9 5.1 5.2 5.2 1 .1 1.3.1 3.7.1s2.7 0 3.7-.1c3.3-.1 5.1-1.9 5.2-5.2.1-1 .1-1.3.1-3.7s0-2.7-.1-3.7C20.8 5 19 3.2 15.7 3.1 14.7 3 14.4 3 12 3z"/></svg></span>
+        <span class="lt"><strong>Instagram</strong><small>@wald_off · la voiture & les coulisses</small></span><span class="arrow">→</span>
+      </a>
+      <a class="link" style="--c:#ff2a2a" href="https://www.youtube.com/@WALD_OFF" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></span>
+        <span class="lt"><strong>YouTube</strong><small>@WALD_OFF · vidéos & best-of</small></span><span class="arrow">→</span>
+      </a>
+      <a class="link" style="--c:#ff3b5c" href="https://www.tiktok.com/@wald.off" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M16.6 3c.4 2.2 1.8 3.6 4 3.8v3.1c-1.5 0-2.8-.4-4-1.2v6.1c0 3.4-2.6 5.7-5.6 5.7-3.2 0-5.6-2.5-5.6-5.5 0-3.3 2.8-5.8 6.3-5.4v3.2c-1.6-.4-3.1.7-3.1 2.2 0 1.3 1 2.3 2.3 2.3 1.4 0 2.4-1 2.4-2.6V3h3.3z"/></svg></span>
+        <span class="lt"><strong>TikTok</strong><small>@wald.off · cascades & défis</small></span><span class="arrow">→</span>
+      </a>
+    </nav>
+  </section>
+
+  <section class="story" aria-labelledby="story-t">
+    <h2 id="story-t">L'histoire <em>WALD OFF</em></h2>
+    <ol class="timeline">
+      <li><span class="when">Avant</span><p><strong>Les cascades.</strong> Tracté en luge, sur le capot des voitures, à moto. Chapeau, lunettes, et zéro limite. La chaîne monte jusqu'à près de 10 000 abonnés.</p></li>
+      <li><span class="when">Pause</span><p><strong>4 ans de silence.</strong> Trop de vidéos supprimées par TikTok. Wald off range le chapeau.</p></li>
+      <li><span class="when">Maintenant</span><p><strong>Le retour.</strong> Toujours les voitures et les conneries, mais en version gaming : défis Fortnite top 1 dans des conditions impossibles, et bientôt des lives.</p></li>
+    </ol>
+  </section>
+
+  <section class="gallery" aria-label="Photos">
+    <img src="img/gti.jpg" alt="Wald off et un pote devant une Golf GTI jaune" loading="lazy">
+    <img src="img/pre.jpg" alt="Wald off sur la Polo cabriolet au milieu d'un champ" loading="lazy">
+    <img src="img/pose.jpg" alt="Wald off posé sur la Polo, pot d'échappement sur le capot" loading="lazy">
+  </section>
+
+  <section class="shop" aria-labelledby="shop-t">
+    <h2 id="shop-t">Pokéon <em>Collect</em></h2>
+    <p>Ma boutique de cartes Pokémon : boosters, cartes rares et collection. Envoi soigné.</p>
+    <div class="links">
+      <a class="link" style="--c:#ffd60a" href="https://www.ebay.fr/usr/pokeon_collect" target="_blank" rel="noopener">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h18l-1.6 9.6a2 2 0 0 1-2 1.7H6.6a2 2 0 0 1-2-1.7L3 6zm5 13.5a1.5 1.5 0 1 0 0 .01zm8 0a1.5 1.5 0 1 0 0 .01zM7 3h10v2H7z"/></svg></span>
+        <span class="lt"><strong>Boutique eBay</strong><small>pokeon_collect</small></span><span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <footer><b>WALD OFF</b> · fait en France · 2026</footer>
+</div>
+
+</body>
+</html>
