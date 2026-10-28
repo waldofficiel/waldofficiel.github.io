@@ -488,6 +488,25 @@ body{font-family:var(--body);color:var(--fg)}
   }
   window.WALD = { gift: gift, command: command, top1: function () { setTop(top1 + 1, true); }, superFan: function (u) { superFan(u || '@super_pote'); } };
 
+  /* ---------- Télécommande (téléphone) : ?t=NOM_SECRET dans l'adresse, messages via ntfy.sh ---------- */
+  var TOPIC = q.get('t');
+  function remote(msg) {
+    msg = String(msg || '').trim().toLowerCase();
+    if (msg === 'top1') setTop(top1 + 1, true);
+    else if (msg === 'top1-') setTop(top1 - 1);
+    else if (msg === 'reset') setTop(0);
+    else if (msg === 'ok') { if (cur) stop(); }
+    else if (msg === 'superfan') superFan('@test');
+    else if (msg.indexOf('gift:') === 0) { var n = parseInt(msg.slice(5), 10) || 1; gift('@test', 'Cadeau test', n, 1); }
+  }
+  function listenRemote() {
+    if (!TOPIC || !window.EventSource) return;
+    var es = new EventSource('https://ntfy.sh/' + encodeURIComponent(TOPIC) + '/sse');
+    es.onmessage = function (e) { try { var m = JSON.parse(e.data); if (m.event === 'message') remote(m.message); } catch (x) {} };
+    es.onerror = function () { dbg('télécommande : reconnexion…'); };
+  }
+  listenRemote();
+
   /* ---------- Connexion TikFinity (appli Windows, Event API) ---------- */
   var WS = q.get('ws') || 'ws://localhost:21213/', seen = {};
   function dbg(s) { $('dbg').textContent = s; }

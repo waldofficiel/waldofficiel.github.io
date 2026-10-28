@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a0d1f">
+<title>WALD OFF Télécommande</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@600;700&display=swap">
+<style>
+/* Télécommande du live : gros boutons au pouce, sombre, couleurs WALD OFF. Envoie des messages à l'habillage via ntfy.sh. */
+:root{--bg:#0a0d1f;--bg2:#121735;--line:#2a3166;--fg:#f2f3ff;--mute:#9aa0cc;--hazard:#ffd60a;--cyan:#3de0ff;--live:#ff3b5c;--ok:#2bd67b;
+  --display:"Bungee",Impact,sans-serif;--body:"Chakra Petch",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);min-height:100vh;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;font-family:var(--display);font-weight:400;font-size:26px;line-height:1;text-shadow:3px 3px 0 var(--live)}
+h1 em{font-style:normal;color:var(--hazard)}
+.st{font-size:13px;font-weight:700;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.st.ok{color:var(--ok);border-color:var(--ok)}.st.ko{color:var(--live);border-color:var(--live)}
+h2{margin:6px 0 0;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.big{display:grid;grid-template-columns:1fr;gap:12px}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}
+.b{display:flex;align-items:center;justify-content:center;gap:12px;min-height:84px;border-radius:20px;font-family:var(--display);font-size:24px;
+  background:var(--bg2);border:3px solid var(--line);transition:transform .08s}
+.b:active{transform:scale(.97)}
+.top{background:linear-gradient(180deg,#2a2208,#0a0d1f);border-color:var(--hazard);color:var(--hazard);box-shadow:0 0 22px rgba(255,214,10,.35);min-height:110px;font-size:30px}
+.fin{border-color:var(--ok);color:var(--ok)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.s{min-height:60px;font-size:16px;border-radius:16px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.t{min-height:64px;border-radius:14px;background:var(--bg2);border:2px solid var(--line);font-family:var(--body);font-weight:700;font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px}
+.t b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--hazard)}
+.t:active{transform:scale(.96);border-color:var(--cyan)}
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translate(-50%,40px);opacity:0;transition:.2s;background:var(--ok);color:#06210f;
+  font-weight:700;padding:10px 18px;border-radius:999px;pointer-events:none}
+.toast.on{transform:translate(-50%,0);opacity:1}.toast.err{background:var(--live);color:#fff}
+.miss{background:var(--bg2);border:2px solid var(--live);border-radius:16px;padding:16px;line-height:1.45}
+.miss code{color:var(--hazard)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>WALD <em>OFF</em> 🎮</h1><span class="st" id="st">…</span></header>
+
+  <div id="app" hidden>
+    <div class="big">
+      <button class="b top" data-m="top1">👑 TOP 1 +1</button>
+      <button class="b fin" data-m="ok">✅ DÉFI TERMINÉ</button>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <button class="b s" data-m="top1-">↩️ TOP 1 −1</button>
+      <button class="b s" data-m="reset" data-confirm="Remettre le compteur TOP 1 à 0 ?">0️⃣ Remise à 0</button>
+    </div>
+
+    <h2 style="margin-top:22px">Tester une alerte (avant le live)</h2>
+    <div class="grid" style="margin-top:10px">
+      <button class="t" data-m="gift:1"><b>1</b>Merci classe</button>
+      <button class="t" data-m="gift:5"><b>5</b>WALD OFF</button>
+      <button class="t" data-m="gift:25"><b>25</b>Lunettes</button>
+      <button class="t" data-m="gift:50"><b>50</b>Drift 3D</button>
+      <button class="t" data-m="gift:100"><b>100</b>Vraie Polo</button>
+      <button class="t" data-m="gift:200"><b>200</b>Atterrissage</button>
+      <button class="t" data-m="gift:300"><b>300</b>Souris</button>
+      <button class="t" data-m="gift:1000"><b>1000</b>TOP 1 ensemble</button>
+      <button class="t" data-m="superfan"><b>⭐</b>Super Fan</button>
+    </div>
+  </div>
+
+  <div class="miss" id="miss" hidden>Il manque le code secret dans l'adresse. Ouvre le lien complet que Claude t'a donné (il finit par <code>?t=…</code>).</div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function () {
+  var topic = new URLSearchParams(location.search).get('t');
+  var st = document.getElementById('st'), toast = document.getElementById('toast');
+  if (!topic) { document.getElementById('miss').hidden = false; st.textContent = 'pas de code'; st.className = 'st ko'; return; }
+  document.getElementById('app').hidden = false;
+  var URL_ = 'https://ntfy.sh/' + encodeURIComponent(topic);
+  function show(t, err) { toast.textContent = t; toast.className = 'toast on' + (err ? ' err' : ''); clearTimeout(show.k); show.k = setTimeout(function () { toast.className = 'toast'; }, 1400); }
+  function send(m) {
+    if (navigator.vibrate) try { navigator.vibrate(30); } catch (e) {}
+    return fetch(URL_, { method: 'POST', body: m }).then(function (r) {
+      if (!r.ok) throw 0; st.textContent = 'connecté'; st.className = 'st ok'; show('Envoyé ✓');
+    }).catch(function () { st.textContent = 'hors ligne'; st.className = 'st ko'; show('Pas envoyé, vérifie internet', true); });
+  }
+  [].forEach.call(document.querySelectorAll('[data-m]'), function (b) {
+    b.addEventListener('click', function () { var c = b.getAttribute('data-confirm'); if (c && !confirm(c)) return; send(b.getAttribute('data-m')); });
+  });
+  fetch(URL_ + '/json?poll=1&since=1s').then(function (r) { st.textContent = r.ok ? 'connecté' : 'hors ligne'; st.className = 'st ' + (r.ok ? 'ok' : 'ko'); })
+    .catch(function () { st.textContent = 'hors ligne'; st.className = 'st ko'; });
+})();
+</script>
+</body>
+</html>
