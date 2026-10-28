@@ -102,15 +102,15 @@ body{font-family:var(--body);color:var(--fg)}
 .game::after{right:0;bottom:-9px}
 
 /* ---------- MENU DES DÉFIS ---------- */
-.menu{position:absolute;left:30px;top:1462px;width:680px;padding:18px 20px 16px;box-sizing:border-box;border-radius:22px;
+.menu{position:absolute;left:30px;top:1456px;width:680px;padding:14px 20px 12px;box-sizing:border-box;border-radius:22px;
   background:linear-gradient(170deg,rgba(18,23,53,.94),rgba(10,13,31,.94));border:3px solid var(--hazard);box-shadow:8px 8px 0 var(--live)}
 .menu h2{margin:0 0 10px;font-family:var(--display);font-weight:400;font-size:38px;line-height:1;color:var(--fg);text-shadow:3px 3px 0 var(--live)}
 .menu h2 em{font-style:normal;color:var(--hazard)}
-.row{display:flex;align-items:center;gap:14px;padding:7px 10px;border-radius:12px;transition:background .3s}
+.row{display:flex;align-items:center;gap:14px;padding:4px 10px;border-radius:12px;transition:background .3s}
 .row + .row{margin-top:4px}
 .coin{flex:0 0 108px;display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:26px;color:var(--hazard)}
 .coin i{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#ffc400 45%,#c98a00);box-shadow:0 0 8px rgba(255,196,0,.8)}
-.row span{font-weight:700;font-size:26px;line-height:1.15;color:var(--fg)}
+.row span{font-weight:700;font-size:25px;line-height:1.15;color:var(--fg)}
 .row.lit{background:var(--live);box-shadow:0 0 20px rgba(255,59,92,.7)}
 .row.lit .coin{color:#fff}
 
@@ -197,18 +197,17 @@ body{font-family:var(--body);color:var(--fg)}
   /* =====================  RÉGLAGES (à modifier ici)  ===================== */
   var HOST = 'wald.off';                       // le compte qui peut taper les commandes dans le chat
   var DEFIS = [                                // min = pièces TikTok (total du combo)
-    { min: 1,    txt: 'JE CRIE « WALD OFF ! »',               menu: 'Je crie « WALD OFF ! »',           sec: 8 },
-    { min: 5,    txt: 'SANS VISER JUSQU\'AU PROCHAIN KILL',    menu: 'Sans viser → prochain kill',      sec: 0,   max: 240 },
-    { min: 30,   txt: 'SOURIS MAIN GAUCHE',                    menu: 'Souris main gauche 2 min',        sec: 120 },
-    { min: 100,  txt: 'JE JOUE AVEC LES PIEDS',                menu: 'Je joue avec les pieds 🦶',       sec: 120, big: 1 },
-    { min: 500,  txt: 'YEUX BANDÉS : LE CHAT ME GUIDE',        menu: 'Yeux bandés, le chat me guide',   sec: 90,  big: 2 },
-    { min: 1000, txt: 'LE CHAT DÉCIDE TOUTE LA PARTIE',        menu: 'Le chat décide la partie 👑',     sec: 0,   max: 1800, big: 3 }
+    { min: 1,    txt: 'JE REMERCIE AVEC CLASSE 🎩',             menu: 'Je remercie avec classe 🎩',      sec: 8 },
+    { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8 },
+    { min: 10,   txt: '« LA POLOOO ! » À CHAQUE KILL',          menu: '« LA POLOOO ! » à chaque kill',   sec: 120 },
+    { min: 30,   txt: 'VOIX DE COMMENTATEUR DE FOOT',           menu: 'Voix de commentateur foot',       sec: 120 },
+    { min: 50,   txt: 'SANS VISER JUSQU\'AU PROCHAIN KILL',     menu: 'Sans viser → prochain kill',      sec: 0,   max: 240, tag: 'KILL' },
+    { min: 100,  txt: 'SOURIS MAIN GAUCHE',                     menu: 'Souris main gauche 2 min',        sec: 120, big: 1 },
+    { min: 300,  txt: 'LE CHAT CHOISIT OÙ J\'ATTERRIS',         menu: 'Le chat choisit où j\'atterris',   sec: 0,   max: 1800, tag: 'PARTIE', big: 2 },
+    { min: 1000, txt: 'YEUX BANDÉS : LE CHAT ME GUIDE',         menu: 'Yeux bandés, le chat me guide',   sec: 90,  big: 3 }
   ];
   var PHOTOS = [
-    { src: '../img/hero.jpg',  cap: 'LA POLO 💀',          sub: 'cascades IRL · YouTube @WALD_OFF' },
-    { src: '../img/gti.jpg',   cap: 'GOLF GTI 366 CH',     sub: 'la jaune · Insta @wald_off' },
-    { src: '../img/pre.jpg',   cap: 'POLO DANS LE CHAMP',  sub: 'tracté, cabossé, boueux' },
-    { src: '../img/motos.jpg', cap: '3 MOTOS CROSS',       sub: 'les cascades reviennent…' }
+    { src: '../img/hero.jpg',  cap: 'LA POLO 💀', sub: 'cascades IRL · YouTube @WALD_OFF' }
   ];
   /* ====================================================================== */
 
@@ -249,7 +248,7 @@ body{font-family:var(--body);color:var(--fg)}
 
   /* ---------- Photos qui tournent ---------- */
   var pi = 0;
-  setInterval(function () {
+  if (PHOTOS.length > 1) setInterval(function () {
     pi = (pi + 1) % PHOTOS.length; var p = PHOTOS[pi], img = $('pimg');
     img.classList.remove('in'); void img.offsetWidth; img.src = p.src; img.classList.add('in');
     $('pcap').textContent = p.cap; $('psub').textContent = p.sub;
@@ -349,7 +348,7 @@ body{font-family:var(--body);color:var(--fg)}
   setInterval(function () {
     if (!cur) return; var d = DEFIS[cur.tier], now = Date.now(), left = Math.max(0, curEnd - now);
     if (d.sec) { var s = Math.ceil(left / 1000); $('btm').textContent = Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); $('bbar').style.width = (100 * (1 - left / (curEnd - curStart))) + '%'; }
-    else $('btm').textContent = d.min >= 1000 ? 'PARTIE' : 'KILL';
+    else $('btm').textContent = d.tag || 'KILL';
     if (left <= 0) stop();
   }, 250);
 
@@ -394,11 +393,11 @@ body{font-family:var(--body);color:var(--fg)}
   connect();
 
   /* ---------- Démo / test : ?demo  ou touches 1-6, T, N ---------- */
-  var DEMO = [['@pote_du_31', 'Rose', 1, 1], ['@lucas', 'Donut', 30, 1], ['@kevin', 'Hand Hearts', 100, 1], ['@mamie', 'Galaxy', 1000, 1], ['@nina', 'Finger Heart', 5, 1], ['@thomas', 'Money Gun', 500, 1]];
+  var DEMO = DEFIS.map(function (d, i) { return ['@pote_' + (i + 1), 'Cadeau', d.min, 1]; });
   if (q.has('demo')) { var di = 0; setTimeout(function run() { var x = DEMO[di++ % DEMO.length]; gift(x[0], x[1], x[2], x[3]); setTimeout(function () { if (cur) stop(); }, 5200); setTimeout(run, 7000); }, 900); setInterval(function () { setTop(top1 + 1, true); }, 21000); }
   addEventListener('keydown', function (e) {
     var k = e.key.toLowerCase();
-    if (k >= '1' && k <= '6') { var x = DEMO[[0, 4, 1, 2, 5, 3][+k - 1]]; gift(x[0], x[1], x[2], x[3]); }
+    if (k >= '1' && k <= '8') { var x = DEMO[+k - 1]; gift(x[0], x[1], x[2], x[3]); }
     else if (k === 't') setTop(top1 + 1, true); else if (k === 'n' && cur) stop();
   });
   idle();
