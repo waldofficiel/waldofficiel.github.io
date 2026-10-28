@@ -197,8 +197,8 @@ body{font-family:var(--body);color:var(--fg)}
   /* =====================  RÉGLAGES (à modifier ici)  ===================== */
   var HOST = 'wald.off';                       // le compte qui peut taper les commandes dans le chat
   var DEFIS = [                                // min = pièces TikTok (total du combo)
-    { min: 1,    txt: 'JE REMERCIE AVEC CLASSE 🎩',             menu: 'Je remercie avec classe 🎩',      sec: 8 },
-    { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8 },
+    { min: 1,    txt: 'JE REMERCIE AVEC CLASSE 🎩',             menu: 'Je remercie avec classe 🎩',      sec: 8, quick: 1 },
+    { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8, quick: 1 },
     { min: 10,   txt: 'JE CRIE « SORTEZ LA POLO ! »',            menu: 'Je crie « SORTEZ LA POLO ! »',    sec: 8 },
     { min: 30,   txt: 'VOIX DE COMMENTATEUR DE FOOT',           menu: 'Voix de commentateur foot',       sec: 120 },
     { min: 50,   txt: 'SANS VISER JUSQU\'AU PROCHAIN KILL',     menu: 'Sans viser → prochain kill',      sec: 0,   max: 240, tag: 'KILL' },
@@ -352,11 +352,13 @@ body{font-family:var(--body);color:var(--fg)}
     if (left <= 0) stop();
   }, 250);
 
+  function flashRow(i) { var r = $('row' + i); r.classList.add('lit'); setTimeout(function () { if (!cur || cur.tier !== i) r.classList.remove('lit'); }, 4000); }
   function tierFor(coins) { var t = 0; DEFIS.forEach(function (d, i) { if (coins >= d.min) t = i; }); return t; }
   function gift(user, giftName, coins, count) {
     var tier = tierFor(coins), d = DEFIS[tier];
     toast('🎁 <b>' + esc(user) + '</b> · ' + esc(giftName || 'cadeau') + (count > 1 ? ' ×' + count : '') + ' → ' + esc(d.txt));
     var item = { tier: tier, user: user, gift: (giftName || '') + (count > 1 ? ' ×' + count : '') };
+    if (d.quick) { flashRow(tier); boom(rnd(250, 830), 692, .6); return; }   // petits cadeaux : juste le message, pas de bandeau
     if (!cur) start(item); else { queue.push(item); updQ(); boom(rnd(200, 880), 692, .5); }
   }
   function command(txt) {
