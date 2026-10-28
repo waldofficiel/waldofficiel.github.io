@@ -28,7 +28,7 @@ body{font-family:var(--body);color:var(--fg)}
 .slot{position:absolute;display:none;place-items:center;font-family:var(--display);font-size:46px;color:rgba(255,255,255,.35);text-align:center}
 .guide .slot{display:grid}
 .slot.cam{left:40px;top:120px;width:1000px;height:480px;background:linear-gradient(135deg,#1b2350,#0e1330)}
-.slot.game{left:0;top:718px;width:1080px;height:608px;background:linear-gradient(160deg,#1d6b8f,#3d9a5a 55%,#8a6a3a)}
+.slot.game{left:0;top:718px;width:1080px;height:810px;background:linear-gradient(160deg,#1d6b8f,#3d9a5a 55%,#8a6a3a)}
 .slot small{display:block;font-family:var(--body);font-size:26px;letter-spacing:.04em}
 
 /* ---------- CADRE CAMÉRA ---------- */
@@ -94,7 +94,7 @@ body{font-family:var(--body);color:var(--fg)}
 .who.on{opacity:1}
 
 /* ---------- ZONE JEU ---------- */
-.game{position:absolute;left:0;top:718px;width:1080px;height:608px;box-sizing:border-box;
+.game{position:absolute;left:0;top:718px;width:1080px;height:810px;box-sizing:border-box;
   border-top:4px solid var(--cyan);border-bottom:4px solid var(--cyan);
   box-shadow:0 -6px 22px rgba(61,224,255,.35),0 6px 22px rgba(61,224,255,.35)}
 .game::before,.game::after{content:"";position:absolute;width:120px;height:14px;background:var(--hazard);box-shadow:0 0 14px rgba(255,214,10,.8)}
@@ -102,7 +102,7 @@ body{font-family:var(--body);color:var(--fg)}
 .game::after{right:0;bottom:-9px}
 
 /* ---------- MENU DES DÉFIS ---------- */
-.menu{position:absolute;left:30px;top:1426px;width:680px;padding:14px 20px 12px;box-sizing:border-box;border-radius:22px;
+.menu{position:absolute;left:24px;top:1556px;width:770px;padding:12px 16px 10px;box-sizing:border-box;border-radius:22px;
   background:linear-gradient(170deg,rgba(18,23,53,.94),rgba(10,13,31,.94));border:3px solid var(--hazard);box-shadow:8px 8px 0 var(--live)}
 .menu h2{margin:0 0 10px;font-family:var(--display);font-weight:400;font-size:38px;line-height:1;color:var(--fg);text-shadow:3px 3px 0 var(--live)}
 .menu h2 em{font-style:normal;color:var(--hazard)}
@@ -115,21 +115,21 @@ body{font-family:var(--body);color:var(--fg)}
 .row.lit .coin{color:#fff}
 
 /* ---------- PHOTOS ---------- */
-.pola{position:absolute;left:744px;top:1440px;width:300px;padding:12px 12px 14px;box-sizing:border-box;background:#f4f1e8;border-radius:6px;
+.pola{position:absolute;left:816px;top:1552px;width:240px;padding:10px 10px 10px;box-sizing:border-box;background:#f4f1e8;border-radius:6px;
   transform:rotate(3deg);box-shadow:0 0 0 3px var(--cyan),0 0 28px rgba(61,224,255,.55),10px 10px 0 rgba(0,0,0,.45)}
 .pola::before{content:"";position:absolute;left:50%;top:-16px;width:120px;height:32px;transform:translateX(-50%) rotate(-4deg);
   background:repeating-linear-gradient(-45deg,var(--hazard) 0 10px,#111 10px 20px);opacity:.92}
-.pola .ph{width:276px;height:300px;overflow:hidden;background:#111}
+.pola .ph{width:220px;height:220px;overflow:hidden;background:#111}
 .pola img{width:100%;height:100%;object-fit:cover;display:block}
 .pola img.in{animation:pin .6s ease both}
 @keyframes pin{from{opacity:0;transform:scale(1.15)}}
-.pola p{margin:10px 0 0;font-family:var(--display);font-size:22px;line-height:1.05;color:#111;text-align:center}
-.pola small{display:block;margin-top:4px;font-family:var(--body);font-weight:700;font-size:18px;color:#c4002b}
+.pola p{margin:6px 0 0;font-family:var(--display);font-size:18px;line-height:1.05;color:#111;text-align:center}
+.pola small{display:block;margin-top:2px;font-family:var(--body);font-weight:700;font-size:14px;color:#c4002b}
 
 /* ---------- GROS CADEAU : Polo + texte chromé ---------- */
 #fx{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
-.polo{position:absolute;left:0;top:820px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
-.big{position:absolute;left:40px;right:40px;top:940px;text-align:center;pointer-events:none;opacity:0}
+.polo{position:absolute;left:0;top:900px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
+.big{position:absolute;left:40px;right:40px;top:1040px;text-align:center;pointer-events:none;opacity:0}
 .big .t1{font-family:var(--display);font-size:92px;line-height:.95;
   background:linear-gradient(180deg,#ffffff 0%,#c9d2e6 38%,#6c7894 52%,#e9eefa 64%,#9aa6c2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 10px rgba(61,224,255,.95)) drop-shadow(0 0 28px rgba(255,59,92,.8)) drop-shadow(4px 4px 0 #0a0d1f)}
@@ -183,10 +183,10 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 .t80 .game{border-top:4px solid var(--cyan);border-bottom:4px solid var(--pink);box-shadow:0 -6px 22px rgba(45,226,255,.45),0 6px 22px rgba(255,43,214,.45)}
 .t80 .game::before,.t80 .game::after{background:linear-gradient(90deg,var(--pink),var(--sun3));box-shadow:0 0 14px var(--pink)}
 /* décor du bas : coucher de soleil rétro, soleil rayé, sol quadrillé, palmiers */
-.scene{position:absolute;left:0;top:1330px;width:1080px;height:590px;display:none;overflow:hidden;pointer-events:none}
+.scene{position:absolute;left:0;top:1532px;width:1080px;height:388px;display:none;overflow:hidden;pointer-events:none}
 .t80 .scene{display:block}
 .scene .sky{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,5,43,0) 0%,rgba(43,10,80,.85) 25%,#5a1580 55%,#b0247f 78%,#ff5e7e 100%)}
-.scene .sun{display:block;left:50%;top:40px;width:420px;height:420px;margin-left:-210px;border-radius:50%;
+.scene .sun{display:block;left:50%;top:10px;width:420px;height:420px;margin-left:-210px;border-radius:50%;
   background:linear-gradient(180deg,var(--sun1),var(--sun3) 55%,var(--pink));
   -webkit-mask:repeating-linear-gradient(180deg,#000 0 26px,transparent 26px 34px);mask:repeating-linear-gradient(180deg,#000 0 26px,transparent 26px 34px);
   box-shadow:0 0 60px rgba(255,138,61,.8);filter:drop-shadow(0 0 30px rgba(255,94,126,.8))}
@@ -210,6 +210,15 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 .t80 .toast{border-color:var(--pink);background:rgba(18,5,43,.9);box-shadow:0 0 18px rgba(255,43,214,.7)}
 .t80 .toast b{color:var(--sun1)}
 .t80 .big .t2{background:linear-gradient(90deg,var(--pink),var(--sun3));color:#fff;text-shadow:2px 2px 0 rgba(18,5,43,.6);box-shadow:0 0 30px rgba(255,43,214,.9),6px 6px 0 var(--cyan)}
+
+/* menu des défis sur 2 colonnes (zone jeu en 4:3) */
+#rows{display:grid;grid-template-columns:1fr 1fr;column-gap:8px;row-gap:2px}
+.row + .row{margin-top:0}
+.row{padding:3px 8px;gap:8px}
+.coin{flex:0 0 78px;font-size:21px;gap:6px}
+.coin i{width:20px;height:20px}
+.row span{font-size:19px}
+.menu h2{font-size:32px !important;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -229,7 +238,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   </symbol></defs></svg>
 <div id="stage">
   <div class="slot cam">TA CAMÉRA ICI<small>DroidCam · 1000 × 480 · x 40 / y 120</small></div>
-  <div class="slot game">FORTNITE ICI<small>capture de jeu · 1080 × 608 · x 0 / y 718</small></div>
+  <div class="slot game">FORTNITE ICI<small>capture de jeu 4:3 · 1080 × 810 · x 0 / y 718</small></div>
 
   <div class="cam" id="cam">
     <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -255,7 +264,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 
   <div class="pola"><div class="ph"><img id="pimg" src="../img/hero.jpg" alt=""></div><p id="pcap">LA POLO 💀</p><small id="psub">cascades IRL · YouTube @WALD_OFF</small></div>
 
-  <video id="reel" src="media/polo_reelle.webm" muted playsinline preload="auto" style="position:absolute;left:200px;top:415px;width:619px;height:1100px;display:none;pointer-events:none;filter:drop-shadow(0 18px 18px rgba(0,0,0,.6))"></video>
+  <video id="reel" src="media/polo_reelle.webm" muted playsinline preload="auto" style="position:absolute;left:200px;top:515px;width:619px;height:1100px;display:none;pointer-events:none;filter:drop-shadow(0 18px 18px rgba(0,0,0,.6))"></video>
   <canvas id="fx" width="1080" height="1920"></canvas>
   <svg class="polo" id="polo" viewBox="0 0 220 100" aria-hidden="true">
     <path d="M176 47 L176 12 Q176 4 168 4 L161 4" fill="none" stroke="#cfd3dc" stroke-width="5" stroke-linecap="round"/>
@@ -292,7 +301,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     { min: 100,  txt: 'GROS DRIFT AVEC LA POLO',                menu: 'Gros drift avec la Polo 🚗💨',    sec: 10,  big: 1, reel: 1 },
     { min: 200,  txt: 'TU CHOISIS OÙ J\'ATTERRIS',              menu: 'Tu choisis où j\'atterris 🪂',     sec: 0,   max: 1800, tag: 'PARTIE', big: 1 },
     { min: 300,  txt: 'SOURIS MAIN GAUCHE',                     menu: 'Souris main gauche 2 min',        sec: 120, big: 2 },
-    { min: 1000, txt: 'ON JOUE ENSEMBLE JUSQU\'AU TOP 1',        menu: 'On joue ensemble jusqu\'au TOP 1 👑', sec: 0, max: 3600, tag: 'TOP 1', big: 3 }
+    { min: 1000, txt: 'ON JOUE ENSEMBLE JUSQU\'AU TOP 1',        menu: 'TOP 1 ensemble 👑', sec: 0, max: 3600, tag: 'TOP 1', big: 3 }
   ];
   var PHOTOS = [
     { src: '../img/hero.jpg',  cap: 'LA POLO 💀', sub: 'cascades IRL · YouTube @WALD_OFF' }
@@ -421,8 +430,8 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
       polo.style.transform = 'translate(' + x + 'px,' + bounce + 'px) rotate(' + tilt + 'deg)';
       var rot = 'rotate(' + (x * 1.6) + 'deg)'; w1.style.transformOrigin = '52px 78px'; w2.style.transformOrigin = '170px 78px';
       w1.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 52 78)'); w2.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 170 78)');
-      var s = W / 220, px = x + 161 * s, py = 820 + bounce + 4 * s;
-      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 820 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
+      var s = W / 220, px = x + 161 * s, py = 900 + bounce + 4 * s;
+      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 900 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
       if (power > 1 || Math.random() < .5) flame(px, py);
       if (k < 1) requestAnimationFrame(step);
       else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 980, 1.1 * power); if (power > 1) { boom(540, 900, 1.4); shake(); } }
