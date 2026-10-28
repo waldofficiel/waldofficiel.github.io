@@ -485,7 +485,7 @@ body{font-family:var(--body);color:var(--fg)}
     else if (c === '!reset') setTop(0);
     else if (c === '!ok' || c === '!next' || c === '!fini') { if (cur) stop(); }
   }
-  window.WALD = { gift: gift, command: command, top1: function () { setTop(top1 + 1, true); } };
+  window.WALD = { gift: gift, command: command, top1: function () { setTop(top1 + 1, true); }, superFan: function (u) { superFan(u || '@super_pote'); } };
 
   /* ---------- Connexion TikFinity (appli Windows, Event API) ---------- */
   var WS = q.get('ws') || 'ws://localhost:21213/', seen = {};
