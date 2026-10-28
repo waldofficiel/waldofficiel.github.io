@@ -242,7 +242,7 @@ body{font-family:var(--body);color:var(--fg)}
   var top1 = parseInt(q.get('top1') || store('wo_top1') || '0', 10) || 0;
   function setTop(n, fx) {
     top1 = Math.max(0, n); $('topn').textContent = top1; store('wo_top1', String(top1));
-    if (fx) { var t = $('top1'); t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop'); boom(930, 140, 1.3); boom(760, 300, .8); }
+    if (fx) { SFX.top1(); var t = $('top1'); t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop'); boom(930, 140, 1.3); boom(760, 300, .8); }
   }
   setTop(top1);
 
@@ -253,6 +253,33 @@ body{font-family:var(--body);color:var(--fg)}
     img.classList.remove('in'); void img.offsetWidth; img.src = p.src; img.classList.add('in');
     $('pcap').textContent = p.cap; $('psub').textContent = p.sub;
   }, 7000);
+
+
+  /* ---------- Effets sonores (générés, aucun fichier) : ?mute pour couper, ?vol=0.5 pour régler ---------- */
+  var AC = null, VOL = q.has('mute') ? 0 : parseFloat(q.get('vol') || '0.6');
+  function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) {} return AC; }
+  function tone(type, f0, f1, t0, dur, g) {
+    var c = ac(); if (!c || !VOL) return; var o = c.createOscillator(), v = c.createGain(), t = c.currentTime + t0;
+    o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    v.gain.setValueAtTime(0.0001, t); v.gain.exponentialRampToValueAtTime(g * VOL, t + 0.02); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(v); v.connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function noise(t0, dur, g, cut) {
+    var c = ac(); if (!c || !VOL) return; var n = Math.floor(c.sampleRate * dur), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+    var src = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(), t = c.currentTime + t0;
+    src.buffer = b; f.type = 'lowpass'; f.frequency.value = cut || 900; v.gain.value = g * VOL;
+    src.connect(f); f.connect(v); v.connect(c.destination); src.start(t);
+  }
+  var SFX = {
+    coin:   function () { tone('square', 988, 0, 0, .09, .12); tone('square', 1319, 0, .08, .25, .12); },
+    defi:   function () { for (var i = 0; i < 3; i++) { tone('sawtooth', 600, 1200, i * .28, .26, .10); } },
+    boom:   function () { noise(0, 1.1, .9, 700); tone('sine', 120, 35, 0, .8, .5); },
+    moteur: function () { tone('sawtooth', 55, 140, 0, 1.2, .14); tone('sawtooth', 140, 70, 1.2, 1.2, .12); noise(.1, 2.2, .12, 300); },
+    klaxon: function () { [349, 440, 523].forEach(function (f) { tone('sawtooth', f, 0, 0, .35, .07); tone('sawtooth', f, 0, .45, .7, .07); }); },
+    top1:   function () { [523, 659, 784, 1047].forEach(function (f, i) { tone('triangle', f, 0, i * .12, .3, .16); }); }
+  };
+  addEventListener('pointerdown', ac); addEventListener('keydown', ac);
 
   /* ---------- Particules ---------- */
   var cv = $('fx'), cx = cv.getContext('2d'), P = [];
@@ -336,7 +363,7 @@ body{font-family:var(--body);color:var(--fg)}
     setTxt('⚠ ' + d.txt);
     $('who').textContent = 'offert par ' + item.user + (item.gift ? ' · ' + item.gift : ''); $('who').classList.add('on');
     lit(item.tier); updQ();
-    if (d.big) { poloRun(d.big); bigText(item.user, d); } else boom(540, 692, .9);
+    if (d.big) { poloRun(d.big); bigText(item.user, d); SFX.boom(); SFX.moteur(); } else { boom(540, 692, .9); SFX.defi(); }
   }
   function stop() {
     cur = null; $('banner').classList.remove('on'); $('cam').classList.remove('hot'); $('who').classList.remove('on');
@@ -353,12 +380,18 @@ body{font-family:var(--body);color:var(--fg)}
   }, 250);
 
   function flashRow(i) { var r = $('row' + i); r.classList.add('lit'); setTimeout(function () { if (!cur || cur.tier !== i) r.classList.remove('lit'); }, 4000); }
+  function superFan(user) {
+    toast('⭐ <b>' + esc(user) + '</b> devient SUPER FAN → JE CRIE « WALD OFF ! »');
+    var b = $('big'); $('bigt1').textContent = 'NOUVEAU SUPER FAN !'; $('bigt2').textContent = user + ' → JE CRIE « WALD OFF ! »';
+    shrink($('bigt1'), 1000, 92); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+    boom(300, 900, 1.3); boom(780, 900, 1.3); shake(); SFX.klaxon(); SFX.boom();
+  }
   function tierFor(coins) { var t = 0; DEFIS.forEach(function (d, i) { if (coins >= d.min) t = i; }); return t; }
   function gift(user, giftName, coins, count) {
     var tier = tierFor(coins), d = DEFIS[tier];
     toast('🎁 <b>' + esc(user) + '</b> · ' + esc(giftName || 'cadeau') + (count > 1 ? ' ×' + count : '') + ' → ' + esc(d.txt));
     var item = { tier: tier, user: user, gift: (giftName || '') + (count > 1 ? ' ×' + count : '') };
-    if (d.quick) { flashRow(tier); boom(rnd(250, 830), 692, .6); return; }   // petits cadeaux : juste le message, pas de bandeau
+    if (d.quick) { flashRow(tier); boom(rnd(250, 830), 692, .6); SFX.coin(); return; }   // petits cadeaux : juste le message, pas de bandeau
     if (!cur) start(item); else { queue.push(item); updQ(); boom(rnd(200, 880), 692, .5); }
   }
   function command(txt) {
@@ -386,6 +419,8 @@ body{font-family:var(--body);color:var(--fg)}
         var key = (d.msgId || '') + user + d.giftId + d.repeatCount; if (seen[key]) return; seen[key] = 1;
         var n = Math.max(1, d.repeatCount || 1), coins = (d.diamondCount || d.diamonds || 1) * n;
         gift(user, d.giftName, coins, n);
+      } else if (ev === 'subscribe' || ev === 'superfan' || ev === 'member_subscribe') {
+        superFan(user);
       } else if (ev === 'chat' && d.comment) {
         var u = String(d.uniqueId || (d.user && d.user.uniqueId) || '').toLowerCase();
         if (u === HOST || d.isModerator) command(d.comment);
@@ -400,6 +435,7 @@ body{font-family:var(--body);color:var(--fg)}
   addEventListener('keydown', function (e) {
     var k = e.key.toLowerCase();
     if (k >= '1' && k <= '8') { var x = DEMO[+k - 1]; gift(x[0], x[1], x[2], x[3]); }
+    else if (k === 's') superFan('@super_pote');
     else if (k === 't') setTop(top1 + 1, true); else if (k === 'n' && cur) stop();
   });
   idle();
