@@ -75,7 +75,8 @@ h2 em{font-style:normal;color:var(--hazard)}
 .photo{position:relative;margin:0 0 6px;border-radius:20px;overflow:hidden;border:2px solid var(--line);aspect-ratio:4/5;max-width:100%;box-shadow:8px 8px 0 var(--live)}
 .photo img{width:100%;height:100%;object-fit:cover;object-position:50% 40%;display:block}
 .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(to top, rgba(10,13,31,.92) 0%, rgba(10,13,31,.2) 38%, transparent 60%)}
-.photo .tape{position:absolute;top:14px;left:14px;z-index:2}
+.photo .tape{position:absolute;top:14px;left:14px;right:14px;z-index:2;text-align:center;white-space:nowrap;overflow:hidden;font-size:clamp(9px,2.6vw,13px);letter-spacing:.04em;padding:6px 8px}
+.photo .tape span{display:inline-block}
 .photo h1{position:absolute;left:16px;bottom:12px;z-index:2}
 .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .gallery img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:2px solid var(--line);display:block}
