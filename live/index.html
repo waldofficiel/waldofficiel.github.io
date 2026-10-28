@@ -192,6 +192,7 @@ body{font-family:var(--body);color:var(--fg)}
   <div class="dbg" id="dbg">ws…</div>
 </div>
 
+<script src="three.min.js"></script>
 <script>
 (function () {
   /* =====================  RÉGLAGES (à modifier ici)  ===================== */
@@ -202,7 +203,7 @@ body{font-family:var(--body);color:var(--fg)}
     { min: 10,   txt: 'JE CRIE « SORTEZ LA POLO ! »',            menu: 'Je crie « SORTEZ LA POLO ! »',    sec: 8 },
     { min: 30,   txt: 'VOIX DE COMMENTATEUR DE FOOT',           menu: 'Voix de commentateur foot',       sec: 120 },
     { min: 50,   txt: 'SANS VISER JUSQU\'AU PROCHAIN KILL',     menu: 'Sans viser → prochain kill',      sec: 0,   max: 240, tag: 'KILL' },
-    { min: 100,  txt: 'SOURIS MAIN GAUCHE',                     menu: 'Souris main gauche 2 min',        sec: 120, big: 1 },
+    { min: 100,  txt: 'SOURIS MAIN GAUCHE',                     menu: 'Souris main gauche 2 min',        sec: 120, big: 1, drift: 1 },
     { min: 300,  txt: 'TU CHOISIS OÙ J\'ATTERRIS',              menu: 'Tu choisis où j\'atterris 🪂',     sec: 0,   max: 1800, tag: 'PARTIE', big: 2 },
     { min: 1000, txt: 'ON JOUE ENSEMBLE JUSQU\'AU TOP 1',        menu: 'On joue ensemble jusqu\'au TOP 1 👑', sec: 0, max: 3600, tag: 'TOP 1', big: 3 }
   ];
@@ -339,6 +340,77 @@ body{font-family:var(--body);color:var(--fg)}
       else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 980, 1.1 * power); if (power > 1) { boom(540, 900, 1.4); shake(); } }
     })(t0);
   }
+
+  /* ---------- 100 pièces : la Polo en 3D fait un dérapage autour de ta tête ---------- */
+  var D3 = null;
+  function d3init() {
+    if (D3 || !window.THREE) return D3;
+    var T = THREE, cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1920;
+    cv.style.cssText = 'position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;display:none';
+    stage.insertBefore(cv, $('fx'));
+    var r = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true }); r.setPixelRatio(1); r.setSize(1080, 1920, false); r.setClearColor(0, 0);
+    var sc = new T.Scene(), cam = new T.OrthographicCamera(0, 1080, 0, -1920, -2000, 2000); cam.position.z = 1000;
+    sc.add(new T.AmbientLight(0xffffff, .65)); var dl = new T.DirectionalLight(0xffffff, .9); dl.position.set(-300, 400, 800); sc.add(dl);
+    var pt = new T.PointLight(0x3de0ff, .6, 900); pt.position.set(0, 0, 300); sc.add(pt);
+    function M(c, o) { o = o || {}; return new T.MeshStandardMaterial({ color: c, metalness: o.m || .25, roughness: o.r == null ? .6 : o.r }); }
+    function box(w, h, d, m, x, y, z) { var b = new T.Mesh(new T.BoxGeometry(w, h, d), m); b.position.set(x || 0, y || 0, z || 0); return b; }
+    var car = new T.Group(), body = new T.Group(); car.add(body);
+    var navy = M(0x1f2a5c, { m: .45, r: .35 }), mud = M(0x6b5236, { r: .9 }), seat = M(0x2d4fd8, { r: .7 }), dark = M(0x141c40), chrome = M(0xd8dde6, { m: 1, r: .15 });
+    body.add(box(250, 112, 34, navy, 0, 0, 0));                 // caisse
+    body.add(box(254, 116, 12, mud, 0, 0, -16));                // boue en bas
+    body.add(box(70, 104, 10, navy, 80, 0, 22));                // capot
+    body.add(box(60, 104, 8, navy, -95, 0, 21));                // coffre
+    body.add(box(110, 96, 6, dark, -10, 0, 18));                // habitacle
+    body.add(box(26, 38, 30, seat, 10, 24, 30)); body.add(box(26, 38, 30, seat, 10, -24, 30)); body.add(box(22, 84, 22, seat, -42, 0, 28));
+    var ws = box(6, 104, 34, new T.MeshStandardMaterial({ color: 0xa0d2ff, transparent: true, opacity: .35, metalness: .2, roughness: .1 }), 46, 0, 38); ws.rotation.y = -.5; body.add(ws);
+    var pipe = new T.Mesh(new T.CylinderGeometry(5, 5, 70, 12), chrome); pipe.rotation.x = Math.PI / 2; pipe.position.set(78, 30, 60); body.add(pipe);
+    var can = new T.Mesh(new T.CylinderGeometry(9, 9, 22, 14), M(0xaab0bb, { m: .9, r: .3 })); can.rotation.x = Math.PI / 2; can.position.set(78, 30, 102); body.add(can);
+    body.add(box(6, 22, 10, M(0xfff4c2, { r: .2 }), 127, 34, 4)); body.add(box(6, 22, 10, M(0xfff4c2, { r: .2 }), 127, -34, 4));
+    body.add(box(5, 18, 8, M(0xff3b5c, { r: .3 }), -127, 36, 4)); body.add(box(5, 18, 8, M(0xff3b5c, { r: .3 }), -127, -36, 4));
+    var wheels = [];
+    [[78, 60], [78, -60], [-80, 60], [-80, -60]].forEach(function (w) {
+      var g = new T.Group(), t = new T.Mesh(new T.CylinderGeometry(24, 24, 18, 18), M(0x0d0d12, { r: .9 })), h = new T.Mesh(new T.CylinderGeometry(13, 13, 19, 12), M(0x8a8f99, { m: .8, r: .3 }));
+      g.add(t); g.add(h); g.position.set(w[0], w[1], -14); body.add(g); wheels.push(g);
+    });
+    body.rotation.x = -.55;                                      // on voit le dessus ET le côté : effet 3D
+    car.scale.set(1.7, 1.7, 1.7);
+    sc.add(car);
+    D3 = { T: T, r: r, sc: sc, cam: cam, cv: cv, car: car, body: body, wheels: wheels, busy: false };
+    return D3;
+  }
+  function poloDrift() {
+    var d = d3init(); if (!d) return poloRun(1);
+    if (d.busy) return; d.busy = true; d.cv.style.display = 'block';
+    var cx0 = 540, cy0 = 400, rx = 430, ry = 300, t0 = performance.now(), dur = 4200, lastP = null;
+    function pos(k) {                                            // k 0..1 -> point écran
+      if (k < .14) { var a = k / .14; return [-260 + (cx0 - rx + 260) * a, 820 + (cy0 - 820) * a]; }
+      if (k < .86) { var u = (k - .14) / .72, th = Math.PI + u * 3 * Math.PI; return [cx0 + rx * Math.cos(th), cy0 + ry * Math.sin(th)]; }
+      var b = (k - .86) / .14; return [cx0 + rx + (1400 - cx0 - rx) * b, cy0 + (760 - cy0) * b];
+    }
+    boom(80, 820, 1.2); shake(); SFX.boom(); SFX.moteur(); setTimeout(SFX.moteur, 1300);
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur), p = pos(k), q = pos(Math.min(1, k + .01));
+      var head = Math.atan2(q[1] - p[1], q[0] - p[0]);
+      var drift = (k > .14 && k < .86) ? .65 : (k <= .14 ? .65 * (k / .14) : .65 * (1 - (k - .86) / .14));
+      var toC = Math.atan2(cy0 - p[1], cx0 - p[0]), side = Math.sin(toC - head) > 0 ? 1 : -1;
+      var ang = head + side * drift;
+      d.car.position.set(p[0], -p[1], 0); d.car.rotation.z = -ang;
+      d.body.rotation.y = Math.sin(now / 70) * .03;              // la caisse vibre
+      d.wheels.forEach(function (w) { w.rotation.y += .5; });
+      d.r.render(d.sc, d.cam);
+      var fx = Math.cos(ang), fy = Math.sin(ang);                // fumée des pneus arrière + flammes du pot
+      if (lastP && Math.random() < .5) {
+        smoke(p[0] - fx * 150 - fy * 95, p[1] - fy * 150 + fx * 95, 1, { vx: -fx * 1.5, vy: -fy * 1.5 - .4, s: .8, c: 215 });
+        smoke(p[0] - fx * 150 + fy * 95, p[1] - fy * 150 - fx * 95, 1, { vx: -fx * 1.5, vy: -fy * 1.5 - .4, s: .8, c: 215 });
+      }
+      if (lastP && Math.random() < .6) {
+        flame(p[0] + fx * 130, p[1] + fy * 130 - 100);
+      }
+      lastP = p;
+      if (k < 1) requestAnimationFrame(step);
+      else { d.busy = false; d.r.clear(); d.cv.style.display = 'none'; boom(1000, 760, 1.2); shake(); }
+    })(t0);
+  }
   function bigText(user, d) {
     var b = $('big'); $('bigt1').textContent = 'MERCI ' + user + ' !'; $('bigt2').textContent = d.txt;
     shrink($('bigt1'), 1000, 92);
@@ -366,7 +438,8 @@ body{font-family:var(--body);color:var(--fg)}
     setTxt('⚠ ' + d.txt);
     $('who').textContent = 'offert par ' + item.user + (item.gift ? ' · ' + item.gift : ''); $('who').classList.add('on');
     lit(item.tier); updQ();
-    if (d.big) { poloRun(d.big); bigText(item.user, d); SFX.boom(); SFX.moteur(); } else { boom(540, 692, .9); SFX.defi(); }
+    if (d.drift) { poloDrift(); bigText(item.user, d); }
+    else if (d.big) { poloRun(d.big); bigText(item.user, d); SFX.boom(); SFX.moteur(); } else { boom(540, 692, .9); SFX.defi(); }
     if (d.voix) voix(d.voix);
   }
   function stop() {
