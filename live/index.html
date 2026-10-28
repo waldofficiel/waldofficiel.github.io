@@ -27,12 +27,12 @@ body{font-family:var(--body);color:var(--fg)}
 .guide #stage{background:#05060f}
 .slot{position:absolute;display:none;place-items:center;font-family:var(--display);font-size:46px;color:rgba(255,255,255,.35);text-align:center}
 .guide .slot{display:grid}
-.slot.cam{left:40px;top:150px;width:1000px;height:563px;background:linear-gradient(135deg,#1b2350,#0e1330)}
-.slot.game{left:0;top:828px;width:1080px;height:608px;background:linear-gradient(160deg,#1d6b8f,#3d9a5a 55%,#8a6a3a)}
+.slot.cam{left:40px;top:150px;width:1000px;height:480px;background:linear-gradient(135deg,#1b2350,#0e1330)}
+.slot.game{left:0;top:748px;width:1080px;height:608px;background:linear-gradient(160deg,#1d6b8f,#3d9a5a 55%,#8a6a3a)}
 .slot small{display:block;font-family:var(--body);font-size:26px;letter-spacing:.04em}
 
 /* ---------- CADRE CAMÉRA ---------- */
-.cam{position:absolute;left:40px;top:150px;width:1000px;height:563px;border-radius:30px;
+.cam{position:absolute;left:40px;top:150px;width:1000px;height:480px;border-radius:30px;
   border:6px solid var(--cyan);box-sizing:border-box;
   box-shadow:0 0 18px var(--cyan),0 0 54px rgba(61,224,255,.45),inset 0 0 26px rgba(61,224,255,.45);
   animation:glow 2.4s ease-in-out infinite}
@@ -63,7 +63,7 @@ body{font-family:var(--body);color:var(--fg)}
 @keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.45) rotate(-6deg)}100%{transform:scale(1)}}
 
 /* Toasts cadeaux */
-.toasts{position:absolute;left:0;right:0;top:600px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toasts{position:absolute;left:0;right:0;top:520px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
 .toast{font-weight:700;font-size:30px;padding:8px 22px;border-radius:14px;background:rgba(10,13,31,.88);border:3px solid var(--cyan);
   box-shadow:0 0 18px rgba(61,224,255,.55);white-space:nowrap;max-width:960px;overflow:hidden;text-overflow:ellipsis;
   animation:tin .35s cubic-bezier(.2,1.4,.4,1) both}
@@ -73,7 +73,7 @@ body{font-family:var(--body);color:var(--fg)}
 @keyframes tout{to{transform:translateY(-20px);opacity:0}}
 
 /* ---------- BANDEAU DÉFI ---------- */
-.banner{position:absolute;left:0;top:726px;width:1080px;height:92px;overflow:hidden;
+.banner{position:absolute;left:0;top:646px;width:1080px;height:92px;overflow:hidden;
   background:repeating-linear-gradient(-45deg,var(--hazard) 0 26px,#111 26px 52px);background-size:200% 100%;
   box-shadow:0 6px 0 rgba(0,0,0,.5);animation:roll 6s linear infinite}
 @keyframes roll{to{background-position:-147px 0}}
@@ -89,12 +89,12 @@ body{font-family:var(--body);color:var(--fg)}
 .banner.on .lab{border-color:var(--live);box-shadow:0 0 24px rgba(255,59,92,.8)}
 .banner.on .txt{color:#fff;text-shadow:0 0 14px var(--live),2px 2px 0 var(--live)}
 .banner.on .tm,.banner.on .q.has{display:block}
-.who{position:absolute;left:50%;top:826px;transform:translateX(-50%);font-weight:700;font-size:24px;padding:4px 16px;border-radius:0 0 12px 12px;
+.who{position:absolute;left:50%;top:746px;transform:translateX(-50%);font-weight:700;font-size:24px;padding:4px 16px;border-radius:0 0 12px 12px;
   background:var(--live);color:#fff;white-space:nowrap;opacity:0;transition:opacity .3s}
 .who.on{opacity:1}
 
 /* ---------- ZONE JEU ---------- */
-.game{position:absolute;left:0;top:828px;width:1080px;height:608px;box-sizing:border-box;
+.game{position:absolute;left:0;top:748px;width:1080px;height:608px;box-sizing:border-box;
   border-top:4px solid var(--cyan);border-bottom:4px solid var(--cyan);
   box-shadow:0 -6px 22px rgba(61,224,255,.35),0 6px 22px rgba(61,224,255,.35)}
 .game::before,.game::after{content:"";position:absolute;width:120px;height:14px;background:var(--hazard);box-shadow:0 0 14px rgba(255,214,10,.8)}
@@ -102,7 +102,7 @@ body{font-family:var(--body);color:var(--fg)}
 .game::after{right:0;bottom:-9px}
 
 /* ---------- MENU DES DÉFIS ---------- */
-.menu{position:absolute;left:30px;top:1456px;width:680px;padding:14px 20px 12px;box-sizing:border-box;border-radius:22px;
+.menu{position:absolute;left:30px;top:1396px;width:680px;padding:14px 20px 12px;box-sizing:border-box;border-radius:22px;
   background:linear-gradient(170deg,rgba(18,23,53,.94),rgba(10,13,31,.94));border:3px solid var(--hazard);box-shadow:8px 8px 0 var(--live)}
 .menu h2{margin:0 0 10px;font-family:var(--display);font-weight:400;font-size:38px;line-height:1;color:var(--fg);text-shadow:3px 3px 0 var(--live)}
 .menu h2 em{font-style:normal;color:var(--hazard)}
@@ -115,7 +115,7 @@ body{font-family:var(--body);color:var(--fg)}
 .row.lit .coin{color:#fff}
 
 /* ---------- PHOTOS ---------- */
-.pola{position:absolute;left:744px;top:1470px;width:300px;padding:12px 12px 14px;box-sizing:border-box;background:#f4f1e8;border-radius:6px;
+.pola{position:absolute;left:744px;top:1410px;width:300px;padding:12px 12px 14px;box-sizing:border-box;background:#f4f1e8;border-radius:6px;
   transform:rotate(3deg);box-shadow:0 0 0 3px var(--cyan),0 0 28px rgba(61,224,255,.55),10px 10px 0 rgba(0,0,0,.45)}
 .pola::before{content:"";position:absolute;left:50%;top:-16px;width:120px;height:32px;transform:translateX(-50%) rotate(-4deg);
   background:repeating-linear-gradient(-45deg,var(--hazard) 0 10px,#111 10px 20px);opacity:.92}
@@ -128,8 +128,8 @@ body{font-family:var(--body);color:var(--fg)}
 
 /* ---------- GROS CADEAU : Polo + texte chromé ---------- */
 #fx{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
-.polo{position:absolute;left:0;top:930px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
-.big{position:absolute;left:40px;right:40px;top:1050px;text-align:center;pointer-events:none;opacity:0}
+.polo{position:absolute;left:0;top:850px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
+.big{position:absolute;left:40px;right:40px;top:970px;text-align:center;pointer-events:none;opacity:0}
 .big .t1{font-family:var(--display);font-size:92px;line-height:.95;
   background:linear-gradient(180deg,#ffffff 0%,#c9d2e6 38%,#6c7894 52%,#e9eefa 64%,#9aa6c2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 10px rgba(61,224,255,.95)) drop-shadow(0 0 28px rgba(255,59,92,.8)) drop-shadow(4px 4px 0 #0a0d1f)}
@@ -144,8 +144,8 @@ body{font-family:var(--body);color:var(--fg)}
 </head>
 <body>
 <div id="stage">
-  <div class="slot cam">TA CAMÉRA ICI<small>DroidCam · 1000 × 563 · x 40 / y 150</small></div>
-  <div class="slot game">FORTNITE ICI<small>capture de jeu · 1080 × 608 · x 0 / y 828</small></div>
+  <div class="slot cam">TA CAMÉRA ICI<small>DroidCam · 1000 × 480 · x 40 / y 150</small></div>
+  <div class="slot game">FORTNITE ICI<small>capture de jeu · 1080 × 608 · x 0 / y 748</small></div>
 
   <div class="cam" id="cam">
     <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
@@ -295,18 +295,18 @@ body{font-family:var(--body);color:var(--fg)}
   function poloRun(power) {
     if (driving) return; driving = true;
     var t0 = performance.now(), dur = 2600, W = 560, from = -W - 40, to = 1080 + 60;
-    boom(120, 1060, 1.2 * power); shake();
+    boom(120, 980, 1.2 * power); shake();
     (function step(now) {
       var k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
       var x = from + (to - from) * e, bounce = Math.sin(now / 40) * 6, tilt = Math.sin(now / 90) * 2.5;
       polo.style.transform = 'translate(' + x + 'px,' + bounce + 'px) rotate(' + tilt + 'deg)';
       var rot = 'rotate(' + (x * 1.6) + 'deg)'; w1.style.transformOrigin = '52px 78px'; w2.style.transformOrigin = '170px 78px';
       w1.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 52 78)'); w2.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 170 78)');
-      var s = W / 220, px = x + 161 * s, py = 930 + bounce + 4 * s;
-      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 930 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
+      var s = W / 220, px = x + 161 * s, py = 850 + bounce + 4 * s;
+      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 850 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
       if (power > 1 || Math.random() < .5) flame(px, py);
       if (k < 1) requestAnimationFrame(step);
-      else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 1060, 1.1 * power); if (power > 1) { boom(540, 980, 1.4); shake(); } }
+      else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 980, 1.1 * power); if (power > 1) { boom(540, 900, 1.4); shake(); } }
     })(t0);
   }
   function bigText(user, d) {
@@ -336,7 +336,7 @@ body{font-family:var(--body);color:var(--fg)}
     setTxt('⚠ ' + d.txt);
     $('who').textContent = 'offert par ' + item.user + (item.gift ? ' · ' + item.gift : ''); $('who').classList.add('on');
     lit(item.tier); updQ();
-    if (d.big) { poloRun(d.big); bigText(item.user, d); } else boom(540, 772, .9);
+    if (d.big) { poloRun(d.big); bigText(item.user, d); } else boom(540, 692, .9);
   }
   function stop() {
     cur = null; $('banner').classList.remove('on'); $('cam').classList.remove('hot'); $('who').classList.remove('on');
@@ -357,7 +357,7 @@ body{font-family:var(--body);color:var(--fg)}
     var tier = tierFor(coins), d = DEFIS[tier];
     toast('🎁 <b>' + esc(user) + '</b> · ' + esc(giftName || 'cadeau') + (count > 1 ? ' ×' + count : '') + ' → ' + esc(d.txt));
     var item = { tier: tier, user: user, gift: (giftName || '') + (count > 1 ? ' ×' + count : '') };
-    if (!cur) start(item); else { queue.push(item); updQ(); boom(rnd(200, 880), 772, .5); }
+    if (!cur) start(item); else { queue.push(item); updQ(); boom(rnd(200, 880), 692, .5); }
   }
   function command(txt) {
     var c = txt.trim().toLowerCase();
