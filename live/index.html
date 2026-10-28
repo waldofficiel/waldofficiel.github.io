@@ -140,16 +140,101 @@ body{font-family:var(--body);color:var(--fg)}
 
 .dbg{position:absolute;left:12px;bottom:12px;font:600 20px/1.2 var(--body);background:rgba(0,0,0,.7);padding:6px 10px;border-radius:8px;display:none}
 .debug .dbg{display:block}
+
+/* ===================== THÈME 80's (synthwave) — par défaut. ?theme=classic pour l'ancien look ===================== */
+body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#ff5e7e;--sun3:#ff8a3d;--night:#12052b}
+.t80 .chrome{background:linear-gradient(180deg,#ffffff 0%,#ffe1fb 30%,#b98cff 50%,#3a1a6b 52%,#ff8ad8 70%,#ffffff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 6px rgba(255,43,214,.9)) drop-shadow(0 0 18px rgba(45,226,255,.55)) drop-shadow(3px 3px 0 #12052b)}
+/* cadre caméra : néon dégradé rose → violet → cyan */
+.t80 .cam{border:0;border-radius:34px;background:none;
+  box-shadow:0 0 22px rgba(255,43,214,.75),0 0 60px rgba(155,77,255,.45),0 0 26px rgba(45,226,255,.5) inset;animation:glow80 3s ease-in-out infinite}
+@keyframes glow80{50%{box-shadow:0 0 30px rgba(45,226,255,.85),0 0 80px rgba(255,43,214,.5),0 0 34px rgba(255,43,214,.45) inset}}
+.t80 .cam::before{content:"";position:absolute;inset:0;border-radius:34px;padding:7px;background:linear-gradient(120deg,var(--pink),var(--violet) 45%,var(--cyan));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none}
+.t80 .cam.hot::before{background:linear-gradient(120deg,var(--sun1),var(--sun3),var(--pink))}
+.t80 .cam.hot{animation:hot80 .4s steps(2) infinite}
+@keyframes hot80{50%{box-shadow:0 0 40px var(--sun3),0 0 90px var(--pink),0 0 40px rgba(255,210,63,.6) inset}}
+.t80 .corner{display:none}
+.t80 .tag{top:-52px;left:40px;transform:none;background:none;box-shadow:none;padding:0;font-size:58px;letter-spacing:.02em}
+.t80 .tag span{background:none;padding:0;gap:14px}
+.t80 .tag i{width:16px;height:16px;background:var(--pink);box-shadow:0 0 14px var(--pink)}
+.t80 .top1{top:-50px;border:3px solid var(--pink);background:linear-gradient(180deg,rgba(43,10,80,.92),rgba(18,5,43,.92));box-shadow:0 0 22px rgba(255,43,214,.7),0 0 0 2px rgba(45,226,255,.35) inset}
+.t80 .top1 .lbl{color:#ffb3f0}
+.t80 .top1 .num{color:var(--sun1);text-shadow:0 0 14px rgba(255,138,61,.9),3px 3px 0 var(--pink)}
+/* palmiers autour de la cam */
+.palm{position:absolute;pointer-events:none;display:none;filter:drop-shadow(0 0 6px rgba(255,43,214,.85)) drop-shadow(0 0 16px rgba(155,77,255,.6))}
+.t80 .palm{display:block}
+.palm.l{left:-46px;bottom:-34px;width:190px;height:260px}
+.palm.r{right:-46px;bottom:-34px;width:190px;height:260px;transform:scaleX(-1)}
+.sun{position:absolute;display:none;pointer-events:none}
+/* bandeau : bande violette avec lignes néon */
+.t80 .banner{background:linear-gradient(90deg,#1a0636,#4b137a 30%,#7a1fa8 50%,#4b137a 70%,#1a0636);background-size:100% 100%;animation:none;
+  box-shadow:0 -3px 0 var(--pink),0 3px 0 var(--cyan),0 0 26px rgba(255,43,214,.5)}
+.t80 .banner::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);background-size:300% 100%;animation:sweep 4s linear infinite}
+@keyframes sweep{from{background-position:150% 0}to{background-position:-150% 0}}
+.t80 .banner .lab{background:none;border:0;box-shadow:none}
+.t80 .banner .txt{color:var(--sun1);text-shadow:0 0 10px rgba(255,138,61,.9),0 0 22px rgba(255,43,214,.7),3px 3px 0 #12052b}
+.t80 .banner .tm{background:var(--cyan);color:#12052b;box-shadow:0 0 14px var(--cyan)}
+.t80 .banner .bar{background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.t80 .banner.on{background:linear-gradient(90deg,#ff2bd6,#ff5e7e 40%,#ff8a3d 60%,#ff2bd6);background-size:200% 100%;animation:roll80 1.4s linear infinite}
+@keyframes roll80{to{background-position:-200% 0}}
+.t80 .banner.on .txt{color:#fff;text-shadow:0 0 10px rgba(18,5,43,.9),3px 3px 0 #12052b}
+.t80 .who{background:var(--pink);box-shadow:0 0 14px var(--pink)}
+/* zone jeu : fines lignes néon */
+.t80 .game{border-top:4px solid var(--cyan);border-bottom:4px solid var(--pink);box-shadow:0 -6px 22px rgba(45,226,255,.45),0 6px 22px rgba(255,43,214,.45)}
+.t80 .game::before,.t80 .game::after{background:linear-gradient(90deg,var(--pink),var(--sun3));box-shadow:0 0 14px var(--pink)}
+/* décor du bas : coucher de soleil rétro, soleil rayé, sol quadrillé, palmiers */
+.scene{position:absolute;left:0;top:1330px;width:1080px;height:590px;display:none;overflow:hidden;pointer-events:none}
+.t80 .scene{display:block}
+.scene .sky{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,5,43,0) 0%,rgba(43,10,80,.85) 25%,#5a1580 55%,#b0247f 78%,#ff5e7e 100%)}
+.scene .sun{display:block;left:50%;top:40px;width:420px;height:420px;margin-left:-210px;border-radius:50%;
+  background:linear-gradient(180deg,var(--sun1),var(--sun3) 55%,var(--pink));
+  -webkit-mask:repeating-linear-gradient(180deg,#000 0 26px,transparent 26px 34px);mask:repeating-linear-gradient(180deg,#000 0 26px,transparent 26px 34px);
+  box-shadow:0 0 60px rgba(255,138,61,.8);filter:drop-shadow(0 0 30px rgba(255,94,126,.8))}
+.scene .grid{position:absolute;left:-40%;right:-40%;bottom:-10px;height:200px;transform:perspective(260px) rotateX(62deg);transform-origin:bottom;
+  background:linear-gradient(transparent 0 95%,rgba(45,226,255,.9) 95%) 0 0/100% 34px,linear-gradient(90deg,transparent 0 96%,rgba(255,43,214,.9) 96%) 0 0/54px 100%;
+  animation:grid80 1.6s linear infinite;opacity:.85}
+@keyframes grid80{to{background-position:0 34px,0 0}}
+.scene .palm{display:block;bottom:-6px;width:260px;height:380px}
+.scene .palm.l{left:-70px}.scene .palm.r{right:-70px}
+/* menu des défis : verre sombre + néon */
+.t80 .menu{background:linear-gradient(170deg,rgba(43,10,80,.82),rgba(18,5,43,.86));border:3px solid var(--pink);box-shadow:0 0 26px rgba(255,43,214,.6),7px 7px 0 rgba(45,226,255,.75);backdrop-filter:blur(4px)}
+.t80 .menu h2{font-size:40px}
+.t80 .menu h2 em{color:inherit}
+.t80 .coin{color:var(--sun1)}
+.t80 .coin i{background:radial-gradient(circle at 35% 30%,#fff7c2,var(--sun1) 45%,var(--sun3));box-shadow:0 0 10px rgba(255,138,61,.9)}
+.t80 .row.lit{background:linear-gradient(90deg,var(--pink),var(--sun3));box-shadow:0 0 20px rgba(255,43,214,.8)}
+.t80 .pola{background:#1a0a33;box-shadow:0 0 0 3px var(--cyan),0 0 26px rgba(45,226,255,.6),0 0 0 7px rgba(255,43,214,.7),10px 10px 0 rgba(0,0,0,.4)}
+.t80 .pola::before{background:repeating-linear-gradient(-45deg,var(--pink) 0 10px,var(--cyan) 10px 20px)}
+.t80 .pola p{color:#fff;text-shadow:0 0 10px var(--pink)}
+.t80 .pola small{color:var(--cyan)}
+.t80 .toast{border-color:var(--pink);background:rgba(18,5,43,.9);box-shadow:0 0 18px rgba(255,43,214,.7)}
+.t80 .toast b{color:var(--sun1)}
+.t80 .big .t2{background:linear-gradient(90deg,var(--pink),var(--sun3));color:#fff;text-shadow:2px 2px 0 rgba(18,5,43,.6);box-shadow:0 0 30px rgba(255,43,214,.9),6px 6px 0 var(--cyan)}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="trunk" x1="0" x2="1"><stop offset="0" stop-color="#2a0a4a"/><stop offset="1" stop-color="#140428"/></linearGradient>
+  <symbol id="palmier" viewBox="0 0 200 280">
+    <path d="M96 278 C100 230 104 190 112 150 C118 122 126 102 134 86 L142 90 C132 110 126 132 122 156 C116 196 112 236 110 278 Z" fill="url(#trunk)" stroke="#ff2bd6" stroke-width="2"/>
+    <g fill="#1a0636" stroke="#ff2bd6" stroke-width="2.4" stroke-linejoin="round">
+      <path d="M138 86 C110 60 70 56 30 74 C64 70 96 76 126 96 C100 92 70 100 44 120 C80 104 110 102 136 102 Z"/>
+      <path d="M138 86 C150 52 176 34 200 30 C182 46 168 64 158 86 C176 74 194 72 200 76 C182 82 166 92 150 104 Z"/>
+      <path d="M138 86 C128 50 104 26 74 14 C100 36 116 58 124 80 Z"/>
+      <path d="M138 86 C152 64 160 40 158 10 C150 36 142 58 132 78 Z"/>
+      <path d="M138 88 C150 108 158 132 160 162 C150 138 140 118 128 102 Z"/>
+      <path d="M136 90 C112 106 96 128 88 156 C104 132 120 116 140 104 Z"/>
+    </g>
+    <circle cx="136" cy="94" r="5" fill="#2de2ff"/><circle cx="146" cy="96" r="5" fill="#2de2ff"/>
+  </symbol></defs></svg>
 <div id="stage">
   <div class="slot cam">TA CAMÉRA ICI<small>DroidCam · 1000 × 480 · x 40 / y 120</small></div>
   <div class="slot game">FORTNITE ICI<small>capture de jeu · 1080 × 608 · x 0 / y 718</small></div>
 
   <div class="cam" id="cam">
     <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
-    <div class="tag"><span><i></i>WALD OFF</span></div>
+    <svg class="palm l" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg><svg class="palm r" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg>
+    <div class="tag"><span><i></i><b class="chrome">WALD OFF</b></span></div>
     <div class="top1" id="top1"><span class="crown">👑</span><div><div class="lbl">TOP 1</div><div class="num" id="topn">0</div></div></div>
   </div>
   <div class="toasts" id="toasts"></div>
@@ -162,8 +247,9 @@ body{font-family:var(--body);color:var(--fg)}
 
   <div class="game"></div>
 
+  <div class="scene"><div class="sky"></div><div class="sun"></div><div class="grid"></div><svg class="palm l" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg><svg class="palm r" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg></div>
   <div class="menu">
-    <h2>LES <em>DÉFIS</em> 🎁</h2>
+    <h2><span class="chrome">LES DÉFIS</span> 🎁</h2>
     <div id="rows"></div>
   </div>
 
@@ -215,6 +301,7 @@ body{font-family:var(--body);color:var(--fg)}
 
   var q = new URLSearchParams(location.search);
   if (q.has('guide')) document.body.classList.add('guide');
+  if (q.get('theme') !== 'classic') document.body.classList.add('t80');
   if (q.has('debug')) document.body.classList.add('debug');
   var $ = function (id) { return document.getElementById(id); };
   var stage = $('stage');
