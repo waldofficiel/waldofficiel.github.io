@@ -202,8 +202,8 @@ body{font-family:var(--body);color:var(--fg)}
     { min: 1,    txt: 'JE REMERCIE AVEC CLASSE 🎩',             menu: 'Je remercie avec classe 🎩',      sec: 8, quick: 1 },
     { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8, quick: 1, voix: 'sons/wald_off.mp3' },
     { min: 25,   txt: 'LUNETTES DE SOLEIL 😎',                 menu: 'Lunettes de soleil 2 min 😎',     sec: 120 },
-    { min: 50,   txt: 'JE SORS LA POLO ! 😈',                  menu: 'Je sors la Polo 😈',              sec: 10,  big: 1 },
-    { min: 100,  txt: 'GROS DRIFT AVEC LA POLO',                menu: 'Gros drift avec la Polo 🚗💨',    sec: 10,  big: 1, drift: 1 },
+    { min: 50,   txt: 'JE SORS LA POLO ! 😈',                  menu: 'Je sors la Polo 😈',              sec: 10,  big: 1, drift: 1 },
+    { min: 100,  txt: 'GROS DRIFT AVEC LA POLO',                menu: 'Gros drift avec la Polo 🚗💨',    sec: 10,  big: 1, reel: 1 },
     { min: 200,  txt: 'TU CHOISIS OÙ J\'ATTERRIS',              menu: 'Tu choisis où j\'atterris 🪂',     sec: 0,   max: 1800, tag: 'PARTIE', big: 1 },
     { min: 300,  txt: 'SOURIS MAIN GAUCHE',                     menu: 'Souris main gauche 2 min',        sec: 120, big: 2 },
     { min: 1000, txt: 'ON JOUE ENSEMBLE JUSQU\'AU TOP 1',        menu: 'On joue ensemble jusqu\'au TOP 1 👑', sec: 0, max: 3600, tag: 'TOP 1', big: 3 }
@@ -445,7 +445,8 @@ body{font-family:var(--body);color:var(--fg)}
     setTxt('⚠ ' + d.txt);
     $('who').textContent = 'offert par ' + item.user + (item.gift ? ' · ' + item.gift : ''); $('who').classList.add('on');
     lit(item.tier); updQ();
-    if (d.drift) { voix('sons/polo.mp3'); playReel(function () { poloDrift(); bigText(item.user, d); }); }
+    if (d.reel) { voix('sons/polo.mp3'); playReel(function () { bigText(item.user, d); }); }
+    else if (d.drift) { poloDrift(); bigText(item.user, d); }
     else if (d.big) { poloRun(d.big); bigText(item.user, d); SFX.boom(); SFX.moteur(); } else { boom(540, 692, .9); SFX.defi(); }
     if (d.voix) voix(d.voix);
   }
