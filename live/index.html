@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>WALD OFF Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+/* Habillage live WALD OFF : canevas portrait 1080x1920, fond transparent (source « Lien » dans TikTok LIVE Studio).
+   Zones : caméra en haut (cadre néon), bandeau défi, Fortnite au milieu, menu des défis + photos en bas, calque effets par-dessus. */
+:root{
+  --bg:#0a0d1f; --bg2:#121735; --line:#2a3166;
+  --fg:#f2f3ff; --mute:#9aa0cc;
+  --hazard:#ffd60a; --cyan:#3de0ff; --live:#ff3b5c;
+  --display:"Bungee","Impact",sans-serif;
+  --body:"Chakra Petch",system-ui,sans-serif;
+}
+html,body{margin:0;height:100%;overflow:hidden;background:transparent}
+body{font-family:var(--body);color:var(--fg)}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:0 0}
+.shake{animation:shake .5s}
+@keyframes shake{20%{transform:var(--fit) translate(-14px,6px)}40%{transform:var(--fit) translate(12px,-8px)}60%{transform:var(--fit) translate(-8px,4px)}80%{transform:var(--fit) translate(6px,-2px)}}
+
+/* Mode guide / aperçu : zones repérées pour caler la caméra et le jeu */
+.guide #stage{background:#05060f}
+.slot{position:absolute;display:none;place-items:center;font-family:var(--display);font-size:46px;color:rgba(255,255,255,.35);text-align:center}
+.guide .slot{display:grid}
+.slot.cam{left:40px;top:150px;width:1000px;height:563px;background:linear-gradient(135deg,#1b2350,#0e1330)}
+.slot.game{left:0;top:828px;width:1080px;height:608px;background:linear-gradient(160deg,#1d6b8f,#3d9a5a 55%,#8a6a3a)}
+.slot small{display:block;font-family:var(--body);font-size:26px;letter-spacing:.04em}
+
+/* ---------- CADRE CAMÉRA ---------- */
+.cam{position:absolute;left:40px;top:150px;width:1000px;height:563px;border-radius:30px;
+  border:6px solid var(--cyan);box-sizing:border-box;
+  box-shadow:0 0 18px var(--cyan),0 0 54px rgba(61,224,255,.45),inset 0 0 26px rgba(61,224,255,.45);
+  animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{border-color:#7ef0ff;box-shadow:0 0 26px var(--cyan),0 0 80px rgba(61,224,255,.6),inset 0 0 34px rgba(61,224,255,.55)}}
+.cam.hot{animation:hot .35s steps(2) infinite;border-color:var(--live)}
+@keyframes hot{50%{border-color:var(--hazard);box-shadow:0 0 30px var(--hazard),0 0 90px rgba(255,59,92,.8),inset 0 0 40px rgba(255,214,10,.6)}}
+.corner{position:absolute;width:86px;height:86px;border:0 solid var(--hazard);filter:drop-shadow(0 0 10px rgba(255,214,10,.8))}
+.corner.tl{left:-20px;top:-20px;border-left-width:12px;border-top-width:12px;border-top-left-radius:34px}
+.corner.tr{right:-20px;top:-20px;border-right-width:12px;border-top-width:12px;border-top-right-radius:34px}
+.corner.bl{left:-20px;bottom:-20px;border-left-width:12px;border-bottom-width:12px;border-bottom-left-radius:34px}
+.corner.br{right:-20px;bottom:-20px;border-right-width:12px;border-bottom-width:12px;border-bottom-right-radius:34px}
+.tag{position:absolute;left:58px;top:-34px;transform:skewX(-8deg);font-family:var(--display);font-size:34px;line-height:1;
+  color:#111;background:repeating-linear-gradient(-45deg,var(--hazard) 0 16px,#111 16px 32px);padding:6px 10px;box-shadow:6px 6px 0 var(--live)}
+.tag span{display:inline-flex;align-items:center;gap:12px;background:var(--hazard);padding:6px 14px}
+.tag i{width:18px;height:18px;border-radius:50%;background:var(--live);box-shadow:0 0 12px var(--live);animation:blink 1.1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.handle{position:absolute;right:26px;bottom:20px;font-weight:700;font-size:28px;letter-spacing:.03em;padding:6px 16px;border-radius:999px;
+  background:rgba(10,13,31,.72);border:2px solid rgba(61,224,255,.6);color:var(--fg)}
+
+/* Compteur TOP 1 */
+.top1{position:absolute;right:44px;top:-46px;display:flex;align-items:center;gap:14px;padding:8px 22px 8px 16px;border-radius:18px;
+  background:linear-gradient(180deg,#1a1f45,#0a0d1f);border:4px solid var(--hazard);
+  box-shadow:0 0 22px rgba(255,214,10,.55),6px 6px 0 var(--live)}
+.top1 .crown{font-size:44px;line-height:1;filter:drop-shadow(0 0 8px rgba(255,214,10,.9))}
+.top1 .lbl{font-family:var(--display);font-size:22px;line-height:1;color:var(--mute)}
+.top1 .num{font-family:var(--display);font-size:64px;line-height:.9;color:var(--hazard);text-shadow:3px 3px 0 var(--live),0 0 18px rgba(255,214,10,.7)}
+.top1.pop{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(1)}30%{transform:scale(1.45) rotate(-6deg)}100%{transform:scale(1)}}
+
+/* Toasts cadeaux */
+.toasts{position:absolute;left:0;right:0;top:600px;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+.toast{font-weight:700;font-size:30px;padding:8px 22px;border-radius:14px;background:rgba(10,13,31,.88);border:3px solid var(--cyan);
+  box-shadow:0 0 18px rgba(61,224,255,.55);white-space:nowrap;max-width:960px;overflow:hidden;text-overflow:ellipsis;
+  animation:tin .35s cubic-bezier(.2,1.4,.4,1) both}
+.toast b{color:var(--hazard)}
+.toast.out{animation:tout .4s ease-in forwards}
+@keyframes tin{from{transform:translateY(30px) scale(.6);opacity:0}}
+@keyframes tout{to{transform:translateY(-20px);opacity:0}}
+
+/* ---------- BANDEAU DÉFI ---------- */
+.banner{position:absolute;left:0;top:726px;width:1080px;height:92px;overflow:hidden;
+  background:repeating-linear-gradient(-45deg,var(--hazard) 0 26px,#111 26px 52px);background-size:200% 100%;
+  box-shadow:0 6px 0 rgba(0,0,0,.5);animation:roll 6s linear infinite}
+@keyframes roll{to{background-position:-147px 0}}
+.banner .lab{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:1000px;box-sizing:border-box;
+  display:flex;align-items:center;gap:18px;padding:10px 26px;background:#0a0d1f;border:3px solid #111;white-space:nowrap}
+.banner .txt{font-family:var(--display);font-size:38px;line-height:1;color:var(--hazard);text-shadow:2px 2px 0 var(--live)}
+.banner .txt.swap{animation:swap .45s ease both}
+@keyframes swap{from{transform:translateY(40px);opacity:0}}
+.banner .tm{display:none;font-family:var(--display);font-size:34px;line-height:1;color:#111;background:var(--hazard);padding:6px 12px;border-radius:8px}
+.banner .q{display:none;font-weight:700;font-size:22px;color:var(--mute)}
+.banner .bar{position:absolute;left:0;bottom:0;height:8px;width:0;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.banner.on{background:repeating-linear-gradient(-45deg,var(--live) 0 26px,#111 26px 52px);background-size:200% 100%;animation:roll 1.2s linear infinite}
+.banner.on .lab{border-color:var(--live);box-shadow:0 0 24px rgba(255,59,92,.8)}
+.banner.on .txt{color:#fff;text-shadow:0 0 14px var(--live),2px 2px 0 var(--live)}
+.banner.on .tm,.banner.on .q.has{display:block}
+.who{position:absolute;left:50%;top:826px;transform:translateX(-50%);font-weight:700;font-size:24px;padding:4px 16px;border-radius:0 0 12px 12px;
+  background:var(--live);color:#fff;white-space:nowrap;opacity:0;transition:opacity .3s}
+.who.on{opacity:1}
+
+/* ---------- ZONE JEU ---------- */
+.game{position:absolute;left:0;top:828px;width:1080px;height:608px;box-sizing:border-box;
+  border-top:4px solid var(--cyan);border-bottom:4px solid var(--cyan);
+  box-shadow:0 -6px 22px rgba(61,224,255,.35),0 6px 22px rgba(61,224,255,.35)}
+.game::before,.game::after{content:"";position:absolute;width:120px;height:14px;background:var(--hazard);box-shadow:0 0 14px rgba(255,214,10,.8)}
+.game::before{left:0;bottom:-9px}
+.game::after{right:0;bottom:-9px}
+
+/* ---------- MENU DES DÉFIS ---------- */
+.menu{position:absolute;left:30px;top:1462px;width:680px;padding:18px 20px 16px;box-sizing:border-box;border-radius:22px;
+  background:linear-gradient(170deg,rgba(18,23,53,.94),rgba(10,13,31,.94));border:3px solid var(--hazard);box-shadow:8px 8px 0 var(--live)}
+.menu h2{margin:0 0 10px;font-family:var(--display);font-weight:400;font-size:38px;line-height:1;color:var(--fg);text-shadow:3px 3px 0 var(--live)}
+.menu h2 em{font-style:normal;color:var(--hazard)}
+.row{display:flex;align-items:center;gap:14px;padding:7px 10px;border-radius:12px;transition:background .3s}
+.row + .row{margin-top:4px}
+.coin{flex:0 0 108px;display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:26px;color:var(--hazard)}
+.coin i{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,#ffc400 45%,#c98a00);box-shadow:0 0 8px rgba(255,196,0,.8)}
+.row span{font-weight:700;font-size:26px;line-height:1.15;color:var(--fg)}
+.row.lit{background:var(--live);box-shadow:0 0 20px rgba(255,59,92,.7)}
+.row.lit .coin{color:#fff}
+
+/* ---------- PHOTOS ---------- */
+.pola{position:absolute;left:744px;top:1470px;width:300px;padding:12px 12px 14px;box-sizing:border-box;background:#f4f1e8;border-radius:6px;
+  transform:rotate(3deg);box-shadow:0 0 0 3px var(--cyan),0 0 28px rgba(61,224,255,.55),10px 10px 0 rgba(0,0,0,.45)}
+.pola::before{content:"";position:absolute;left:50%;top:-16px;width:120px;height:32px;transform:translateX(-50%) rotate(-4deg);
+  background:repeating-linear-gradient(-45deg,var(--hazard) 0 10px,#111 10px 20px);opacity:.92}
+.pola .ph{width:276px;height:300px;overflow:hidden;background:#111}
+.pola img{width:100%;height:100%;object-fit:cover;display:block}
+.pola img.in{animation:pin .6s ease both}
+@keyframes pin{from{opacity:0;transform:scale(1.15)}}
+.pola p{margin:10px 0 0;font-family:var(--display);font-size:22px;line-height:1.05;color:#111;text-align:center}
+.pola small{display:block;margin-top:4px;font-family:var(--body);font-weight:700;font-size:18px;color:#c4002b}
+
+/* ---------- GROS CADEAU : Polo + texte chromé ---------- */
+#fx{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
+.polo{position:absolute;left:0;top:930px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
+.big{position:absolute;left:40px;right:40px;top:1050px;text-align:center;pointer-events:none;opacity:0}
+.big .t1{font-family:var(--display);font-size:92px;line-height:.95;
+  background:linear-gradient(180deg,#ffffff 0%,#c9d2e6 38%,#6c7894 52%,#e9eefa 64%,#9aa6c2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(61,224,255,.95)) drop-shadow(0 0 28px rgba(255,59,92,.8)) drop-shadow(4px 4px 0 #0a0d1f)}
+.big .t2{display:inline-block;margin-top:14px;font-family:var(--display);font-size:40px;line-height:1.05;color:#111;background:var(--hazard);padding:10px 22px;
+  border-radius:10px;box-shadow:0 0 30px rgba(255,214,10,.9),6px 6px 0 var(--live);max-width:1000px}
+.big.on{animation:bigin 3.6s ease forwards}
+@keyframes bigin{0%{opacity:0;transform:scale(2.4)}10%{opacity:1;transform:scale(.92)}16%{transform:scale(1.04)}22%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
+
+.dbg{position:absolute;left:12px;bottom:12px;font:600 20px/1.2 var(--body);background:rgba(0,0,0,.7);padding:6px 10px;border-radius:8px;display:none}
+.debug .dbg{display:block}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="slot cam">TA CAMÉRA ICI<small>DroidCam · 1000 × 563 · x 40 / y 150</small></div>
+  <div class="slot game">FORTNITE ICI<small>capture de jeu · 1080 × 608 · x 0 / y 828</small></div>
+
+  <div class="cam" id="cam">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div class="tag"><span><i></i>WALD OFF</span></div>
+    <div class="top1" id="top1"><span class="crown">👑</span><div><div class="lbl">TOP 1</div><div class="num" id="topn">0</div></div></div>
+  </div>
+  <div class="toasts" id="toasts"></div>
+
+  <div class="banner" id="banner">
+    <div class="lab"><span class="txt" id="btxt">TES CADEAUX = MES DÉFIS</span><span class="tm" id="btm">2:00</span><span class="q" id="bq"></span></div>
+    <div class="bar" id="bbar"></div>
+  </div>
+  <div class="who" id="who"></div>
+
+  <div class="game"></div>
+
+  <div class="menu">
+    <h2>LES <em>DÉFIS</em> 🎁</h2>
+    <div id="rows"></div>
+  </div>
+
+  <div class="pola"><div class="ph"><img id="pimg" src="../img/hero.jpg" alt=""></div><p id="pcap">LA POLO 💀</p><small id="psub">cascades IRL · YouTube @WALD_OFF</small></div>
+
+  <canvas id="fx" width="1080" height="1920"></canvas>
+  <svg class="polo" id="polo" viewBox="0 0 220 100" aria-hidden="true">
+    <path d="M176 47 L176 12 Q176 4 168 4 L161 4" fill="none" stroke="#cfd3dc" stroke-width="5" stroke-linecap="round"/>
+    <rect x="171" y="24" width="10" height="17" rx="2" fill="#aab0bb"/>
+    <path d="M139 45 L124 18" stroke="#3a4170" stroke-width="4" stroke-linecap="round"/>
+    <path d="M136 44 L123 21 L119 23 L130 44 Z" fill="rgba(160,210,255,.35)"/>
+    <rect x="94" y="24" width="12" height="18" rx="4" fill="#2d4fd8"/>
+    <rect x="64" y="27" width="12" height="15" rx="4" fill="#2d4fd8"/>
+    <path d="M12 72 L12 50 Q14 42 28 41 L118 40 L140 46 L196 48 Q210 50 211 60 L211 72 Q211 76 206 76 L190 76 A20 20 0 0 0 150 76 L72 76 A20 20 0 0 0 32 76 L16 76 Q12 76 12 72 Z" fill="#1f2a5c"/>
+    <path d="M14 60 Q40 56 70 66 Q100 72 130 64 Q160 58 208 66 L211 72 Q211 76 206 76 L190 76 A20 20 0 0 0 150 76 L72 76 A20 20 0 0 0 32 76 L16 76 Q12 76 12 72 Z" fill="#6b5236" opacity=".55"/>
+    <path d="M30 50 Q44 58 60 51 Q50 62 34 58 Z" fill="#141c40"/>
+    <path d="M118 42 L118 72 M78 42 L78 72" stroke="#141c40" stroke-width="1.5"/>
+    <rect x="104" y="52" width="9" height="3" rx="1.5" fill="#141c40"/>
+    <path d="M133 40 l6 -3 l2 5 z" fill="#3a4170"/>
+    <ellipse cx="205" cy="56" rx="5" ry="4" fill="#fff4c2"/>
+    <rect x="11" y="51" width="4" height="9" rx="1" fill="#ff3b5c"/>
+    <g id="w1"><circle cx="52" cy="78" r="17" fill="#0d0d12"/><circle cx="52" cy="78" r="10" fill="#8a8f99"/><circle cx="52" cy="70" r="2" fill="#555"/><circle cx="52" cy="86" r="2" fill="#555"/><circle cx="44" cy="78" r="2" fill="#555"/><circle cx="60" cy="78" r="2" fill="#555"/></g>
+    <g id="w2"><circle cx="170" cy="78" r="17" fill="#0d0d12"/><circle cx="170" cy="78" r="10" fill="#8a8f99"/><circle cx="170" cy="70" r="2" fill="#555"/><circle cx="170" cy="86" r="2" fill="#555"/><circle cx="162" cy="78" r="2" fill="#555"/><circle cx="178" cy="78" r="2" fill="#555"/></g>
+  </svg>
+  <div class="big" id="big"><div class="t1" id="bigt1">MERCI !</div><div class="t2" id="bigt2"></div></div>
+  <div class="dbg" id="dbg">ws…</div>
+</div>
+
+<script>
+(function () {
+  /* =====================  RÉGLAGES (à modifier ici)  ===================== */
+  var HOST = 'wald.off';                       // le compte qui peut taper les commandes dans le chat
+  var DEFIS = [                                // min = pièces TikTok (total du combo)
+    { min: 1,    txt: 'JE CRIE « WALD OFF ! »',               menu: 'Je crie « WALD OFF ! »',           sec: 8 },
+    { min: 5,    txt: 'SANS VISER JUSQU\'AU PROCHAIN KILL',    menu: 'Sans viser → prochain kill',      sec: 0,   max: 240 },
+    { min: 30,   txt: 'SOURIS MAIN GAUCHE',                    menu: 'Souris main gauche 2 min',        sec: 120 },
+    { min: 100,  txt: 'JE JOUE AVEC LES PIEDS',                menu: 'Je joue avec les pieds 🦶',       sec: 120, big: 1 },
+    { min: 500,  txt: 'YEUX BANDÉS : LE CHAT ME GUIDE',        menu: 'Yeux bandés, le chat me guide',   sec: 90,  big: 2 },
+    { min: 1000, txt: 'LE CHAT DÉCIDE TOUTE LA PARTIE',        menu: 'Le chat décide la partie 👑',     sec: 0,   max: 1800, big: 3 }
+  ];
+  var PHOTOS = [
+    { src: '../img/hero.jpg',  cap: 'LA POLO 💀',          sub: 'cascades IRL · YouTube @WALD_OFF' },
+    { src: '../img/gti.jpg',   cap: 'GOLF GTI 366 CH',     sub: 'la jaune · Insta @wald_off' },
+    { src: '../img/pre.jpg',   cap: 'POLO DANS LE CHAMP',  sub: 'tracté, cabossé, boueux' },
+    { src: '../img/motos.jpg', cap: '3 MOTOS CROSS',       sub: 'les cascades reviennent…' }
+  ];
+  /* ====================================================================== */
+
+  var q = new URLSearchParams(location.search);
+  if (q.has('guide')) document.body.classList.add('guide');
+  if (q.has('debug')) document.body.classList.add('debug');
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $('stage');
+
+  /* Mise à l'échelle : 1080x1920 rempli au mieux dans la source */
+  function fit() {
+    var s = Math.min(innerWidth / 1080, innerHeight / 1920) || 1;
+    var ox = (innerWidth - 1080 * s) / 2, oy = (innerHeight - 1920 * s) / 2;
+    var t = 'translate(' + ox + 'px,' + oy + 'px) scale(' + s + ')';
+    stage.style.setProperty('--fit', t); stage.style.transform = t;
+  }
+  fit(); addEventListener('resize', fit);
+
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function shrink(el, maxW, start) { var f = start; el.style.fontSize = f + 'px'; while (el.scrollWidth > maxW && f > 18) { f -= 2; el.style.fontSize = f + 'px'; } }
+
+  /* ---------- Menu des défis ---------- */
+  var rowsEl = $('rows');
+  DEFIS.forEach(function (d, i) {
+    var r = document.createElement('div'); r.className = 'row'; r.id = 'row' + i;
+    r.innerHTML = '<div class="coin"><i></i>' + d.min + (i < DEFIS.length - 1 ? '+' : '+') + '</div><span>' + esc(d.menu) + '</span>';
+    rowsEl.appendChild(r);
+  });
+
+  /* ---------- Compteur TOP 1 ---------- */
+  var top1 = parseInt(q.get('top1') || store('wo_top1') || '0', 10) || 0;
+  function setTop(n, fx) {
+    top1 = Math.max(0, n); $('topn').textContent = top1; store('wo_top1', String(top1));
+    if (fx) { var t = $('top1'); t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop'); boom(930, 140, 1.3); boom(760, 300, .8); }
+  }
+  setTop(top1);
+
+  /* ---------- Photos qui tournent ---------- */
+  var pi = 0;
+  setInterval(function () {
+    pi = (pi + 1) % PHOTOS.length; var p = PHOTOS[pi], img = $('pimg');
+    img.classList.remove('in'); void img.offsetWidth; img.src = p.src; img.classList.add('in');
+    $('pcap').textContent = p.cap; $('psub').textContent = p.sub;
+  }, 7000);
+
+  /* ---------- Particules ---------- */
+  var cv = $('fx'), cx = cv.getContext('2d'), P = [];
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function smoke(x, y, n, o) { o = o || {}; for (var i = 0; i < n; i++) P.push({ t: 's', x: x + rnd(-6, 6), y: y + rnd(-4, 4), vx: (o.vx || 0) + rnd(-1, 1), vy: (o.vy || -1.5) + rnd(-.6, .4), r: rnd(8, 16) * (o.s || 1), g: rnd(.5, 1) * (o.s || 1), life: 0, max: rnd(50, 90), c: o.c || 130 }); }
+  function boom(x, y, pw) {
+    pw = pw || 1; P.push({ t: 'f', x: x, y: y, life: 0, max: 16, p: pw });
+    var cols = ['#ffd60a', '#ff8a00', '#ff3b5c', '#fff3b0', '#3de0ff'];
+    for (var i = 0; i < 70 * pw; i++) { var a = rnd(0, 6.283), sp = rnd(4, 16) * pw; P.push({ t: 'k', x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, life: 0, max: rnd(30, 60), c: cols[i % 5], r: rnd(3, 7) }); }
+    var sp2 = Math.min(pw, 1.4); smoke(x, y, 18 * sp2, { s: 1.6 * sp2, vy: -1, c: 80 });
+  }
+  function flame(x, y) { for (var i = 0; i < 3; i++) P.push({ t: 'k', x: x, y: y, vx: rnd(-5, -1), vy: rnd(-7, -3), life: 0, max: rnd(14, 24), c: Math.random() < .5 ? '#ff8a00' : '#ffd60a', r: rnd(5, 9) }); }
+  function tick() {
+    cx.clearRect(0, 0, 1080, 1920);
+    for (var i = P.length - 1; i >= 0; i--) {
+      var p = P[i], k = ++p.life / p.max;
+      if (k >= 1) { P.splice(i, 1); continue; }
+      if (p.t === 's') {
+        p.x += p.vx; p.y += p.vy; p.vx *= .98; p.r += p.g;
+        cx.globalCompositeOperation = 'source-over'; cx.fillStyle = 'rgba(' + p.c + ',' + p.c + ',' + (p.c + 15) + ',' + (.5 * (1 - k)) + ')';
+        cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.283); cx.fill();
+      } else if (p.t === 'k') {
+        p.x += p.vx; p.y += p.vy; p.vy += .35; p.vx *= .97;
+        cx.globalCompositeOperation = 'lighter'; cx.globalAlpha = 1 - k; cx.fillStyle = p.c;
+        cx.beginPath(); cx.arc(p.x, p.y, p.r * (1 - k * .5), 0, 6.283); cx.fill(); cx.globalAlpha = 1;
+      } else {
+        var R = 40 + k * 300 * Math.min(p.p, 1.8), g = cx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+        g.addColorStop(0, 'rgba(255,245,200,' + (1 - k) + ')'); g.addColorStop(.4, 'rgba(255,140,0,' + (.75 * (1 - k)) + ')'); g.addColorStop(1, 'rgba(255,59,92,0)');
+        cx.globalCompositeOperation = 'lighter'; cx.fillStyle = g; cx.beginPath(); cx.arc(p.x, p.y, R, 0, 6.283); cx.fill();
+      }
+    }
+    cx.globalCompositeOperation = 'source-over';
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  function shake() { stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); }
+
+  /* ---------- La Polo traverse l'écran ---------- */
+  var polo = $('polo'), w1 = $('w1'), w2 = $('w2'), driving = false;
+  function poloRun(power) {
+    if (driving) return; driving = true;
+    var t0 = performance.now(), dur = 2600, W = 560, from = -W - 40, to = 1080 + 60;
+    boom(120, 1060, 1.2 * power); shake();
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      var x = from + (to - from) * e, bounce = Math.sin(now / 40) * 6, tilt = Math.sin(now / 90) * 2.5;
+      polo.style.transform = 'translate(' + x + 'px,' + bounce + 'px) rotate(' + tilt + 'deg)';
+      var rot = 'rotate(' + (x * 1.6) + 'deg)'; w1.style.transformOrigin = '52px 78px'; w2.style.transformOrigin = '170px 78px';
+      w1.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 52 78)'); w2.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 170 78)');
+      var s = W / 220, px = x + 161 * s, py = 930 + bounce + 4 * s;
+      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 930 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
+      if (power > 1 || Math.random() < .5) flame(px, py);
+      if (k < 1) requestAnimationFrame(step);
+      else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 1060, 1.1 * power); if (power > 1) { boom(540, 980, 1.4); shake(); } }
+    })(t0);
+  }
+  function bigText(user, d) {
+    var b = $('big'); $('bigt1').textContent = 'MERCI ' + user + ' !'; $('bigt2').textContent = d.txt;
+    shrink($('bigt1'), 1000, 92);
+    b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
+  }
+
+  /* ---------- Toasts ---------- */
+  function toast(html) {
+    var t = document.createElement('div'); t.className = 'toast'; t.innerHTML = html; $('toasts').appendChild(t);
+    while ($('toasts').children.length > 3) $('toasts').removeChild($('toasts').firstChild);
+    setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 420); }, 4200);
+  }
+
+  /* ---------- Bandeau : idle (défile le menu) / défi en cours ---------- */
+  var queue = [], cur = null, curEnd = 0, curStart = 0, idleI = 0;
+  var IDLE = ['🎁 TES CADEAUX = MES DÉFIS'].concat(DEFIS.map(function (d) { return d.min + '+ PIÈCES → ' + d.txt; }), ['OBJECTIF : TOP 1 FORTNITE 👑', 'ABONNE-TOI → @wald.off 🔔']);
+  function setTxt(s) { var t = $('btxt'); t.textContent = s; shrink(t, cur ? 700 : 940, 38); t.classList.remove('swap'); void t.offsetWidth; t.classList.add('swap'); }
+  function idle() { if (!cur) { setTxt(IDLE[idleI++ % IDLE.length]); } }
+  setInterval(idle, 4500);
+  function lit(i) { DEFIS.forEach(function (d, j) { $('row' + j).classList.toggle('lit', j === i); }); }
+  function start(item) {
+    cur = item; var d = DEFIS[item.tier]; curStart = Date.now();
+    var len = d.sec || d.max || 120; curEnd = curStart + len * 1000;
+    $('banner').classList.add('on'); $('cam').classList.add('hot');
+    setTxt('⚠ ' + d.txt);
+    $('who').textContent = 'offert par ' + item.user + (item.gift ? ' · ' + item.gift : ''); $('who').classList.add('on');
+    lit(item.tier); updQ();
+    if (d.big) { poloRun(d.big); bigText(item.user, d); } else boom(540, 772, .9);
+  }
+  function stop() {
+    cur = null; $('banner').classList.remove('on'); $('cam').classList.remove('hot'); $('who').classList.remove('on');
+    $('bbar').style.width = '0'; lit(-1);
+    if (queue.length) setTimeout(function () { start(queue.shift()); }, 600); else { idleI = 0; idle(); }
+    updQ();
+  }
+  function updQ() { var e = $('bq'); e.textContent = queue.length ? '+' + queue.length + ' en attente' : ''; e.classList.toggle('has', !!queue.length); }
+  setInterval(function () {
+    if (!cur) return; var d = DEFIS[cur.tier], now = Date.now(), left = Math.max(0, curEnd - now);
+    if (d.sec) { var s = Math.ceil(left / 1000); $('btm').textContent = Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); $('bbar').style.width = (100 * (1 - left / (curEnd - curStart))) + '%'; }
+    else $('btm').textContent = d.min >= 1000 ? 'PARTIE' : 'KILL';
+    if (left <= 0) stop();
+  }, 250);
+
+  function tierFor(coins) { var t = 0; DEFIS.forEach(function (d, i) { if (coins >= d.min) t = i; }); return t; }
+  function gift(user, giftName, coins, count) {
+    var tier = tierFor(coins), d = DEFIS[tier];
+    toast('🎁 <b>' + esc(user) + '</b> · ' + esc(giftName || 'cadeau') + (count > 1 ? ' ×' + count : '') + ' → ' + esc(d.txt));
+    var item = { tier: tier, user: user, gift: (giftName || '') + (count > 1 ? ' ×' + count : '') };
+    if (!cur) start(item); else { queue.push(item); updQ(); boom(rnd(200, 880), 772, .5); }
+  }
+  function command(txt) {
+    var c = txt.trim().toLowerCase();
+    if (c === '!top1' || c === '!top1+') setTop(top1 + 1, true);
+    else if (c === '!top1-') setTop(top1 - 1);
+    else if (c === '!reset') setTop(0);
+    else if (c === '!ok' || c === '!next' || c === '!fini') { if (cur) stop(); }
+  }
+  window.WALD = { gift: gift, command: command, top1: function () { setTop(top1 + 1, true); } };
+
+  /* ---------- Connexion TikFinity (appli Windows, Event API) ---------- */
+  var WS = q.get('ws') || 'ws://localhost:21213/', seen = {};
+  function dbg(s) { $('dbg').textContent = s; }
+  function connect() {
+    var ws; try { ws = new WebSocket(WS); } catch (e) { dbg('ws erreur'); return setTimeout(connect, 4000); }
+    ws.onopen = function () { dbg('TikFinity connecté'); };
+    ws.onclose = function () { dbg('TikFinity déconnecté, nouvel essai…'); setTimeout(connect, 4000); };
+    ws.onmessage = function (m) {
+      var msg; try { msg = JSON.parse(m.data); } catch (e) { return; }
+      var ev = String(msg.event || msg.type || '').toLowerCase(), d = msg.data || msg;
+      var user = '@' + (d.uniqueId || (d.user && d.user.uniqueId) || d.nickname || 'quelqu\'un');
+      if (ev === 'gift') {
+        if (d.giftType === 1 && d.repeatEnd === false) return;          // combo pas fini : on attend la fin
+        var key = (d.msgId || '') + user + d.giftId + d.repeatCount; if (seen[key]) return; seen[key] = 1;
+        var n = Math.max(1, d.repeatCount || 1), coins = (d.diamondCount || d.diamonds || 1) * n;
+        gift(user, d.giftName, coins, n);
+      } else if (ev === 'chat' && d.comment) {
+        var u = String(d.uniqueId || (d.user && d.user.uniqueId) || '').toLowerCase();
+        if (u === HOST || d.isModerator) command(d.comment);
+      }
+    };
+  }
+  connect();
+
+  /* ---------- Démo / test : ?demo  ou touches 1-6, T, N ---------- */
+  var DEMO = [['@pote_du_31', 'Rose', 1, 1], ['@lucas', 'Donut', 30, 1], ['@kevin', 'Hand Hearts', 100, 1], ['@mamie', 'Galaxy', 1000, 1], ['@nina', 'Finger Heart', 5, 1], ['@thomas', 'Money Gun', 500, 1]];
+  if (q.has('demo')) { var di = 0; setTimeout(function run() { var x = DEMO[di++ % DEMO.length]; gift(x[0], x[1], x[2], x[3]); setTimeout(function () { if (cur) stop(); }, 5200); setTimeout(run, 7000); }, 900); setInterval(function () { setTop(top1 + 1, true); }, 21000); }
+  addEventListener('keydown', function (e) {
+    var k = e.key.toLowerCase();
+    if (k >= '1' && k <= '6') { var x = DEMO[[0, 4, 1, 2, 5, 3][+k - 1]]; gift(x[0], x[1], x[2], x[3]); }
+    else if (k === 't') setTop(top1 + 1, true); else if (k === 'n' && cur) stop();
+  });
+  idle();
+})();
+</script>
+</body>
+</html>
