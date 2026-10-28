@@ -84,6 +84,48 @@ h2 em{font-style:normal;color:var(--hazard)}
 .timeline .when{font-family:var(--display);font-size:12px;letter-spacing:.06em;color:var(--hazard);text-transform:uppercase}
 .timeline p{margin:0;color:var(--mute)}
 .timeline strong{color:var(--fg)}
+
+/* === Carrousel 3D réseaux === */
+.social{position:relative}
+.stage{position:relative;height:300px;perspective:1000px;overflow:hidden;margin-inline:calc(-1 * max(16px, env(safe-area-inset-left, 0px)));touch-action:pan-y}
+.ring{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.2,1.4,.4,1)}
+.card{--w:min(220px,58vw);position:absolute;left:50%;top:18px;width:var(--w);margin-left:calc(var(--w) / -2);height:250px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-decoration:none;color:var(--fg);
+  background:radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%), var(--bg2);
+  border:2px solid var(--c);border-radius:22px;backface-visibility:hidden;
+  box-shadow:0 0 30px color-mix(in srgb, var(--c) 45%, transparent), inset 0 0 20px color-mix(in srgb, var(--c) 20%, transparent);
+  transition:opacity .5s, filter .5s}
+.card:not(.front){opacity:.45;filter:saturate(.6) blur(1px)}
+.card.front .logo{animation:pump 1.4s ease-in-out infinite}
+.logo{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#0a0d1f;box-shadow:0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent),0 0 40px var(--c)}
+.logo svg{width:46px;height:46px;fill:currentColor}
+.card strong{font-family:var(--display);font-weight:400;font-size:24px;margin-top:8px}
+.card small{color:var(--mute);font-size:15px}
+.card .go{margin-top:8px;font-weight:700;background:var(--c);color:#0a0d1f;padding:8px 16px;border-radius:999px}
+.card:focus-visible{outline:3px solid var(--hazard);outline-offset:4px}
+@keyframes pump{50%{transform:scale(1.08) rotate(-4deg)}}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:6px}
+.nav{font-family:var(--display);font-size:22px;width:54px;height:54px;border-radius:50%;border:2px solid var(--hazard);background:var(--bg2);color:var(--hazard);cursor:pointer;box-shadow:4px 4px 0 var(--live);transition:transform .1s}
+.nav:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--live)}
+.nav:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.dots{display:flex;gap:8px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);transition:all .3s}
+.dots i.on{background:var(--hazard);width:26px;border-radius:6px;box-shadow:0 0 10px var(--hazard)}
+.stage.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-4px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+
+/* === Effets + Polo === */
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.road{position:fixed;left:0;right:0;bottom:0;height:calc(74px + env(safe-area-inset-bottom, 0px));pointer-events:none;z-index:20;
+  background:linear-gradient(to top, rgba(10,13,31,.95) 0, rgba(10,13,31,.95) calc(14px + env(safe-area-inset-bottom, 0px)), transparent calc(14px + env(safe-area-inset-bottom, 0px)))}
+.lane{position:absolute;left:0;right:0;bottom:calc(6px + env(safe-area-inset-bottom, 0px));height:3px;background:repeating-linear-gradient(90deg,var(--hazard) 0 22px,transparent 22px 44px);opacity:.8}
+.polo{position:absolute;left:0;bottom:calc(8px + env(safe-area-inset-bottom, 0px));width:140px;height:64px;will-change:transform;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.wh{transform-box:fill-box;transform-origin:center}
+.wrap{padding-bottom:110px}
+.gochip{border-color:var(--hazard);color:var(--hazard);animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(4px)}}
+.photo h1{animation:slam .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes slam{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.ring{transition:none}.card.front .logo,.gochip,.photo h1{animation:none}}
 footer{text-align:center;color:var(--mute);font-size:13px}
 footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 @media (max-width:380px){.grid{grid-template-columns:1fr}}
@@ -101,27 +143,32 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
     </figure>
     <p class="tagline">Cascades délire, défis <b>Fortnite top 1</b> dans des conditions impossibles. Abonne-toi, ça va partir loin.</p>
     <div class="status">
+      <span class="chip gochip">↓ Descends, la Polo démarre</span>
       <span class="chip"><span class="dot"></span>Lives TikTok bientôt</span>
       <span class="chip">🎮 Fortnite PC</span>
     </div>
   </header>
 
-  <section>
-    <h2>Suis <em>WALD OFF</em></h2>
-    <nav class="links">
-      <a class="link" style="--c:#c86bff" href="https://www.instagram.com/wald_off/" target="_blank" rel="noopener">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-8.9a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM12 3c-2.4 0-2.7 0-3.7.1C5 3.2 3.2 5 3.1 8.3 3 9.3 3 9.6 3 12s0 2.7.1 3.7c.1 3.3 1.9 5.1 5.2 5.2 1 .1 1.3.1 3.7.1s2.7 0 3.7-.1c3.3-.1 5.1-1.9 5.2-5.2.1-1 .1-1.3.1-3.7s0-2.7-.1-3.7C20.8 5 19 3.2 15.7 3.1 14.7 3 14.4 3 12 3z"/></svg></span>
-        <span class="lt"><strong>Instagram</strong><small>@wald_off · la voiture & les coulisses</small></span><span class="arrow">→</span>
-      </a>
-      <a class="link" style="--c:#ff2a2a" href="https://www.youtube.com/@WALD_OFF" target="_blank" rel="noopener">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></span>
-        <span class="lt"><strong>YouTube</strong><small>@WALD_OFF · vidéos & best-of</small></span><span class="arrow">→</span>
-      </a>
-      <a class="link" style="--c:#ff3b5c" href="https://www.tiktok.com/@wald.off" target="_blank" rel="noopener">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M16.6 3c.4 2.2 1.8 3.6 4 3.8v3.1c-1.5 0-2.8-.4-4-1.2v6.1c0 3.4-2.6 5.7-5.6 5.7-3.2 0-5.6-2.5-5.6-5.5 0-3.3 2.8-5.8 6.3-5.4v3.2c-1.6-.4-3.1.7-3.1 2.2 0 1.3 1 2.3 2.3 2.3 1.4 0 2.4-1 2.4-2.6V3h3.3z"/></svg></span>
-        <span class="lt"><strong>TikTok</strong><small>@wald.off · cascades & défis</small></span><span class="arrow">→</span>
-      </a>
-    </nav>
+  <section class="social" aria-labelledby="soc-t">
+    <h2 id="soc-t">Suis <em>WALD OFF</em></h2>
+    <div class="stage" id="stage">
+      <div class="ring" id="ring">
+        <a class="card" data-i="0" style="--c:#ff2a2a" href="https://www.youtube.com/@WALD_OFF" target="_blank" rel="noopener" aria-label="YouTube @WALD_OFF">
+          <span class="logo"><svg viewBox="0 0 24 24"><path d="M21.6 7.2c-.2-.9-.9-1.6-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4c-.9.2-1.6.9-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8c.2.9.9 1.6 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3L10 15z"/></svg></span><strong>YouTube</strong><small>@WALD_OFF</small><span class="go">Regarder →</span>
+        </a>
+        <a class="card" data-i="1" style="--c:#ff3b5c" href="https://www.tiktok.com/@wald.off" target="_blank" rel="noopener" aria-label="TikTok @wald.off">
+          <span class="logo"><svg viewBox="0 0 24 24"><path d="M16.6 3c.4 2.2 1.8 3.6 4 3.8v3.1c-1.5 0-2.8-.4-4-1.2v6.1c0 3.4-2.6 5.7-5.6 5.7-3.2 0-5.6-2.5-5.6-5.5 0-3.3 2.8-5.8 6.3-5.4v3.2c-1.6-.4-3.1.7-3.1 2.2 0 1.3 1 2.3 2.3 2.3 1.4 0 2.4-1 2.4-2.6V3h3.3z"/></svg></span><strong>TikTok</strong><small>@wald.off</small><span class="go">S'abonner →</span>
+        </a>
+        <a class="card" data-i="2" style="--c:#c86bff" href="https://www.instagram.com/wald_off/" target="_blank" rel="noopener" aria-label="Instagram @wald_off">
+          <span class="logo"><svg viewBox="0 0 24 24"><path d="M12 7.3A4.7 4.7 0 1 0 12 16.7 4.7 4.7 0 0 0 12 7.3zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm4.9-8.9a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2zM12 3c-2.4 0-2.7 0-3.7.1C5 3.2 3.2 5 3.1 8.3 3 9.3 3 9.6 3 12s0 2.7.1 3.7c.1 3.3 1.9 5.1 5.2 5.2 1 .1 1.3.1 3.7.1s2.7 0 3.7-.1c3.3-.1 5.1-1.9 5.2-5.2.1-1 .1-1.3.1-3.7s0-2.7-.1-3.7C20.8 5 19 3.2 15.7 3.1 14.7 3 14.4 3 12 3z"/></svg></span><strong>Instagram</strong><small>@wald_off</small><span class="go">Suivre →</span>
+        </a>
+      </div>
+    </div>
+    <div class="ctrl">
+      <button class="nav" id="prev" type="button" aria-label="Réseau précédent">←</button>
+      <div class="dots" id="dots"><i></i><i></i><i></i></div>
+      <button class="nav" id="next" type="button" aria-label="Réseau suivant">→</button>
+    </div>
   </section>
 
   <section class="story" aria-labelledby="story-t">
@@ -157,5 +204,28 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
   <footer><b>WALD OFF</b> · fait en France · 2026</footer>
 </div>
 
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="road" aria-hidden="true"><div class="lane" id="lane"></div>
+  <svg class="polo" id="polo" viewBox="0 0 220 100">
+    <path d="M176 47 L176 12 Q176 4 168 4 L161 4" fill="none" stroke="#cfd3dc" stroke-width="5" stroke-linecap="round"/>
+    <rect x="171" y="24" width="10" height="17" rx="2" fill="#aab0bb"/>
+    <path d="M139 45 L124 18" stroke="#3a4170" stroke-width="4" stroke-linecap="round"/>
+    <path d="M136 44 L123 21 L119 23 L130 44 Z" fill="rgba(160,210,255,.35)"/>
+    <rect x="94" y="24" width="12" height="18" rx="4" fill="#2d4fd8"/>
+    <rect x="64" y="27" width="12" height="15" rx="4" fill="#2d4fd8"/>
+    <path d="M12 72 L12 50 Q14 42 28 41 L118 40 L140 46 L196 48 Q210 50 211 60 L211 72 Q211 76 206 76 L190 76 A20 20 0 0 0 150 76 L72 76 A20 20 0 0 0 32 76 L16 76 Q12 76 12 72 Z" fill="#1f2a5c"/>
+    <path d="M14 60 Q40 56 70 66 Q100 72 130 64 Q160 58 208 66 L211 72 Q211 76 206 76 L190 76 A20 20 0 0 0 150 76 L72 76 A20 20 0 0 0 32 76 L16 76 Q12 76 12 72 Z" fill="#6b5236" opacity=".55"/>
+    <path d="M30 50 Q44 58 60 51 Q50 62 34 58 Z" fill="#141c40"/>
+    <path d="M118 42 L118 72 M78 42 L78 72" stroke="#141c40" stroke-width="1.5"/>
+    <rect x="104" y="52" width="9" height="3" rx="1.5" fill="#141c40"/>
+    <path d="M133 40 l6 -3 l2 5 z" fill="#3a4170"/>
+    <ellipse cx="205" cy="56" rx="5" ry="4" fill="#fff4c2"/>
+    <rect x="11" y="51" width="4" height="9" rx="1" fill="#ff3b5c"/>
+    <g class="wh" id="w1"><circle cx="52" cy="78" r="17" fill="#0d0d12"/><circle cx="52" cy="78" r="10" fill="#8a8f99"/><circle cx="52" cy="70" r="2" fill="#555"/><circle cx="52" cy="86" r="2" fill="#555"/><circle cx="44" cy="78" r="2" fill="#555"/><circle cx="60" cy="78" r="2" fill="#555"/></g>
+    <g class="wh" id="w2"><circle cx="170" cy="78" r="17" fill="#0d0d12"/><circle cx="170" cy="78" r="10" fill="#8a8f99"/><circle cx="170" cy="70" r="2" fill="#555"/><circle cx="170" cy="86" r="2" fill="#555"/><circle cx="162" cy="78" r="2" fill="#555"/><circle cx="178" cy="78" r="2" fill="#555"/></g>
+  </svg>
+</div>
+
+<script src="fx.js"></script>
 </body>
 </html>
