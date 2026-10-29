@@ -219,6 +219,18 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 .coin i{width:20px;height:20px}
 .row span{font-size:19px}
 .menu h2{font-size:32px !important;margin-bottom:6px}
+
+/* cadres néon pour les zooms Fortnite (carte + armes) : place tes captures recadrées dessous. ?zooms=0 pour les cacher */
+.zoom{position:absolute;box-sizing:border-box;border-radius:16px;pointer-events:none}
+.zoom::before{content:"";position:absolute;inset:0;border-radius:16px;padding:5px;background:linear-gradient(135deg,var(--pink,#ff2bd6),var(--violet,#9b4dff) 50%,var(--cyan,#2de2ff));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.zoom{box-shadow:0 0 18px rgba(255,43,214,.6),0 0 14px rgba(45,226,255,.45) inset}
+.zoom b{position:absolute;top:-18px;left:14px;font-family:var(--display);font-weight:400;font-size:20px;line-height:1;padding:5px 10px;border-radius:8px;
+  color:#12052b;background:linear-gradient(90deg,var(--cyan,#2de2ff),var(--pink,#ff2bd6));box-shadow:0 0 12px rgba(255,43,214,.7)}
+.zoom.map{left:822px;top:742px;width:236px;height:236px}
+.zoom.arm{left:640px;top:1452px;width:418px;height:112px}
+.nozoom .zoom{display:none}
+.guide .zoom{background:rgba(255,255,255,.08)}
 </style>
 </head>
 <body>
@@ -255,6 +267,8 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   <div class="who" id="who"></div>
 
   <div class="game"></div>
+  <div class="zoom map"><b>MAP</b></div>
+  <div class="zoom arm"><b>ARMES</b></div>
 
   <div class="scene"><div class="sky"></div><div class="sun"></div><div class="grid"></div><svg class="palm l" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg><svg class="palm r" viewBox="0 0 200 280" aria-hidden="true"><use href="#palmier"/></svg></div>
   <div class="menu">
@@ -311,6 +325,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   var q = new URLSearchParams(location.search);
   if (q.has('guide')) document.body.classList.add('guide');
   if (q.get('theme') !== 'classic') document.body.classList.add('t80');
+  if (q.get('zooms') === '0') document.body.classList.add('nozoom');
   if (q.has('debug')) document.body.classList.add('debug');
   var $ = function (id) { return document.getElementById(id); };
   var stage = $('stage');
