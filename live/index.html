@@ -327,7 +327,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   var q = new URLSearchParams(location.search);
   if (q.has('guide')) document.body.classList.add('guide');
   if (q.get('theme') !== 'classic') document.body.classList.add('t80');
-  if (q.get('zooms') === '0') document.body.classList.add('nozoom');
+  if (q.get('zooms') !== '1') document.body.classList.add('nozoom');
   if (q.has('debug')) document.body.classList.add('debug');
   var $ = function (id) { return document.getElementById(id); };
   var stage = $('stage');
