@@ -147,7 +147,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   filter:drop-shadow(0 0 6px rgba(255,43,214,.9)) drop-shadow(0 0 18px rgba(45,226,255,.55)) drop-shadow(3px 3px 0 #12052b)}
 /* cadre caméra : néon dégradé rose → violet → cyan */
 .t80 .cam{border:0;border-radius:34px;background:none;
-  box-shadow:0 0 22px rgba(255,43,214,.75),0 0 60px rgba(155,77,255,.45),0 0 26px rgba(45,226,255,.5) inset;animation:glow80 3s ease-in-out infinite}
+  box-shadow:0 0 22px rgba(255,43,214,.75),0 0 60px rgba(155,77,255,.45),0 0 26px rgba(45,226,255,.5) inset;animation:none}
 @keyframes glow80{50%{box-shadow:0 0 30px rgba(45,226,255,.85),0 0 80px rgba(255,43,214,.5),0 0 34px rgba(255,43,214,.45) inset}}
 .t80 .cam::before{content:"";position:absolute;inset:0;border-radius:34px;padding:7px;background:linear-gradient(120deg,var(--pink),var(--violet) 45%,var(--cyan));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);pointer-events:none}
 .t80 .cam.hot::before{background:linear-gradient(120deg,var(--sun1),var(--sun3),var(--pink))}
@@ -169,13 +169,13 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 /* bandeau : bande violette avec lignes néon */
 .t80 .banner{background:linear-gradient(90deg,#1a0636,#4b137a 30%,#7a1fa8 50%,#4b137a 70%,#1a0636);background-size:100% 100%;animation:none;
   box-shadow:0 -3px 0 var(--pink),0 3px 0 var(--cyan),0 0 26px rgba(255,43,214,.5)}
-.t80 .banner::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);background-size:300% 100%;animation:sweep 4s linear infinite}
+.t80 .banner::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);background-size:300% 100%;display:none}
 @keyframes sweep{from{background-position:150% 0}to{background-position:-150% 0}}
 .t80 .banner .lab{background:none;border:0;box-shadow:none}
 .t80 .banner .txt{color:var(--sun1);text-shadow:0 0 10px rgba(255,138,61,.9),0 0 22px rgba(255,43,214,.7),3px 3px 0 #12052b}
 .t80 .banner .tm{background:var(--cyan);color:#12052b;box-shadow:0 0 14px var(--cyan)}
 .t80 .banner .bar{background:linear-gradient(90deg,var(--cyan),var(--pink))}
-.t80 .banner.on{background:linear-gradient(90deg,#ff2bd6,#ff5e7e 40%,#ff8a3d 60%,#ff2bd6);background-size:200% 100%;animation:roll80 1.4s linear infinite}
+.t80 .banner.on{background:linear-gradient(90deg,#ff2bd6,#ff5e7e 40%,#ff8a3d 60%,#ff2bd6);animation:none}
 @keyframes roll80{to{background-position:-200% 0}}
 .t80 .banner.on .txt{color:#fff;text-shadow:0 0 10px rgba(18,5,43,.9),3px 3px 0 #12052b}
 .t80 .who{background:var(--pink);box-shadow:0 0 14px var(--pink)}
@@ -192,12 +192,12 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   box-shadow:0 0 60px rgba(255,138,61,.8);filter:drop-shadow(0 0 30px rgba(255,94,126,.8))}
 .scene .grid{position:absolute;left:-40%;right:-40%;bottom:-10px;height:200px;transform:perspective(260px) rotateX(62deg);transform-origin:bottom;
   background:linear-gradient(transparent 0 95%,rgba(45,226,255,.9) 95%) 0 0/100% 34px,linear-gradient(90deg,transparent 0 96%,rgba(255,43,214,.9) 96%) 0 0/54px 100%;
-  animation:grid80 1.6s linear infinite;opacity:.85}
+  opacity:.85}
 @keyframes grid80{to{background-position:0 34px,0 0}}
 .scene .palm{display:block;bottom:-6px;width:260px;height:380px}
 .scene .palm.l{left:-70px}.scene .palm.r{right:-70px}
 /* menu des défis : verre sombre + néon */
-.t80 .menu{background:linear-gradient(170deg,rgba(43,10,80,.82),rgba(18,5,43,.86));border:3px solid var(--pink);box-shadow:0 0 26px rgba(255,43,214,.6),7px 7px 0 rgba(45,226,255,.75);backdrop-filter:blur(4px)}
+.t80 .menu{background:linear-gradient(170deg,rgba(43,10,80,.82),rgba(18,5,43,.86));border:3px solid var(--pink);box-shadow:0 0 26px rgba(255,43,214,.6),7px 7px 0 rgba(45,226,255,.75)}
 .t80 .menu h2{font-size:40px}
 .t80 .menu h2 em{color:inherit}
 .t80 .coin{color:var(--sun1)}
@@ -402,14 +402,16 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   /* ---------- Particules ---------- */
   var cv = $('fx'), cx = cv.getContext('2d'), P = [];
   function rnd(a, b) { return a + Math.random() * (b - a); }
-  function smoke(x, y, n, o) { o = o || {}; for (var i = 0; i < n; i++) P.push({ t: 's', x: x + rnd(-6, 6), y: y + rnd(-4, 4), vx: (o.vx || 0) + rnd(-1, 1), vy: (o.vy || -1.5) + rnd(-.6, .4), r: rnd(8, 16) * (o.s || 1), g: rnd(.5, 1) * (o.s || 1), life: 0, max: rnd(50, 90), c: o.c || 130 }); }
+  function smoke(x, y, n, o) { o = o || {}; kick(); for (var i = 0; i < n; i++) P.push({ t: 's', x: x + rnd(-6, 6), y: y + rnd(-4, 4), vx: (o.vx || 0) + rnd(-1, 1), vy: (o.vy || -1.5) + rnd(-.6, .4), r: rnd(8, 16) * (o.s || 1), g: rnd(.5, 1) * (o.s || 1), life: 0, max: rnd(50, 90), c: o.c || 130 }); }
   function boom(x, y, pw) {
-    pw = pw || 1; P.push({ t: 'f', x: x, y: y, life: 0, max: 16, p: pw });
+    kick(); pw = pw || 1; P.push({ t: 'f', x: x, y: y, life: 0, max: 16, p: pw });
     var cols = ['#ffd60a', '#ff8a00', '#ff3b5c', '#fff3b0', '#3de0ff'];
     for (var i = 0; i < 70 * pw; i++) { var a = rnd(0, 6.283), sp = rnd(4, 16) * pw; P.push({ t: 'k', x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, life: 0, max: rnd(30, 60), c: cols[i % 5], r: rnd(3, 7) }); }
     var sp2 = Math.min(pw, 1.4); smoke(x, y, 18 * sp2, { s: 1.6 * sp2, vy: -1, c: 80 });
   }
-  function flame(x, y) { for (var i = 0; i < 3; i++) P.push({ t: 'k', x: x, y: y, vx: rnd(-5, -1), vy: rnd(-7, -3), life: 0, max: rnd(14, 24), c: Math.random() < .5 ? '#ff8a00' : '#ffd60a', r: rnd(5, 9) }); }
+  function flame(x, y) { kick(); for (var i = 0; i < 3; i++) P.push({ t: 'k', x: x, y: y, vx: rnd(-5, -1), vy: rnd(-7, -3), life: 0, max: rnd(14, 24), c: Math.random() < .5 ? '#ff8a00' : '#ffd60a', r: rnd(5, 9) }); }
+  var running = false;
+  function kick() { if (!running) { running = true; requestAnimationFrame(tick); } }
   function tick() {
     cx.clearRect(0, 0, 1080, 1920);
     for (var i = P.length - 1; i >= 0; i--) {
@@ -430,9 +432,8 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
       }
     }
     cx.globalCompositeOperation = 'source-over';
-    requestAnimationFrame(tick);
+    if (P.length) requestAnimationFrame(tick); else { cx.clearRect(0, 0, 1080, 1920); running = false; }
   }
-  requestAnimationFrame(tick);
   function shake() { stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); }
 
   /* ---------- La Polo traverse l'écran ---------- */
