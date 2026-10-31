@@ -232,6 +232,14 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 .zoom.vie{left:22px;top:1452px;width:380px;height:112px}
 .nozoom .zoom{display:none}
 .guide .zoom{background:rgba(255,255,255,.08)}
+
+/* flèche « abonne-toi » vers le bouton + de TikTok (en haut à gauche sur le téléphone) */
+.follow{position:absolute;left:58px;top:146px;display:flex;align-items:center;gap:12px;padding:10px 20px 10px 14px;border-radius:999px;
+  background:rgba(18,5,43,.82);border:3px solid var(--pink,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.75);white-space:nowrap;pointer-events:none}
+.follow .ar{font-size:40px;line-height:1;color:var(--cyan,#2de2ff);text-shadow:0 0 12px var(--cyan,#2de2ff);animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.follow .tx{font-family:var(--display);font-size:30px;line-height:1;color:#fff;text-shadow:0 0 10px var(--pink,#ff2bd6)}
+.follow .tx em{font-style:normal;color:var(--sun1,#ffd23f)}
 </style>
 </head>
 <body>
@@ -259,6 +267,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     <div class="tag"><span><i></i><b class="chrome">WALD OFF</b></span></div>
     <div class="top1" id="top1"><span class="crown">👑</span><div><div class="lbl">TOP 1</div><div class="num" id="topn">0</div></div></div>
   </div>
+  <div class="follow"><span class="ar">⬆</span><span class="tx">ABONNE-TOI <em>@wald_off</em> 🔔</span></div>
   <div class="toasts" id="toasts"></div>
 
   <div class="banner" id="banner">
@@ -308,7 +317,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 <script>
 (function () {
   /* =====================  RÉGLAGES (à modifier ici)  ===================== */
-  var HOST = 'wald.off';                       // le compte qui peut taper les commandes dans le chat
+  var HOST = 'wald_off';                       // le compte qui peut taper les commandes dans le chat
   var DEFIS = [                                // min = pièces TikTok (total du combo)
     { min: 1,    txt: 'JE REMERCIE AVEC CLASSE 🎩',             menu: 'Je remercie avec classe 🎩',      sec: 8, quick: 1 },
     { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8, quick: 1, voix: 'sons/wald_off.mp3' },
@@ -547,7 +556,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 
   /* ---------- Bandeau : idle (défile le menu) / défi en cours ---------- */
   var queue = [], cur = null, curEnd = 0, curStart = 0, idleI = 0;
-  var IDLE = ['🎁 TES CADEAUX = MES DÉFIS'].concat(DEFIS.map(function (d) { return d.min + '+ PIÈCES → ' + d.txt; }), ['OBJECTIF : TOP 1 FORTNITE 👑', 'ABONNE-TOI → @wald.off 🔔']);
+  var IDLE = ['🎁 TES CADEAUX = MES DÉFIS'].concat(DEFIS.map(function (d) { return d.min + '+ PIÈCES → ' + d.txt; }), ['OBJECTIF : TOP 1 FORTNITE 👑', 'ABONNE-TOI → @wald_off 🔔']);
   function setTxt(s) { var t = $('btxt'); t.textContent = s; shrink(t, cur ? 700 : 940, 38); t.classList.remove('swap'); void t.offsetWidth; t.classList.add('swap'); }
   function idle() { if (!cur) { setTxt(IDLE[idleI++ % IDLE.length]); } }
   setInterval(idle, 4500);
@@ -641,7 +650,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
         superFan(user);
       } else if (ev === 'chat' && d.comment) {
         var u = String(d.uniqueId || (d.user && d.user.uniqueId) || '').toLowerCase();
-        if (u === HOST || d.isModerator) command(d.comment);
+        if (u === HOST || u === 'wald.off' || d.isModerator) command(d.comment);
       }
     };
   }
