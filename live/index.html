@@ -136,6 +136,20 @@ body{font-family:var(--body);color:var(--fg)}
 .big .t2{display:inline-block;margin-top:14px;font-family:var(--display);font-size:40px;line-height:1.05;color:#111;background:var(--hazard);padding:10px 22px;
   border-radius:10px;box-shadow:0 0 30px rgba(255,214,10,.9),6px 6px 0 var(--live);max-width:1000px}
 .big.on{animation:bigin 3.6s ease forwards}
+.faahfx{position:absolute;left:0;right:0;top:880px;height:520px;text-align:center;pointer-events:none;opacity:0;z-index:40}
+.faahfx .gl{position:absolute;left:50%;top:0;font-size:220px;line-height:1;transform:translate(-50%,-900px);filter:drop-shadow(0 0 30px rgba(45,226,255,.9)) drop-shadow(0 12px 0 rgba(0,0,0,.5))}
+.faahfx .w{position:absolute;left:-200px;right:-200px;top:250px;display:flex;justify-content:center;font-family:var(--display);font-size:130px;line-height:1.1;white-space:nowrap;transform-origin:50% 60%;
+  filter:drop-shadow(0 0 14px rgba(255,43,214,.95)) drop-shadow(0 0 36px rgba(155,77,255,.9)) drop-shadow(5px 5px 0 #0a0d1f)}
+.faahfx .w span{display:inline-block;background:linear-gradient(180deg,#ffffff 0%,#ffe1fb 30%,#ff8ad8 48%,#3a1a6b 51%,#b98cff 68%,#2de2ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.faahfx .fwho{position:absolute;left:0;right:0;top:430px;font-family:var(--display);font-size:38px;color:var(--hazard);text-shadow:3px 3px 0 var(--live),0 0 18px rgba(255,214,10,.8)}
+.faahfx.on{animation:fxIn 3.4s ease forwards}
+.faahfx.on .gl{animation:glDrop 3.4s cubic-bezier(.25,1.5,.5,1) forwards}
+.faahfx.on .w{animation:fStretch 3.4s ease-in-out forwards}
+.faahfx.on .w span{animation:fWob .16s ease-in-out infinite alternate}
+@keyframes fxIn{0%{opacity:0}4%{opacity:1}86%{opacity:1}100%{opacity:0}}
+@keyframes glDrop{0%{transform:translate(-50%,-900px) rotate(-40deg) scale(.6)}22%{transform:translate(-50%,0) rotate(8deg) scale(1.15)}30%{transform:translate(-50%,-20px) rotate(-4deg) scale(1)}40%,100%{transform:translate(-50%,0) rotate(0) scale(1)}}
+@keyframes fStretch{0%{transform:scale(.1,.1)}10%{transform:scale(1.1,1.1)}16%{transform:scale(.95,1)}70%{transform:scale(1.28,.88)}85%{transform:scale(1.35,.85)}100%{transform:scale(1.6,.2);opacity:0}}
+@keyframes fWob{from{transform:translateY(-10px) rotate(-4deg)}to{transform:translateY(10px) rotate(4deg)}}
 @keyframes bigin{0%{opacity:0;transform:scale(2.4)}10%{opacity:1;transform:scale(.92)}16%{transform:scale(1.04)}22%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
 
 .dbg{position:absolute;left:12px;bottom:12px;font:600 20px/1.2 var(--body);background:rgba(0,0,0,.7);padding:6px 10px;border-radius:8px;display:none}
@@ -309,6 +323,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     <g id="w1"><circle cx="52" cy="78" r="17" fill="#0d0d12"/><circle cx="52" cy="78" r="10" fill="#8a8f99"/><circle cx="52" cy="70" r="2" fill="#555"/><circle cx="52" cy="86" r="2" fill="#555"/><circle cx="44" cy="78" r="2" fill="#555"/><circle cx="60" cy="78" r="2" fill="#555"/></g>
     <g id="w2"><circle cx="170" cy="78" r="17" fill="#0d0d12"/><circle cx="170" cy="78" r="10" fill="#8a8f99"/><circle cx="170" cy="70" r="2" fill="#555"/><circle cx="170" cy="86" r="2" fill="#555"/><circle cx="162" cy="78" r="2" fill="#555"/><circle cx="178" cy="78" r="2" fill="#555"/></g>
   </svg>
+  <div class="faahfx" id="faahfx"><div class="gl">😎</div><div class="w" id="faahw"></div><div class="fwho" id="faahwho"></div></div>
   <div class="big" id="big"><div class="t1" id="bigt1">MERCI !</div><div class="t2" id="bigt2"></div></div>
   <div class="dbg" id="dbg">ws…</div>
 </div>
@@ -321,7 +336,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   var DEFIS = [                                // min = pièces TikTok (total du combo)
     { min: 1,    txt: 'FAAAAAH ! 🔊',                            menu: 'FAAAAAH 🔊',                      sec: 8, quick: 1, voix: 'sons/faaah.mp3' },
     { min: 5,    txt: 'JE CRIE « WALD OFF ! »',                 menu: 'Je crie « WALD OFF ! »',          sec: 8, quick: 1, voix: 'sons/wald_off.mp3' },
-    { min: 25,   txt: 'LUNETTES DE SOLEIL 😎',                 menu: 'Lunettes de soleil 2 min 😎',     sec: 120 },
+    { min: 10,   txt: 'LUNETTES 😎 + FAAAAAH !',               menu: 'Lunettes + FAAAAAH 😎',     sec: 120, voix: 'sons/faaah.mp3', faah: 1 },
     { min: 50,   txt: 'JE SORS LA POLO ! 😈',                  menu: 'Je sors la Polo 😈',              sec: 10,  big: 1, drift: 1 },
     { min: 100,  txt: 'GROS DRIFT AVEC LA POLO',                menu: 'Gros drift avec la Polo 🚗💨',    sec: 10,  big: 1, reel: 1 },
     { min: 200,  txt: 'TU CHOISIS OÙ J\'ATTERRIS',              menu: 'Tu choisis où j\'atterris 🪂',     sec: 0,   max: 1800, tag: 'PARTIE', big: 1 },
@@ -541,6 +556,13 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     try { v.currentTime = 0; v.style.display = 'block'; var pr = v.play(); if (pr && pr.catch) pr.catch(end); } catch (e) { return end(); }
     v.onended = end; setTimeout(end, 4300);
   }
+  function faahFx(user) {
+    var w = $('faahw'); w.innerHTML = 'FAAAAAH!'.split('').map(function (c, i) { return '<span style="animation-delay:' + (-i * 0.05) + 's">' + c + '</span>'; }).join('');
+    $('faahwho').textContent = 'MERCI ' + user + ' !';
+    var f = $('faahfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+    setTimeout(function () { shake(); boom(260, 1150, .8); boom(820, 1150, .8); }, 700);
+    setTimeout(shake, 1900);
+  }
   function bigText(user, d) {
     var b = $('big'); $('bigt1').textContent = 'MERCI ' + user + ' !'; $('bigt2').textContent = d.txt;
     shrink($('bigt1'), 1000, 92);
@@ -570,6 +592,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     lit(item.tier); updQ();
     if (d.reel) { voix('sons/polo.mp3'); playReel(function () { bigText(item.user, d); }); }
     else if (d.drift) { poloDrift(); bigText(item.user, d); }
+    else if (d.faah) { faahFx(item.user); }
     else if (d.big) { poloRun(d.big); bigText(item.user, d); SFX.boom(); SFX.moteur(); } else { boom(540, 692, .9); SFX.defi(); }
     if (d.voix) voix(d.voix);
   }
