@@ -128,28 +128,29 @@ body{font-family:var(--body);color:var(--fg)}
 
 /* ---------- GROS CADEAU : Polo + texte chromé ---------- */
 #fx{position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none}
-.polo{position:absolute;left:0;top:927px;width:560px;height:255px;transform:translateX(-640px);filter:drop-shadow(0 10px 10px rgba(0,0,0,.6));pointer-events:none}
-.big{position:absolute;left:40px;right:40px;top:1067px;text-align:center;pointer-events:none;opacity:0}
+.polo{position:absolute;left:0;top:927px;width:560px;height:255px;transform:translateX(-640px);will-change:transform;pointer-events:none}
+.big{position:absolute;left:40px;right:40px;top:1067px;text-align:center;pointer-events:none;opacity:0;will-change:transform,opacity}
 .big .t1{font-family:var(--display);font-size:92px;line-height:.95;
   background:linear-gradient(180deg,#ffffff 0%,#c9d2e6 38%,#6c7894 52%,#e9eefa 64%,#9aa6c2 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 10px rgba(61,224,255,.95)) drop-shadow(0 0 28px rgba(255,59,92,.8)) drop-shadow(4px 4px 0 #0a0d1f)}
 .big .t2{display:inline-block;margin-top:14px;font-family:var(--display);font-size:40px;line-height:1.05;color:#111;background:var(--hazard);padding:10px 22px;
   border-radius:10px;box-shadow:0 0 30px rgba(255,214,10,.9),6px 6px 0 var(--live);max-width:1000px}
 .big.on{animation:bigin 3.6s ease forwards}
-.faahfx{position:absolute;left:0;right:0;top:880px;height:520px;text-align:center;pointer-events:none;opacity:0;z-index:40}
-.faahfx .gl{position:absolute;left:50%;top:0;font-size:220px;line-height:1;transform:translate(-50%,-900px);filter:drop-shadow(0 0 30px rgba(45,226,255,.9)) drop-shadow(0 12px 0 rgba(0,0,0,.5))}
-.faahfx .w{position:absolute;left:-200px;right:-200px;top:250px;display:flex;justify-content:center;font-family:var(--display);font-size:130px;line-height:1.1;white-space:nowrap;transform-origin:50% 60%;
+.faahfx{position:absolute;left:0;right:0;top:880px;height:520px;text-align:center;pointer-events:none;opacity:0;z-index:40;will-change:opacity}
+.faahfx .w{position:absolute;left:-200px;right:-200px;top:250px;transform-origin:50% 60%;will-change:transform}
+.faahfx .wob{will-change:transform}
+.faahfx .wi{display:flex;justify-content:center;font-family:var(--display);font-size:130px;line-height:1.1;white-space:nowrap;
   filter:drop-shadow(0 0 14px rgba(255,43,214,.95)) drop-shadow(0 0 36px rgba(155,77,255,.9)) drop-shadow(5px 5px 0 #0a0d1f)}
-.faahfx .w span{display:inline-block;background:linear-gradient(180deg,#ffffff 0%,#ffe1fb 30%,#ff8ad8 48%,#3a1a6b 51%,#b98cff 68%,#2de2ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.faahfx .wi span{display:inline-block;background:linear-gradient(180deg,#ffffff 0%,#ffe1fb 30%,#ff8ad8 48%,#3a1a6b 51%,#b98cff 68%,#2de2ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.faahfx .wi span:nth-child(odd){transform:translateY(-8px) rotate(-3deg)}
+.faahfx .wi span:nth-child(even){transform:translateY(8px) rotate(3deg)}
 .faahfx .fwho{position:absolute;left:0;right:0;top:430px;font-family:var(--display);font-size:38px;color:var(--hazard);text-shadow:3px 3px 0 var(--live),0 0 18px rgba(255,214,10,.8)}
 .faahfx.on{animation:fxIn 3.4s ease forwards}
-.faahfx.on .gl{animation:glDrop 3.4s cubic-bezier(.25,1.5,.5,1) forwards}
 .faahfx.on .w{animation:fStretch 3.4s ease-in-out forwards}
-.faahfx.on .w span{animation:fWob .16s ease-in-out infinite alternate}
+.faahfx.on .wob{animation:fWob .14s ease-in-out infinite alternate}
 @keyframes fxIn{0%{opacity:0}4%{opacity:1}86%{opacity:1}100%{opacity:0}}
-@keyframes glDrop{0%{transform:translate(-50%,-900px) rotate(-40deg) scale(.6)}22%{transform:translate(-50%,0) rotate(8deg) scale(1.15)}30%{transform:translate(-50%,-20px) rotate(-4deg) scale(1)}40%,100%{transform:translate(-50%,0) rotate(0) scale(1)}}
 @keyframes fStretch{0%{transform:scale(.1,.1)}10%{transform:scale(1.1,1.1)}16%{transform:scale(.95,1)}70%{transform:scale(1.28,.88)}85%{transform:scale(1.35,.85);opacity:1}100%{transform:scale(1.6,.2);opacity:0}}
-@keyframes fWob{from{transform:translateY(-10px) rotate(-4deg)}to{transform:translateY(10px) rotate(4deg)}}
+@keyframes fWob{from{transform:translate(-6px,-4px) rotate(-1.5deg)}to{transform:translate(6px,4px) rotate(1.5deg)}}
 @keyframes bigin{0%{opacity:0;transform:scale(2.4)}10%{opacity:1;transform:scale(.92)}16%{transform:scale(1.04)}22%{transform:scale(1)}82%{opacity:1}100%{opacity:0;transform:translateY(-40px)}}
 
 .dbg{position:absolute;left:12px;bottom:12px;font:600 20px/1.2 var(--body);background:rgba(0,0,0,.7);padding:6px 10px;border-radius:8px;display:none}
@@ -303,8 +304,8 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
 
   <div class="pola"><div class="ph"><img id="pimg" src="../img/hero.jpg" alt=""></div><p id="pcap">LA POLO 💀</p><small id="psub">cascades IRL · YouTube @WALD_OFF</small></div>
 
-  <video id="reel" src="media/polo_reelle.webm" muted playsinline preload="auto" style="position:absolute;left:200px;top:542px;width:619px;height:1100px;display:none;pointer-events:none;filter:drop-shadow(0 18px 18px rgba(0,0,0,.6))"></video>
-  <canvas id="fx" width="1080" height="1920"></canvas>
+  <video id="reel" src="media/polo_reelle.webm" muted playsinline preload="auto" style="position:absolute;left:200px;top:542px;width:619px;height:1100px;display:none;pointer-events:none;will-change:transform"></video>
+  <canvas id="fx" width="540" height="960"></canvas>
   <svg class="polo" id="polo" viewBox="0 0 220 100" aria-hidden="true">
     <path d="M176 47 L176 12 Q176 4 168 4 L161 4" fill="none" stroke="#cfd3dc" stroke-width="5" stroke-linecap="round"/>
     <rect x="171" y="24" width="10" height="17" rx="2" fill="#aab0bb"/>
@@ -323,12 +324,11 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     <g id="w1"><circle cx="52" cy="78" r="17" fill="#0d0d12"/><circle cx="52" cy="78" r="10" fill="#8a8f99"/><circle cx="52" cy="70" r="2" fill="#555"/><circle cx="52" cy="86" r="2" fill="#555"/><circle cx="44" cy="78" r="2" fill="#555"/><circle cx="60" cy="78" r="2" fill="#555"/></g>
     <g id="w2"><circle cx="170" cy="78" r="17" fill="#0d0d12"/><circle cx="170" cy="78" r="10" fill="#8a8f99"/><circle cx="170" cy="70" r="2" fill="#555"/><circle cx="170" cy="86" r="2" fill="#555"/><circle cx="162" cy="78" r="2" fill="#555"/><circle cx="178" cy="78" r="2" fill="#555"/></g>
   </svg>
-  <div class="faahfx" id="faahfx"><div class="w" id="faahw"></div><div class="fwho" id="faahwho"></div></div>
+  <div class="faahfx" id="faahfx"><div class="w"><div class="wob"><div class="wi" id="faahw"></div></div></div><div class="fwho" id="faahwho"></div></div>
   <div class="big" id="big"><div class="t1" id="bigt1">MERCI !</div><div class="t2" id="bigt2"></div></div>
   <div class="dbg" id="dbg">ws…</div>
 </div>
 
-<script src="three.min.js"></script>
 <script>
 (function () {
   /* =====================  RÉGLAGES (à modifier ici)  ===================== */
@@ -424,20 +424,22 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
   var VOIX_SUPERFAN = 'sons/super_fan.mp3';
 
   /* ---------- Particules ---------- */
-  var cv = $('fx'), cx = cv.getContext('2d'), P = [];
+  var cv = $('fx'), cx = cv.getContext('2d'), P = []; cx.scale(.5, .5);   // calque à demi-résolution (4× moins de pixels), étiré à 1080×1920
   function rnd(a, b) { return a + Math.random() * (b - a); }
   function smoke(x, y, n, o) { o = o || {}; kick(); for (var i = 0; i < n; i++) P.push({ t: 's', x: x + rnd(-6, 6), y: y + rnd(-4, 4), vx: (o.vx || 0) + rnd(-1, 1), vy: (o.vy || -1.5) + rnd(-.6, .4), r: rnd(8, 16) * (o.s || 1), g: rnd(.5, 1) * (o.s || 1), life: 0, max: rnd(50, 90), c: o.c || 130 }); }
   function boom(x, y, pw) {
     kick(); pw = pw || 1; P.push({ t: 'f', x: x, y: y, life: 0, max: 16, p: pw });
     var cols = ['#ffd60a', '#ff8a00', '#ff3b5c', '#fff3b0', '#3de0ff'];
-    for (var i = 0; i < 70 * pw; i++) { var a = rnd(0, 6.283), sp = rnd(4, 16) * pw; P.push({ t: 'k', x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, life: 0, max: rnd(30, 60), c: cols[i % 5], r: rnd(3, 7) }); }
-    var sp2 = Math.min(pw, 1.4); smoke(x, y, 18 * sp2, { s: 1.6 * sp2, vy: -1, c: 80 });
+    for (var i = 0; i < 30 * pw; i++) { var a = rnd(0, 6.283), sp = rnd(4, 16) * pw; P.push({ t: 'k', x: x, y: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, life: 0, max: rnd(30, 60), c: cols[i % 5], r: rnd(3, 7) }); }
+    var sp2 = Math.min(pw, 1.4); smoke(x, y, 7 * sp2, { s: 1.6 * sp2, vy: -1, c: 80 });
   }
-  function flame(x, y) { kick(); for (var i = 0; i < 3; i++) P.push({ t: 'k', x: x, y: y, vx: rnd(-5, -1), vy: rnd(-7, -3), life: 0, max: rnd(14, 24), c: Math.random() < .5 ? '#ff8a00' : '#ffd60a', r: rnd(5, 9) }); }
+  function flame(x, y) { kick(); for (var i = 0; i < 2; i++) P.push({ t: 'k', x: x, y: y, vx: rnd(-5, -1), vy: rnd(-7, -3), life: 0, max: rnd(14, 24), c: Math.random() < .5 ? '#ff8a00' : '#ffd60a', r: rnd(5, 9) }); }
   var running = false;
   function kick() { if (!running) { running = true; requestAnimationFrame(tick); } }
   function tick() {
     cx.clearRect(0, 0, 1080, 1920);
+    if (P.length > 260) P.splice(0, P.length - 260);           // jamais plus de 260 particules
+    drawCar();
     for (var i = P.length - 1; i >= 0; i--) {
       var p = P[i], k = ++p.life / p.max;
       if (k >= 1) { P.splice(i, 1); continue; }
@@ -456,7 +458,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
       }
     }
     cx.globalCompositeOperation = 'source-over';
-    if (P.length) requestAnimationFrame(tick); else { cx.clearRect(0, 0, 1080, 1920); running = false; }
+    if (P.length || CAR) requestAnimationFrame(tick); else { cx.clearRect(0, 0, 1080, 1920); running = false; }
   }
   function shake() { }   // tremblement de l'écran désactivé (demande de Wald)
 
@@ -473,81 +475,47 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
       var rot = 'rotate(' + (x * 1.6) + 'deg)'; w1.style.transformOrigin = '52px 78px'; w2.style.transformOrigin = '170px 78px';
       w1.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 52 78)'); w2.setAttribute('transform', 'rotate(' + (x * 1.6) + ' 170 78)');
       var s = W / 220, px = x + 161 * s, py = 927 + bounce + 4 * s;
-      smoke(px, py, 2, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 927 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 });
-      if (power > 1 || Math.random() < .5) flame(px, py);
+      if ((now | 0) % 3 === 0) { smoke(px, py, 1, { vx: -3, vy: -2.4, s: 1.2 }); smoke(x + 20 * s, 927 + 72 * s, 1, { vx: -2, vy: -.6, s: 1, c: 110 }); }
+      if (Math.random() < .3) flame(px, py);
       if (k < 1) requestAnimationFrame(step);
       else { driving = false; polo.style.transform = 'translateX(-640px)'; boom(960, 980, 1.1 * power); if (power > 1) { boom(540, 900, 1.4); shake(); } }
     })(t0);
   }
 
-  /* ---------- 100 pièces : la Polo en 3D fait un dérapage autour de ta tête ---------- */
-  var D3 = null;
-  function d3init() {
-    if (D3 || !window.THREE) return D3;
-    var T = THREE, cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1920;
-    cv.style.cssText = 'position:absolute;left:0;top:0;width:1080px;height:1920px;pointer-events:none;display:none';
-    stage.insertBefore(cv, $('fx'));
-    var r = new T.WebGLRenderer({ canvas: cv, alpha: true, antialias: true }); r.setPixelRatio(1); r.setSize(1080, 1920, false); r.setClearColor(0, 0);
-    var sc = new T.Scene(), cam = new T.OrthographicCamera(0, 1080, 0, -1920, -2000, 2000); cam.position.z = 1000;
-    sc.add(new T.AmbientLight(0xffffff, .65)); var dl = new T.DirectionalLight(0xffffff, .9); dl.position.set(-300, 400, 800); sc.add(dl);
-    var pt = new T.PointLight(0x3de0ff, .6, 900); pt.position.set(0, 0, 300); sc.add(pt);
-    function M(c, o) { o = o || {}; return new T.MeshStandardMaterial({ color: c, metalness: o.m || .25, roughness: o.r == null ? .6 : o.r }); }
-    function box(w, h, d, m, x, y, z) { var b = new T.Mesh(new T.BoxGeometry(w, h, d), m); b.position.set(x || 0, y || 0, z || 0); return b; }
-    var car = new T.Group(), body = new T.Group(); car.add(body);
-    var navy = M(0x1f2a5c, { m: .45, r: .35 }), mud = M(0x6b5236, { r: .9 }), seat = M(0x2d4fd8, { r: .7 }), dark = M(0x141c40), chrome = M(0xd8dde6, { m: 1, r: .15 });
-    body.add(box(250, 112, 34, navy, 0, 0, 0));                 // caisse
-    body.add(box(254, 116, 12, mud, 0, 0, -16));                // boue en bas
-    body.add(box(70, 104, 10, navy, 80, 0, 22));                // capot
-    body.add(box(60, 104, 8, navy, -95, 0, 21));                // coffre
-    body.add(box(110, 96, 6, dark, -10, 0, 18));                // habitacle
-    body.add(box(26, 38, 30, seat, 10, 24, 30)); body.add(box(26, 38, 30, seat, 10, -24, 30)); body.add(box(22, 84, 22, seat, -42, 0, 28));
-    var ws = box(6, 104, 34, new T.MeshStandardMaterial({ color: 0xa0d2ff, transparent: true, opacity: .35, metalness: .2, roughness: .1 }), 46, 0, 38); ws.rotation.y = -.5; body.add(ws);
-    var pipe = new T.Mesh(new T.CylinderGeometry(5, 5, 70, 12), chrome); pipe.rotation.x = Math.PI / 2; pipe.position.set(78, 30, 60); body.add(pipe);
-    var can = new T.Mesh(new T.CylinderGeometry(9, 9, 22, 14), M(0xaab0bb, { m: .9, r: .3 })); can.rotation.x = Math.PI / 2; can.position.set(78, 30, 102); body.add(can);
-    body.add(box(6, 22, 10, M(0xfff4c2, { r: .2 }), 127, 34, 4)); body.add(box(6, 22, 10, M(0xfff4c2, { r: .2 }), 127, -34, 4));
-    body.add(box(5, 18, 8, M(0xff3b5c, { r: .3 }), -127, 36, 4)); body.add(box(5, 18, 8, M(0xff3b5c, { r: .3 }), -127, -36, 4));
-    var wheels = [];
-    [[78, 60], [78, -60], [-80, 60], [-80, -60]].forEach(function (w) {
-      var g = new T.Group(), t = new T.Mesh(new T.CylinderGeometry(24, 24, 18, 18), M(0x0d0d12, { r: .9 })), h = new T.Mesh(new T.CylinderGeometry(13, 13, 19, 12), M(0x8a8f99, { m: .8, r: .3 }));
-      g.add(t); g.add(h); g.position.set(w[0], w[1], -14); body.add(g); wheels.push(g);
-    });
-    body.rotation.x = -.55;                                      // on voit le dessus ET le côté : effet 3D
-    car.scale.set(1.7, 1.7, 1.7);
-    sc.add(car);
-    D3 = { T: T, r: r, sc: sc, cam: cam, cv: cv, car: car, body: body, wheels: wheels, busy: false };
-    return D3;
+  /* ---------- 50 pièces : la Polo "3D" fait un drift autour de ta tête ----------
+     La voiture est pré-calculée en 48 angles (avec flou de mouvement intégré) dans une seule image :
+     plus de WebGL, juste une image dessinée sur le calque des particules → très léger. */
+  var CAR = null, SPR = new Image(), SN = 48, SF = 384, SC = 8, SZ = 640;   // 48 angles, cases de 384 px, 8 colonnes, affichée en 640 px
+  SPR.src = 'media/polo_drift.webp';
+  function drawCar() {
+    if (!CAR || !SPR.complete) return;
+    var a = ((CAR.ang % 6.2832) + 6.2832) % 6.2832, i = Math.round(a / (6.2832 / SN)) % SN;
+    cx.globalAlpha = CAR.al; cx.drawImage(SPR, (i % SC) * SF, Math.floor(i / SC) * SF, SF, SF, CAR.x - SZ / 2, CAR.y - SZ / 2, SZ, SZ); cx.globalAlpha = 1;
   }
   function poloDrift() {
-    var d = d3init(); if (!d) return poloRun(1);
-    if (d.busy) return; d.busy = true; d.cv.style.display = 'block';
-    var cx0 = 540, cy0 = 370, rx = 430, ry = 300, t0 = performance.now(), dur = 4200, lastP = null;
+    if (CAR) return; if (!SPR.complete) return poloRun(1);
+    var cx0 = 540, cy0 = 370, rx = 430, ry = 300, t0 = performance.now(), dur = 4200, n = 0;
     function pos(k) {                                            // k 0..1 -> point écran
       if (k < .14) { var a = k / .14; return [-260 + (cx0 - rx + 260) * a, 820 + (cy0 - 820) * a]; }
       if (k < .86) { var u = (k - .14) / .72, th = Math.PI + u * 3 * Math.PI; return [cx0 + rx * Math.cos(th), cy0 + ry * Math.sin(th)]; }
       var b = (k - .86) / .14; return [cx0 + rx + (1400 - cx0 - rx) * b, cy0 + (760 - cy0) * b];
     }
-    boom(80, 820, 1.2); shake(); SFX.boom(); SFX.moteur(); setTimeout(SFX.moteur, 1300);
+    CAR = { x: -400, y: 820, ang: 0, al: 1 };
+    boom(80, 820, 1); SFX.boom(); SFX.moteur(); setTimeout(SFX.moteur, 1300);
     (function step(now) {
       var k = Math.min(1, (now - t0) / dur), p = pos(k), q = pos(Math.min(1, k + .01));
       var head = Math.atan2(q[1] - p[1], q[0] - p[0]);
       var drift = (k > .14 && k < .86) ? .65 : (k <= .14 ? .65 * (k / .14) : .65 * (1 - (k - .86) / .14));
       var toC = Math.atan2(cy0 - p[1], cx0 - p[0]), side = Math.sin(toC - head) > 0 ? 1 : -1;
-      var ang = head + side * drift;
-      d.car.position.set(p[0], -p[1], 0); d.car.rotation.z = -ang;
-      d.body.rotation.y = Math.sin(now / 70) * .03;              // la caisse vibre
-      d.wheels.forEach(function (w) { w.rotation.y += .5; });
-      d.r.render(d.sc, d.cam);
-      var fx = Math.cos(ang), fy = Math.sin(ang);                // fumée des pneus arrière + flammes du pot
-      if (lastP && Math.random() < .5) {
+      var ang = head + side * drift, fx = Math.cos(ang), fy = Math.sin(ang);
+      CAR.x = p[0]; CAR.y = p[1]; CAR.ang = ang; kick();
+      if (++n % 3 === 0) {                                       // fumée des pneus + flamme du pot, 1 image sur 3
         smoke(p[0] - fx * 150 - fy * 95, p[1] - fy * 150 + fx * 95, 1, { vx: -fx * 1.5, vy: -fy * 1.5 - .4, s: .8, c: 215 });
         smoke(p[0] - fx * 150 + fy * 95, p[1] - fy * 150 - fx * 95, 1, { vx: -fx * 1.5, vy: -fy * 1.5 - .4, s: .8, c: 215 });
-      }
-      if (lastP && Math.random() < .6) {
         flame(p[0] + fx * 130, p[1] + fy * 130 - 100);
       }
-      lastP = p;
       if (k < 1) requestAnimationFrame(step);
-      else { d.busy = false; d.r.clear(); d.cv.style.display = 'none'; boom(1000, 760, 1.2); shake(); }
+      else { CAR = null; boom(1000, 760, 1); }
     })(t0);
   }
   function playReel(next) {
@@ -557,9 +525,9 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     v.onended = end; setTimeout(end, 4300);
   }
   function faahFx(user) {
-    var w = $('faahw'); w.innerHTML = 'FAAAAAH!'.split('').map(function (c, i) { return '<span style="animation-delay:' + (-i * 0.05) + 's">' + c + '</span>'; }).join('');
+    var w = $('faahw'); w.innerHTML = 'FAAAAAH!'.split('').map(function (c) { return '<span>' + c + '</span>'; }).join('');
     $('faahwho').textContent = 'MERCI ' + user + ' !';
-    var f = $('faahfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
+    var f = $('faahfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); clearTimeout(f._t); f._t = setTimeout(function () { f.classList.remove('on'); }, 3500);
     setTimeout(function () { boom(260, 1150, .8); boom(820, 1150, .8); }, 700);
   }
   function bigText(user, d) {
