@@ -458,7 +458,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     cx.globalCompositeOperation = 'source-over';
     if (P.length) requestAnimationFrame(tick); else { cx.clearRect(0, 0, 1080, 1920); running = false; }
   }
-  function shake() { stage.classList.remove('shake'); void stage.offsetWidth; stage.classList.add('shake'); }
+  function shake() { }   // tremblement de l'écran désactivé (demande de Wald)
 
   /* ---------- La Polo traverse l'écran ---------- */
   var polo = $('polo'), w1 = $('w1'), w2 = $('w2'), driving = false;
@@ -560,8 +560,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     var w = $('faahw'); w.innerHTML = 'FAAAAAH!'.split('').map(function (c, i) { return '<span style="animation-delay:' + (-i * 0.05) + 's">' + c + '</span>'; }).join('');
     $('faahwho').textContent = 'MERCI ' + user + ' !';
     var f = $('faahfx'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on');
-    setTimeout(function () { shake(); boom(260, 1150, .8); boom(820, 1150, .8); }, 700);
-    setTimeout(shake, 1900);
+    setTimeout(function () { boom(260, 1150, .8); boom(820, 1150, .8); }, 700);
   }
   function bigText(user, d) {
     var b = $('big'); $('bigt1').textContent = 'MERCI ' + user + ' !'; $('bigt2').textContent = d.txt;
