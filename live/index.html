@@ -416,12 +416,22 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     boom:   function () { noise(0, 1.1, .9, 700); tone('sine', 120, 35, 0, .8, .5); },
     moteur: function () { tone('sawtooth', 55, 140, 0, 1.2, .14); tone('sawtooth', 140, 70, 1.2, 1.2, .12); noise(.1, 2.2, .12, 300); },
     klaxon: function () { [349, 440, 523].forEach(function (f) { tone('sawtooth', f, 0, 0, .35, .07); tone('sawtooth', f, 0, .45, .7, .07); }); },
-    top1:   function () { [523, 659, 784, 1047].forEach(function (f, i) { tone('triangle', f, 0, i * .12, .3, .16); }); }
+    top1:   function () { [523, 659, 784, 1047].forEach(function (f, i) { tone('triangle', f, 0, i * .12, .3, .16); }); },
+    follow: function () { [784, 988, 1175, 1568].forEach(function (f, i) { tone('square', f, 0, i * .07, .16, .09); }); tone('triangle', 2093, 0, .3, .45, .1); }
   };
   addEventListener('pointerdown', ac); addEventListener('keydown', ac);
   var VOIX = {};
   function voix(src) { if (!src || !VOL) return; try { var a = VOIX[src] || (VOIX[src] = new Audio(src)); a.pause(); a.currentTime = 0; a.volume = Math.min(1, VOL / 0.6); a.play().catch(function () {}); } catch (e) {} }
   var VOIX_SUPERFAN = 'sons/super_fan.mp3';
+  // Son des nouveaux abonnés : mets le fichier dans sons/abonne.mp3. Tant qu'il n'existe pas, petit jingle à la place.
+  var FOLLOW_SND = 'sons/abonne.mp3', followOk = false, lastFollow = 0;
+  (function () { try { var a = new Audio(); a.oncanplaythrough = function () { followOk = true; }; a.src = FOLLOW_SND; a.load(); } catch (e) {} })();
+  function follow(user) {
+    toast('🔔 <b>' + esc(user) + '</b> vient de s\'abonner !');
+    boom(300, 170, .5);
+    var now = Date.now(); if (now - lastFollow < 2500) return; lastFollow = now;   // pas de cacophonie si plein d'abonnés d'un coup
+    if (followOk) voix(FOLLOW_SND); else SFX.follow();
+  }
 
   /* ---------- Particules ---------- */
   var cv = $('fx'), cx = cv.getContext('2d'), P = []; cx.scale(.5, .5);   // calque à demi-résolution (4× moins de pixels), étiré à 1080×1920
@@ -599,7 +609,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     else if (c === '!reset') setTop(0);
     else if (c === '!ok' || c === '!next' || c === '!fini') { if (cur) stop(); }
   }
-  window.WALD = { gift: gift, command: command, top1: function () { setTop(top1 + 1, true); }, superFan: function (u) { superFan(u || '@super_pote'); } };
+  window.WALD = { gift: gift, command: command, follow: function (u) { follow(u || '@nouveau_pote'); }, top1: function () { setTop(top1 + 1, true); }, superFan: function (u) { superFan(u || '@super_pote'); } };
 
   /* ---------- Télécommande (téléphone) : ?t=NOM_SECRET dans l'adresse, messages via ntfy.sh ---------- */
   var TOPIC = q.get('t');
@@ -610,6 +620,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     else if (msg === 'reset') setTop(0);
     else if (msg === 'ok') { if (cur) stop(); }
     else if (msg === 'superfan') superFan('@test');
+    else if (msg === 'follow') follow('@test');
     else if (msg.indexOf('gift:') === 0) { var n = parseInt(msg.slice(5), 10) || 1; gift('@test', 'Cadeau test', n, 1); }
   }
   function listenRemote() {
@@ -638,6 +649,8 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
         gift(user, d.giftName, coins, n);
       } else if (ev === 'subscribe' || ev === 'superfan' || ev === 'member_subscribe') {
         superFan(user);
+      } else if (ev === 'follow' || (ev === 'social' && /follow/i.test(String(d.displayType || d.label || '')))) {
+        follow(user);
       } else if (ev === 'chat' && d.comment) {
         var u = String(d.uniqueId || (d.user && d.user.uniqueId) || '').toLowerCase();
         if (u === HOST || u === 'wald.off' || d.isModerator) command(d.comment);
@@ -653,6 +666,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
     var k = e.key.toLowerCase();
     if (k >= '1' && k <= '8') { var x = DEMO[+k - 1]; gift(x[0], x[1], x[2], x[3]); }
     else if (k === 's') superFan('@super_pote');
+    else if (k === 'f') follow('@nouveau_pote');
     else if (k === 't') setTop(top1 + 1, true); else if (k === 'n' && cur) stop();
   });
   idle();
