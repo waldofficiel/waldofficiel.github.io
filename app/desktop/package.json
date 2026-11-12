@@ -1,0 +1,27 @@
+{
+  "name": "wald-royal",
+  "productName": "Wald Royal",
+  "version": "1.0.0",
+  "description": "Wald Royal, le battle royale de Wald Off",
+  "author": "Wald Off",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "fr.waldoff.royal",
+    "productName": "Wald Royal",
+    "files": ["main.js", "game/**/*"],
+    "directories": { "output": "dist" },
+    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Wald Royal",
+      "artifactName": "WaldRoyal-Setup.${ext}"
+    }
+  }
+}

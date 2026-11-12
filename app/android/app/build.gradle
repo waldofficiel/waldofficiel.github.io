@@ -1,0 +1,21 @@
+plugins { id 'com.android.application' }
+def run = Integer.parseInt(System.getenv('GITHUB_RUN_NUMBER') ?: '1')
+android {
+    namespace 'fr.waldoff.royal'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'fr.waldoff.royal'
+        minSdk 24
+        targetSdk 34
+        versionCode run
+        versionName "1.0.${run}"
+    }
+    signingConfigs {
+        wald { storeFile file('../wald.keystore'); storePassword 'waldroyal'; keyAlias 'wald'; keyPassword 'waldroyal' }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.wald }
+    }
+    androidResources { noCompress += ['mp3', 'webp', 'jpg', 'png'] }
+}
+dependencies { implementation 'androidx.webkit:webkit:1.11.0' }

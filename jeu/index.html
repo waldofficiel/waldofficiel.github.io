@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Wald Royale</title>
+<title>Wald Royal</title>
 <meta name="theme-color" content="#0b0418">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Wald Royale">
+<meta name="apple-mobile-web-app-title" content="Wald Royal">
 <style>
 /* Jeu 3D plein écran : canvas WebGL + HUD compact + contrôles tactiles façon jeu mobile */
 :root{
@@ -195,7 +195,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
     <p class="invtip" id="invTip">Touche une arme, puis une case pour la mettre à cette place.</p>
   </div>
 </div>
-<div id="rotate"><div>📱</div><b>Tourne ton téléphone</b><span>Wald Royale se joue à l'horizontale</span></div>
+<div id="rotate"><div>📱</div><b>Tourne ton téléphone</b><span>Wald Royal se joue à l'horizontale</span></div>
 <div id="touch"></div>
 <div id="stick"><i></i></div>
 <button class="btn" id="bFire" type="button" aria-label="Tirer"><svg viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="3"/><path d="M11 2h2v6h-2zM11 16h2v6h-2zM2 11h6v2H2zM16 11h6v2h-6z"/></svg></button>
@@ -218,7 +218,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
 
 <div id="lobby" hidden>
   <header class="lb-top">
-    <div class="lb-logo">WALD <span>ROYALE</span></div>
+    <div class="lb-logo">WALD <span>ROYAL</span></div>
     <nav class="tabs">
       <button class="tab on" data-t="jouer" type="button">Jouer</button>
       <button class="tab" data-t="rangs" type="button">Classé</button>
@@ -1228,7 +1228,7 @@ addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); defer
 $('install').addEventListener('click', function () { if (deferred) { deferred.prompt(); deferred.userChoice.then(function (r) { if (r.outcome === 'accepted') { $('gate').hidden = true; $('lobby').hidden = false; } }); deferred = null; } });
 addEventListener('appinstalled', function () { $('gate').hidden = true; $('lobby').hidden = false; });
 if (standalone || /[?&]jouer/.test(location.search)) $('lobby').hidden = false; else $('gate').hidden = false;
-if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(function () {});
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !/WaldRoyalApp/.test(navigator.userAgent) && location.hostname !== 'appassets.androidplatform.net') navigator.serviceWorker.register('sw.js').catch(function () {});
 
 setGfx(SET.gfx); showStats(); reset(); requestAnimationFrame(loop);
 window.WR = { get me() { return me; }, pl: pl, vehicles: vehicles, get state() { return state; }, start: start, update: update, items: items, setCam: function (a, p) { camA = a; camP = p; }, fire: function (on) { fireHeld = on; }, give: function (k) { me.inv[me.slot] = newSlot(k); } };
