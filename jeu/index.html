@@ -60,7 +60,7 @@ body.touch #wname{bottom:auto;top:calc(80px + env(safe-area-inset-top,0px))}
 body.touch #feed{top:calc(84px + env(safe-area-inset-top,0px))}
 #feed div{font:700 12px var(--body);background:rgba(11,4,24,.6);padding:2px 7px;border-radius:5px;border-left:3px solid var(--pink);animation:fd 4s forwards}
 @keyframes fd{0%,80%{opacity:1}100%{opacity:0}}
-#toast{top:26%;left:0;right:0;text-align:center;font:900 clamp(22px,5.5vw,44px) var(--display);color:var(--sun);text-shadow:0 0 18px rgba(255,210,61,.9),3px 3px 0 #2a0b4a;opacity:0}
+#toast{z-index:60;top:26%;left:0;right:0;text-align:center;font:900 clamp(22px,5.5vw,44px) var(--display);color:var(--sun);text-shadow:0 0 18px rgba(255,210,61,.9),3px 3px 0 #2a0b4a;opacity:0}
 #toast.on{animation:tst 1.3s ease-out forwards}
 @keyframes tst{0%{opacity:0;transform:scale(.5)}15%{opacity:1;transform:scale(1.1)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
 #hint{left:50%;top:62%;transform:translateX(-50%);font:800 14px var(--body);background:rgba(11,4,24,.75);border:2px solid var(--cyan);padding:5px 12px;border-radius:999px;white-space:nowrap}
@@ -98,7 +98,7 @@ body.touch #bAuto{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 #rotate div{font-size:56px;animation:rot 1.6s ease-in-out infinite}#rotate b{font:900 24px var(--display)}#rotate span{color:var(--mute)}
 @keyframes rot{0%,20%{transform:rotate(0)}60%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait) and (pointer:coarse){#rotate{display:flex}}
-body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:none!important}
+body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:none!important}
 .screen{position:fixed;inset:0;z-index:20;display:flex;align-items:safe center;justify-content:center;overflow-y:auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px));background:radial-gradient(ellipse at 50% 30%,rgba(155,77,255,.5),rgba(11,4,24,.96) 70%)}
 .card{max-width:520px;width:100%;display:grid;gap:12px;justify-items:center;text-align:center}
 .card p{margin:0;line-height:1.45}
@@ -152,7 +152,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
 .skin{display:grid;justify-items:center;gap:2px;background:linear-gradient(180deg,#3a1a6b,#140829);border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 6px;text-align:center}
 .skin span{width:52px;height:52px;border-radius:10px;display:grid;place-items:center;font:900 24px var(--display);background:rgba(255,255,255,.08);overflow:hidden}
 .skin span img{width:100%;height:100%;object-fit:cover}
-.skin b{font:900 12px var(--display)}.skin small{color:var(--mute);font-size:11px}.skin.on{border-color:var(--sun)}.skin.lock{opacity:.5}
+.skin b{font:900 12px var(--display)}.skin small{color:var(--mute);font-size:11px}.skin.on{border-color:var(--sun)}.skin.lock{opacity:.5}.skin{cursor:pointer;position:relative}.skin canvas{width:100%;height:100%}.skin .tagr{position:absolute;top:4px;left:4px;font:800 9px var(--body);padding:1px 6px;border-radius:999px;background:#9b4dff}.skin.buy small{color:#ffd23d;font-weight:800}.skin.poor{opacity:.75}h3 .po{float:right;font:800 14px var(--body);color:#ffd23d}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .stats div{background:rgba(11,4,24,.75);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:9px;display:grid}
 .stats .kd{grid-column:1 / -1}
@@ -230,7 +230,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
   </header>
   <div class="lb-body">
     <div class="stage">
-      <div class="rankbox"><span class="rk" id="rkBadge"></span><div><b id="rkName">Bronze I</b><small><span id="rkT">0</span> 🏆</small><div class="rkbar"><i id="rkBar"></i></div></div></div>
+      <div class="rankbox"><span class="rk" id="rkBadge"></span><div><b id="rkName">Bronze I</b><small><span id="rkT">0</span> 🏆 · <span id="poN">0</span> 🪙</small><div class="rkbar"><i id="rkBar"></i></div></div></div>
     </div>
     <div class="panel">
       <section class="pane on" data-p="jouer">
@@ -246,11 +246,9 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
         <div class="ladder" id="ladder"></div>
       </section>
       <section class="pane" data-p="casier">
-        <h3>Casier</h3>
+        <h3>Casier <small class="po">🪙 <span id="poN2">0</span></small></h3>
         <div class="locker">
-          <div class="skin on"><span><img src="avatar.jpg" alt=""></span><b>Wald Off</b><small>Original · équipé</small></div>
-          <div class="skin lock"><span>?</span><b>Skin</b><small>Bientôt</small></div>
-          <div class="skin lock"><span>?</span><b>Skin</b><small>Bientôt</small></div>
+          <div id="skinList" style="display:contents"></div>
           <div class="skin lock"><span>🪂</span><b>Planeur</b><small>Bientôt</small></div>
           <div class="skin lock"><span>🚗</span><b>Peinture La Wald</b><small>Bientôt</small></div>
           <div class="skin lock"><span>💃</span><b>Emote</b><small>Bientôt</small></div>
@@ -301,6 +299,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
 
 <script src="three.min.js"></script>
 <script src="polo3d.js"></script>
+<script src="skins.js"></script>
 <script>
 (function () {
 'use strict';
@@ -621,6 +620,7 @@ var SKINS = ['#f1c6a0', '#e0ac85', '#c68b5e', '#8d5a3b', '#f5d3b8'];
 var SHIRTS = ['#3dd6ff', '#7dff6a', '#ffb23d', '#c77dff', '#ff7bd5', '#f2f2f2', '#ffd23d', '#5cffc8', '#ff8a3d', '#6a8cff', '#2a2a2a', '#e83a3a'];
 var PANTS = ['#2b3a67', '#333', '#5a4630', '#4c6b3a', '#777', '#1d1d24'];
 function makeChar(lk) {
+  if (lk.sk && window.buildSkin) { var R = window.buildSkin(THREE, lk.sk); Object.assign(lk, R.cols); return charExtras(R, R.root, R.body, lk); }
   var root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   function limb(px, py, pz) { var p = new THREE.Group(); p.position.set(px, py, pz); body.add(p); return p; }
   var lL = limb(0, .95, -.16), lR = limb(0, .95, .16);
@@ -636,10 +636,13 @@ function makeChar(lk) {
   if (lk.glasses) box(head, .05, .1, .42, .24, .05, 0, '#62e6ff', { emissive: '#7a2fff', emissiveIntensity: .45 });
   else { box(head, .03, .07, .06, .235, .05, -.1, '#1a1a1a'); box(head, .03, .07, .06, .235, .05, .1, '#1a1a1a'); }
   var gunHold = new THREE.Group(); gunHold.position.set(.45, 1.38, .26); body.add(gunHold);
+  return charExtras({ root: root, body: body, lL: lL, lR: lR, aL: aL, aR: aR, head: head, gunHold: gunHold }, root, body, lk);
+}
+function charExtras(R, root, body, lk) {
   var shadow = new THREE.Mesh(new THREE.CircleGeometry(.55, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .28, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .03; root.add(shadow);
   var glider = new THREE.Group(); box(glider, 1.8, .06, 3.4, 0, 0, 0, lk.glider || '#ff2bd6'); box(glider, .3, .1, 3.5, .8, .02, 0, '#fff'); glider.position.y = 3.2; glider.visible = false; root.add(glider);
   body.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
-  return { root: root, body: body, lL: lL, lR: lR, aL: aL, aR: aR, head: head, gunHold: gunHold, gun: null, gunK: null, shadow: shadow, glider: glider };
+  return { root: root, body: body, lL: R.lL, lR: R.lR, aL: R.aL, aR: R.aR, head: R.head, gunHold: R.gunHold, gun: null, gunK: null, shadow: shadow, glider: glider };
 }
 function setHeld(c, k) { if (c.gunK === k) return; if (c.gun) c.gunHold.remove(c.gun); c.gun = k ? gunModel(k) : null; c.gunK = k; if (c.gun) c.gunHold.add(c.gun); }
 function animChar(p, dt) {
@@ -754,11 +757,13 @@ function removeItem(it) { lootGroup.remove(it.m); var i = items.indexOf(it); if 
 function chestModel() { var g = new THREE.Group(); box(g, 1.2, .7, .8, 0, .35, 0, '#7a4a12'); box(g, 1.24, .14, .84, 0, .62, 0, '#ffcf3d', { emissive: '#aa7700', emissiveIntensity: .5 }); box(g, .16, .72, .84, 0, .36, 0, '#ffcf3d'); return g; }
 
 /* ================= joueurs ================= */
+function mySkin() { try { var s0 = JSON.parse(localStorage.getItem('wr_stats') || 'null'); if (s0 && s0.skin && SKINS_SHOP[s0.skin]) return s0.skin; } catch (e) {} return 'wald'; }
+var SKINS_SHOP = { wald: { name: 'Wald Off', price: 0, tag: 'Original' }, flubb: { name: 'Flubb', price: 400, tag: 'Rare' }, lea: { name: 'Léa', price: 700, tag: 'Épique' }, stan: { name: 'Stan', price: 1000, tag: 'Légendaire' } };
 var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Légende', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
 var pl = [];
 for (var ib = 0; ib < NPL; ib++) {
-  var isBot = ib > 0, lk = isBot ? { skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
-    : { skin: '#e8b896', shirt: '#d4262b', pants: '#ececec', legs: '#e8b896', shoes: '#f6f6f6', hat: 'bob', glasses: 1, stripe: 1, chain: 1, glider: '#ff2bd6' };
+  var isBot = ib > 0, lk = isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
+    : { sk: mySkin(), glider: '#ff2bd6' };
   var mdl = makeChar(lk); scene.add(mdl.root);
   pl.push({ bot: isBot, name: isBot ? NAMES[ib - 1] : 'WALD OFF', model: mdl, look: lk, inv: [null, null, null], slot: 0 });
 }
@@ -1178,8 +1183,11 @@ lscene.add(new THREE.HemisphereLight('#d9c8ff', '#2a1050', .9)); var lp1 = new T
 var lsun = new THREE.DirectionalLight('#fff', .6); lsun.position.set(2, 4, 5); lscene.add(lsun);
 var plat = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.4, .3, 48), mat('#2a1450')); plat.position.y = -.15; lscene.add(plat);
 var ringN = new THREE.Mesh(new THREE.TorusGeometry(4.3, .06, 8, 64), new THREE.MeshBasicMaterial({ color: '#ff2bd6' })); ringN.rotation.x = Math.PI / 2; lscene.add(ringN);
-var lme = makeChar(me.look); lscene.add(lme.root); lme.root.position.set(.8, 0, 1.4); lme.root.rotation.y = -Math.PI * .5 + .55;
-setHeld(lme, 'scar'); lme.aR.rotation.z = 1.2; lme.aL.rotation.z = 1.0; lme.aL.rotation.x = .55; lme.gunHold.rotation.z = -.5;
+var lme = null;
+function lobbyChar() { if (lme) lscene.remove(lme.root); lme = makeChar({ sk: me.look.sk }); lscene.add(lme.root); lme.root.position.set(.8, 0, 1.4); lme.root.rotation.y = -Math.PI * .5 + .55;
+  setHeld(lme, 'scar'); lme.aR.rotation.z = 1.2; lme.aL.rotation.z = 1.0; lme.aL.rotation.x = .55; lme.gunHold.rotation.z = -.5; }
+lobbyChar();
+function setMySkin(id) { ST.skin = id; saveST(); scene.remove(me.model.root); me.look = { sk: id, glider: '#ff2bd6' }; me.model = makeChar(me.look); scene.add(me.model.root); lobbyChar(); lockerRender(); }
 var lpolo = carModel('polo'); lpolo.position.set(-.8, 0, -1.4); lpolo.rotation.y = .5; lscene.add(lpolo);
 function renderLobby(t) { var a = Math.sin(t * .25) * .3 + .2; lcam.position.set(Math.sin(a) * 9.5 + 2.6, 3, Math.cos(a) * 9.5); lcam.lookAt(lcam.aspect < 2.1 ? 3.4 : 2.6, 1.2, 0); lme.head.rotation.y = Math.sin(t * .8) * .25; lme.body.position.y = Math.sin(t * 2) * .02; R3.render(lscene, lcam); }
 
@@ -1198,7 +1206,7 @@ function loop(now) {
 }
 
 /* ================= trophées ================= */
-var ST = { g: 0, w: 0, k: 0, b: 0, c: 0, p: 0, t: 0 };
+var ST = { g: 0, w: 0, k: 0, b: 0, c: 0, p: 0, t: 0, po: 0, own: ['wald'], skin: 'wald' };
 try { var s1 = JSON.parse(localStorage.getItem('wr_stats') || 'null'); if (s1) ST = Object.assign(ST, s1); } catch (e) {}
 function saveST() { try { localStorage.setItem('wr_stats', JSON.stringify(ST)); } catch (e) {} }
 var RANKS = [['Bronze I', 0], ['Bronze II', 200], ['Bronze III', 400], ['Argent I', 600], ['Argent II', 800], ['Argent III', 1000], ['Or I', 1200], ['Or II', 1450], ['Or III', 1700], ['Platine I', 1950], ['Platine II', 2250], ['Platine III', 2550], ['Diamant I', 2850], ['Diamant II', 3200], ['Diamant III', 3550], ['Maître', 3900], ['Néon', 4600], ['Légende', 5400]];
@@ -1215,6 +1223,7 @@ function showStats() {
   var i = rankIdx(ST.t), nx = RANKS[i + 1]; badge($('rkBadge'), i); $('rkName').textContent = RANKS[i][0]; $('rkT').textContent = ST.t + (nx ? ' / ' + nx[1] : '');
   $('rkBar').style.width = (nx ? (ST.t - RANKS[i][1]) / (nx[1] - RANKS[i][1]) * 100 : 100) + '%';
   var ec = entryCost(ST.t); $('pill').textContent = 'Classé · ' + (ec ? 'entrée −' + ec + ' 🏆' : 'entrée gratuite') + ' · top 1 : +' + placeGain(ST.t, 1);
+  $('poN').textContent = ST.po || 0; if (window.lockerRender) lockerRender();
   var gi = grpOf(i); DIFF = gi <= 1 ? 0 : gi <= 4 ? 1 : 2;
   $('ladder').innerHTML = RANKS.map(function (r, j) { return '<div class="' + (j === i ? 'me' : '') + '"><span class="rk" data-j="' + j + '"></span><b>' + r[0] + '</b><small>' + r[1] + ' 🏆 · entrée −' + entryCost(r[1]) + '</small></div>'; }).reverse().join('');
   document.querySelectorAll('#ladder .rk').forEach(function (el) { badge(el, +el.dataset.j); });
@@ -1223,6 +1232,7 @@ function settle(win) {
   var before = rankIdx(tBefore), gain = placeGain(tBefore, place) + me.kills; ST.t = Math.max(0, ST.t + gain);
   var after = rankIdx(ST.t), net = gain - lastCost, el = $('eT'); el.textContent = (net >= 0 ? '+' : '') + net + ' 🏆'; el.className = net >= 0 ? 'up' : 'down';
   $('eR').textContent = 'Place ' + place + ' : +' + (gain - me.kills) + ' · élim. : +' + me.kills + (lastCost ? ' · entrée : −' + lastCost : '') + ' → ' + ST.t + ' 🏆 · ' + RANKS[after][0] + (after > before ? ' ⬆ NOUVEAU RANG !' : after < before ? ' ⬇' : '');
+  var po = 20 + me.kills * 10 + (place === 1 ? 100 : place <= 3 ? 50 : place <= 10 ? 25 : 0); ST.po = (ST.po || 0) + po; $('eR').textContent += ' · +' + po + ' 🪙';
   ST.g++; if (win) ST.w++; ST.k += me.kills; ST.c += me.broken; if (!ST.b || place < ST.b) ST.b = place; if (win && me.veh && me.veh.k === 'polo') ST.p++; saveST(); showStats();
 }
 
@@ -1258,6 +1268,26 @@ document.querySelectorAll('#gfx button').forEach(function (b) { b.addEventListen
 if (isTouch) $('keys').innerHTML = '<b>Gauche</b><span>joystick : marcher / conduire</span><b>Droite</b><span>glisse pour tourner la caméra</span><b>Bouton rose</b><span>tirer (glisse dessus pour viser)</span><b>SAUT</b><span>sauter · drift en voiture</span><b>Bouton bleu</b><span>sauter du bus · monter · prendre</span><b>RECH.</b><span>recharger · nitro en La Wald</span><b>🎒</b><span>inventaire : ranger, jeter, échanger</span><b>🎯</b><span>tir auto : vise et tire tout seul</span>';
 (function () { var c = $('mapPrev'), g = c.getContext('2d'), k = TEX / 1000; g.drawImage(terr, 60 * k, 60 * k, 880 * k, 880 * k, 0, 0, c.width, c.height); })();
 addEventListener('resize', resize);
+var THUMBS = {};
+function skinThumb(id) {
+  if (THUMBS[id]) return THUMBS[id];
+  var W2 = 128, rt = new THREE.WebGLRenderTarget(W2, W2), sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(30, 1, .1, 50);
+  sc.background = new THREE.Color('#2a1450'); sc.add(new THREE.HemisphereLight('#ffffff', '#3a1a60', 1)); var dl = new THREE.DirectionalLight('#fff', .7); dl.position.set(4, 5, 3); sc.add(dl);
+  var c0 = makeChar({ sk: id }); c0.shadow.visible = false; c0.root.rotation.y = -.5; sc.add(c0.root); cm.position.set(4.2, 1.9, 0); cm.lookAt(0, 1.75, 0);
+  var tm = R3.toneMapping; R3.setRenderTarget(rt); R3.render(sc, cm); var px = new Uint8Array(W2 * W2 * 4); R3.readRenderTargetPixels(rt, 0, 0, W2, W2, px); R3.setRenderTarget(null); rt.dispose();
+  var cvs = document.createElement('canvas'); cvs.width = cvs.height = W2; var g = cvs.getContext('2d'), im = g.createImageData(W2, W2);
+  for (var y = 0; y < W2; y++) im.data.set(px.subarray((W2 - 1 - y) * W2 * 4, (W2 - y) * W2 * 4), y * W2 * 4);
+  g.putImageData(im, 0, 0); return (THUMBS[id] = cvs.toDataURL());
+}
+function lockerRender() {
+  var el = $('skinList'); if (!el) return; $('poN2').textContent = ST.po || 0;
+  el.innerHTML = Object.keys(SKINS_SHOP).map(function (id) { var d = SKINS_SHOP[id], own = (ST.own || []).indexOf(id) >= 0, on = (ST.skin || 'wald') === id;
+    return '<div class="skin ' + (on ? 'on' : own ? '' : (ST.po || 0) >= d.price ? 'buy' : 'buy poor') + '" data-s="' + id + '"><span><img src="' + skinThumb(id) + '" alt=""></span><i class="tagr">' + d.tag + '</i><b>' + d.name + '</b><small>' + (on ? 'Équipé' : own ? 'Équiper' : d.price + ' 🪙') + '</small></div>'; }).join('');
+  el.querySelectorAll('.skin').forEach(function (b) { b.addEventListener('click', function () { var id = b.dataset.s, d = SKINS_SHOP[id]; ST.own = ST.own || ['wald'];
+    if (ST.own.indexOf(id) < 0) { if ((ST.po || 0) < d.price) { toast('Il te manque ' + (d.price - (ST.po || 0)) + ' 🪙'); return; } ST.po -= d.price; ST.own.push(id); toast(d.name.toUpperCase() + ' DÉBLOQUÉ !'); SFX.chest(); }
+    setMySkin(id); showStats(); }); });
+}
+window.lockerRender = lockerRender;
 $('mapName').textContent = MAPNAME;
 document.querySelectorAll('#maps button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === MAP); b.addEventListener('click', function () { if (b.dataset.m === MAP) return; try { localStorage.setItem('wr_map', b.dataset.m); } catch (e) {}
   b.textContent = 'Chargement…'; location.search = location.search.replace(/[?&]map=\w+/, '').replace(/^\?$/, '') ? location.search.replace(/[?&]map=\w+/, '') + '&map=' + b.dataset.m : '?map=' + b.dataset.m; }); });
