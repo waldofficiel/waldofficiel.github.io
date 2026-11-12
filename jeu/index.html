@@ -211,7 +211,7 @@ body.touch #hotbar button{width:50px;height:44px}body.touch #hotbar canvas{width
         <h3>Cartes</h3>
         <div class="maps">
           <button class="mapsel on" type="button"><b>Los Campagnes</b><small>Champs, Ville 2CV, Le Concess', Garage Wald, Bronze Valley</small><i>Disponible</i></button>
-          <div class="mapsel lock"><b>Pamiers by Night</b><small>Ville de nuit, néons, course sur les toits</small><i>Bientôt</i></div>
+          <div class="mapsel lock"><b>Néon City</b><small>Ville de nuit, néons, course sur les toits</small><i>Bientôt</i></div>
           <div class="mapsel lock"><b>Sable Rouge</b><small>Désert, canyons, route 66 et station-service abandonnée</small><i>Bientôt</i></div>
         </div>
       </section>
@@ -348,7 +348,7 @@ var shore = []; for (var i = 0; i < NB; i++) shore.push(ISL * (0.9 + 0.08 * Math
 function shoreR(a) { var t = ((a / (Math.PI * 2)) % 1 + 1) % 1 * NB, i0 = Math.floor(t) % NB, i1 = (i0 + 1) % NB, f = t - Math.floor(t); return shore[i0] * (1 - f) + shore[i1] * f; }
 function onLand(x, y) { var dx = x - CX, dy = y - CY; return Math.hypot(dx, dy) < shoreR(Math.atan2(dy, dx)) - 50; }
 // villes : [nom, x, y, rayon, style]
-var TOWNS = [['Pamiers-Centre', 3000, 3000, 480, 'centre'], ['Ville 2CV', 1650, 1850, 420, '2cv'], ['Le Concess\'', 4350, 1900, 360, 'concess'], ['Garage Wald', 4300, 4250, 330, 'garage'], ['Bronze Valley', 1700, 4250, 400, 'village']];
+var TOWNS = [['Polo City', 3000, 3000, 480, 'centre'], ['Ville 2CV', 1650, 1850, 420, '2cv'], ['Le Concess\'', 4350, 1900, 360, 'concess'], ['Garage Wald', 4300, 4250, 330, 'garage'], ['Bronze Valley', 1700, 4250, 400, 'village']];
 var terr = document.createElement('canvas'); terr.width = terr.height = W * TS; var tg = terr.getContext('2d');
 (function drawTerrain() {
   tg.setTransform(TS, 0, 0, TS, 0, 0);
@@ -411,7 +411,7 @@ function newSlot(k) { var w = WEAPONS[k]; return { k: k, mag: w.mag, res: w.mag 
 /* ---------- génération de la carte ---------- */
 function buildWorld() {
   OBS = []; builds = []; chests = []; vehicles = []; R = mulberry(11);
-  // Pamiers-Centre : pâtés de maisons en brique et bois
+  // Polo City : pâtés de maisons en brique et bois
   for (var gx = -1; gx <= 1; gx++) for (var gy = -1; gy <= 1; gy++) { if (!gx && !gy) { fort(3000, 3000); continue; } house(3000 + gx * 300, 3000 + gy * 300, 200, (gx + gy) % 2 ? 'brique' : 'bois'); }
   // Ville 2CV : cabanes de ferraille Mad Max
   [[-180, -150], [160, -190], [-220, 170], [190, 160], [0, -10]].forEach(function (o, i) { house(1650 + o[0], 1850 + o[1], 170, i % 2 ? 'metal' : 'bois', i !== 4); });
@@ -979,7 +979,7 @@ function drawMini() {
   mg.strokeStyle = '#d678ff'; mg.lineWidth = 3; mg.beginPath(); mg.arc(storm.x * s, storm.y * s, Math.max(1, storm.r * s), 0, 6.283); mg.stroke();
   if (storm.mode === 'wait') { mg.strokeStyle = '#fff'; mg.setLineDash([5, 4]); mg.lineWidth = 2; mg.beginPath(); mg.arc(storm.nx * s, storm.ny * s, Math.max(1, storm.nr * s), 0, 6.283); mg.stroke(); mg.setLineDash([]); }
   if (me.mode !== 'ground') { mg.strokeStyle = '#ffd23d'; mg.lineWidth = 3; mg.setLineDash([6, 5]); mg.beginPath(); mg.moveTo(bus.x0 * s, bus.y0 * s); mg.lineTo(bus.x1 * s, bus.y1 * s); mg.stroke(); mg.setLineDash([]); }
-  mg.fillStyle = '#fff'; mg.font = '700 13px sans-serif'; mg.textAlign = 'center'; TOWNS.forEach(function (t) { mg.fillText(t[0].split(' ')[0].replace('Le', 'Concess\''), t[1] * s, t[2] * s + 4); });
+  mg.fillStyle = '#fff'; mg.font = '700 13px sans-serif'; mg.textAlign = 'center'; TOWNS.forEach(function (t) { mg.fillText(t[0] === 'Polo City' ? 'Polo City' : t[0].split(' ')[0].replace('Le', 'Concess\''), t[1] * s, t[2] * s + 4); });
   var px = (me.mode === 'bus' ? bus.x : me.x) * s, py = (me.mode === 'bus' ? bus.y : me.y) * s, pa = me.veh ? me.veh.a : me.mode === 'bus' ? bus.a : me.a;
   mg.save(); mg.translate(px, py); mg.rotate(pa); mg.fillStyle = '#ff2bd6'; mg.strokeStyle = '#fff'; mg.lineWidth = 2; mg.beginPath(); mg.moveTo(10, 0); mg.lineTo(-7, -7); mg.lineTo(-4, 0); mg.lineTo(-7, 7); mg.closePath(); mg.fill(); mg.stroke(); mg.restore();
 }
