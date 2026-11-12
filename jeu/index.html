@@ -317,6 +317,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 <script src="three.min.js"></script>
 <script src="polo3d.js"></script>
 <script src="skins.js"></script>
+<script src="nature.js"></script>
 <script>
 (function () {
 'use strict';
@@ -449,7 +450,7 @@ var POST = (function () {
   var bright = sm('uniform sampler2D tex; uniform float thr; varying vec2 vUv; void main(){ vec3 c = texture2D(tex, vUv).rgb; float l = max(c.r, max(c.g, c.b)); float k = max(l - thr, 0.); k = k * k / (k + .5 + 1e-4); gl_FragColor = vec4(c * k / max(l, 1e-4), 1.); }', { tex: { value: null }, thr: { value: .85 } });
   var blur = sm('uniform sampler2D tex; uniform vec2 dir; varying vec2 vUv; void main(){ vec3 c = texture2D(tex, vUv).rgb * .227; c += (texture2D(tex, vUv + dir * 1.385).rgb + texture2D(tex, vUv - dir * 1.385).rgb) * .316; c += (texture2D(tex, vUv + dir * 3.231).rgb + texture2D(tex, vUv - dir * 3.231).rgb) * .07; gl_FragColor = vec4(c, 1.); }', { tex: { value: null }, dir: { value: new THREE.Vector2() } });
   var comp = sm([
-    'uniform sampler2D tS, tB0, tB1, tB2; uniform vec2 px; uniform float uBloom, uExpo, uSat, uVig, uFx, uWarm, uTime; varying vec2 vUv;',
+    'uniform sampler2D tS, tB0, tB1, tB2; uniform vec2 px, uSunP; uniform float uBloom, uExpo, uSat, uVig, uFx, uWarm, uTime, uSunV; varying vec2 vUv;',
     'vec3 RRT(vec3 v){ vec3 a = v * (v + .0245786) - .000090537; vec3 b = v * (.983729 * v + .432951) + .238081; return a / b; }',
     'vec3 aces(vec3 c){ const mat3 I = mat3(vec3(.59719,.076,.0284), vec3(.35458,.90834,.13383), vec3(.04823,.01566,.83777)); const mat3 O = mat3(vec3(1.60475,-.10208,-.00327), vec3(-.53108,1.10813,-.07276), vec3(-.07367,-.00605,1.07602)); c = O * RRT(I * c); return clamp(c, 0., 1.); }',
     'float lu(vec3 c){ return dot(c / (1. + c), vec3(.299,.587,.114)); }',
@@ -460,6 +461,7 @@ var POST = (function () {
     ' float l = lu(B); return (l < mn || l > mx) ? A : B; }',
     'void main(){ vec3 c = uFx > .5 ? fxaa(vUv) : texture2D(tS, vUv).rgb;',
     ' c += (texture2D(tB0, vUv).rgb * .55 + texture2D(tB1, vUv).rgb * .8 + texture2D(tB2, vUv).rgb * 1.1) * uBloom;',
+    ' if (uSunV > 0.) { vec2 sd = (uSunP - vUv) / 24.; vec2 sp = vUv; float sw = 1.; vec3 gr = vec3(0.); for (int i = 0; i < 24; i++) { sp += sd; gr += texture2D(tB1, sp).rgb * sw; sw *= .94; } c += gr * uSunV * .07 * vec3(1., .92, .78); }',
     ' c = aces(c * uExpo / .6);',
     ' float L = dot(c, vec3(.2126,.7152,.0722)); c = mix(vec3(L), c, uSat);',
     ' c = mix(c * vec3(.97,1.,1.05), c * vec3(1.05,1.,.93), smoothstep(.2, .8, L) * uWarm);',
@@ -468,7 +470,7 @@ var POST = (function () {
     ' c = mix(c * 12.92, 1.055 * pow(c, vec3(1. / 2.4)) - .055, step(.0031308, c));',
     ' c += (fract(sin(dot(vUv * 731. + uTime, vec2(12.9898, 78.233))) * 43758.5453) - .5) / 255.;',
     ' gl_FragColor = vec4(c, 1.); }'].join('\n'),
-    { tS: { value: null }, tB0: { value: null }, tB1: { value: null }, tB2: { value: null }, px: { value: new THREE.Vector2() }, uBloom: { value: .45 }, uExpo: { value: 1 }, uSat: { value: 1.12 }, uVig: { value: .32 }, uFx: { value: 1 }, uWarm: { value: .5 }, uTime: { value: 0 } });
+    { tS: { value: null }, tB0: { value: null }, tB1: { value: null }, tB2: { value: null }, px: { value: new THREE.Vector2() }, uBloom: { value: .45 }, uExpo: { value: 1 }, uSat: { value: 1.12 }, uVig: { value: .32 }, uFx: { value: 1 }, uWarm: { value: .5 }, uTime: { value: 0 }, uSunP: { value: new THREE.Vector2() }, uSunV: { value: 0 } });
   function pass(m, target) { quad.material = m; R3.setRenderTarget(target); R3.render(fsScene, fsCam); }
   P.setSize = function (w, h, msaa) {
     w = Math.max(2, w | 0); h = Math.max(2, h | 0); if (w === W && h === H && main && P.msaa === msaa) return; W = w; H = h; P.msaa = msaa;
@@ -488,13 +490,14 @@ var POST = (function () {
       blur.uniforms.tex.value = bB[i].texture; blur.uniforms.dir.value.set(0, 1.6 / bA[i].height); pass(blur, bA[i]);
     }
     var u = comp.uniforms; u.tS.value = tS; u.tB0.value = bA[0].texture; u.tB1.value = bA[1].texture; u.tB2.value = bA[2].texture; u.px.value.set(1 / W, 1 / H);
-    u.uBloom.value = P.bloom; u.uExpo.value = P.expo; u.uSat.value = P.sat; u.uVig.value = P.vig; u.uFx.value = mainMS ? 0 : 1; u.uWarm.value = DES ? .8 : .5; u.uTime.value = (performance.now() / 1000) % 100;
+    u.uBloom.value = P.bloom; u.uExpo.value = P.expo; u.uSat.value = P.sat; u.uVig.value = P.vig; u.uFx.value = mainMS ? 0 : 1; u.uWarm.value = DES ? .8 : .5; u.uSunP.value.copy(P.sunP || u.uSunP.value); u.uSunV.value = P.sunV || 0; u.uTime.value = (performance.now() / 1000) % 100;
     pass(comp, null);
   };
   return P;
 })();
 function drawScene(sc, cm, lobby) {
   if (!POST.on) { R3.render(sc, cm); return; }
+  if (lobby) POST.sunV = 0; else { var sv = new THREE.Vector3().copy(cm.position).addScaledVector(SUNDIR, 500).project(cm), cd0 = cm.getWorldDirection(new THREE.Vector3()).dot(SUNDIR); POST.sunP = POST.sunP || new THREE.Vector2(); POST.sunP.set(sv.x * .5 + .5, sv.y * .5 + .5); POST.sunV = cd0 > 0 ? Math.min(1, cd0 * 1.6) * Math.max(0, 1 - Math.max(Math.abs(sv.x), Math.abs(sv.y)) * .45) : 0; }
   POST.bloom = lobby ? .5 : (DES ? .38 : .42); POST.expo = lobby ? 1.15 : .95; POST.vig = lobby ? .45 : .3; POST.sat = lobby ? 1.15 : 1.1; POST.render(sc, cm);
 }
 function resize() {
@@ -576,34 +579,54 @@ function hgt(x, z) { var fx = (x + HALF) / HR, fz = (z + HALF) / HR; if (fx < 0 
 function pad(x, z, hx, hz, lvl) { var B = 7; for (var j = Math.max(0, Math.floor((z - hz - B + HALF) / HR)); j <= Math.min(HN - 1, Math.ceil((z + hz + B + HALF) / HR)); j++) for (var i = Math.max(0, Math.floor((x - hx - B + HALF) / HR)); i <= Math.min(HN - 1, Math.ceil((x + hx + B + HALF) / HR)); i++) {
   var wx = -HALF + i * HR, wz = -HALF + j * HR, dx = Math.max(0, Math.abs(wx - x) - hx - 1), dz = Math.max(0, Math.abs(wz - z) - hz - 1), f = 1 - sm01(0, B, Math.hypot(dx, dz)); HG[j * HN + i] += (lvl - HG[j * HN + i]) * f; } }
 var TEX = 2048, terr = document.createElement('canvas'); terr.width = terr.height = TEX;
+var FIELDS = [], MASK = document.createElement('canvas');
 (function drawTerrain() {
   var g = terr.getContext('2d'), k = TEX / (HALF * 2); g.setTransform(k, 0, 0, k, HALF * k, HALF * k);
   g.fillStyle = DES ? '#25b5c4' : '#2b9fe0'; g.fillRect(-HALF, -HALF, HALF * 2, HALF * 2);
   function blob(off, col) { g.beginPath(); for (var i = 0; i <= NB; i++) { var a = i / NB * Math.PI * 2, r = shore[i % NB] + off; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fillStyle = col; g.fill(); }
   if (DES) { blob(14, 'rgba(160,240,230,.5)'); blob(0, '#f6dca0'); blob(-14, '#e3ac62'); } else { blob(14, 'rgba(170,235,255,.5)'); blob(0, '#f0d58f'); blob(-14, '#72c24a'); }
   var r = mulberry(3); for (var n = 0; n < 900; n++) { var a = r() * 6.283, d = r() * (ISL - 30); g.fillStyle = DES ? (r() < .5 ? 'rgba(190,95,45,.35)' : 'rgba(255,225,160,.35)') : r() < .5 ? 'rgba(80,160,55,.45)' : 'rgba(150,215,90,.35)'; g.beginPath(); g.ellipse(Math.cos(a) * d, Math.sin(a) * d, 6 + r() * 22, 4 + r() * 14, r() * 3, 0, 6.283); g.fill(); }
-  for (n = 0; n < (DES ? 0 : 14); n++) { var cx = (r() - .5) * 600, cz = (r() - .5) * 600; if (!onLand(cx, cz) || inTown(cx, cz, 40)) continue; g.save(); g.translate(cx, cz); g.rotate(r() * 3); g.fillStyle = r() < .5 ? '#c9a95a' : '#9a7a4a'; g.fillRect(-30, -20, 60, 40); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (var s = -30; s < 30; s += 3) { g.beginPath(); g.moveTo(s, -20); g.lineTo(s, 20); g.stroke(); } g.restore(); }
+  for (n = 0; n < (DES ? 0 : 14); n++) { var cx = (r() - .5) * 600, cz = (r() - .5) * 600; if (!onLand(cx, cz) || inTown(cx, cz, 40)) continue; var frot = r() * 3; FIELDS.push([cx, cz, frot]); g.save(); g.translate(cx, cz); g.rotate(frot); g.fillStyle = r() < .5 ? '#c9a95a' : '#9a7a4a'; g.fillRect(-30, -20, 60, 40); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (var s = -30; s < 30; s += 3) { g.beginPath(); g.moveTo(s, -20); g.lineTo(s, 20); g.stroke(); } g.restore(); }
   g.lineCap = 'round';
   ROADS.forEach(function (rd) { var a = TOWNS[rd[0]], b = TOWNS[rd[1]]; g.strokeStyle = '#4a4d55'; g.lineWidth = 12; g.beginPath(); g.moveTo(a[1], a[2]); g.lineTo(b[1], b[2]); g.stroke(); g.strokeStyle = 'rgba(255,230,120,.8)'; g.lineWidth = .6; g.setLineDash([4, 4]); g.stroke(); g.setLineDash([]); });
   TOWNS.forEach(function (t) { g.fillStyle = DES ? { centre: '#6c6f78', '2cv': '#b8774a', concess: '#c9b48e', garage: '#6a5a4e', village: '#c99a5e' }[t[4]] : { centre: '#6c6f78', '2cv': '#a88a62', concess: '#9aa0aa', garage: '#55555e', village: '#b59a6a' }[t[4]]; g.beginPath(); g.arc(t[1], t[2], t[3], 0, 6.283); g.fill();
     if (t[4] === 'centre') { g.fillStyle = '#9b9fa7'; g.beginPath(); g.arc(t[1], t[2], t[3], 0, 6.283); g.fill(); g.strokeStyle = 'rgba(90,95,105,.5)'; g.lineWidth = .25; for (var gx2 = -t[3]; gx2 < t[3]; gx2 += 2.5) { g.beginPath(); g.moveTo(t[1] + gx2, t[2] - t[3]); g.lineTo(t[1] + gx2, t[2] + t[3]); g.stroke(); g.beginPath(); g.moveTo(t[1] - t[3], t[2] + gx2); g.lineTo(t[1] + t[3], t[2] + gx2); g.stroke(); } g.fillStyle = '#4a4d55'; g.fillRect(t[1] - t[3], t[2] - 4, t[3] * 2, 8); g.fillRect(t[1] - 4, t[2] - t[3], 8, t[3] * 2); g.fillStyle = '#5aa04a'; g.beginPath(); g.arc(t[1], t[2], 6, 0, 6.283); g.fill(); }
     if (t[4] === 'concess') { g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = .5; for (var x = -t[3]; x < t[3]; x += 8) { g.beginPath(); g.moveTo(t[1] + x, t[2] - t[3]); g.lineTo(t[1] + x, t[2] + t[3]); g.stroke(); } }
     if (t[4] === 'garage') { g.fillStyle = 'rgba(255,200,0,.75)'; for (var q = -12; q < 12; q += 4) g.fillRect(t[1] + q, t[2] + 11, 2, 1); } });
+  /* masque pour le sol texturé : R = zone peinte (villes, routes, champs), G = plage */
+  MASK.width = MASK.height = 1024; var m = MASK.getContext('2d'), k2 = 1024 / (HALF * 2); m.setTransform(k2, 0, 0, k2, HALF * k2, HALF * k2);
+  m.fillStyle = '#000'; m.fillRect(-HALF, -HALF, HALF * 2, HALF * 2); m.filter = 'blur(2px)';
+  function blobM(off, col) { m.beginPath(); for (var i = 0; i <= NB; i++) { var a = i / NB * Math.PI * 2, rr = shore[i % NB] + off; m.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); } m.closePath(); m.fillStyle = col; m.fill(); }
+  blobM(30, '#00ff00'); blobM(-12, '#000000');
+  m.globalCompositeOperation = 'lighter'; m.fillStyle = '#ff0000'; m.strokeStyle = '#ff0000';
+  FIELDS.forEach(function (f) { m.save(); m.translate(f[0], f[1]); m.rotate(f[2]); m.fillRect(-30, -20, 60, 40); m.restore(); });
+  m.lineCap = 'round'; m.lineWidth = 13; ROADS.forEach(function (rd) { var a = TOWNS[rd[0]], b = TOWNS[rd[1]]; m.beginPath(); m.moveTo(a[1], a[2]); m.lineTo(b[1], b[2]); m.stroke(); });
+  TOWNS.forEach(function (t) { m.beginPath(); m.arc(t[1], t[2], t[3] + 1, 0, 6.283); m.fill(); });
 })();
 var groundTex = new THREE.CanvasTexture(terr); groundTex.encoding = THREE.sRGBEncoding; groundTex.anisotropy = R3.capabilities.getMaxAnisotropy();
 var detailTex = (function () { var c = document.createElement('canvas'); c.width = c.height = 256; var g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
   for (var i = 0; i < 6000; i++) { var v = 90 + Math.random() * 90 | 0; g.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',.5)'; g.fillRect(Math.random() * 256, Math.random() * 256, 1 + Math.random() * 2, 2 + Math.random() * 5); }
   var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; })();
-var groundMat = new THREE.MeshPhongMaterial({ map: groundTex, shininess: 4, specular: '#111111' });
-groundMat.onBeforeCompile = function (sh) { sh.uniforms.tDetail = { value: detailTex };
+var GT = NATURE.groundTextures(THREE, DES), maskTex = new THREE.CanvasTexture(MASK);
+[GT.grass, GT.grass2, GT.dirt, GT.rock, GT.sand].forEach(function (t) { t.anisotropy = Math.min(8, R3.capabilities.getMaxAnisotropy()); });
+var groundMat = new THREE.MeshPhongMaterial({ map: groundTex, shininess: 6, specular: '#141414' });
+groundMat.onBeforeCompile = function (sh) {
+  ['tDetail', 'tMask', 'tG1', 'tG2', 'tDirt', 'tRock', 'tSand'].forEach(function (k, i) { sh.uniforms[k] = { value: [detailTex, maskTex, GT.grass, GT.grass2, GT.dirt, GT.rock, GT.sand][i] }; });
   sh.vertexShader = 'varying vec3 vGW; varying vec3 vGN;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vGW = (modelMatrix * vec4(position, 1.0)).xyz; vGN = normalize(mat3(modelMatrix) * objectNormal);');
-  sh.fragmentShader = 'uniform sampler2D tDetail; varying vec3 vGW; varying vec3 vGN;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n float dt1 = texture2D(tDetail, vGW.xz * .35).r, dt2 = texture2D(tDetail, vGW.xz * .05).r, dt3 = texture2D(tDetail, vGW.xz * .006).r;\n' +
-    ' diffuseColor.rgb *= .7 + .5 * dt1 * .6 + .4 * dt2 * .5; diffuseColor.rgb *= (.85 + .35 * dt3) * ' + (DES ? 'vec3(.95,.9,.86)' : 'vec3(.78,.86,.74)') + ';\n' +
-    ' float rk = smoothstep(.22, .42, 1. - normalize(vGN).y) * step(.6, vGW.y);\n' +
-    ' vec3 rock = ' + (DES ? 'vec3(.42,.14,.06)' : 'vec3(.2,.19,.17)') + ' * (.65 + .7 * dt1);\n' +
-    ' diffuseColor.rgb = mix(diffuseColor.rgb, rock, rk);\n' +
-    ' diffuseColor.rgb *= 1. + ' + (DES ? '.0' : '.12') + ' * smoothstep(4., 18., vGW.y);'); };
-groundMat.customProgramCacheKey = function () { return 'groundDetail2'; };
+  sh.fragmentShader = 'uniform sampler2D tDetail, tMask, tG1, tG2, tDirt, tRock, tSand; varying vec3 vGW; varying vec3 vGN;\n vec3 dl(vec3 c){ return pow(c, vec3(2.2)); }\n vec3 tx(sampler2D t, vec2 u){ return dl(texture2D(t, u).rgb); }\n' +
+    sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n' + [
+    'vec3 wp = vGW; vec3 nn = normalize(vGN); float dt1 = texture2D(tDetail, wp.xz * .35).r, nA = texture2D(tDetail, wp.xz * .0035).r, nB = texture2D(tDetail, wp.xz * .015).r, nC = texture2D(tDetail, wp.xz * .06).r;',
+    'vec3 g1 = tx(tG1, wp.xz * .16) * .6 + tx(tG1, wp.xz * .047 + .37) * .4, g2 = tx(tG2, wp.xz * .13) * .6 + tx(tG2, wp.xz * .041 + .71) * .4;',
+    'vec3 nat = mix(g1, g2, smoothstep(.38, .62, nA + (nC - .5) * .15));',
+    'nat = mix(nat, tx(tDirt, wp.xz * .2), smoothstep(.66, .78, nB * .7 + nA * .45 + (nC - .5) * .2));',
+    'nat *= (.85 + .3 * nB) * ' + (DES ? 'vec3(.95)' : 'vec3(.72,.76,.68)') + ';',
+    'vec3 bw = pow(abs(nn), vec3(4.)); bw /= (bw.x + bw.y + bw.z);',
+    'vec3 rk = tx(tRock, wp.zy * .11) * bw.x + tx(tRock, wp.xz * .11) * bw.y + tx(tRock, wp.xy * .11) * bw.z;',
+    'float rkA = smoothstep(.18, .34, 1. - nn.y + (nB - .5) * .14) * smoothstep(.2, 1.2, wp.y);',
+    'nat = mix(nat, rk, rkA);',
+    'vec4 mk = texture2D(tMask, vUv); nat = mix(nat, tx(tSand, wp.xz * .14), clamp(mk.g * 1.4 - mk.r, 0., 1.));',
+    'diffuseColor.rgb = mix(nat, diffuseColor.rgb * (.82 + .3 * dt1), clamp(mk.r * 1.25, 0., 1.));'].join('\n')); };
+groundMat.customProgramCacheKey = function () { return 'groundSplat'; };
 var ground = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, HALF * 2, HN - 1, HN - 1), groundMat);
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 function buildGroundGeo() { var pos = ground.geometry.attributes.position; for (var i = 0; i < pos.count; i++) pos.setZ(i, hgt(pos.getX(i), -pos.getY(i))); pos.needsUpdate = true; ground.geometry.computeVertexNormals(); }
@@ -612,8 +635,8 @@ var sea = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLamb
 var TREES = [];
 (function () {
   var r = mulberry(19);
-  for (var n = 0; n < 4000 && TREES.length < 380; n++) { var a = r() * 6.283, d = 20 + r() * (ISL - 20), x = Math.cos(a) * d, z = Math.sin(a) * d;
-    if (!onLand(x, z) || inTown(x, z, 10) || nearRoad(x, z, 9)) continue; if (TREES.some(function (t) { return Math.abs(t.x - x) < 7 && Math.abs(t.z - z) < 7; })) continue;
+  for (var n = 0; n < 9000 && TREES.length < (DES ? 380 : 620); n++) { var a = r() * 6.283, d = 20 + r() * (ISL - 20), x = Math.cos(a) * d, z = Math.sin(a) * d;
+    if (!onLand(x, z) || inTown(x, z, 10) || nearRoad(x, z, 9)) continue; if (!DES && vnoise(x / 70 + 5, z / 70 - 3) < .42 && r() < .75) continue; if (TREES.some(function (t) { return Math.abs(t.x - x) < 5.5 && Math.abs(t.z - z) < 5.5; })) continue;
     TREES.push({ x: x, z: z, rock: r() < (DES ? .45 : .18), s: .8 + r() * .6 }); }
   var tr = TREES.filter(function (t) { return !t.rock; }), rk = TREES.filter(function (t) { return t.rock; });
   var trunk = new THREE.InstancedMesh(DES ? CYL : CYL6, mat(DES ? '#2e7a34' : '#6e4a2c'), tr.length), crown = new THREE.InstancedMesh(DES ? CYL : new THREE.IcosahedronGeometry(1, 1), mat(DES ? '#368a3a' : '#3f9a3a', { flatShading: !DES }), tr.length), rocks = new THREE.InstancedMesh(SPH, mat(DES ? '#c0643a' : '#9a9ca6', { flatShading: true }), rk.length);
@@ -623,7 +646,7 @@ var TREES = [];
       var side = i % 2 ? 1 : -1, ang = i * 1.7; o.position.set(t.x + Math.cos(ang) * .85 * t.s * side, t.y + 3.4 * t.s, t.z + Math.sin(ang) * .85 * t.s * side); o.scale.set(.5 * t.s, 2 * t.s, .5 * t.s); o.updateMatrix(); crown.setMatrixAt(i, o.matrix); t.h = 5.3 * t.s; t.r = .5 * t.s; return; }
     o.position.set(t.x, t.y + 4.4 * t.s, t.z); o.scale.set(2.6 * t.s, 2.4 * t.s, 2.6 * t.s); o.rotation.y = i; o.updateMatrix(); crown.setMatrixAt(i, o.matrix); crown.setColorAt(i, col.setHSL(.28 + (i % 7) * .012, .5, .3 + (i % 5) * .03)); });
   rk.forEach(function (t, i) { t.y = hgt(t.x, t.z) - .4; t.r = 1.6 * t.s; t.h = 2.2 * t.s; o.position.set(t.x, t.y + .7 * t.s, t.z); o.scale.set(1.8 * t.s, (DES ? 2.2 : 1.3) * t.s, 1.6 * t.s); if (DES) { t.h = 3.2 * t.s; } o.rotation.y = i; o.updateMatrix(); rocks.setMatrixAt(i, o.matrix); });
-  [trunk, crown, rocks].forEach(function (m) { m.castShadow = true; m.receiveShadow = true; }); scene.add(trunk, crown, rocks);
+  [trunk, crown, rocks].forEach(function (m) { m.castShadow = true; m.receiveShadow = true; }); scene.add(trunk, crown, rocks); window.TREEVIS = { trunk: trunk, crown: crown, rocks: rocks };
 })();
 
 /* ================= bâtiments : murs cassables, sol, toit (on peut entrer) ================= */
@@ -700,19 +723,35 @@ var GFX = (function () {
   waterMat.uniforms.uDeep.value = lin(DES ? '#0a6f86' : '#0b4f8f'); waterMat.uniforms.uShal.value = lin(DES ? '#1fb8b4' : '#1a8fc4'); waterMat.uniforms.uSkyC.value.set(SKY_HOR[0], SKY_HOR[1], SKY_HOR[2]);
   sea.material = waterMat; sea.renderOrder = 1; G.water = waterMat;
 
-  /* arbres plus touffus : 2 boules de feuillage en plus par arbre, qui bougent au vent */
+  /* végétation façon Valheim : chênes, sapins, bouleaux, rochers moussus, buissons ; tout bouge au vent */
+  var windMat = function (extra) { var m = new THREE.MeshLambertMaterial(Object.assign({ vertexColors: true }, extra || {}));
+    m.onBeforeCompile = function (sh) { sh.uniforms.uTime = G.wT = G.wT || { value: 0 }; sh.vertexShader = 'uniform float uTime; attribute float aSway;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vec3 ip = vec3(instanceMatrix[3][0], 0., instanceMatrix[3][2]); float ph = ip.x * .07 + ip.z * .05; transformed.x += (sin(uTime * 1.3 + ph) * .5 + sin(uTime * 2.7 + ph * 3.) * .2) * aSway * .35; transformed.z += sin(uTime * 1.7 + ph * 1.3) * aSway * .2;'); };
+    m.customProgramCacheKey = function () { return 'wind'; }; return m; };
+  var vegMat = windMat({ emissive: '#0d1408' });
+  function scatter(list, geos, mtxFn) { var groups = geos.map(function () { return []; }); list.forEach(function (it, i) { groups[it.v % geos.length].push(it); });
+    groups.forEach(function (gr, gi) { if (!gr.length) return; var im = new THREE.InstancedMesh(geos[gi], vegMat, gr.length), o = new THREE.Object3D(); gr.forEach(function (it, k) { mtxFn(o, it); o.updateMatrix(); im.setMatrixAt(k, o.matrix); }); im.castShadow = true; im.receiveShadow = true; scene.add(im); }); }
+  if (window.TREEVIS) { TREEVIS.rocks.visible = false; if (!DES) { TREEVIS.trunk.visible = false; TREEVIS.crown.visible = false; } }
   if (!DES) {
-    var tr = TREES.filter(function (t) { return !t.rock; }), o = new THREE.Object3D(), col = new THREE.Color();
-    var leafMat = new THREE.MeshLambertMaterial({ color: '#ffffff', flatShading: true });
-    var cr2 = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), leafMat, tr.length * 2);
-    tr.forEach(function (t, i) { for (var k = 0; k < 2; k++) { var a = i * 2.4 + k * 3.1, r = 1.2 * t.s; o.position.set(t.x + Math.cos(a) * r, t.y + (3.7 + k * 1.3) * t.s, t.z + Math.sin(a) * r); var sc0 = (1.6 - k * .35) * t.s; o.scale.set(sc0, sc0 * .9, sc0); o.rotation.set(0, a, 0); o.updateMatrix(); cr2.setMatrixAt(i * 2 + k, o.matrix); cr2.setColorAt(i * 2 + k, col.setHSL(.27 + (i % 7) * .014, .55, .28 + k * .06 + (i % 5) * .025)); } });
-    cr2.castShadow = true; cr2.receiveShadow = true; scene.add(cr2);
+    var kinds = ['oak', 'oak', 'pine', 'birch'], TG = [], vi = 0;
+    ['oak', 'pine', 'birch'].forEach(function (k, ki) { for (var sd = 0; sd < 3; sd++) TG.push({ k: k, g: NATURE.tree(THREE, k, 100 + ki * 10 + sd) }); });
+    var trees = TREES.filter(function (t) { return !t.rock; });
+    trees.forEach(function (t, i) { var hilly = t.y > 7 || vnoise(t.x / 40, t.z / 40) > .62, kk = hilly ? 'pine' : kinds[(i * 7 + (i >> 2)) % kinds.length]; var opts = TG.filter(function (q) { return q.k === kk; }); t.v = TG.indexOf(opts[i % opts.length]); t.kind = kk; t.h = kk === 'pine' ? 9 * t.s : 7.5 * t.s; t.r = .45 * t.s; });
+    scatter(trees, TG.map(function (q) { return q.g; }), function (o, t) { o.position.set(t.x, t.y + .25, t.z); o.rotation.set(0, (t.x * 13 + t.z * 7) % 6.283, 0); var sc = t.s * (t.kind === 'pine' ? 1.05 : 1); o.scale.set(sc, sc * (.9 + ((t.x * 3) % 1 + 1) % 1 * .25), sc); });
   }
+  var rockG = [0, 1, 2, 3].map(function (k) { return NATURE.rock(THREE, 300 + k * 17, !DES, DES); });
+  scatter(TREES.filter(function (t) { return t.rock; }).map(function (t, i) { t.v = i; return t; }), rockG, function (o, t) { o.position.set(t.x, t.y + .35, t.z); o.rotation.set(0, t.x * 1.7, 0); o.scale.set(1.9 * t.s, (DES ? 2.4 : 1.5) * t.s, 1.7 * t.s); });
+  // buissons et petits cailloux partout (décor, sans collision)
+  var bushes = [], rb = mulberry(41); for (var bn = 0; bn < 6000 && bushes.length < (DES ? 500 : 1500); bn++) { var ba = rb() * 6.283, bd = 15 + rb() * (ISL - 25), bx = Math.cos(ba) * bd, bz = Math.sin(ba) * bd;
+    if (!onLand(bx, bz) || inTown(bx, bz, 4) || nearRoad(bx, bz, 7) || hgt(bx, bz) < .6) continue; if (!DES && vnoise(bx / 70 + 5, bz / 70 - 3) < .35 && rb() < .6) continue; bushes.push({ x: bx, z: bz, y: hgt(bx, bz), s: .7 + rb() * .8, v: bn, a: rb() * 6.28 }); }
+  var bushG = [0, 1, 2, 3].map(function (k) { return NATURE.bush(THREE, 500 + k * 13, DES); }), pebG = [NATURE.rock(THREE, 900, false, DES), NATURE.rock(THREE, 901, !DES, DES)];
+  scatter(bushes.filter(function (b, i) { return i % 4; }), bushG, function (o, b) { o.position.set(b.x, b.y - .1, b.z); o.rotation.set(0, b.a, 0); o.scale.setScalar(b.s); });
+  scatter(bushes.filter(function (b, i) { return !(i % 4); }), pebG, function (o, b) { o.position.set(b.x, b.y + .05, b.z); o.rotation.set(0, b.a, 0); o.scale.set(b.s * .45, b.s * .35, b.s * .4); });
+  G.flowerG = DES ? null : [0, 1, 2].map(function (k) { return NATURE.flower(THREE, 700 + k); });
 
   /* herbe : touffes de brins autour du joueur, qui ondulent au vent */
   var grass = null, gC = { x: 1e9, z: 1e9 }, GR = 0;
   (function () {
-    var nB = 7, pos = [], colA = [], tip = [], cB = new THREE.Color(DES ? '#8a6a3a' : '#2c5a1a'), cT = new THREE.Color(DES ? '#d8b46a' : '#86b83c'), r = mulberry(77);
+    var nB = 7, pos = [], colA = [], tip = [], cB = new THREE.Color(DES ? '#8a6a3a' : '#2c5a1a'), cT = new THREE.Color(DES ? '#d8b46a' : '#6fa63a'), r = mulberry(77);
     for (var b = 0; b < nB; b++) { var a = r() * 6.283, d = r() * .25, bx = Math.cos(a) * d, bz = Math.sin(a) * d, h = (DES ? .2 : .22) + r() * .26, w = .035 + r() * .025, ra = r() * 6.283, cx = Math.cos(ra) * w, cz = Math.sin(ra) * w, lean = (r() - .5) * .3;
       pos.push(bx - cx, 0, bz - cz, bx + cx, 0, bz + cz, bx + lean, h, bz + lean * .5, bx + cx, 0, bz + cz, bx - cx, 0, bz - cz, bx + lean, h, bz + lean * .5); for (var q = 0; q < 2; q++) { colA.push(cB.r, cB.g, cB.b, cB.r, cB.g, cB.b, cT.r, cT.g, cT.b); tip.push(0, 0, 1); } }
     var geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(colA, 3)); geo.setAttribute('aTip', new THREE.Float32BufferAttribute(tip, 1)); geo.computeVertexNormals();
@@ -721,6 +760,7 @@ var GFX = (function () {
     gm.onBeforeCompile = function (sh) { sh.uniforms.uTime = G.gT = { value: 0 }; sh.vertexShader = 'uniform float uTime; attribute float aTip;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vec3 ip = vec3(instanceMatrix[3][0], 0., instanceMatrix[3][2]); float wd = sin(uTime * 1.8 + ip.x * .35 + ip.z * .22) * .6 + sin(uTime * 3.1 + ip.x * 1.3) * .25; transformed.x += wd * .16 * aTip; transformed.z += wd * .08 * aTip;'); };
     gm.customProgramCacheKey = function () { return 'grass'; };
     grass = new THREE.InstancedMesh(geo, gm, 5200); grass.count = 0; grass.frustumCulled = false; grass.receiveShadow = true; scene.add(grass);
+    if (G.flowerG) { G.flowers = new THREE.InstancedMesh(G.flowerG[0], vegMat, 900); G.flowers.count = 0; G.flowers.frustumCulled = false; scene.add(G.flowers); }
   })();
   function placeGrass(cx, cz) {
     var R = SET.gfx === 2 ? 42 : 28, step = DES ? 2.6 : 1.05, o = new THREE.Object3D(), n = 0, max = grass.instanceMatrix.count;
@@ -733,10 +773,14 @@ var GFX = (function () {
       var sc = (.7 + h1 * .5) * (1 - .3 * dd / (R * R)) * Math.min(1, .45 + dd / 30); o.position.set(x, y - .03, z); o.rotation.set(0, h2 * 6.283, 0); o.scale.set(sc, sc * (.8 + h2 * .5), sc); o.updateMatrix(); grass.setMatrixAt(n++, o.matrix); if (n >= max) break;
     }
     grass.count = n; grass.instanceMatrix.needsUpdate = true; gC.x = cx; gC.z = cz;
+    if (G.flowers) { var nf = 0, mf = G.flowers.instanceMatrix.count; for (var fx = cx - R; fx <= cx + R && nf < mf; fx += 2.2) for (var fz = cz - R; fz <= cz + R && nf < mf; fz += 2.2) { var ix2 = Math.round(fx / 2.2), iz2 = Math.round(fz / 2.2), q1 = hash2(ix2 + 91, iz2), q2 = hash2(iz2 - 7, ix2 + 3);
+        if (q1 > .3 || vnoise(fx / 25 + 9, fz / 25) < .5) continue; var x2 = fx + (q2 - .5) * 2, z2 = fz + (q1 - .5) * 2; if (!onLand(x2, z2) || inTown(x2, z2, 3) || nearRoad(x2, z2, 6.5)) continue; var y2 = hgt(x2, z2); if (y2 < .5) continue;
+        o.position.set(x2, y2 - .02, z2); o.rotation.set(0, q2 * 6.28, 0); o.scale.setScalar(.9 + q1); o.updateMatrix(); G.flowers.setMatrixAt(nf++, o.matrix); }
+      G.flowers.count = nf; G.flowers.instanceMatrix.needsUpdate = true; }
   }
   G.update = function (t, dt) {
-    waterMat.uniforms.uTime.value = t; if (G.gT) G.gT.value = t;
-    var on = SET.gfx > 0; grass.visible = on; if (!on) return;
+    waterMat.uniforms.uTime.value = t; if (G.gT) G.gT.value = t; if (G.wT) G.wT.value = t;
+    var on = SET.gfx > 0; grass.visible = on; if (G.flowers) G.flowers.visible = on; if (!on) return;
     var fx = me.mode === 'ground' || me.veh ? me.x : cam.position.x, fz = me.mode === 'ground' || me.veh ? me.z : cam.position.z;
     if ((fx - gC.x) * (fx - gC.x) + (fz - gC.z) * (fz - gC.z) > 64 || GR !== SET.gfx) { GR = SET.gfx; placeGrass(fx, fz); }
   };

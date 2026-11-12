@@ -18,8 +18,11 @@
     if (!MC[k]) {
       var p = Object.assign({ color: col }, o || {}), shiny = p.shininess > 30;
       if (p.map) p.color = '#ffffff';
-      if (!shiny) { delete p.shininess; delete p.specular; MC[k] = new T3.MeshLambertMaterial(p); }
-      else MC[k] = new T3.MeshPhongMaterial(Object.assign({ specular: '#333333' }, p));
+      var mt = new T3.MeshPhongMaterial(Object.assign({ specular: shiny ? '#333333' : '#161616', shininess: shiny ? p.shininess : 10 }, p));
+      // liseré lumineux sur les bords (comme dans les jeux cartoon) : le perso ressort du décor
+      mt.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n float rimF = pow(1. - abs(dot(normalize(normal), normalize(vViewPosition))), 3.); totalEmissiveRadiance += (vec3(.18, .17, .2) + diffuseColor.rgb * .5) * rimF * .55;'); };
+      mt.customProgramCacheKey = function () { return 'skinRim'; };
+      MC[k] = mt;
     }
     return MC[k];
   }
