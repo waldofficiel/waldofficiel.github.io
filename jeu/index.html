@@ -143,6 +143,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
 .mapinfo b{font:900 20px var(--display);color:var(--sun)}.mapinfo span{font-size:13px;color:var(--mute)}
 .pill{justify-self:start;font:800 11px var(--body)!important;color:#fff!important;background:rgba(155,77,255,.55);border-radius:999px;padding:2px 9px;margin-top:3px}
 #lobby .go{width:100%;font-size:28px;padding:14px}
+.maps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.maps button{font:800 13px var(--body);color:#fff;background:rgba(11,4,24,.75);border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;cursor:pointer}.maps button.on{border-color:#ff2bd6;background:linear-gradient(135deg,rgba(255,43,214,.35),rgba(155,77,255,.35));box-shadow:0 0 14px rgba(255,43,214,.5)}
 .soon{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mute)}.soon span{background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px}
 .note{margin:0;color:var(--mute);font-size:13px;line-height:1.45}
 .ladder{display:grid;gap:5px}.ladder div{display:flex;align-items:center;gap:10px;background:rgba(11,4,24,.75);border-radius:10px;padding:5px 10px;border:1px solid rgba(255,255,255,.12)}
@@ -234,9 +235,10 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
     <div class="panel">
       <section class="pane on" data-p="jouer">
         <div class="mapcard"><canvas id="mapPrev" width="200" height="200"></canvas>
-          <div class="mapinfo"><small>Saison 1 · Carte</small><b>LOS CAMPAGNES</b><span>Solo · 30 joueurs · 5 villes</span><span class="pill" id="pill"></span></div></div>
+          <div class="mapinfo"><small>Saison 1 · Carte</small><b id="mapName">LOS CAMPAGNES</b><span>Solo · 30 joueurs · 5 villes</span><span class="pill" id="pill"></span></div></div>
         <button class="go" id="play" type="button">JOUER</button>
-        <div class="soon"><span>Bientôt : Néon City</span><span>Sable Rouge</span></div>
+        <div class="maps" id="maps"><button type="button" data-m="campagne">🌳 Los Campagnes</button><button type="button" data-m="desert">🌵 Sable Rouge</button></div>
+        <div class="soon"><span>Bientôt : Néon City</span></div>
       </section>
       <section class="pane" data-p="rangs">
         <h3>Partie classée</h3>
@@ -259,7 +261,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
         <div class="stats">
           <div><b id="stG">0</b><small>Parties</small></div><div><b id="stW">0</b><small>TOP 1</small></div>
           <div><b id="stK">0</b><small>Éliminations</small></div><div><b id="stB">—</b><small>Meilleure place</small></div>
-          <div class="kd"><b id="stKD">0</b><small>K/D · éliminations ÷ morts (un TOP 1 n'est pas une mort)</small></div>
+          <div class="kd"><b id="stKD">0</b><small>K/D</small></div>
         </div>
       </section>
       <section class="pane" data-p="reglages">
@@ -305,6 +307,10 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
 var $ = function (id) { return document.getElementById(id); };
 var isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window; if (isTouch) document.body.classList.add('touch');
 var NPL = 30, ISL = 420, HALF = 500;
+/* deux cartes : Los Campagnes (verte) et Sable Rouge (désert). Le choix est gardé, la page se recharge pour construire la carte. */
+var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE' }, MAP = 'campagne';
+try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1] || localStorage.getItem('wr_map'); if (MAPS[mq]) MAP = mq; } catch (e) {}
+var DES = MAP === 'desert', MAPNAME = MAPS[MAP];
 
 /* ================= réglages ================= */
 var SET = { vol: .8, sens: 1, gfx: 2 };
@@ -343,20 +349,46 @@ var SFX = {
   blast: function () { noise(.7, .4, 600); tone('sine', 90, 30, .5, .3); }
 };
 
+/* ================= musique du lobby (générée, 100 % libre de droits) ================= */
+var MUS = null, musOn = false, musNext = 0, musStep = 0, musTimer = null, MSTEP = 60 / 102 / 4, mbuf = null;
+var PROG = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];   // la m · fa · do · sol
+function mf(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+function mNote(type, f, t, dur, vol, lp, f2) { var o = AC.createOscillator(), g = AC.createGain(), last = o; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur * .6);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  if (lp) { var fl = AC.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; fl.Q.value = 4; o.connect(fl); last = fl; } last.connect(g); g.connect(MUS); o.start(t); o.stop(t + dur + .05); }
+function mNoise(t, dur, vol, hp, bp) { if (!mbuf) { var n = AC.sampleRate | 0; mbuf = AC.createBuffer(1, n, AC.sampleRate); var d = mbuf.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; }
+  var s = AC.createBufferSource(), g = AC.createGain(), f = AC.createBiquadFilter(); f.type = bp ? 'bandpass' : 'highpass'; f.frequency.value = hp; s.buffer = mbuf; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); s.connect(f); f.connect(g); g.connect(MUS); s.start(t, Math.random() * .5); s.stop(t + dur + .02); }
+function mStep(k, t) {
+  var st = k % 16, bar = Math.floor(k / 16), ch = PROG[bar % 4], intro = bar < 2, drop = bar % 8 === 7;
+  if (st === 0) ch.forEach(function (n) { mNote('triangle', mf(n), t, MSTEP * 16, .035); mNote('sawtooth', mf(n + 12) * 1.004, t, MSTEP * 16, .012, 1400); });   // nappe
+  if (!intro) {
+    if (st === 0 || st === 7 || st === 10) { mNote('sine', 150, t, .32, .9, 0, 42); mNote('sine', mf(ch[0] - 24), t, st === 10 ? MSTEP * 6 : MSTEP * 7, .34, 0, st === 7 ? mf(ch[0] - 22) : 0); }   // kick + 808
+    if (st === 4 || st === 12) { mNoise(t, .2, .32, 1700, 1); mNote('triangle', 220, t, .08, .08, 0, 120); }   // clap
+    if (st % 2 === 0 || (drop && st >= 12)) mNoise(t, st % 4 === 2 ? .07 : .035, st % 4 === 2 ? .09 : .05, 7500);   // charleston
+    if (drop && st >= 12) mNoise(t + MSTEP / 2, .03, .05, 8000);
+  }
+  var arp = [0, 1, 2, 1, 2, 0, 1, 2], n2 = ch[arp[st % 8]] + 12 + (st >= 8 && bar % 2 ? 12 : 0);
+  if (st % 2 === 0 || !intro) mNote('square', mf(n2), t, MSTEP * .9, intro ? .025 : .03, 2600);   // arpège néon
+}
+function musTick() { if (!AC || !musOn) return; while (musNext < AC.currentTime + .3) { mStep(musStep, musNext); musStep++; musNext += MSTEP; } }
+function music(on) { if (!AC) return; if (!MUS) { MUS = AC.createGain(); MUS.gain.value = 0; MUS.connect(OUT); } var t = AC.currentTime;
+  MUS.gain.cancelScheduledValues(t); MUS.gain.setValueAtTime(MUS.gain.value, t); MUS.gain.linearRampToValueAtTime(on ? .6 : 0, t + (on ? 1.5 : .5));
+  if (on && !musOn) { musStep = 0; musNext = t + .1; } musOn = on; if (!musTimer) musTimer = setInterval(musTick, 60); }
+
 /* ================= rendu 3D ================= */
 var cv = $('c');
 var R3 = new THREE.WebGLRenderer({ canvas: cv, antialias: SET.gfx > 0, powerPreference: 'high-performance' });
 R3.outputEncoding = THREE.sRGBEncoding; R3.toneMapping = THREE.ACESFilmicToneMapping; R3.toneMappingExposure = 1.12;
 R3.shadowMap.enabled = SET.gfx > 0; R3.shadowMap.type = THREE.PCFSoftShadowMap;
 var scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(70, 1, .25, 1400);
-scene.background = new THREE.Color('#8fd3ff'); scene.fog = new THREE.Fog('#8fd3ff', 160, 520);
-scene.add(new THREE.HemisphereLight('#e6f4ff', '#5a7a3a', .85));
-var sun = new THREE.DirectionalLight('#fff1d6', 1.15); sun.position.set(40, 70, 25); sun.castShadow = true; sun.shadow.bias = -.0005; if ('normalBias' in sun.shadow) sun.shadow.normalBias = .03;
+var SKYC = DES ? '#f2c58e' : '#8fd3ff'; scene.background = new THREE.Color(SKYC); scene.fog = new THREE.Fog(SKYC, DES ? 130 : 160, DES ? 470 : 520);
+scene.add(new THREE.HemisphereLight(DES ? '#fff0d8' : '#e6f4ff', DES ? '#b0703a' : '#5a7a3a', .85));
+var sun = new THREE.DirectionalLight(DES ? '#ffd9a8' : '#fff1d6', DES ? 1.3 : 1.15); sun.position.set(40, 70, 25); sun.castShadow = true; sun.shadow.bias = -.0005; if ('normalBias' in sun.shadow) sun.shadow.normalBias = .03;
 (function () { var c = sun.shadow.camera; c.left = c.bottom = -48; c.right = c.top = 48; c.near = 1; c.far = 220; })(); scene.add(sun); scene.add(sun.target);
 // ciel en dégradé
 var sky = new THREE.Mesh(new THREE.SphereGeometry(1200, 24, 12), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
   vertexShader: 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-  fragmentShader: 'varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 c = mix(vec3(.62,.84,1.0), vec3(.16,.45,.9), clamp(h*1.6,0.,1.)); c = mix(c, vec3(1.,.93,.82), pow(clamp(1.-abs(h)*6.,0.,1.),3.)*.35); gl_FragColor = vec4(c,1.); }' }));
+  fragmentShader: 'varying vec3 vP; void main(){ float h = normalize(vP).y; ' + (DES ? 'vec3 c = mix(vec3(1.,.74,.48), vec3(.42,.16,.42), clamp(h*1.5,0.,1.)); c = mix(c, vec3(1.,.86,.6), pow(clamp(1.-abs(h)*5.,0.,1.),3.)*.55);' : 'vec3 c = mix(vec3(.62,.84,1.0), vec3(.16,.45,.9), clamp(h*1.6,0.,1.)); c = mix(c, vec3(1.,.93,.82), pow(clamp(1.-abs(h)*6.,0.,1.),3.)*.35);') + ' gl_FragColor = vec4(c,1.); }' }));
 sky.renderOrder = -1; scene.add(sky);
 var lcam = new THREE.PerspectiveCamera(42, 1, .1, 100);
 function resize() {
@@ -407,7 +439,8 @@ var RND = mulberry(7), NB = 72, shore = [];
 for (var i0 = 0; i0 < NB; i0++) shore.push(ISL * (0.92 + 0.06 * Math.sin(i0 * 0.6) + 0.04 * Math.sin(i0 * 2.1 + 1) + 0.03 * (RND() - .5)));
 function shoreR(a) { var t = ((a / (Math.PI * 2)) % 1 + 1) % 1 * NB, i = Math.floor(t) % NB, j = (i + 1) % NB, f = t - Math.floor(t); return shore[i] * (1 - f) + shore[j] * f; }
 function onLand(x, z) { return Math.hypot(x, z) < shoreR(Math.atan2(z, x)) - 4; }
-var TOWNS = [['Turbo Towers', 0, 0, 58, 'centre'], ['Rusty Ranch', -200, -170, 50, '2cv'], ['Chrome Avenue', 195, -175, 44, 'concess'], ['Piston Docks', 200, 175, 40, 'garage'], ['Golden Hollow', -195, 175, 48, 'village']];
+var TOWNS = DES ? [['Mirage City', 0, 0, 58, 'centre'], ['Canyon Rouillé', -200, -170, 50, '2cv'], ['Oasis Chrome', 195, -175, 44, 'concess'], ['Puits Turbo', 200, 175, 40, 'garage'], ['Fort Cactus', -195, 175, 48, 'village']]
+  : [['Turbo Towers', 0, 0, 58, 'centre'], ['Rusty Ranch', -200, -170, 50, '2cv'], ['Chrome Avenue', 195, -175, 44, 'concess'], ['Piston Docks', 200, 175, 40, 'garage'], ['Golden Hollow', -195, 175, 48, 'village']];
 var ROADS = [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3]];
 function segD(px, pz, ax, az, bx, bz) { var dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - ax - dx * t, pz - az - dz * t); }
 function nearRoad(x, z, m) { return ROADS.some(function (r) { var a = TOWNS[r[0]], b = TOWNS[r[1]]; return segD(x, z, a[1], a[2], b[1], b[2]) < m; }); }
@@ -420,6 +453,7 @@ function baseH(x, z) {
   var d = Math.hypot(x, z), sr = shoreR(Math.atan2(z, x)), beach = (sr - d) * .05;
   if (d > sr) return Math.max(-3, beach);
   var n = vnoise(x / 115 + 3.1, z / 115 + 7.7) * .62 + vnoise(x / 42 + 11, z / 42 - 4) * .28 + vnoise(x / 13, z / 13) * .1, hh = Math.max(0, n - .36) * 40 + n * 1.5;
+  if (DES) { var w = vnoise(x / 70 - 5, z / 70 + 2), rid = 1 - Math.abs(Math.sin((x * .8 + z * .55) / 19 + w * 6)); hh = Math.max(0, n - .4) * 30 + rid * rid * (3 + w * 6) + n * 2; if (n > .66) hh += Math.min(14, (n - .66) * 160); }   // dunes + mesas
   var m = sm01(sr - 8, sr - 60, d);
   TOWNS.forEach(function (t) { m = Math.min(m, sm01(4, 34, Math.hypot(x - t[1], z - t[2]) - t[3])); });
   var rd = 1e9; ROADS.forEach(function (r) { var a = TOWNS[r[0]], b = TOWNS[r[1]]; rd = Math.min(rd, segD(x, z, a[1], a[2], b[1], b[2])); });
@@ -435,14 +469,14 @@ function pad(x, z, hx, hz, lvl) { var B = 7; for (var j = Math.max(0, Math.floor
 var TEX = 2048, terr = document.createElement('canvas'); terr.width = terr.height = TEX;
 (function drawTerrain() {
   var g = terr.getContext('2d'), k = TEX / (HALF * 2); g.setTransform(k, 0, 0, k, HALF * k, HALF * k);
-  g.fillStyle = '#2b9fe0'; g.fillRect(-HALF, -HALF, HALF * 2, HALF * 2);
+  g.fillStyle = DES ? '#25b5c4' : '#2b9fe0'; g.fillRect(-HALF, -HALF, HALF * 2, HALF * 2);
   function blob(off, col) { g.beginPath(); for (var i = 0; i <= NB; i++) { var a = i / NB * Math.PI * 2, r = shore[i % NB] + off; g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.closePath(); g.fillStyle = col; g.fill(); }
-  blob(14, 'rgba(170,235,255,.5)'); blob(0, '#f0d58f'); blob(-14, '#72c24a');
-  var r = mulberry(3); for (var n = 0; n < 900; n++) { var a = r() * 6.283, d = r() * (ISL - 30); g.fillStyle = r() < .5 ? 'rgba(80,160,55,.45)' : 'rgba(150,215,90,.35)'; g.beginPath(); g.ellipse(Math.cos(a) * d, Math.sin(a) * d, 6 + r() * 22, 4 + r() * 14, r() * 3, 0, 6.283); g.fill(); }
-  for (n = 0; n < 14; n++) { var cx = (r() - .5) * 600, cz = (r() - .5) * 600; if (!onLand(cx, cz) || inTown(cx, cz, 40)) continue; g.save(); g.translate(cx, cz); g.rotate(r() * 3); g.fillStyle = r() < .5 ? '#c9a95a' : '#9a7a4a'; g.fillRect(-30, -20, 60, 40); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (var s = -30; s < 30; s += 3) { g.beginPath(); g.moveTo(s, -20); g.lineTo(s, 20); g.stroke(); } g.restore(); }
+  if (DES) { blob(14, 'rgba(160,240,230,.5)'); blob(0, '#f6dca0'); blob(-14, '#e3ac62'); } else { blob(14, 'rgba(170,235,255,.5)'); blob(0, '#f0d58f'); blob(-14, '#72c24a'); }
+  var r = mulberry(3); for (var n = 0; n < 900; n++) { var a = r() * 6.283, d = r() * (ISL - 30); g.fillStyle = DES ? (r() < .5 ? 'rgba(190,95,45,.35)' : 'rgba(255,225,160,.35)') : r() < .5 ? 'rgba(80,160,55,.45)' : 'rgba(150,215,90,.35)'; g.beginPath(); g.ellipse(Math.cos(a) * d, Math.sin(a) * d, 6 + r() * 22, 4 + r() * 14, r() * 3, 0, 6.283); g.fill(); }
+  for (n = 0; n < (DES ? 0 : 14); n++) { var cx = (r() - .5) * 600, cz = (r() - .5) * 600; if (!onLand(cx, cz) || inTown(cx, cz, 40)) continue; g.save(); g.translate(cx, cz); g.rotate(r() * 3); g.fillStyle = r() < .5 ? '#c9a95a' : '#9a7a4a'; g.fillRect(-30, -20, 60, 40); g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 1; for (var s = -30; s < 30; s += 3) { g.beginPath(); g.moveTo(s, -20); g.lineTo(s, 20); g.stroke(); } g.restore(); }
   g.lineCap = 'round';
   ROADS.forEach(function (rd) { var a = TOWNS[rd[0]], b = TOWNS[rd[1]]; g.strokeStyle = '#4a4d55'; g.lineWidth = 12; g.beginPath(); g.moveTo(a[1], a[2]); g.lineTo(b[1], b[2]); g.stroke(); g.strokeStyle = 'rgba(255,230,120,.8)'; g.lineWidth = .6; g.setLineDash([4, 4]); g.stroke(); g.setLineDash([]); });
-  TOWNS.forEach(function (t) { g.fillStyle = { centre: '#6c6f78', '2cv': '#a88a62', concess: '#9aa0aa', garage: '#55555e', village: '#b59a6a' }[t[4]]; g.beginPath(); g.arc(t[1], t[2], t[3], 0, 6.283); g.fill();
+  TOWNS.forEach(function (t) { g.fillStyle = DES ? { centre: '#6c6f78', '2cv': '#b8774a', concess: '#c9b48e', garage: '#6a5a4e', village: '#c99a5e' }[t[4]] : { centre: '#6c6f78', '2cv': '#a88a62', concess: '#9aa0aa', garage: '#55555e', village: '#b59a6a' }[t[4]]; g.beginPath(); g.arc(t[1], t[2], t[3], 0, 6.283); g.fill();
     if (t[4] === 'centre') { g.fillStyle = '#9b9fa7'; g.beginPath(); g.arc(t[1], t[2], t[3], 0, 6.283); g.fill(); g.strokeStyle = 'rgba(90,95,105,.5)'; g.lineWidth = .25; for (var gx2 = -t[3]; gx2 < t[3]; gx2 += 2.5) { g.beginPath(); g.moveTo(t[1] + gx2, t[2] - t[3]); g.lineTo(t[1] + gx2, t[2] + t[3]); g.stroke(); g.beginPath(); g.moveTo(t[1] - t[3], t[2] + gx2); g.lineTo(t[1] + t[3], t[2] + gx2); g.stroke(); } g.fillStyle = '#4a4d55'; g.fillRect(t[1] - t[3], t[2] - 4, t[3] * 2, 8); g.fillRect(t[1] - 4, t[2] - t[3], 8, t[3] * 2); g.fillStyle = '#5aa04a'; g.beginPath(); g.arc(t[1], t[2], 6, 0, 6.283); g.fill(); }
     if (t[4] === 'concess') { g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = .5; for (var x = -t[3]; x < t[3]; x += 8) { g.beginPath(); g.moveTo(t[1] + x, t[2] - t[3]); g.lineTo(t[1] + x, t[2] + t[3]); g.stroke(); } }
     if (t[4] === 'garage') { g.fillStyle = 'rgba(255,200,0,.75)'; for (var q = -12; q < 12; q += 4) g.fillRect(t[1] + q, t[2] + 11, 2, 1); } });
@@ -459,20 +493,22 @@ groundMat.customProgramCacheKey = function () { return 'groundDetail'; };
 var ground = new THREE.Mesh(new THREE.PlaneGeometry(HALF * 2, HALF * 2, HN - 1, HN - 1), groundMat);
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 function buildGroundGeo() { var pos = ground.geometry.attributes.position; for (var i = 0; i < pos.count; i++) pos.setZ(i, hgt(pos.getX(i), -pos.getY(i))); pos.needsUpdate = true; ground.geometry.computeVertexNormals(); }
-var sea = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ color: '#2a8fd6', transparent: true, opacity: .88 })); sea.rotation.x = -Math.PI / 2; sea.position.y = -.55; scene.add(sea);
+var sea = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ color: DES ? '#22b8c0' : '#2a8fd6', transparent: true, opacity: .88 })); sea.rotation.x = -Math.PI / 2; sea.position.y = -.55; scene.add(sea);
 
 var TREES = [];
 (function () {
   var r = mulberry(19);
   for (var n = 0; n < 4000 && TREES.length < 380; n++) { var a = r() * 6.283, d = 20 + r() * (ISL - 20), x = Math.cos(a) * d, z = Math.sin(a) * d;
     if (!onLand(x, z) || inTown(x, z, 10) || nearRoad(x, z, 9)) continue; if (TREES.some(function (t) { return Math.abs(t.x - x) < 7 && Math.abs(t.z - z) < 7; })) continue;
-    TREES.push({ x: x, z: z, rock: r() < .18, s: .8 + r() * .6 }); }
+    TREES.push({ x: x, z: z, rock: r() < (DES ? .45 : .18), s: .8 + r() * .6 }); }
   var tr = TREES.filter(function (t) { return !t.rock; }), rk = TREES.filter(function (t) { return t.rock; });
-  var trunk = new THREE.InstancedMesh(CYL6, mat('#6e4a2c'), tr.length), crown = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), mat('#3f9a3a', { flatShading: true }), tr.length), rocks = new THREE.InstancedMesh(SPH, mat('#9a9ca6', { flatShading: true }), rk.length);
+  var trunk = new THREE.InstancedMesh(DES ? CYL : CYL6, mat(DES ? '#2e7a34' : '#6e4a2c'), tr.length), crown = new THREE.InstancedMesh(DES ? CYL : new THREE.IcosahedronGeometry(1, 1), mat(DES ? '#368a3a' : '#3f9a3a', { flatShading: !DES }), tr.length), rocks = new THREE.InstancedMesh(SPH, mat(DES ? '#c0643a' : '#9a9ca6', { flatShading: true }), rk.length);
   var o = new THREE.Object3D(), col = new THREE.Color();
   tr.forEach(function (t, i) { t.y = hgt(t.x, t.z) - .3; t.r = .7 * t.s; t.h = 7 * t.s; o.position.set(t.x, t.y + 1.6 * t.s, t.z); o.scale.set(.6 * t.s, 3.2 * t.s, .6 * t.s); o.rotation.set(0, 0, 0); o.updateMatrix(); trunk.setMatrixAt(i, o.matrix);
+    if (DES) { trunk.setMatrixAt(i, o.matrix.compose(o.position.set(t.x, t.y + 2.6 * t.s, t.z), o.quaternion, o.scale.set(.75 * t.s, 5.2 * t.s, .75 * t.s)));   // cactus : tronc + bras
+      var side = i % 2 ? 1 : -1, ang = i * 1.7; o.position.set(t.x + Math.cos(ang) * .85 * t.s * side, t.y + 3.4 * t.s, t.z + Math.sin(ang) * .85 * t.s * side); o.scale.set(.5 * t.s, 2 * t.s, .5 * t.s); o.updateMatrix(); crown.setMatrixAt(i, o.matrix); t.h = 5.3 * t.s; t.r = .5 * t.s; return; }
     o.position.set(t.x, t.y + 4.4 * t.s, t.z); o.scale.set(2.6 * t.s, 2.4 * t.s, 2.6 * t.s); o.rotation.y = i; o.updateMatrix(); crown.setMatrixAt(i, o.matrix); crown.setColorAt(i, col.setHSL(.28 + (i % 7) * .012, .5, .3 + (i % 5) * .03)); });
-  rk.forEach(function (t, i) { t.y = hgt(t.x, t.z) - .4; t.r = 1.6 * t.s; t.h = 2.2 * t.s; o.position.set(t.x, t.y + .7 * t.s, t.z); o.scale.set(1.8 * t.s, 1.3 * t.s, 1.6 * t.s); o.rotation.y = i; o.updateMatrix(); rocks.setMatrixAt(i, o.matrix); });
+  rk.forEach(function (t, i) { t.y = hgt(t.x, t.z) - .4; t.r = 1.6 * t.s; t.h = 2.2 * t.s; o.position.set(t.x, t.y + .7 * t.s, t.z); o.scale.set(1.8 * t.s, (DES ? 2.2 : 1.3) * t.s, 1.6 * t.s); if (DES) { t.h = 3.2 * t.s; } o.rotation.y = i; o.updateMatrix(); rocks.setMatrixAt(i, o.matrix); });
   [trunk, crown, rocks].forEach(function (m) { m.castShadow = true; m.receiveShadow = true; }); scene.add(trunk, crown, rocks);
 })();
 
@@ -1192,8 +1228,8 @@ function settle(win) {
 
 /* ================= menus ================= */
 function start() {
-  initAudio(); tBefore = ST.t; lastCost = entryCost(ST.t); ST.t = Math.max(0, ST.t - lastCost); saveST(); showStats();
-  reset(); state = 'play'; $('lobby').hidden = true; $('end').hidden = true; $('pause').hidden = true; toast('LOS CAMPAGNES');
+  initAudio(); music(false); tBefore = ST.t; lastCost = entryCost(ST.t); ST.t = Math.max(0, ST.t - lastCost); saveST(); showStats();
+  reset(); state = 'play'; $('lobby').hidden = true; $('end').hidden = true; $('pause').hidden = true; toast(MAPNAME);
   if (!isTouch && cv.requestPointerLock) cv.requestPointerLock();
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(function () {}); } catch (e) {}
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
@@ -1203,15 +1239,16 @@ function endGame(win, killer) {
   $('inv').hidden = true; state = 'end'; fireHeld = false; if (eng) eng.g.gain.value = 0; if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock();
   setTimeout(function () {
     $('endT').textContent = win ? 'TOP 1 !' : 'ÉLIMINÉ'; $('endT').className = 'big ' + (win ? 'win' : 'lose');
-    $('endS').textContent = win ? (me.veh && me.veh.k === 'polo' ? 'TOP 1 en La Wald, évidemment 👑' : 'TOP 1 ! Wald Off, roi de Los Campagnes 👑') : (killer ? 'Éliminé par ' + killer.name + (killer.veh ? ' en ' + VT[killer.veh.k].name : '') + '.' : 'La tempête t\'a eu. Reste dans le cercle !');
+    $('endS').textContent = win ? (me.veh && me.veh.k === 'polo' ? 'TOP 1 en La Wald, évidemment 👑' : 'TOP 1 ! Wald Off, roi de ' + (DES ? 'Sable Rouge' : 'Los Campagnes') + ' 👑') : (killer ? 'Éliminé par ' + killer.name + (killer.veh ? ' en ' + VT[killer.veh.k].name : '') + '.' : 'La tempête t\'a eu. Reste dans le cercle !');
     settle(win); $('eP').textContent = '#' + place; $('eK').textContent = me.kills; $('end').hidden = false; if (win) voice('wald_off', 1);
   }, win ? 700 : 1300);
 }
-function toMenu() { $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
+function toMenu() { $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); music(true); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
 function pause(on) { if (on && state === 'play') { state = 'pause'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('pause').hidden = false; } else if (!on && state === 'pause') { state = 'play'; tPrev = performance.now(); $('pause').hidden = true; if (!isTouch && cv.requestPointerLock) cv.requestPointerLock(); } }
 $('play').addEventListener('click', start); $('again').addEventListener('click', start); $('toMenu').addEventListener('click', toMenu);
 $('quit').addEventListener('click', toMenu); $('resume').addEventListener('click', function () { pause(false); });
-document.addEventListener('visibilitychange', function () { if (document.hidden) pause(true); });
+document.addEventListener('visibilitychange', function () { if (document.hidden) { pause(true); music(false); } else if (state === 'menu') music(true); });
+['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { if (state === 'menu' && !musOn) { initAudio(); music(true); } }, true); });
 function tab(t) { document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); }); document.querySelectorAll('.pane').forEach(function (p) { p.classList.toggle('on', p.dataset.p === t); }); }
 document.querySelectorAll('.tab').forEach(function (b) { b.addEventListener('click', function () { tab(b.dataset.t); }); });
 $('vol').value = Math.round(SET.vol * 100); $('volO').textContent = $('vol').value; $('vol').addEventListener('input', function () { SET.vol = this.value / 100; $('volO').textContent = this.value; if (OUT) OUT.gain.value = SET.vol; saveSet(); });
@@ -1221,6 +1258,9 @@ document.querySelectorAll('#gfx button').forEach(function (b) { b.addEventListen
 if (isTouch) $('keys').innerHTML = '<b>Gauche</b><span>joystick : marcher / conduire</span><b>Droite</b><span>glisse pour tourner la caméra</span><b>Bouton rose</b><span>tirer (glisse dessus pour viser)</span><b>SAUT</b><span>sauter · drift en voiture</span><b>Bouton bleu</b><span>sauter du bus · monter · prendre</span><b>RECH.</b><span>recharger · nitro en La Wald</span><b>🎒</b><span>inventaire : ranger, jeter, échanger</span><b>🎯</b><span>tir auto : vise et tire tout seul</span>';
 (function () { var c = $('mapPrev'), g = c.getContext('2d'), k = TEX / 1000; g.drawImage(terr, 60 * k, 60 * k, 880 * k, 880 * k, 0, 0, c.width, c.height); })();
 addEventListener('resize', resize);
+$('mapName').textContent = MAPNAME;
+document.querySelectorAll('#maps button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === MAP); b.addEventListener('click', function () { if (b.dataset.m === MAP) return; try { localStorage.setItem('wr_map', b.dataset.m); } catch (e) {}
+  b.textContent = 'Chargement…'; location.search = location.search.replace(/[?&]map=\w+/, '').replace(/^\?$/, '') ? location.search.replace(/[?&]map=\w+/, '') + '&map=' + b.dataset.m : '?map=' + b.dataset.m; }); });
 
 /* ================= installation ================= */
 var deferred = null, standalone = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || !!navigator.standalone;
