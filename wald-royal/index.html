@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wald Royal · le jeu</title>
+<meta name="description" content="Wald Royal, le battle royale de Wald Off : 30 joueurs, un bus volant, La Wald, 5 villes. À télécharger sur Android et PC.">
+<meta property="og:title" content="Wald Royal">
+<meta property="og:description" content="Le battle royale de Wald Off. 30 joueurs, 1 cabriolet, 0 pitié.">
+<meta property="og:image" content="img/logo.jpg">
+<meta name="theme-color" content="#0b0418">
+<link rel="icon" href="../jeu/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;600;700&display=swap">
+<style>
+/* Page vitrine du jeu : héros néon avec le logo, boutons de téléchargement, galerie d'images, fiches véhicule / armes / rangs, guide d'installation. */
+:root{
+  --bg:#0b0418; --bg2:#160a2e; --card:#1c0f3a; --line:#3a2370;
+  --fg:#f6efff; --mute:#b9a8dc;
+  --pink:#ff2bd6; --violet:#9b4dff; --cyan:#2de2ff; --gold:#ffd23d; --red:#ff3b5c; --green:#4dff8a;
+  --display:"Bungee","Impact",system-ui,sans-serif;
+  --body:"Chakra Petch",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:56px}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(28px,6vw,46px);line-height:1;margin:0 0 10px;text-wrap:balance}
+h2 em{font-style:normal;color:var(--gold);text-shadow:0 0 18px rgba(255,210,61,.55)}
+.lead{color:var(--mute);margin:0 0 26px;max-width:60ch}
+.kick{font:700 13px var(--body);letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+
+/* barre du haut */
+.top{position:sticky;top:0;z-index:20;background:rgba(11,4,24,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(155,77,255,.25)}
+.top .wrap{display:flex;align-items:center;gap:14px;height:56px}
+.back{font-weight:700;font-size:14px;text-decoration:none;color:var(--mute);display:flex;gap:6px;align-items:center}
+.back:hover{color:#fff}
+.top .brand{font-family:var(--display);font-size:18px;margin-right:auto}
+.top .brand span{color:var(--gold)}
+.top nav{display:flex;gap:16px;font-weight:700;font-size:14px}
+.top nav a{text-decoration:none;color:var(--mute)}.top nav a:hover{color:#fff}
+.dl-mini{font:700 14px var(--body);text-decoration:none;color:#1a0733;background:var(--gold);padding:7px 14px;border-radius:999px;white-space:nowrap}
+@media (max-width:720px){.top nav{display:none}}
+
+/* héros */
+.hero{position:relative;padding-block:42px 70px;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:-20% -10% auto;height:120%;background:radial-gradient(50% 45% at 30% 40%,rgba(255,43,214,.35),transparent 70%),radial-gradient(40% 40% at 80% 30%,rgba(45,226,255,.22),transparent 70%),radial-gradient(60% 50% at 50% 100%,rgba(155,77,255,.35),transparent 70%);pointer-events:none}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;align-items:center}
+.logo{width:100%;max-width:470px;border-radius:30px;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 0 60px rgba(255,43,214,.55),0 30px 60px rgba(0,0,0,.6);transform:rotate(-2.5deg);animation:float 5s ease-in-out infinite;justify-self:center}
+@keyframes float{50%{transform:rotate(-1.5deg) translateY(-10px)}}
+.hero h1{font-family:var(--display);font-weight:400;margin:0;font-size:clamp(52px,10vw,104px);line-height:.88;
+  background:linear-gradient(180deg,#fff 0%,#ffe9fb 38%,#ff8ad8 50%,#5a1f9c 52%,#c79cff 74%,#2de2ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,43,214,.75)) drop-shadow(5px 5px 0 #1a0733)}
+.slogan{font:700 clamp(19px,2.6vw,24px)/1.3 var(--body);margin:16px 0 8px}
+.slogan b{color:var(--gold)}
+.hero p.sub{color:var(--mute);margin:0 0 24px;max-width:46ch}
+.dls{display:grid;gap:12px;max-width:520px}
+.dl{display:flex;align-items:center;gap:14px;text-decoration:none;padding:14px 18px;border-radius:16px;border:2px solid var(--line);background:linear-gradient(135deg,rgba(28,15,58,.95),rgba(22,10,46,.95));transition:transform .15s,box-shadow .15s,border-color .15s}
+.dl:hover,.dl:focus-visible{transform:translateY(-3px);outline:none;border-color:var(--c);box-shadow:0 0 24px color-mix(in srgb,var(--c) 55%,transparent)}
+.dl.main{border-color:var(--c);box-shadow:0 0 26px color-mix(in srgb,var(--c) 45%,transparent)}
+.dl .ic{flex:0 0 48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--c);color:#12062a}
+.dl .ic svg{width:26px;height:26px;fill:currentColor}
+.dl strong{display:block;font-family:var(--display);font-weight:400;font-size:18px;line-height:1.1}
+.dl small{display:block;color:var(--mute);font-size:13px}
+.dl .go{margin-left:auto;font-family:var(--display);font-size:20px;color:var(--c)}
+.reco{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#12062a;background:var(--c);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.note{font-size:13px;color:var(--mute);margin-top:10px}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;gap:26px}.logo{max-width:340px}}
+
+/* bandeau chiffres */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:-30px;position:relative}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:clamp(28px,5vw,40px);color:var(--gold);line-height:1;font-variant-numeric:tabular-nums}
+.stat span{font-size:14px;color:var(--mute)}
+@media (max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* galerie */
+.gal{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.shot{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);cursor:zoom-in;background:#000;padding:0;font:inherit;color:inherit;text-align:left}
+.shot{display:block;width:100%}
+.shot img{aspect-ratio:16/9;object-fit:cover;width:100%;height:100%;transition:transform .4s}
+.shot:hover img{transform:scale(1.05)}
+.shot figcaption,.shot .cap{position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;background:linear-gradient(transparent,rgba(11,4,24,.9));font-weight:700;font-size:14px}
+.shot.big{grid-column:span 2;grid-row:span 2}
+.shot:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+@media (max-width:760px){.gal{grid-template-columns:repeat(2,1fr)}.shot.big,.shot:last-child{grid-column:span 2;grid-row:auto}}
+dialog{border:0;padding:0;background:transparent;max-width:min(1200px,96vw)}
+dialog::backdrop{background:rgba(5,2,12,.88)}
+dialog img{border-radius:14px;box-shadow:0 0 60px rgba(255,43,214,.4)}
+dialog button{position:absolute;top:8px;right:8px;background:rgba(11,4,24,.8);color:#fff;border:0;border-radius:999px;width:40px;height:40px;font-size:20px;cursor:pointer}
+
+/* cartes fonctionnalités */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;position:relative;overflow:hidden}
+.feat::after{content:"";position:absolute;inset:auto -30% -60% auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--c) 40%,transparent),transparent);pointer-events:none}
+.feat .e{font-size:30px;line-height:1}
+.feat h3{font-family:var(--display);font-weight:400;font-size:19px;margin:10px 0 6px;color:var(--c)}
+.feat p{margin:0;color:var(--mute);font-size:15px}
+@media (max-width:860px){.feats{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.feats{grid-template-columns:1fr}}
+
+/* La Wald */
+.car{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center}
+.car img{border-radius:20px;border:1px solid var(--line);box-shadow:0 0 50px rgba(155,77,255,.35)}
+.bars{display:grid;gap:12px;margin:18px 0}
+.bar{display:grid;grid-template-columns:110px 1fr 40px;gap:10px;align-items:center;font-weight:700;font-size:14px}
+.bar i{height:12px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.bar i::after{content:"";position:absolute;inset:0;width:var(--v);background:linear-gradient(90deg,var(--pink),var(--gold));border-radius:6px}
+.bar span{text-align:right;color:var(--gold);font-variant-numeric:tabular-nums}
+.garage{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.garage div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.garage b{font-family:var(--display);font-weight:400;font-size:15px;display:block}
+.garage small{color:var(--mute);font-size:13px}
+@media (max-width:860px){.car{grid-template-columns:1fr}.garage{grid-template-columns:1fr}}
+
+/* armes */
+.guns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gun{display:flex;gap:12px;align-items:center;background:var(--card);border:2px solid var(--r);border-radius:14px;padding:12px 14px;box-shadow:inset 0 -30px 40px -30px var(--r)}
+.gun b{font-family:var(--display);font-weight:400;font-size:16px;display:block}
+.gun small{color:var(--mute);font-size:13px}
+.gun .t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--r)}
+@media (max-width:760px){.guns{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.guns{grid-template-columns:1fr}}
+
+/* rangs */
+.ranks{display:flex;flex-wrap:wrap;gap:10px}
+.rank{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px}
+.hex{width:34px;height:34px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#fff,var(--c) 45%,var(--c))}
+.rank b{font-family:var(--display);font-weight:400;font-size:15px}
+.rank small{color:var(--mute);font-size:12px;display:block;line-height:1}
+
+/* installation */
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.step{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:16px;padding:18px}
+.step h3{font-family:var(--display);font-weight:400;font-size:20px;margin:0 0 10px}
+.step ol{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--mute);font-size:15px}
+.step ol b{color:var(--fg)}
+@media (max-width:860px){.how{grid-template-columns:1fr}}
+
+.cta{text-align:center;padding:60px 20px;border-radius:26px;border:2px solid var(--pink);background:radial-gradient(60% 80% at 50% 0%,rgba(255,43,214,.3),transparent 70%),var(--bg2);box-shadow:0 0 50px rgba(255,43,214,.25)}
+.cta .dls{margin:22px auto 0}
+footer{text-align:center;color:var(--mute);font-size:13px;padding:40px 16px 60px}
+footer a{color:var(--cyan)}
+@media (prefers-reduced-motion:reduce){.logo{animation:none}.shot img,.dl{transition:none}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <a class="back" href="../">← Wald Off</a>
+  <div class="brand">WALD <span>ROYAL</span></div>
+  <nav><a href="#images">Images</a><a href="#jeu">Le jeu</a><a href="#lawald">La Wald</a><a href="#armes">Armes</a><a href="#installer">Installer</a></nav>
+  <a class="dl-mini" href="#telecharger">Télécharger</a>
+</div></header>
+
+<section class="hero" id="telecharger"><div class="wrap">
+  <img class="logo" src="img/logo.jpg" alt="Logo Wald Royal : Wald Off au volant, bob noir et lunettes de ski" width="640" height="640">
+  <div>
+    <div class="kick">Saison 1 · Los Campagnes</div>
+    <h1>WALD<br>ROYAL</h1>
+    <p class="slogan">30 joueurs. 1 cabriolet. <b>0 pitié.</b></p>
+    <p class="sub">Le battle royale de Wald Off. Saute du bus volant, fonce au volant de La Wald, défonce les constructions et reste le dernier debout.</p>
+    <div class="dls" id="dls">
+      <a class="dl" data-os="android" style="--c:var(--green)" href="https://github.com/waldofficiel/waldofficiel.github.io/releases/download/jeu/WaldRoyal.apk" download>
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M17.6 9.48l1.84-3.18a.38.38 0 10-.66-.38l-1.86 3.22a11.5 11.5 0 00-9.84 0L5.22 5.92a.38.38 0 10-.66.38L6.4 9.48A10.8 10.8 0 001 18h22a10.8 10.8 0 00-5.4-8.52zM7 15.25a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5zm10 0a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"/></svg></span>
+        <span><strong>Android</strong><small>Fichier APK · s'installe comme une appli</small></span><span class="go">↓</span></a>
+      <a class="dl" data-os="windows" style="--c:var(--cyan)" href="https://github.com/waldofficiel/waldofficiel.github.io/releases/download/jeu/WaldRoyal-Setup.exe" download>
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zm8.5-1.15L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zm8.5 0H21V21l-9.5-1.35z"/></svg></span>
+        <span><strong>PC Windows</strong><small>Installeur .exe · raccourci sur le bureau</small></span><span class="go">↓</span></a>
+      <a class="dl" data-os="ios" style="--c:var(--pink)" href="#installer">
+        <span class="ic"><svg viewBox="0 0 24 24"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.2-2.8.8-3.5.8s-1.8-.8-3-.8c-1.6 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.7zM14.1 5.8c.6-.8 1.1-1.9 1-3-.9 0-2.1.6-2.7 1.4-.6.7-1.1 1.8-1 2.9 1 .1 2.1-.5 2.7-1.3z"/></svg></span>
+        <span><strong>iPhone</strong><small>Sur l'écran d'accueil depuis Safari</small></span><span class="go">→</span></a>
+    </div>
+    <p class="note">Gratuit · hors ligne · plein écran · contrôles tactiles et clavier/souris</p>
+  </div>
+</div></section>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><b>30</b><span>joueurs par partie</span></div>
+    <div class="stat"><b>5</b><span>villes</span></div>
+    <div class="stat"><b>6</b><span>armes</span></div>
+    <div class="stat"><b>18</b><span>rangs classés</span></div>
+  </div>
+</div>
+
+<section id="images"><div class="wrap">
+  <div class="kick">Images du jeu</div>
+  <h2>Ça ressemble à <em>ça</em></h2>
+  <p class="lead">Touche une image pour l'agrandir.</p>
+  <div class="gal">
+    <button class="shot big" type="button" data-src="img/ville.jpg"><img src="img/ville.jpg" alt="Wald Off au milieu des tours vitrées de Turbo Towers" width="1280" height="720"><span class="cap">Turbo Towers, la ville moderne au centre de la map</span></button>
+    <button class="shot" type="button" data-src="img/lawald.jpg"><img src="img/lawald.jpg" alt="La Wald cabriolet qui roule dans les collines" width="1280" height="720"><span class="cap">Au volant de La Wald</span></button>
+    <button class="shot" type="button" data-src="img/saut.jpg"><img src="img/saut.jpg" alt="Vue du ciel pendant le saut du bus volant" width="1280" height="720"><span class="cap">Le saut depuis le bus volant</span></button>
+    <button class="shot" type="button" data-src="img/collines.jpg"><img src="img/collines.jpg" alt="Les collines de Los Campagnes avec trois armes dans l'inventaire" width="1280" height="720"><span class="cap">Les collines de Los Campagnes</span></button>
+    <button class="shot" type="button" data-src="img/combat.jpg"><img src="img/combat.jpg" alt="Combat au Fusil Doré face à un joueur" width="1280" height="720"><span class="cap">Tir auto activé</span></button>
+    <button class="shot" type="button" data-src="img/lobby.jpg"><img src="img/lobby.jpg" alt="Le menu du jeu avec le perso et La Wald" width="1280" height="720"><span class="cap">Le lobby</span></button>
+  </div>
+</div></section>
+
+<section id="jeu"><div class="wrap">
+  <div class="kick">Le jeu</div>
+  <h2>Tout ce qu'il y a <em>dedans</em></h2>
+  <p class="lead">Une partie dure une dizaine de minutes. Le cercle se referme, les bots sont de plus en plus forts quand tu montes de rang.</p>
+  <div class="feats">
+    <div class="feat" style="--c:var(--gold)"><div class="e">🚌</div><h3>Le bus volant</h3><p>Un vieux bus rouillé avec des ailes d'avion et des hélices. Tu sautes quand tu veux, tu planes, tu choisis ta ville.</p></div>
+    <div class="feat" style="--c:var(--pink)"><div class="e">🏙️</div><h3>5 villes</h3><p>Turbo Towers, Rusty Ranch, Chrome Avenue, Piston Docks et Golden Hollow. Bâtiments avec toits où on entre.</p></div>
+    <div class="feat" style="--c:var(--cyan)"><div class="e">🎯</div><h3>Tir auto</h3><p>Sur téléphone, le viseur accroche l'ennemi et tire tout seul. Tu te concentres sur le déplacement.</p></div>
+    <div class="feat" style="--c:var(--green)"><div class="e">🧱</div><h3>Tout se casse</h3><p>Murs en bois, brique, béton, vitres. Une voiture lancée à fond traverse les maisons.</p></div>
+    <div class="feat" style="--c:var(--violet)"><div class="e">🏆</div><h3>Mode classé</h3><p>De Bronze à Légende. Des trophées à chaque partie, +1 par élimination, et ton K/D dans les stats.</p></div>
+    <div class="feat" style="--c:var(--red)"><div class="e">⛰️</div><h3>Une vraie map</h3><p>Collines, champs, plages, routes. Des coffres, des munitions et des voitures partout.</p></div>
+  </div>
+</div></section>
+
+<section id="lawald"><div class="wrap car">
+  <img src="img/voiture3d.jpg" alt="La Wald, cabriolet bleu nuit avec son pot d'échappement qui sort du capot" width="1280" height="720">
+  <div>
+    <div class="kick">La voiture légendaire</div>
+    <h2>La <em>Wald</em></h2>
+    <p class="lead" style="margin-bottom:0">Cabriolet bleu nuit, arceau, sièges bleus, et le pot d'échappement qui sort du capot. Une seule par partie, cachée quelque part sur la map. Si tu la trouves, tu écrases tout.</p>
+    <div class="bars">
+      <div class="bar">Vitesse<i style="--v:96%"></i><span>96</span></div>
+      <div class="bar">Solidité<i style="--v:100%"></i><span>100</span></div>
+      <div class="bar">Dégâts joueurs<i style="--v:100%"></i><span>100</span></div>
+      <div class="bar">Nitro<i style="--v:66%"></i><span>×2</span></div>
+    </div>
+    <div class="garage">
+      <div><b>Bolide Jaune</b><small>La plus grosse accélération.</small></div>
+      <div><b>Rouillarde</b><small>Lente, pleine de piques.</small></div>
+      <div><b>Fourgon</b><small>Lourd, il défonce les murs.</small></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="armes"><div class="wrap">
+  <div class="kick">Arsenal</div>
+  <h2>6 armes, <em>5 raretés</em></h2>
+  <p class="lead">3 cases dans l'inventaire. Tu ranges, tu jettes, tu échanges avec ce qui traîne par terre.</p>
+  <div class="guns">
+    <div class="gun" style="--r:#ffb52e"><div><span class="t">Légendaire</span><b>Fusil Doré</b><small>30 balles · précis et violent</small></div></div>
+    <div class="gun" style="--r:#b05cff"><div><span class="t">Épique</span><b>Sniper lourd</b><small>1 balle · 110 dégâts</small></div></div>
+    <div class="gun" style="--r:#3d9bff"><div><span class="t">Rare</span><b>Pompe</b><small>8 balles · courte portée</small></div></div>
+    <div class="gun" style="--r:#4dd65a"><div><span class="t">Peu commun</span><b>Fusil d'assaut</b><small>30 balles · polyvalent</small></div></div>
+    <div class="gun" style="--r:#4dd65a"><div><span class="t">Peu commun</span><b>Mitraillette</b><small>30 balles · cadence max</small></div></div>
+    <div class="gun" style="--r:#b9bcc4"><div><span class="t">Commun</span><b>Pistolet</b><small>16 balles · pour démarrer</small></div></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="kick">Classé</div>
+  <h2>Monte jusqu'en <em>Légende</em></h2>
+  <p class="lead">Gratuit en Bronze. Plus tu montes, plus l'entrée coûte cher : en Légende, il faut faire top 2 ou 3 pour ne pas perdre de trophées.</p>
+  <div class="ranks">
+    <div class="rank"><span class="hex" style="--c:#c98a4b"></span><div><b>Bronze</b><small>0 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#cfd6e0"></span><div><b>Argent</b><small>600 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#ffd23d"></span><div><b>Or</b><small>1 200 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#5ce1e6"></span><div><b>Platine</b><small>1 950 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#7aa8ff"></span><div><b>Diamant</b><small>2 850 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#ff8a3d"></span><div><b>Maître</b><small>3 900 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#ff3b5c"></span><div><b>Néon</b><small>4 600 🏆</small></div></div>
+    <div class="rank"><span class="hex" style="--c:#c77dff"></span><div><b>Légende</b><small>5 400 🏆</small></div></div>
+  </div>
+</div></section>
+
+<section id="installer"><div class="wrap">
+  <div class="kick">Installation</div>
+  <h2>Installer en <em>1 minute</em></h2>
+  <p class="lead">Le jeu n'est pas encore sur le Play Store ni l'App Store, alors ton téléphone ou ton PC va te demander une confirmation. C'est normal.</p>
+  <div class="how">
+    <div class="step" style="--c:var(--green)"><h3>Android</h3><ol>
+      <li>Touche <b>Android</b> en haut de la page : le fichier <b>WaldRoyal.apk</b> se télécharge.</li>
+      <li>Ouvre-le depuis la notification ou tes téléchargements.</li>
+      <li>Si le téléphone bloque, touche <b>Paramètres</b> et autorise <b>cette source</b>.</li>
+      <li>Touche <b>Installer</b>, puis <b>Ouvrir</b>. L'icône Wald Royal arrive sur ton écran.</li></ol></div>
+    <div class="step" style="--c:var(--cyan)"><h3>PC Windows</h3><ol>
+      <li>Clique <b>PC Windows</b> : <b>WaldRoyal-Setup.exe</b> se télécharge.</li>
+      <li>Lance-le. Si Windows affiche un écran bleu, clique <b>Informations complémentaires</b> puis <b>Exécuter quand même</b>.</li>
+      <li>Suis l'installation : un raccourci <b>Wald Royal</b> apparaît sur le bureau.</li>
+      <li>F11 pour sortir du plein écran, Échap pour la pause.</li></ol></div>
+    <div class="step" style="--c:var(--pink)"><h3>iPhone</h3><ol>
+      <li>Apple n'autorise pas les fichiers à installer hors App Store.</li>
+      <li>Ouvre <a href="../jeu/"><b>le jeu</b></a> dans <b>Safari</b>.</li>
+      <li>Touche Partager ⬆, puis <b>Sur l'écran d'accueil</b>.</li>
+      <li>Lance Wald Royal depuis son icône : plein écran, comme une appli.</li></ol></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="cta">
+    <h2>Prêt pour le <em>TOP 1</em> ?</h2>
+    <p class="lead" style="margin:0 auto">Télécharge Wald Royal et viens défier Wald Off.</p>
+    <div class="dls" id="dls2"></div>
+  </div>
+</div></section>
+
+<footer>Wald Royal · un jeu de <a href="../">Wald Off</a> · 2026</footer>
+
+<dialog id="lb"><button type="button" aria-label="Fermer">✕</button><img alt=""></dialog>
+<script>
+(function () {
+  // met en avant le bon bouton selon l'appareil
+  var ua = navigator.userAgent, os = /android/i.test(ua) ? 'android' : /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document) ? 'ios' : /windows/i.test(ua) ? 'windows' : null;
+  var box = document.getElementById('dls'), links = [].slice.call(box.querySelectorAll('.dl'));
+  if (os) links.forEach(function (a) { if (a.dataset.os === os) { a.classList.add('main'); a.querySelector('strong').insertAdjacentHTML('beforeend', '<span class="reco">ton appareil</span>'); box.insertBefore(a, box.firstChild); } });
+  var d2 = document.getElementById('dls2'); [].slice.call(box.children).forEach(function (a) { var c = a.cloneNode(true); var r = c.querySelector('.reco'); if (r) r.remove(); d2.appendChild(c); });
+  // agrandir les images
+  var lb = document.getElementById('lb'), im = lb.querySelector('img');
+  document.querySelectorAll('.shot').forEach(function (b) { b.addEventListener('click', function () { im.src = b.dataset.src; im.alt = b.querySelector('img').alt; if (lb.showModal) lb.showModal(); }); });
+  lb.addEventListener('click', function () { lb.close(); });
+})();
+</script>
+</body>
+</html>

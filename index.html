@@ -145,6 +145,17 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 .how{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
 .how summary{cursor:pointer;font-weight:700}
 .how ul{margin:10px 0 6px;padding-left:18px;display:grid;gap:6px;color:var(--mute)}.how b{color:var(--fg)}.how p{margin:0;color:var(--mute);font-size:14px}
+.mega{position:relative;display:block;overflow:hidden;text-decoration:none;color:var(--fg);border-radius:22px;border:2px solid #ff2bd6;min-height:260px;padding:18px;box-shadow:0 0 30px rgba(255,43,214,.45),0 0 70px rgba(155,77,255,.25);transition:transform .15s}
+.mega:hover{transform:translateY(-3px)}.mega:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.mega .bgshot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.2)}
+.mega::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,4,24,.15),rgba(10,4,24,.92) 75%)}
+.mega>span{position:relative;z-index:1}
+.mtop{display:flex;gap:12px;align-items:center}.mtop img{width:84px;height:84px;border-radius:16px;box-shadow:0 0 20px rgba(255,43,214,.7);transform:rotate(-4deg)}
+.mtop strong{display:block;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;color:var(--hazard);text-shadow:0 0 16px rgba(255,214,10,.6)}.mtop small{color:#e7defa;font-size:14px}
+.mcta{display:inline-block;margin-top:88px;font:700 17px var(--body);background:linear-gradient(180deg,#fff7a8,var(--hazard));color:#111;border-radius:999px;padding:12px 20px;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,214,10,.18)}}
+.mos{display:block;margin-top:10px;font-size:13px;color:#d6c9f2}
+@media (prefers-reduced-motion:reduce){.mcta{animation:none}}
 </style>
 
 </head>
@@ -217,20 +228,13 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
   </section>
 
   <section class="game" aria-labelledby="game-t">
-    <h2 id="game-t">Le jeu <em>WALD ROYALE</em></h2>
-    <a class="gcard" href="jeu/"><img src="jeu/logo.jpg" alt="Logo Wald Royal" loading="lazy"><span><strong>Battle royale 3D · 30 joueurs</strong><small>Saute du bus volant, prends La Wald, défonce les constru, fais TOP 1. À installer sur ton téléphone ou ton PC.</small></span></a>
-    <div class="gbtns">
-      <a class="gplay" href="jeu/">📲 Télécharger le jeu</a>
-      <button class="ginst" id="ginst" type="button" hidden>📲 Installer le jeu</button>
-    </div>
-    <details class="how"><summary>Télécharger sur Android, iPhone ou PC</summary>
-      <ul>
-        <li><b>Android (Chrome)</b> : ouvre le jeu, menu ⋮ › <i>Installer l'application</i>. L'icône Wald Royale arrive sur ton écran d'accueil.</li>
-        <li><b>iPhone / iPad (Safari)</b> : ouvre le jeu, bouton Partager ⬆ › <i>Sur l'écran d'accueil</i>.</li>
-        <li><b>PC (Chrome ou Edge)</b> : ouvre le jeu, clique l'icône d'installation ⊕ dans la barre d'adresse.</li>
-      </ul>
-      <p>Une fois installé, il se lance en plein écran et marche même sans internet.</p>
-    </details>
+    <h2 id="game-t">Mon jeu <em>WALD ROYAL</em></h2>
+    <a class="mega" href="wald-royal/">
+      <img src="wald-royal/img/ville.jpg" alt="" loading="lazy" class="bgshot">
+      <span class="mtop"><img src="jeu/logo.jpg" alt="Logo Wald Royal" loading="lazy"><span><strong>WALD ROYAL</strong><small>Battle royale 3D · 30 joueurs · La Wald</small></span></span>
+      <span class="mcta">Clique ici pour découvrir le jeu →</span>
+      <span class="mos">Android · PC Windows · iPhone</span>
+    </a>
   </section>
 
   <footer><b>WALD OFF</b> · fait en France · 2026</footer>
@@ -261,9 +265,7 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 <script src="fx.js"></script>
 <script src="drift.js"></script>
 <script>
-(function(){var d=null,b=document.getElementById('ginst');
-addEventListener('beforeinstallprompt',function(e){e.preventDefault();d=e;b.hidden=false;});
-b.addEventListener('click',function(){if(d){d.prompt();d=null;b.hidden=true;}else location.href='jeu/';});})();
+
 </script>
 </body>
 </html>
