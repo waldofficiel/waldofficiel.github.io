@@ -43,6 +43,7 @@ h2 em{font-style:normal;color:var(--gold);text-shadow:0 0 18px rgba(255,210,61,.
 .top .brand span{color:var(--gold)}
 .top nav{display:flex;gap:16px;font-weight:700;font-size:14px}
 .top nav a{text-decoration:none;color:var(--mute)}.top nav a:hover{color:#fff}
+.dls.flash .dl{animation:flash .6s 2}@keyframes flash{50%{transform:scale(1.04);box-shadow:0 0 30px var(--c)}}
 .dl-mini{font:700 14px var(--body);text-decoration:none;color:#1a0733;background:var(--gold);padding:7px 14px;border-radius:999px;white-space:nowrap}
 @media (max-width:720px){.top nav{display:none}}
 
@@ -309,6 +310,10 @@ footer a{color:var(--cyan)}
   var ua = navigator.userAgent, os = /android/i.test(ua) ? 'android' : /iphone|ipad|ipod/i.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document) ? 'ios' : /windows/i.test(ua) ? 'windows' : null;
   var box = document.getElementById('dls'), links = [].slice.call(box.querySelectorAll('.dl'));
   if (os) links.forEach(function (a) { if (a.dataset.os === os) { a.classList.add('main'); a.querySelector('strong').insertAdjacentHTML('beforeend', '<span class="reco">ton appareil</span>'); box.insertBefore(a, box.firstChild); } });
+  // bouton « Télécharger » du haut : lance directement le bon fichier (APK sur Android, EXE sur PC), sinon descend aux boutons
+  var mini = document.querySelector('.dl-mini'), mine = links.filter(function (a) { return a.dataset.os === os; })[0];
+  if (mini && mine && os !== 'ios') { mini.href = mine.href; mini.setAttribute('download', ''); }
+  else if (mini) mini.addEventListener('click', function (e) { e.preventDefault(); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); box.classList.add('flash'); setTimeout(function () { box.classList.remove('flash'); }, 1200); });
   var d2 = document.getElementById('dls2'); [].slice.call(box.children).forEach(function (a) { var c = a.cloneNode(true); var r = c.querySelector('.reco'); if (r) r.remove(); d2.appendChild(c); });
   // agrandir les images
   var lb = document.getElementById('lb'), im = lb.querySelector('img');
