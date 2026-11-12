@@ -1,6 +1,6 @@
 // Cache hors-ligne du jeu Wald Royale (3D)
-var V = 'wald-royale-3d-v5';
-var FILES = ['./', 'index.html', 'manifest.webmanifest', 'three.min.js', 'polo3d.js', 'polo3d.html', 'avatar.jpg', 'sons/polo.mp3', 'sons/wald_off.mp3', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png'];
+var V = 'wald-royale-3d-v7';
+var FILES = ['./', 'index.html', 'manifest.webmanifest', 'three.min.js', 'polo3d.js', 'polo3d.html', 'avatar.jpg', 'logo.jpg', 'sons/polo.mp3', 'sons/wald_off.mp3', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-180.png'];
 self.addEventListener('install', function (e) { e.waitUntil(caches.open(V).then(function (c) { return c.addAll(FILES); }).then(function () { return self.skipWaiting(); })); });
 self.addEventListener('activate', function (e) { e.waitUntil(caches.keys().then(function (ks) { return Promise.all(ks.filter(function (k) { return k !== V; }).map(function (k) { return caches.delete(k); })); }).then(function () { return self.clients.claim(); })); });
 self.addEventListener('fetch', function (e) {
