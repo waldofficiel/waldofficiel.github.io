@@ -52,7 +52,7 @@
     return tex(THREE, 512, function (g, sz, wrap) { var r = rng(seed), h = des ? 30 : 42, s = des ? 62 : 48, l = des ? 62 : 74;
       g.fillStyle = hsl(h, s, l); g.fillRect(0, 0, sz, sz);
       blotches(g, sz, wrap, r, 60, h, s, l, 10, .45, 20, 80);
-      for (var y = 0; y < sz; y += 9) { g.strokeStyle = hsl(h, s, l - 8, .35); g.lineWidth = 2; g.beginPath(); for (var x = 0; x <= sz; x += 8) { var yy = y + Math.sin(x / sz * Math.PI * 4 + y * .3) * 3 + Math.sin(x / sz * Math.PI * 10 + y) * 1.2; if (x) g.lineTo(x, yy); else g.moveTo(x, yy); } g.stroke(); }
+      for (var y = 0; y < sz; y += 9) { g.strokeStyle = hsl(h, s, l - 5, .12); g.lineWidth = 3; g.beginPath(); for (var x = 0; x <= sz; x += 8) { var yy = y + Math.sin(x / sz * Math.PI * 4 + y * .3) * 3 + Math.sin(x / sz * Math.PI * 10 + y) * 1.2; if (x) g.lineTo(x, yy); else g.moveTo(x, yy); } g.stroke(); }
       for (var i = 0; i < 20000; i++) { g.fillStyle = hsl(h, s - 10, l + (r() - .5) * 30, .45); g.fillRect(r() * sz, r() * sz, 1, 1); }
     });
   }
@@ -65,7 +65,9 @@
     for (var i = 0; i < p.count; i++) { var x = p.getX(i), y = p.getY(i), z = p.getZ(i); this.pos.push(x, y, z); this.nor.push(n.getX(i), n.getY(i), n.getZ(i)); colFn(c, x, y, z, n.getY(i)); this.col.push(c.r, c.g, c.b); this.sw.push(typeof sway === 'function' ? sway(y) : sway); }
   };
   Builder.prototype.geo = function () { var T = this.T, g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(this.pos, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(this.nor, 3)); g.setAttribute('color', new T.Float32BufferAttribute(this.col, 3)); g.setAttribute('aSway', new T.Float32BufferAttribute(this.sw, 1)); g.computeBoundingSphere(); return g; };
-  function jitter(geo, r, amt, flatBottom) { var p = geo.attributes.position; for (var i = 0; i < p.count; i++) { var x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 + (r() - .5) * amt; if (flatBottom && y < 0) y *= .5; p.setXYZ(i, x * k, y * (1 + (r() - .5) * amt * .6), z * k); } return geo; }
+  function hpos(x, y, z, sd) { var n = Math.sin(Math.round(x * 997) * 12.9898 + Math.round(y * 997) * 78.233 + Math.round(z * 997) * 37.719 + sd) * 43758.5453; return n - Math.floor(n); }
+  // déformation selon la position du sommet : deux sommets au même endroit bougent pareil, donc pas de fentes
+  function jitter(geo, r, amt, flatBottom) { var p = geo.attributes.position, sd = r() * 100; for (var i = 0; i < p.count; i++) { var x = p.getX(i), y = p.getY(i), z = p.getZ(i), k = 1 + (hpos(x, y, z, sd) - .5) * amt, ky = 1 + (hpos(z, x, y, sd + 7) - .5) * amt * .6; if (flatBottom && y < 0) y *= .5; p.setXYZ(i, x * k, y * ky, z * k); } return geo; }
   function M4(THREE, x, y, z, sx, sy, sz, rx, ry, rz) { var o = new THREE.Object3D(); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.rotation.set(rx || 0, ry || 0, rz || 0); o.updateMatrix(); return o.matrix; }
 
   var N = {};
@@ -91,7 +93,7 @@
     return B.geo();
   };
   N.rock = function (THREE, seed, mossy, des) {
-    var r = rng(seed), B = new Builder(THREE), g = new THREE.IcosahedronGeometry(1, 2), p = g.attributes.position;
+    var r = rng(seed), B = new Builder(THREE), g = new THREE.IcosahedronGeometry(1, seed >= 900 ? 0 : 2), p = g.attributes.position;
     for (var i = 0; i < p.count; i++) { var x = p.getX(i), y = p.getY(i), z = p.getZ(i), f = 1 + Math.sin(x * 3.1 + seed) * .12 + Math.sin(z * 4.3 + y * 2 + seed) * .1 + (r() - .5) * .08; if (y < -.2) y = -.2 + (y + .2) * .3; p.setXYZ(i, x * f, y * f * .8, z * f); }
     var base = new THREE.Color(des ? '#b0583a' : '#8a8a86'), moss = new THREE.Color('#4a6a26');
     B.add(g, M4(THREE, 0, 0, 0, 1, 1, 1, 0, 0, 0), function (c, x, y, z, ny) { c.copy(base).multiplyScalar(.7 + Math.sin(x * 9 + z * 7) * .08 + Math.sin(y * 15) * .06 + .2 * Math.max(0, ny)); if (des) c.lerp(new THREE.Color('#d48a5a'), Math.max(0, Math.sin(y * 10)) * .35); if (mossy && ny > .55) c.lerp(moss, Math.min(1, (ny - .55) * 3)); }, 0);
@@ -99,7 +101,7 @@
   };
   N.bush = function (THREE, seed, des) {
     var r = rng(seed), B = new Builder(THREE), n = 4 + (r() * 3 | 0);
-    for (var k = 0; k < n; k++) { var a = r() * 6.28, d = r() * .5, s = .45 + r() * .4, ball = jitter(new THREE.IcosahedronGeometry(1, 1), r, .4);
+    for (var k = 0; k < n; k++) { var a = r() * 6.28, d = r() * .5, s = .45 + r() * .4, ball = jitter(new THREE.IcosahedronGeometry(1, 0), r, .3);
       B.add(ball, M4(THREE, Math.cos(a) * d, s * .7, Math.sin(a) * d, s, s * .8, s, 0, r() * 6, 0), function (c, x, y, z, ny) { if (des) c.setHSL(.12 + r() * .03, .35, .32 + Math.max(0, ny) * .1); else c.setHSL(.27 + r() * .05, .45, .27 + Math.max(0, ny) * .14 + r() * .04); }, function (y) { return Math.min(1, y / 1.2); }); }
     if (!des && r() < .55) { var bc = r() < .5 ? '#d8344a' : '#f2e05a'; for (var b = 0; b < 7; b++) { var aa = r() * 6.28, dd = .35 + r() * .35; B.add(new THREE.IcosahedronGeometry(.06, 0), M4(THREE, Math.cos(aa) * dd, .55 + r() * .35, Math.sin(aa) * dd, 1, 1, 1), function (c) { c.set(bc); }, .8); } }
     return B.geo();
