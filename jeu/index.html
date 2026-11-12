@@ -490,8 +490,15 @@ function carModel(k) {
   var g = new THREE.Group(), glass = mat('#20283a');
   if (k === 'polo') {   // la Polo : petite citadine bleu nuit, rouille, le pot d'échappement qui sort du capot
     var bc = '#22305e';
-    box(g, 3.7, .7, 1.66, 0, .62, 0, bc); box(g, 1.15, .18, 1.6, 1.25, 1.02, 0, bc); box(g, 2.1, .72, 1.52, -.42, 1.33, 0, bc);
-    box(g, .08, .62, 1.4, .64, 1.33, 0, glass); box(g, 1.7, .5, 1.54, -.5, 1.38, 0, glass); box(g, .06, .5, 1.3, -1.48, 1.38, 0, glass);
+    // cabriolet : pas de toit, pare-brise, sièges et capote repliée à l'arrière
+    box(g, 3.7, .7, 1.66, 0, .62, 0, bc); box(g, 1.15, .18, 1.6, 1.25, 1.02, 0, bc);
+    box(g, .9, .14, 1.6, -1.35, 1.02, 0, bc); box(g, 1.6, .14, .12, -.35, 1.02, .77, bc); box(g, 1.6, .14, .12, -.35, 1.02, -.77, bc);   // rebords de la caisse
+    box(g, 1.6, .1, 1.4, -.35, .9, 0, '#2a2a30');                                                                                          // plancher / habitacle
+    box(g, .42, .5, .52, -.15, 1.2, .36, '#3a2a22'); box(g, .42, .5, .52, -.15, 1.2, -.36, '#3a2a22'); box(g, .12, .55, .52, -.38, 1.45, .36, '#3a2a22'); box(g, .12, .55, .52, -.38, 1.45, -.36, '#3a2a22');   // sièges avant
+    box(g, .4, .4, 1.3, -.95, 1.15, 0, '#3a2a22'); box(g, .12, .45, 1.3, -1.12, 1.35, 0, '#3a2a22');                                     // banquette
+    box(g, .5, .3, 1.5, -1.45, 1.22, 0, '#141418');                                                                                        // capote repliée
+    box(g, .08, .6, 1.5, .6, 1.38, 0, '#1b1b22'); box(g, .05, .5, 1.36, .62, 1.38, 0, new THREE.MeshLambertMaterial({ color: '#a8d4ff', transparent: true, opacity: .35 }));   // pare-brise
+    cyl(g, .18, .05, .3, 1.35, -.38, '#111', 0, Math.PI / 2 - .5);                                                                       // volant
     box(g, .14, .34, 1.5, 1.86, .74, 0, '#14141a'); cyl(g, .13, .05, 1.94, .78, 0, '#d9dde4', 0, Math.PI / 2);
     box(g, .08, .18, .34, 1.86, .86, .55, '#fff6c2'); box(g, .08, .18, .34, 1.86, .86, -.55, '#fff6c2');
     box(g, .08, .2, .26, -1.86, .92, .6, '#e0262b'); box(g, .08, .2, .26, -1.86, .92, -.6, '#e0262b');
@@ -858,7 +865,12 @@ function updDN(dt) { for (var i = DN.length - 1; i >= 0; i--) { var d = DN[i]; d
 /* ================= rendu de la scène ================= */
 function syncModels(t, dt) {
   var far = scene.fog.far;
-  pl.forEach(function (p) { var c = p.model; if (!p.alive || p.veh || p.mode === 'bus') { c.root.visible = false; return; }
+  pl.forEach(function (p) { var c = p.model;
+    if (p.alive && p.veh && p.veh.k === 'polo') {   // cabriolet : on voit le pilote
+      var v = p.veh, ca = Math.cos(v.a), sa = Math.sin(v.a); c.root.visible = true; c.root.position.set(v.x + ca * -.15 + sa * .36, .02, v.z + sa * -.15 - ca * .36); c.root.rotation.y = -v.a;
+      c.lL.rotation.z = c.lR.rotation.z = 1.5; c.aL.rotation.z = c.aR.rotation.z = 1.15; c.aL.rotation.x = c.aR.rotation.x = 0; c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false; c.body.position.y = -.38; return; }
+    c.body.position.y = 0;
+    if (!p.alive || p.veh || p.mode === 'bus') { c.root.visible = false; return; }
     c.root.visible = dist(p.x, p.z, cam.position.x, cam.position.z) < far; if (!c.root.visible) return;
     c.root.position.set(p.x, p.y, p.z); c.root.rotation.y = -p.a; animChar(p, dt); c.shadow.position.y = .03 - p.y; c.shadow.visible = p.mode === 'ground'; });
   vehicles.forEach(function (v) { v.m.position.set(v.x, 0, v.z); v.m.rotation.y = -v.a; });
