@@ -131,6 +131,20 @@ footer{text-align:center;color:var(--mute);font-size:13px}
 footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 @media (max-width:380px){.grid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}.link{transition:none}}
+
+/* JEU */
+.game{display:flex;flex-direction:column;gap:12px}
+.gcard{display:flex;gap:14px;align-items:center;text-decoration:none;color:var(--fg);background:var(--bg2);border:2px solid #ff2bd6;border-radius:16px;padding:10px;box-shadow:0 0 22px rgba(255,43,214,.35)}
+.gcard img{width:92px;height:92px;object-fit:cover;border-radius:12px;flex:none}
+.gcard span{display:flex;flex-direction:column;gap:2px}.gcard strong{font-family:var(--display);font-weight:400;font-size:15px;color:var(--hazard)}.gcard small{color:var(--mute);font-size:14px}
+.gbtns{display:flex;gap:10px;flex-wrap:wrap}
+.gplay,.ginst{font:700 16px var(--body);border-radius:999px;padding:12px 20px;text-decoration:none;cursor:pointer}
+.gplay{background:linear-gradient(180deg,#fff7a8,var(--hazard));color:#111;border:0}
+.ginst{background:transparent;color:var(--cyan);border:2px solid var(--cyan)}
+.gplay:focus-visible,.ginst:focus-visible,.gcard:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.how{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.how summary{cursor:pointer;font-weight:700}
+.how ul{margin:10px 0 6px;padding-left:18px;display:grid;gap:6px;color:var(--mute)}.how b{color:var(--fg)}.how p{margin:0;color:var(--mute);font-size:14px}
 </style>
 
 </head>
@@ -202,6 +216,23 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
     </div>
   </section>
 
+  <section class="game" aria-labelledby="game-t">
+    <h2 id="game-t">Le jeu <em>WALD ROYALE</em></h2>
+    <a class="gcard" href="jeu/"><img src="jeu/perso.jpg" alt="Wald Off sur la Polo" loading="lazy"><span><strong>Battle royale · 30 joueurs</strong><small>Saute du bus volant, prends la Polo, défonce les constru, fais TOP 1.</small></span></a>
+    <div class="gbtns">
+      <a class="gplay" href="jeu/">▶ Jouer maintenant</a>
+      <button class="ginst" id="ginst" type="button" hidden>📲 Installer le jeu</button>
+    </div>
+    <details class="how"><summary>Télécharger sur Android, iPhone ou PC</summary>
+      <ul>
+        <li><b>Android (Chrome)</b> : ouvre le jeu, menu ⋮ › <i>Installer l'application</i>. L'icône Wald Royale arrive sur ton écran d'accueil.</li>
+        <li><b>iPhone / iPad (Safari)</b> : ouvre le jeu, bouton Partager ⬆ › <i>Sur l'écran d'accueil</i>.</li>
+        <li><b>PC (Chrome ou Edge)</b> : ouvre le jeu, clique l'icône d'installation ⊕ dans la barre d'adresse.</li>
+      </ul>
+      <p>Une fois installé, il se lance en plein écran et marche même sans internet.</p>
+    </details>
+  </section>
+
   <footer><b>WALD OFF</b> · fait en France · 2026</footer>
 </div>
 
@@ -229,5 +260,10 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 
 <script src="fx.js"></script>
 <script src="drift.js"></script>
+<script>
+(function(){var d=null,b=document.getElementById('ginst');
+addEventListener('beforeinstallprompt',function(e){e.preventDefault();d=e;b.hidden=false;});
+b.addEventListener('click',function(){if(d){d.prompt();d=null;b.hidden=true;}else location.href='jeu/';});})();
+</script>
 </body>
 </html>

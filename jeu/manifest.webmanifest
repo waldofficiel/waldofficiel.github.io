@@ -1,0 +1,16 @@
+{
+  "name": "Wald Royale",
+  "short_name": "Wald Royale",
+  "description": "Battle royale de Wald Off : saute du bus, prends la Polo, fais TOP 1.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b0418",
+  "theme_color": "#0b0418",
+  "lang": "fr",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
