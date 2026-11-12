@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Polo 3D</title>
+<meta name="theme-color" content="#0b0418">
+<style>
+/* Visionneuse 3D : la Polo sur un plateau néon, on la fait tourner au doigt */
+:root{--pink:#ff2bd6;--cyan:#2de2ff;--sun:#ffd23d;--ink:#f6efff;color-scheme:dark}
+html,body{margin:0;height:100%;background:#0b0418;color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;overflow:hidden;touch-action:none;user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+h1{position:fixed;top:calc(14px + env(safe-area-inset-top,0px));left:0;right:0;margin:0;text-align:center;font:900 clamp(26px,7vw,46px) 'Arial Black',Impact,sans-serif;color:#fff;text-shadow:0 0 16px var(--pink),3px 3px 0 #1a0733;pointer-events:none}
+h1 span{color:var(--sun)}
+.bar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:calc(100% - 32px)}
+button,a.b{font:800 14px system-ui,sans-serif;color:#fff;background:rgba(11,4,24,.7);border:2px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 16px;cursor:pointer;text-decoration:none}
+button.on{border-color:var(--sun);color:var(--sun)}
+button:focus-visible,a.b:focus-visible{outline:3px solid var(--cyan);outline-offset:3px}
+.tip{position:fixed;top:calc(70px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;font-size:13px;color:#c3b2e0;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<h1>LA <span>POLO</span></h1>
+<div class="tip">Glisse pour tourner · pince ou molette pour zoomer</div>
+<div class="bar">
+  <button id="spin" class="on" type="button">Rotation auto</button>
+  <button id="lights" type="button">Phares</button>
+  <button id="drive" type="button">Faire rouler</button>
+  <a class="b" href="./?jouer">Jouer avec</a>
+</div>
+<script src="three.min.js"></script>
+<script src="polo3d.js"></script>
+<script>
+(function () {
+  var cv = document.getElementById('c'), R = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+  R.outputEncoding = THREE.sRGBEncoding; R.toneMapping = THREE.ACESFilmicToneMapping; R.toneMappingExposure = .95; R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
+  var sc = new THREE.Scene(); sc.background = new THREE.Color('#150830'); sc.fog = new THREE.Fog('#150830', 12, 30);
+  var cam = new THREE.PerspectiveCamera(38, 1, .1, 100);
+  sc.add(new THREE.HemisphereLight('#e7ddff', '#3a2a20', .55));
+  var key = new THREE.DirectionalLight('#fff4e6', 1.5); key.position.set(4, 7, 3); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); var sh = key.shadow.camera; sh.left = sh.bottom = -4; sh.right = sh.top = 4; sc.add(key);
+  var p1 = new THREE.PointLight('#ff2bd6', 1.1, 12); p1.position.set(-3, 2.5, 3); sc.add(p1);
+  var p2 = new THREE.PointLight('#2de2ff', .9, 12); p2.position.set(3, 2, -3); sc.add(p2);
+  var floor = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 3.8, .2, 64), new THREE.MeshStandardMaterial({ color: '#2a1450', roughness: .6 })); floor.position.y = -.1; floor.receiveShadow = true; sc.add(floor);
+  var grass = new THREE.Mesh(new THREE.CircleGeometry(3.4, 64), new THREE.MeshStandardMaterial({ color: '#2f6a1f', roughness: 1 })); grass.rotation.x = -Math.PI / 2; grass.position.y = .005; grass.receiveShadow = true; sc.add(grass);
+  var ring = new THREE.Mesh(new THREE.TorusGeometry(3.7, .05, 8, 96), new THREE.MeshBasicMaterial({ color: '#ff2bd6' })); ring.rotation.x = Math.PI / 2; sc.add(ring);
+  var lightsOn = false, car = window.buildPolo(THREE, { lights: lightsOn }); sc.add(car);
+  var yaw = -.75, pitch = .28, dist = 8.5, spin = true, roll = false, drag = null, pts = {};
+  function rebuild() { sc.remove(car); car = window.buildPolo(THREE, { lights: lightsOn }); sc.add(car); }
+  function size() { R.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); R.setSize(innerWidth, innerHeight, false); cam.aspect = innerWidth / innerHeight; cam.fov = cam.aspect < 1 ? 55 : 38; cam.updateProjectionMatrix(); }
+  addEventListener('resize', size); size();
+  cv.addEventListener('pointerdown', function (e) { pts[e.pointerId] = { x: e.clientX, y: e.clientY }; spin = false; document.getElementById('spin').classList.remove('on'); cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', function (e) { var p = pts[e.pointerId]; if (!p) return; var ids = Object.keys(pts);
+    if (ids.length === 1) { yaw -= (e.clientX - p.x) * .008; pitch = Math.max(.02, Math.min(1.3, pitch + (e.clientY - p.y) * .006)); }
+    else if (ids.length === 2) { var o = pts[ids[0] == e.pointerId ? ids[1] : ids[0]], d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(e.clientX - o.x, e.clientY - o.y); dist = Math.max(4, Math.min(16, dist * d0 / (d1 || 1))); }
+    p.x = e.clientX; p.y = e.clientY; });
+  function up(e) { delete pts[e.pointerId]; } cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('wheel', function (e) { dist = Math.max(4, Math.min(16, dist * (1 + e.deltaY * .001))); e.preventDefault(); }, { passive: false });
+  document.getElementById('spin').onclick = function () { spin = !spin; this.classList.toggle('on', spin); };
+  document.getElementById('lights').onclick = function () { lightsOn = !lightsOn; this.classList.toggle('on', lightsOn); rebuild(); };
+  document.getElementById('drive').onclick = function () { roll = !roll; this.classList.toggle('on', roll); };
+  var t0 = performance.now();
+  (function loop(now) {
+    var dt = Math.min(.05, (now - t0) / 1000); t0 = now; if (spin) yaw += dt * .35;
+    if (roll) car.userData.wheels.forEach(function (w) { w.rotation.z -= dt * 9; });
+    car.position.y = roll ? Math.abs(Math.sin(now / 90)) * .015 : 0;
+    cam.position.set(Math.cos(yaw) * Math.cos(pitch) * dist, .6 + Math.sin(pitch) * dist, Math.sin(yaw) * Math.cos(pitch) * dist); cam.lookAt(0, .75, 0);
+    R.render(sc, cam); requestAnimationFrame(loop);
+  })(t0);
+})();
+</script>
+</body>
+</html>
