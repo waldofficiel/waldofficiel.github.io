@@ -1,5 +1,6 @@
 // Wald Royal pour PC : fenêtre plein écran, le jeu tourne depuis les fichiers installés (hors ligne)
 const { app, BrowserWindow, protocol, net, Menu } = require('electron');
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');   // musique du salon dès l'ouverture
 const path = require('path');
 const { pathToFileURL } = require('url');
 
