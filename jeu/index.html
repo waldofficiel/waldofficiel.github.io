@@ -233,7 +233,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
       </section>
       <section class="pane" data-p="rangs">
         <h3>Partie classée</h3>
-        <p class="note">Chaque partie coûte des trophées à l'entrée (gratuit en Bronze). Tu en gagnes selon ta place, +1 par élimination. Plus tu montes, plus l'entrée coûte cher : en Unreal il faut faire top 2 ou 3 pour ne pas perdre.</p>
+        <p class="note">Chaque partie coûte des trophées à l'entrée (gratuit en Bronze). Tu en gagnes selon ta place, +1 par élimination. Plus tu montes, plus l'entrée coûte cher : en Légende il faut faire top 2 ou 3 pour ne pas perdre.</p>
         <div class="ladder" id="ladder"></div>
       </section>
       <section class="pane" data-p="casier">
@@ -243,7 +243,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
           <div class="skin lock"><span>?</span><b>Skin</b><small>Bientôt</small></div>
           <div class="skin lock"><span>?</span><b>Skin</b><small>Bientôt</small></div>
           <div class="skin lock"><span>🪂</span><b>Planeur</b><small>Bientôt</small></div>
-          <div class="skin lock"><span>🚗</span><b>Peinture Polo</b><small>Bientôt</small></div>
+          <div class="skin lock"><span>🚗</span><b>Peinture La Wald</b><small>Bientôt</small></div>
           <div class="skin lock"><span>💃</span><b>Emote</b><small>Bientôt</small></div>
         </div>
       </section>
@@ -252,7 +252,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
         <div class="stats">
           <div><b id="stG">0</b><small>Parties</small></div><div><b id="stW">0</b><small>TOP 1</small></div>
           <div><b id="stK">0</b><small>Éliminations</small></div><div><b id="stB">—</b><small>Meilleure place</small></div>
-          <div><b id="stC">0</b><small>Constru cassées</small></div><div><b id="stP">0</b><small>TOP 1 en Polo</small></div>
+          <div><b id="stC">0</b><small>Constru cassées</small></div><div><b id="stP">0</b><small>TOP 1 en La Wald</small></div>
         </div>
       </section>
       <section class="pane" data-p="reglages">
@@ -266,7 +266,7 @@ body.inmenu .hud,body.inmenu .btn,body.inmenu #touch,body.inmenu .dmg{display:no
           <b>Espace</b><span>sauter · drift en voiture</span>
           <b>E</b><span>sauter du bus · monter / descendre · échanger une arme</span>
           <b>1 2 3</b><span>changer d'arme · I : inventaire · T : tir auto</span>
-          <b>R</b><span>recharger · Maj : nitro en Polo</span>
+          <b>R</b><span>recharger · Maj : nitro en La Wald</span>
           <b>Échap</b><span>pause</span>
         </div>
       </section>
@@ -510,7 +510,7 @@ var WEAPONS = {
   smg:      { name: 'Mitraillette', mag: 30, rl: 1.8, cd: .08, dmg: 13, range: 45, spread: .035, wall: 12, rar: 1 },
   fusil:    { name: 'Fusil d\'assaut', mag: 30, rl: 2.1, cd: .17, dmg: 21, range: 120, spread: .016, wall: 18, rar: 1 },
   pompe:    { name: 'Pompe', mag: 8, rl: 3.6, cd: .9, dmg: 11, pellets: 9, range: 22, spread: .07, wall: 30, rar: 2 },
-  scar:     { name: 'SCAR', mag: 30, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
+  scar:     { name: 'Fusil Doré', mag: 30, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
   sniper:   { name: 'Sniper lourd', mag: 1, rl: 2.6, cd: .6, dmg: 110, range: 320, spread: 0, wall: 120, rar: 3 }
 };
 var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompe', 'scar', 'scar', 'sniper'];
@@ -567,9 +567,9 @@ function animChar(p, dt) {
 
 /* ================= véhicules ================= */
 var VT = {
-  polo:  { name: 'Polo', vmax: 30, acc: 15, hp: 500, dmgP: 1.7, dmgV: .9, res: .55, smash: 1.6, r: 2 },
-  golf:  { name: 'Golf 5 GTI Pirelli', vmax: 31, acc: 19, hp: 320, dmgP: 1.15, dmgV: .95, res: .85, smash: 1.2, r: 2 },
-  '2cv': { name: '2CV Mad Max', vmax: 20, acc: 10, hp: 220, dmgP: .95, dmgV: .8, res: 1, smash: .9, r: 1.9 },
+  polo:  { name: 'La Wald', vmax: 30, acc: 15, hp: 500, dmgP: 1.7, dmgV: .9, res: .55, smash: 1.6, r: 2 },
+  golf:  { name: 'Bolide Jaune', vmax: 31, acc: 19, hp: 320, dmgP: 1.15, dmgV: .95, res: .85, smash: 1.2, r: 2 },
+  '2cv': { name: 'Rouillarde', vmax: 20, acc: 10, hp: 220, dmgP: .95, dmgV: .8, res: 1, smash: .9, r: 1.9 },
   van:   { name: 'Fourgon', vmax: 21, acc: 9, hp: 420, dmgP: 1.05, dmgV: 1.25, res: .75, smash: 1.5, r: 2.3 }
 };
 function wheels(g, x1, x2, z, r) { [[x1, z], [x2, z], [x1, -z], [x2, -z]].forEach(function (w) { cyl(g, r, .3, w[0], r, w[1], '#151518', Math.PI / 2); cyl(g, r * .55, .32, w[0], r, w[1], '#9aa0aa', Math.PI / 2, 0, true); }); }
@@ -577,7 +577,7 @@ function txt(text, col, bg, w, h) { var c = document.createElement('canvas'); c.
 function decal(g, tex, w, h, x, y, z, ry) { var m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); m.position.set(x, y, z); m.rotation.y = ry || 0; g.add(m); return m; }
 function carModel(k) {
   var g = new THREE.Group(), glass = mat('#20283a');
-  if (k === 'polo') {   // la Polo cabriolet détaillée (polo3d.js)
+  if (k === 'polo') {   // La Wald : le cabriolet détaillé (polo3d.js)
     g.add(window.buildPolo(THREE, { lite: true }));
   } else if (k === 'golf') {
     var yc = '#f2c230';
@@ -586,13 +586,12 @@ function carModel(k) {
     box(g, .12, .3, 1.6, 2.02, .76, 0, '#111'); box(g, .14, .05, 1.6, 2.04, .9, 0, '#e0262b');
     box(g, .08, .16, .4, 2.02, .9, .6, '#fff6c2'); box(g, .08, .16, .4, 2.02, .9, -.6, '#fff6c2');
     box(g, 4.15, .22, 1.8, 0, .32, 0, '#111');
-    var pt = txt('PIRELLI', '#e0262b', '#fff200', 256, 52); decal(g, pt, 1.6, .32, -.2, .75, .885, 0); decal(g, pt, 1.6, .32, -.2, .75, -.885, Math.PI);
-    decal(g, txt('GTI', '#e0262b'), .7, .2, -2.08, .9, 0, -Math.PI / 2);
+    var pt = txt('TURBO', '#111', '#ff2bd6', 256, 52); decal(g, pt, 1.6, .32, -.2, .75, .885, 0); decal(g, pt, 1.6, .32, -.2, .75, -.885, Math.PI);
     box(g, .2, .08, 1.6, -2.0, 1.75, 0, '#111');
     wheels(g, 1.3, -1.3, .82, .38);
   } else if (k === '2cv') {
     var rc = '#9c6b3e';
-    box(g, 3.5, .7, 1.56, 0, .7, 0, rc); cyl(g, .78, 2.2, -.3, 1.2, 0, '#7a8a8a', 0, Math.PI / 2); box(g, .9, .4, 1.5, 1.3, .95, 0, rc);
+    box(g, 3.5, .7, 1.56, 0, .7, 0, rc); box(g, 2.0, .55, 1.4, -.3, 1.32, 0, '#6d6a5e'); box(g, 2.1, .08, 1.5, -.3, 1.62, 0, '#4d4a40'); box(g, .9, .4, 1.5, 1.3, .95, 0, rc);
     box(g, .08, .5, 1.3, .8, 1.35, 0, glass);
     for (var s = -1.4; s <= 1.4; s += .7) box(g, .25, .12, 1.6, s, 1.02, 0, '#5d4630');
     [[1.8, .5], [1.8, -.5], [-1.8, .5], [-1.8, -.5]].forEach(function (q) { var sp = new THREE.Mesh(new THREE.ConeGeometry(.12, .6, 6), mat('#cfcfcf')); sp.rotation.z = q[0] > 0 ? -Math.PI / 2 : Math.PI / 2; sp.position.set(q[0] + Math.sign(q[0]) * .25, .7, q[1]); g.add(sp); });
@@ -653,7 +652,7 @@ function removeItem(it) { lootGroup.remove(it.m); var i = items.indexOf(it); if 
 function chestModel() { var g = new THREE.Group(); box(g, 1.2, .7, .8, 0, .35, 0, '#7a4a12'); box(g, 1.24, .14, .84, 0, .62, 0, '#ffcf3d', { emissive: '#aa7700', emissiveIntensity: .5 }); box(g, .16, .72, .84, 0, .36, 0, '#ffcf3d'); return g; }
 
 /* ================= joueurs ================= */
-var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Unreal', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
+var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Légende', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
 var pl = [];
 for (var ib = 0; ib < NPL; ib++) {
   var isBot = ib > 0, lk = isBot ? { skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
@@ -1099,8 +1098,8 @@ function loop(now) {
 var ST = { g: 0, w: 0, k: 0, b: 0, c: 0, p: 0, t: 0 };
 try { var s1 = JSON.parse(localStorage.getItem('wr_stats') || 'null'); if (s1) ST = Object.assign(ST, s1); } catch (e) {}
 function saveST() { try { localStorage.setItem('wr_stats', JSON.stringify(ST)); } catch (e) {} }
-var RANKS = [['Bronze I', 0], ['Bronze II', 200], ['Bronze III', 400], ['Argent I', 600], ['Argent II', 800], ['Argent III', 1000], ['Or I', 1200], ['Or II', 1450], ['Or III', 1700], ['Platine I', 1950], ['Platine II', 2250], ['Platine III', 2550], ['Diamant I', 2850], ['Diamant II', 3200], ['Diamant III', 3550], ['Élite', 3900], ['Champion', 4600], ['Unreal', 5400]];
-var GRP = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Élite', 'Champion', 'Unreal'], GCOL = ['#c98a4b', '#cfd6e0', '#ffd23d', '#5ce1e6', '#7aa8ff', '#ff8a3d', '#ff3b5c', '#c77dff'];
+var RANKS = [['Bronze I', 0], ['Bronze II', 200], ['Bronze III', 400], ['Argent I', 600], ['Argent II', 800], ['Argent III', 1000], ['Or I', 1200], ['Or II', 1450], ['Or III', 1700], ['Platine I', 1950], ['Platine II', 2250], ['Platine III', 2550], ['Diamant I', 2850], ['Diamant II', 3200], ['Diamant III', 3550], ['Maître', 3900], ['Néon', 4600], ['Légende', 5400]];
+var GRP = ['Bronze', 'Argent', 'Or', 'Platine', 'Diamant', 'Maître', 'Néon', 'Légende'], GCOL = ['#c98a4b', '#cfd6e0', '#ffd23d', '#5ce1e6', '#7aa8ff', '#ff8a3d', '#ff3b5c', '#c77dff'];
 function placePts(p) { return p === 1 ? 30 : p === 2 ? 22 : p === 3 ? 18 : p <= 5 ? 14 : p <= 10 ? 10 : p <= 15 ? 6 : p <= 20 ? 3 : 0; }
 function rankIdx(t) { var i = 0; while (i + 1 < RANKS.length && t >= RANKS[i + 1][1]) i++; return i; }
 function grpOf(i) { return GRP.indexOf(RANKS[i][0].split(' ')[0]); }
@@ -1136,7 +1135,7 @@ function endGame(win, killer) {
   $('inv').hidden = true; state = 'end'; fireHeld = false; if (eng) eng.g.gain.value = 0; if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock();
   setTimeout(function () {
     $('endT').textContent = win ? 'TOP 1 !' : 'ÉLIMINÉ'; $('endT').className = 'big ' + (win ? 'win' : 'lose');
-    $('endS').textContent = win ? (me.veh && me.veh.k === 'polo' ? 'TOP 1 en Polo, évidemment 👑' : 'TOP 1 ! Wald Off, roi de Los Campagnes 👑') : (killer ? 'Éliminé par ' + killer.name + (killer.veh ? ' en ' + VT[killer.veh.k].name : '') + '.' : 'La tempête t\'a eu. Reste dans le cercle !');
+    $('endS').textContent = win ? (me.veh && me.veh.k === 'polo' ? 'TOP 1 en La Wald, évidemment 👑' : 'TOP 1 ! Wald Off, roi de Los Campagnes 👑') : (killer ? 'Éliminé par ' + killer.name + (killer.veh ? ' en ' + VT[killer.veh.k].name : '') + '.' : 'La tempête t\'a eu. Reste dans le cercle !');
     settle(win); $('eP').textContent = '#' + place; $('eK').textContent = me.kills; $('eB').textContent = me.broken; $('end').hidden = false; if (win) voice('wald_off', 1);
   }, win ? 700 : 1300);
 }
@@ -1151,7 +1150,7 @@ $('vol').value = Math.round(SET.vol * 100); $('volO').textContent = $('vol').val
 $('sens').value = Math.round(SET.sens * 100); $('sensO').textContent = $('sens').value; $('sens').addEventListener('input', function () { SET.sens = this.value / 100; $('sensO').textContent = this.value; saveSet(); });
 function setGfx(q) { SET.gfx = q; document.querySelectorAll('#gfx button').forEach(function (b) { b.classList.toggle('on', +b.dataset.q === q); }); resize(); saveSet(); }
 document.querySelectorAll('#gfx button').forEach(function (b) { b.addEventListener('click', function () { setGfx(+b.dataset.q); }); });
-if (isTouch) $('keys').innerHTML = '<b>Gauche</b><span>joystick : marcher / conduire</span><b>Droite</b><span>glisse pour tourner la caméra</span><b>Bouton rose</b><span>tirer (glisse dessus pour viser)</span><b>SAUT</b><span>sauter · drift en voiture</span><b>Bouton bleu</b><span>sauter du bus · monter · prendre</span><b>RECH.</b><span>recharger · nitro en Polo</span><b>🎒</b><span>inventaire : ranger, jeter, échanger</span><b>🎯</b><span>tir auto : vise et tire tout seul</span>';
+if (isTouch) $('keys').innerHTML = '<b>Gauche</b><span>joystick : marcher / conduire</span><b>Droite</b><span>glisse pour tourner la caméra</span><b>Bouton rose</b><span>tirer (glisse dessus pour viser)</span><b>SAUT</b><span>sauter · drift en voiture</span><b>Bouton bleu</b><span>sauter du bus · monter · prendre</span><b>RECH.</b><span>recharger · nitro en La Wald</span><b>🎒</b><span>inventaire : ranger, jeter, échanger</span><b>🎯</b><span>tir auto : vise et tire tout seul</span>';
 (function () { var c = $('mapPrev'), g = c.getContext('2d'), k = TEX / 1000; g.drawImage(terr, 60 * k, 60 * k, 880 * k, 880 * k, 0, 0, c.width, c.height); })();
 addEventListener('resize', resize);
 

@@ -1,4 +1,4 @@
-/* La Polo cabriolet de Wald Off en 3D (three.js r128).
+/* « La Wald », le cabriolet de Wald Off en 3D (three.js r128).
    Avant de la voiture = +x, droite = +z, sol = y 0. Longueur ≈ 4,1 m.
    Utilisée par le jeu (carModel) et par la page polo3d.html. */
 (function () {
@@ -83,7 +83,7 @@
     [-1, 1].forEach(function (side) { bx(.05, .2, .36, red, -2.16, .8, side * .6); bx(.05, .06, .36, new THREE.MeshStandardMaterial({ color: '#ddd', emissive: '#555', emissiveIntensity: .2 }), -2.165, .68, side * .6); });
     add(new THREE.CylinderGeometry(.07, .07, .03, 24), chrome, -2.175, .8, 0, 0, 0, Math.PI / 2);
     plate(-2.258, .46, 0, Math.PI);
-    var polo = canvasTex(256, 64, function (g, w, h) { g.clearRect(0, 0, w, h); g.fillStyle = '#d9dde4'; g.font = '700 46px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('POLO', w / 2, h / 2 + 2); });
+    var polo = canvasTex(256, 64, function (g, w, h) { g.clearRect(0, 0, w, h); g.fillStyle = '#d9dde4'; g.font = '700 46px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('WALD', w / 2, h / 2 + 2); });
     add(new THREE.PlaneGeometry(.3, .075), new THREE.MeshBasicMaterial({ map: polo, transparent: true }), -2.175, .92, .42, 0, -Math.PI / 2, 0);
     add(new THREE.CylinderGeometry(.035, .035, .2, 12), steel, -2.2, .3, -.45, 0, 0, Math.PI / 2);   // sortie d'échappement d'origine
 
