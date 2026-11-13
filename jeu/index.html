@@ -326,6 +326,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 <script src="polo3d.js"></script>
 <script src="skins.js"></script>
 <script src="nature.js"></script>
+<script src="weapons3d.js"></script>
 <script>
 (function () {
 'use strict';
@@ -838,7 +839,9 @@ var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'fusil', 'fusil', 'fusil', 'p
 function randWeapon() { return WLIST[Math.random() * WLIST.length | 0]; }
 function newSlot(k) { return { k: k, mag: WEAPONS[k].mag, res: WEAPONS[k].mag * 3, rlT: 0 }; }
 function cur(p) { return p.inv[p.slot] || null; }
+var GUNSCALE = { pistolet: 1.1, smg: .92, fusil: .66, scar: .66, pompe: .68, sniper: .6 };
 function gunModel(k) {
+  if (window.buildGun) { var gg = new THREE.Group(), inner = window.buildGun(THREE, k, RAR[WEAPONS[k].rar]); inner.scale.setScalar(GUNSCALE[k] || .7); gg.add(inner); return gg; }
   var g = new THREE.Group(), c = RAR[WEAPONS[k].rar];
   if (k === 'pistolet') { box(g, .32, .1, .07, .1, 0, 0, '#3a3d44'); box(g, .08, .16, .06, -.02, -.1, 0, '#24262b'); box(g, .2, .03, .075, .1, .05, 0, c); }
   else if (k === 'smg') { box(g, .5, .13, .08, .1, 0, 0, '#2c2f36'); box(g, .14, .05, .05, .42, 0, 0, '#111'); box(g, .07, .22, .06, .12, -.14, 0, '#1b1d22'); box(g, .3, .03, .085, .1, .07, 0, c); }
@@ -874,7 +877,7 @@ function makeChar(lk) {
 }
 function charExtras(R, root, body, lk) {
   var shadow = new THREE.Mesh(new THREE.CircleGeometry(.55, 12), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .28, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .03; root.add(shadow);
-  var glider = new THREE.Group(); box(glider, 1.8, .06, 3.4, 0, 0, 0, lk.glider || '#ff2bd6'); box(glider, .3, .1, 3.5, .8, .02, 0, '#fff'); glider.position.y = 3.2; glider.visible = false; root.add(glider);
+  var glider; if (window.buildGlider) { glider = window.buildGlider(THREE, lk.glider || '#ff2bd6'); glider.position.set(-.15, 1.98, 0); } else { glider = new THREE.Group(); box(glider, 1.8, .06, 3.4, 0, 0, 0, lk.glider || '#ff2bd6'); glider.position.y = 3.2; } glider.visible = false; root.add(glider);
   body.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
   return { root: root, body: body, lL: R.lL, lR: R.lR, aL: R.aL, aR: R.aR, head: R.head, gunHold: R.gunHold, gun: null, gunK: null, shadow: shadow, glider: glider };
 }
