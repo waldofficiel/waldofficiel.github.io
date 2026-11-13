@@ -134,6 +134,8 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
 
 /* JEU */
 .game{display:flex;flex-direction:column;gap:12px}
+.gshots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.gshots a{position:relative;display:block;border-radius:12px;overflow:hidden;border:2px solid rgba(255,43,214,.5);box-shadow:0 0 14px rgba(155,77,255,.35);aspect-ratio:16/9}.gshots img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}.gshots a:hover img{transform:scale(1.06)}.gshots span{position:absolute;left:6px;bottom:5px;font-weight:800;font-size:11px;color:#fff;text-shadow:0 1px 4px #000}
+@media (max-width:640px){.gshots{grid-template-columns:repeat(2,1fr)}}
 .gcard{display:flex;gap:14px;align-items:center;text-decoration:none;color:var(--fg);background:var(--bg2);border:2px solid #ff2bd6;border-radius:16px;padding:10px;box-shadow:0 0 22px rgba(255,43,214,.35)}
 .gcard img{width:92px;height:92px;object-fit:cover;border-radius:12px;flex:none}
 .gcard span{display:flex;flex-direction:column;gap:2px}.gcard strong{font-family:var(--display);font-weight:400;font-size:15px;color:var(--hazard)}.gcard small{color:var(--mute);font-size:14px}
@@ -230,11 +232,17 @@ footer b{font-family:var(--display);font-weight:400;color:var(--fg)}
   <section class="game" aria-labelledby="game-t">
     <h2 id="game-t">Mon jeu <em>WALD ROYAL</em></h2>
     <a class="mega" href="wald-royal/">
-      <img src="wald-royal/img/ville.jpg" alt="" loading="lazy" class="bgshot">
+      <img src="wald-royal/img/place.jpg" alt="" loading="lazy" class="bgshot">
       <span class="mtop"><img src="jeu/logo.jpg" alt="Logo Wald Royal" loading="lazy"><span><strong>WALD ROYAL</strong><small>Battle royale 3D · 30 joueurs · La Wald</small></span></span>
       <span class="mcta">Clique ici pour découvrir le jeu →</span>
       <span class="mos">Android · PC Windows · iPhone</span>
     </a>
+    <div class="gshots">
+      <a href="wald-royal/#images"><img src="wald-royal/img/ville.jpg" alt="Les tours cartoon de Turbo Towers" loading="lazy"><span>Turbo Towers</span></a>
+      <a href="wald-royal/#images"><img src="wald-royal/img/planeur.jpg" alt="Le deltaplane au-dessus de la map" loading="lazy"><span>Le planeur</span></a>
+      <a href="wald-royal/#images"><img src="wald-royal/img/boutique.jpg" alt="La boutique de skins" loading="lazy"><span>Les skins</span></a>
+      <a href="wald-royal/#images"><img src="wald-royal/img/village.jpg" alt="Golden Hollow" loading="lazy"><span>Golden Hollow</span></a>
+    </div>
   </section>
 
   <footer><b>WALD OFF</b> · fait en France · 2026</footer>

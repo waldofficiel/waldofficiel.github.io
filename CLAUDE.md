@@ -39,7 +39,7 @@ Ce fichier sert à reprendre le développement du jeu **Wald Royal** dans une no
 | `jeu/weapons3d.js` | `window.buildGun(THREE, k, rarColor)` : armes en profils extrudés biseautés (bois, acier, or, chargeur courbé, lunette, pompe rainuré…), mises à l'échelle par `GUNSCALE` dans `gunModel` ; `window.buildGlider(THREE, col)` : deltaplane (voile texturée W, armature, trapèze, câbles, feux), barre de contrôle aux mains (`glider.position (-.15, 1.98, 0)`) |
 | `jeu/city.js` | `window.CITY.build(THREE, ctx)` : décor des villes en `Kit` instanciés (clims, châteaux d'eau, antennes, panneaux solaires, cabanons, auvents, enseignes néon sans marque, lampadaires le long des routes, bancs, poubelles, bouches d'incendie, abribus, pubs du jeu, conteneurs + grue aux docks, bidons/pneus au ranch, clôtures/foin/puits au village, drapeaux à l'avenue). Rebords de toit, bandeaux d'étage et piliers pour les toits plats. Les gros objets ajoutent des boîtes dans `PCOL` (testées dans `pushCircle`). `house()` mémorise `hs.door` |
 | `jeu/polo3d.html` | Visionneuse 3D de La Wald (rotation, phares, faire rouler) |
-| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v18` : **monter la version à chaque modif** |
+| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v19` : **monter la version à chaque modif** |
 | `jeu/logo.jpg`, `jeu/icons/` | Logo et icônes (512/192/180) |
 | `wald-royal/index.html`, `wald-royal/img/*.jpg` | Page vitrine + captures du jeu |
 | `app/android/` | Appli Android : WebView + WebViewAssetLoader, `fr.waldoff.royal` |
@@ -182,6 +182,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Textures des bâtiments refaites en style cartoon peint** (`TX`, avec `rrect` et `srnd`) : briques arrondies avec reflet, planches avec veines et nœuds, tôle ondulée avec rouille cernée, béton en panneaux biseautés, façades avec cadres sombres, reflets peints, rideaux colorés et une pièce éclairée avec plante, tuiles en écailles, parquet.
 - **Sol** : `maskTex` sans mipmaps, et dans le shader le vert de base de la carte n'est jamais utilisé (`isG`) : plus de bande vert fluo le long des routes et des villes. Herbe un peu désaturée.
 - `WR.gfx`, `WR.mask`, `WR.terr` pour les tests.
+
+## Persos en un bloc, bots sculptés, images du site (novembre 2026)
+- **Un bloc par partie du corps** : `merge()` fusionne tous les morceaux d'un groupe (corps, tête, bras, jambes) en un seul mesh avec groupes de géométrie (un matériau par groupe). Sphères en 26×18.
+- **Coques** `shell()` (morceau de sphère qui épouse la tête) : cheveux courts sous le bob et barbe sur la mâchoire du perso Wald (texture `hairTex`), masse de cheveux lisse de Léa + 34 boucles. Le perso Wald a une grosse chaîne en or (`bigChain`, gourmette sur une courbe) avec un médaillon W et le col du t-shirt.
+- **Bots** : skin `npc` (même corps sculpté), variantes par `o.v` : t-shirt ou sweat à capuche, short ou pantalon, casquette, bonnet à pompon, bob ou tête nue, 6 couleurs de cheveux, barbe, lunettes rondes. `buildSkin(THREE, id, opts)` ; les bots sans skin ont `lk.sk = 'npc'`.
+- **Images** : galerie de `wald-royal/` refaite (place, Turbo Towers, planeur, Golden Hollow, sac, boutique, salon, mer, collines, désert, La Wald). Sur l'accueil, le bloc « Mon jeu » a la place en fond et un bandeau de 4 captures (`.gshots`) qui mène à `wald-royal/#images`.
 
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.

@@ -6,7 +6,7 @@
   var T3 = null, GS = null, MC = {}, TX = {};
   function init(THREE) {
     if (T3) return; T3 = THREE;
-    GS = new THREE.SphereGeometry(1, 18, 13);
+    GS = new THREE.SphereGeometry(1, 26, 18);
   }
   function tex(key, w, h, draw, rx, ry) {
     if (TX[key]) return TX[key];
@@ -42,20 +42,33 @@
   function TUBE(par, pts, r, mt, sg) { var cv = new T3.CatmullRomCurve3(pts.map(function (p) { return new T3.Vector3(p[0], p[1], p[2]); })); return par.add(new T3.Mesh(new T3.TubeGeometry(cv, sg || Math.max(14, pts.length * 3), r, 5, false), mt)); }
 
   // fusionne les meshes enfants directs d'un groupe, par matériau
+  // fusionne TOUS les morceaux d'une partie du corps en un seul mesh (une géométrie avec des groupes, un matériau par groupe)
   function merge(g) {
-    var by = {}, kids = g.children.filter(function (o) { return o.isMesh; });
-    kids.forEach(function (m) { (by[m.material.uuid] = by[m.material.uuid] || { mat: m.material, list: [] }).list.push(m); });
-    Object.keys(by).forEach(function (k) {
-      var list = by[k].list; if (list.length < 2) return;
-      var parts = list.map(function (m) { m.updateMatrix(); var geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix); return geo; });
-      var n = 0; parts.forEach(function (p) { n += p.attributes.position.count; });
-      var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), o = 0;
-      parts.forEach(function (p) { pos.set(p.attributes.position.array, o * 3); nor.set(p.attributes.normal.array, o * 3); if (p.attributes.uv) uv.set(p.attributes.uv.array, o * 2); o += p.attributes.position.count; p.dispose(); });
-      var mg = new T3.BufferGeometry(); mg.setAttribute('position', new T3.BufferAttribute(pos, 3)); mg.setAttribute('normal', new T3.BufferAttribute(nor, 3)); mg.setAttribute('uv', new T3.BufferAttribute(uv, 2)); mg.computeBoundingSphere();
-      list.forEach(function (m) { g.remove(m); }); g.add(new T3.Mesh(mg, by[k].mat));
-    });
+    var kids = g.children.filter(function (o) { return o.isMesh; }); if (kids.length < 2) return;
+    var mats = [], by = {}; kids.forEach(function (m) { var k = m.material.uuid; if (!by[k]) { by[k] = []; mats.push(m.material); } by[k].push(m); });
+    var parts = [], groups = [], n = 0;
+    mats.forEach(function (mt, mi) { var start = n; by[mt.uuid].forEach(function (m) { m.updateMatrix(); var geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrix); parts.push(geo); n += geo.attributes.position.count; }); groups.push([start, n - start, mi]); });
+    var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), o = 0;
+    parts.forEach(function (p) { pos.set(p.attributes.position.array, o * 3); nor.set(p.attributes.normal.array, o * 3); if (p.attributes.uv) uv.set(p.attributes.uv.array, o * 2); o += p.attributes.position.count; p.dispose(); });
+    var mg = new T3.BufferGeometry(); mg.setAttribute('position', new T3.BufferAttribute(pos, 3)); mg.setAttribute('normal', new T3.BufferAttribute(nor, 3)); mg.setAttribute('uv', new T3.BufferAttribute(uv, 2));
+    groups.forEach(function (q) { mg.addGroup(q[0], q[1], q[2]); }); mg.computeBoundingSphere();
+    kids.forEach(function (m) { g.remove(m); }); var one = new T3.Mesh(mg, mats); one.name = 'bloc'; g.add(one);
   }
-
+  // coque : morceau de sphère qui épouse la tête (cheveux, barbe). phi = 0 est l'arrière de la tête, theta = 0 le sommet
+  function shell(par, rx, ry, rz, x, y, z, mt, ph0, phL, th0, thL) { var m = new T3.Mesh(new T3.SphereGeometry(1, 30, 20, ph0, phL, th0, thL), mt); m.scale.set(rx, ry, rz); return place(m, par, x, y, z); }
+  function hairTex(key, base, dark, light) { return { map: tex(key, 256, 128, function (g, w, h) { g.fillStyle = base; g.fillRect(0, 0, w, h); for (var i = 0; i < 2600; i++) { var x = Math.random() * w, y = Math.random() * h, l = 2 + Math.random() * 5; g.strokeStyle = Math.random() < .5 ? dark : light; g.lineWidth = .8 + Math.random(); g.beginPath(); g.moveTo(x, y); g.lineTo(x + (Math.random() - .5) * 2, y + l); g.stroke(); } }, 3, 2) }; }
+  // grosse chaîne en or façon gourmette, qui tombe sur le torse, avec un médaillon W
+  function bigChain(par, gold) {
+    var cv = new T3.CatmullRomCurve3([[-.13, 1.63, 0], [-.07, 1.635, .15], [.07, 1.6, .2], [.2, 1.5, .15], [.255, 1.4, .05], [.255, 1.4, -.05], [.2, 1.5, -.15], [.07, 1.6, -.2], [-.07, 1.635, -.15]].map(function (q) { return new T3.Vector3(q[0], q[1], q[2]); }), true);
+    var N = 30, up = new T3.Vector3(), tg = new T3.Vector3(), q = new T3.Quaternion(), geo = new T3.TorusGeometry(.024, .009, 6, 12);
+    for (var i = 0; i < N; i++) { var t = i / N, p = cv.getPointAt(t); cv.getTangentAt(t, tg); var m = new T3.Mesh(geo, gold); m.position.copy(p); q.setFromUnitVectors(new T3.Vector3(1, 0, 0), tg); m.quaternion.copy(q); m.rotateX(i % 2 ? Math.PI / 2 : 0); m.scale.set(1.25, 1, 1); par.add(m); }
+    var med = new T3.Mesh(new T3.CylinderGeometry(.055, .055, .018, 24), gold); med.rotation.z = Math.PI / 2; med.position.set(.27, 1.34, 0); par.add(med);
+    var w = new T3.Shape(); [[-.035, .025], [-.02, -.025], [-.006, .005], [.006, -.025]].forEach(function () {});
+    var pts = [[-.04, .03], [-.025, .03], [-.016, -.008], [-.006, .018], [.006, .018], [.016, -.008], [.025, .03], [.04, .03], [.022, -.032], [.01, -.032], [0, -.006], [-.01, -.032], [-.022, -.032]];
+    pts.forEach(function (p, k) { if (k) w.lineTo(p[0], p[1]); else w.moveTo(p[0], p[1]); }); w.closePath();
+    var wg = new T3.ExtrudeGeometry(w, { depth: .008, bevelEnabled: false }); var wm = new T3.Mesh(wg, M('#16081f', { shininess: 80 })); wm.rotation.y = Math.PI / 2; wm.position.set(.281, 1.34, .0); par.add(wm);
+    var bail = new T3.Mesh(new T3.TorusGeometry(.016, .006, 6, 10), gold); bail.position.set(.265, 1.405, 0); bail.rotation.y = Math.PI / 2; par.add(bail);
+  }
   function rig() {
     var root = new T3.Group(), body = new T3.Group(); root.add(body);
     function limb(px, py, pz) { var p = new T3.Group(); p.position.set(px, py, pz); body.add(p); return p; }
@@ -103,12 +116,12 @@
     [R.lL, R.lR].forEach(function (l) { leg(l, chk, skin, { hem: navy, hemY: -.36, pipe: pip }); seg(l, .09, .085, -.22, -.36, chk); C(l, .08, .078, .1, 0, -.78, 0, socks); shoe(l, cream, sole, red); S(l, .06, .035, .106, .17, -.87, 0, navy); });
     lathe(R.body, [[0, .86], [.2, .87], [.245, .94], [.25, 1.02], [.0, 1.03]], chk); TO(R.body, .245, .018, 0, 0, 1.0, 0, navy, Math.PI / 2, 0, 0).scale.set(.74, 1, 1);
     lathe(R.body, [[0, .98], [.24, .99], [.245, 1.1], [.255, 1.24], [.28, 1.36], [.31, 1.45], [.3, 1.51], [.24, 1.57], [.13, 1.61], [0, 1.62]], red);
-    C(R.body, .075, .085, .22, 0, 1.68, 0, skin); chainLinks(R.body, .035, 1.6, .17, .21, .14, .032, .012, gold);
+    C(R.body, .075, .085, .22, 0, 1.68, 0, skin); TO(R.body, .105, .018, 0, .0, 1.6, 0, red, Math.PI / 2, 0, 0).scale.set(1, 1.15, 1); bigChain(R.body, gold);
     [R.aL, R.aR].forEach(function (a) { arm(a, red, skin, { len: .2, stripe: white }); });
     var h = R.head;
     S(h, .27, .29, .27, -.01, .16, 0, skin); S(h, .23, .18, .235, .04, -.01, 0, skin); S(h, .06, .07, .09, .2, -.08, 0, skin);
     S(h, .045, .055, .045, .29, .1, 0, skin); S(h, .03, .025, .035, .3, .065, 0, skin);
-    eachSide(function (s) { S(h, .035, .07, .05, -.01, .1, s * .27, skin); S(h, .05, .1, .015, .12, -.01, s * .232, beard); S(h, .03, .05, .1, .21, .2, s * .11, lens); });
+    eachSide(function (s) { S(h, .035, .07, .05, -.01, .1, s * .27, skin); S(h, .012, .02, .02, -.005, .1, s * .3, skin); S(h, .03, .05, .1, .21, .2, s * .11, lens); });
     S(h, .055, .065, .07, .22, -.11, 0, beard); S(h, .025, .018, .1, .27, .03, 0, beard); S(h, .015, .01, .065, .275, -.01, 0, lip);
     S(h, .028, .02, .27, .23, .245, 0, navy); eachSide(function (s) { S(h, .035, .075, .1, .255, .19, s * .11, lens); C(h, .006, .006, .24, .12, .23, s * .27, navy, 0, 0, Math.PI / 2); });
     C(h, .25, .29, .24, -.01, .4, 0, hat); S(h, .25, .055, .25, -.01, .52, 0, hat); C(h, .295, .295, .055, -.01, .3, 0, navy); C(h, .31, .5, .09, -.01, .25, 0, hat);
@@ -116,7 +129,10 @@
     [[R.lL, -1], [R.lR, 1]].forEach(function (q) { var l = q[0], sd = q[1]; S(l, .03, .19, .07, 0, -.17, sd * .1, navy); S(l, .012, .19, .012, .05, -.17, sd * .118, pip); S(l, .012, .19, .012, -.05, -.17, sd * .118, pip);
       C(l, .081, .081, .016, 0, -.745, 0, red); C(l, .081, .081, .01, 0, -.765, 0, navy); laces(l, .05, white); });
     var hairD = M('#2a1c14');
-    TO(h, .2, .016, Math.PI, .07, .04, 0, beard, 0, Math.PI / 2, Math.PI); S(h, .19, .12, .23, -.15, .09, 0, hairD); eachSide(function (s2) { S(h, .07, .06, .03, -.02, .17, s2 * .262, hairD); });
+    var hairM = M('#fff', hairTex('hairW', '#2a1c14', '#120a06', '#4a3424')), beardM = M('#fff', hairTex('beardW', '#5a3a26', '#3a2214', '#7a5236'));
+    shell(h, .283, .3, .283, -.01, .16, 0, hairM, -1.85, 3.7, .55, 1.25);   // cheveux courts : arrière et côtés de la tête, sous le bob
+    shell(h, .238, .188, .243, .04, -.01, 0, beardM, Math.PI - 1.45, 2.9, 1.62, 1.15);   // barbe courte le long de la mâchoire
+    eachSide(function (s2) { shell(h, .275, .29, .275, -.01, .16, 0, beardM, Math.PI / 2 * s2 + Math.PI - (s2 > 0 ? 1.0 : .25), .25, 1.45, .45); });   // pattes
     S(h, .025, .045, .025, .14, -.27, 0, navy); TO(h, .43, .005, 0, -.01, .265, 0, navy, Math.PI / 2); TO(h, .36, .005, 0, -.01, .27, 0, navy, Math.PI / 2);
     S(h, .035, .012, .06, .255, .275, 0, M('#3a3f4c'));
     return { skin: '#dc9a72', shirt: '#c8101c', pants: '#f1f1f1' };
@@ -161,9 +177,10 @@
     eachSide(function (s) { S(h, .045, .09, .078, .27, .22, s * .12, eyeW); S(h, .03, .075, .063, .292, .21, s * .12, iris); S(h, .02, .045, .042, .308, .21, s * .12, dark); S(h, .01, .02, .02, .318, .25, s * .1, eyeW); S(h, .02, .024, .085, .28, .34, s * .13, hair, s * .15, 0, 0); S(h, .02, .036, .055, .27, .1, s * .18, blush); });
     S(h, .035, .04, .035, .32, .15, 0, skin); TO(h, .055, .011, Math.PI, .3, .075, 0, lip, 0, Math.PI / 2, Math.PI);
     S(h, .33, .4, .37, -.09, .17, 0, hair); S(h, .28, .14, .33, .01, .45, 0, hair); S(h, .12, .07, .24, .19, .43, .04, hair, 0, 0, -.3);
-    for (var k = 0; k < 34; k++) { var a = Math.PI * .32 + (k % 12) / 11 * Math.PI * 1.36, yy = .48 - Math.floor(k / 12) * .3 - (k % 2) * .08, rr = .34 + (k % 3) * .02; if (yy < -.28) yy = -.28; var cr = .1 + (k % 4) * .014; S(h, cr, cr * 1.1, cr, Math.cos(a) * rr - .05, yy, Math.sin(a) * rr * 1.04, hair); }
+    var hairT = M('#fff', Object.assign(hairTex('hairL', '#5a3424', '#3a1e12', '#7a4a32'), { shininess: 35 }));
+    shell(h, .37, .44, .39, -.07, .14, 0, hairT, -2.1, 4.2, 0, 2.3); shell(h, .35, .2, .36, .0, .38, 0, hairT, 0, 6.283, 0, 1.5);   // masse lisse de cheveux avec mèches
     var hair2 = M('#6b4030', { shininess: 45 }), lash = M('#1a0f0a'), jean2 = M('#4d6ea3');
-    for (var c = 0; c < 22; c++) { var aa = Math.PI * .38 + c / 21 * Math.PI * 1.24, rr2 = .36 + (c % 2) * .05, yy2 = .3 - (c % 3) * .1; curl(h, Math.cos(aa) * rr2 - .06, yy2, Math.sin(aa) * rr2 * 1.04, .42 + (c % 4) * .07, .045, 2.2, .032, c % 3 ? hair : hair2, -Math.cos(aa) * .03, Math.sin(aa) * .05); }
+    for (var c = 0; c < 34; c++) { var aa = Math.PI * .34 + c / 33 * Math.PI * 1.32, rr2 = .36 + (c % 2) * .05, yy2 = .3 - (c % 3) * .1; curl(h, Math.cos(aa) * rr2 - .06, yy2, Math.sin(aa) * rr2 * 1.04, .42 + (c % 4) * .07, .045, 2.2, .032, c % 3 ? hair : hair2, -Math.cos(aa) * .03, Math.sin(aa) * .05); }
     for (var c2 = 0; c2 < 8; c2++) { var a2 = -.9 + c2 * .26; curl(h, .1 + Math.cos(a2) * .05, .52, Math.sin(a2) * .3, .18, .03, 1.5, .03, hair2, .08, 0); }
     eachSide(function (s2) { S(h, .008, .012, .075, .305, .3, s2 * .12, lash, s2 * .2, 0, 0); S(h, .006, .025, .01, .3, .31, s2 * .175, lash, 0, 0, .4); });
     C(R.body, .225, .225, .05, 0, 1.0, 0, jean2); S(R.body, .015, .015, .015, .17, 1.0, 0, M('#d8b04a', { shininess: 90 })); S(R.body, .01, .14, .01, .17, .86, 0, jean2);
@@ -194,9 +211,33 @@
     return { skin: '#efb894', shirt: '#3b3448', pants: '#8ea5d6' };
   };
 
+
+  /* ---------- BOTS : même corps sculpté que les skins, tenues variées selon o.v ---------- */
+  B.npc = function (R, o) {
+    o = o || {}; var v = o.v || 0, skin = M(o.skin || '#e0ac85'), shirt = M(o.shirt || '#3dd6ff'), pants = M(o.pants || '#2b3a67'), sole = M('#1c1c22'), white = M('#f2f2f2'), dark = M('#151515');
+    var HC = ['#1c1410', '#4a2e1a', '#8a5a2a', '#d8b060', '#2a2a30', '#b8483a'], hc = HC[v % HC.length], hairM = M('#fff', hairTex('hairN' + hc, hc, '#0a0806', '#7a6a5a')), hoodie = v % 3 === 2, shorts = v % 4 === 1, hat = ['cap', 'beanie', 'none', 'bob', 'none', 'cap'][v % 6];
+    [R.lL, R.lR].forEach(function (l) { leg(l, pants, shorts ? skin : pants, shorts ? { hem: pants, hemY: -.34 } : null); if (shorts) seg(l, .1, .09, -.2, -.34, pants); shoe(l, M(o.shoes || '#eeeeee'), sole, shirt); laces(l, .05, white); });
+    lathe(R.body, [[0, .86], [.2, .87], [.245, .94], [.25, 1.02], [0, 1.03]], pants); TO(R.body, .245, .016, 0, 0, 1.0, 0, dark, Math.PI / 2, 0, 0).scale.set(.74, 1, 1);
+    lathe(R.body, [[0, .98], [.24, .99], [.25, 1.1], [.26, 1.24], [.285, 1.36], [.31, 1.45], [.3, 1.51], [.24, 1.57], [.13, 1.61], [0, 1.62]], shirt);
+    C(R.body, .075, .085, .22, 0, 1.68, 0, skin);
+    if (hoodie) { TO(R.body, .16, .06, 0, -.06, 1.6, 0, shirt, Math.PI / 2 + .3, 0, 0).scale.set(1, 1.2, 1); S(R.body, .04, .12, .17, .2, 1.15, 0, shirt); eachSide(function (s2) { C(R.body, .006, .006, .18, .2, 1.48, s2 * .05, white); }); }
+    else TO(R.body, .1, .016, 0, 0, 1.6, 0, shirt, Math.PI / 2, 0, 0);
+    [R.aL, R.aR].forEach(function (a) { arm(a, shirt, skin, { len: hoodie ? .5 : .2, cuff: hoodie ? shirt : null }); });
+    var h = R.head;
+    S(h, .26, .28, .26, -.01, .15, 0, skin); S(h, .22, .17, .225, .04, -.01, 0, skin); S(h, .04, .05, .04, .28, .1, 0, skin);
+    eachSide(function (s2) { S(h, .035, .065, .05, -.01, .1, s2 * .26, skin); S(h, .03, .042, .036, .235, .17, s2 * .09, M('#ffffff', { shininess: 80 })); S(h, .016, .028, .022, .262, .165, s2 * .09, dark); S(h, .012, .014, .055, .245, .235, s2 * .095, hairM, 0, 0, 0); });
+    TO(h, .05, .009, Math.PI, .262, .02, 0, M('#9a4a3a'), 0, Math.PI / 2, Math.PI);
+    if (v % 4 === 3) shell(h, .228, .178, .233, .04, -.01, 0, hairM, Math.PI - 1.45, 2.9, 1.62, 1.15);   // barbe
+    if (v % 5 === 3) eachSide(function (s2) { TO(h, .05, .008, 0, .255, .17, s2 * .09, dark, 0, Math.PI / 2, 0); });   // lunettes rondes
+    if (hat !== 'cap' && hat !== 'beanie') shell(h, .272, .29, .272, -.01, .15, 0, hairM, -1.9, 3.8, 0, 1.75);   // cheveux
+    if (hat === 'cap') { var cm = M(o.hatCol || '#e83a3a'); shell(h, .275, .27, .275, -.01, .17, 0, cm, 0, 6.283, 0, 1.45); var vis = new T3.Mesh(new T3.CylinderGeometry(.2, .2, .02, 20, 1, false, -Math.PI / 2, Math.PI), cm); vis.scale.set(1.15, 1, 1); place(vis, h, .17, .2, 0, 0, 0, -.12); S(h, .02, .02, .02, -.01, .44, 0, cm); shell(h, .272, .29, .272, -.01, .15, 0, hairM, -1.2, 2.4, 1.3, .4); }
+    else if (hat === 'beanie') { var bm = M(o.hatCol || '#7a2ab8'); shell(h, .28, .3, .28, -.01, .16, 0, bm, 0, 6.283, 0, 1.4); TO(h, .27, .035, 0, -.01, .21, 0, bm, Math.PI / 2, 0, 0); S(h, .07, .07, .07, -.01, .47, 0, white); }
+    else if (hat === 'bob') { var hm = M(o.hatCol || '#ffb23d'); C(h, .23, .27, .2, -.01, .37, 0, hm); S(h, .23, .05, .23, -.01, .47, 0, hm); C(h, .28, .44, .07, -.01, .26, 0, hm); }
+    return { skin: o.skin || '#e0ac85', shirt: o.shirt || '#3dd6ff', pants: o.pants || '#2b3a67' };
+  };
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];
-  window.buildSkin = function (THREE, id) {
-    init(THREE); var R = rig(), cols = (B[id] || B.wald)(R);
+  window.buildSkin = function (THREE, id, opts) {
+    init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts);
     [R.body, R.lL, R.lR, R.aL, R.aR, R.head].forEach(merge);
     R.cols = cols; return R;
   };

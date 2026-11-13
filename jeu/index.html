@@ -897,7 +897,7 @@ var SKINS = ['#f1c6a0', '#e0ac85', '#c68b5e', '#8d5a3b', '#f5d3b8'];
 var SHIRTS = ['#3dd6ff', '#7dff6a', '#ffb23d', '#c77dff', '#ff7bd5', '#f2f2f2', '#ffd23d', '#5cffc8', '#ff8a3d', '#6a8cff', '#2a2a2a', '#e83a3a'];
 var PANTS = ['#2b3a67', '#333', '#5a4630', '#4c6b3a', '#777', '#1d1d24'];
 function makeChar(lk) {
-  if (lk.sk && window.buildSkin) { var R = window.buildSkin(THREE, lk.sk); Object.assign(lk, R.cols); return charExtras(R, R.root, R.body, lk); }
+  if (lk.sk && window.buildSkin) { var R = window.buildSkin(THREE, lk.sk, lk); Object.assign(lk, R.cols); return charExtras(R, R.root, R.body, lk); }
   var root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   function limb(px, py, pz) { var p = new THREE.Group(); p.position.set(px, py, pz); body.add(p); return p; }
   var lL = limb(0, .95, -.16), lR = limb(0, .95, .16);
@@ -1116,7 +1116,7 @@ var SKINS_SHOP = { wald: { name: 'Wald Off', price: 0, tag: 'Original' }, lea: {
 var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Légende', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
 var pl = [];
 for (var ib = 0; ib < NPL; ib++) {
-  var isBot = ib > 0, lk = isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
+  var isBot = ib > 0, lk = isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { sk: 'npc', v: ib, skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
     : { sk: mySkin(), glider: '#ff2bd6' };
   var mdl = makeChar(lk); scene.add(mdl.root);
   pl.push({ bot: isBot, name: isBot ? NAMES[ib - 1] : 'WALD OFF', model: mdl, look: lk, inv: [null, null, null], slot: 0 });
