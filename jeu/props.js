@@ -15,7 +15,7 @@
         TPL[nm] = { parts: parts, s: sz }; if (--left === 0) done(); }, undefined, function () { if (--left === 0) done(); }); });
   }
   // pose un modèle : h = hauteur voulue en mètres (l'échelle est calculée), tint = couleur multipliée
-  function put(nm, x, z, h, ry, tint, sink) { var t = TPL[nm]; if (!t) return null; var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
+  function put(nm, x, z, h, ry, tint, sink) { var t = TPL[nm]; if (!t) return null; if (/^plant_bush|^grass/.test(nm)) tint = tint || '#e2f07a'; var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
   function free(x, z, m) { if (!ctx.onLand(x, z) || ctx.inTown(x, z, m) || ctx.nearRoad(x, z, m + 5)) return false;
     for (var i = 0; i < ctx.HOUSES.length; i++) { var h = ctx.HOUSES[i]; if (Math.abs(h.x - x) < h.hx + m && Math.abs(h.z - z) < h.hz + m) return false; }
     if (ctx.inField && ctx.inField(x, z, 3)) return false; return true; }
@@ -48,6 +48,16 @@
         [[.3, 1], [.36, 1]].forEach(function (q, i) { var a2 = q[0] * 6.283 + i * .12, d2 = Lk[2] + 3, x3 = Lk[0] + Math.cos(a2) * d2, z3 = Lk[1] + Math.sin(a2) * d2; put('canoe', x3, z3, .55, a2 + 1.57); put('canoe_paddle', x3 + 1.2, z3 + .6, .12, a2); });
         var ca = 2.4, cx = Lk[0] + Math.cos(ca) * (Lk[2] + 14), cz = Lk[1] + Math.sin(ca) * (Lk[2] + 14);
         if (free(cx, cz, 3)) { put('campfire_stones', cx, cz, .5, 0); put('tent_detailedOpen', cx + 4, cz - 3, 2.4, -.8); put('tent_smallOpen', cx - 4.5, cz - 2.5, 1.8, .9); put('log', cx, cz + 2.6, .5, 0); put('log', cx + 2.6, cz + .4, .5, 1.57); ctx.FIRES && ctx.FIRES.push([cx, ctx.hgt(cx, cz), cz]); } }
+      // 4b) forêt sombre : rochers moussus, troncs couchés, souches, champignons, cercle de pierres, lucioles
+      if (ctx.DARKF) { var DF = ctx.DARKF;
+        for (n = 0; n < 160; n++) { var a6 = r() * 6.283, d6 = Math.sqrt(r()) * DF[2], x8 = DF[0] + Math.cos(a6) * d6, z8 = DF[1] + Math.sin(a6) * d6; if (!free(x8, z8, 2.5)) continue; var q2 = r();
+          if (q2 < .2) { var it3 = put(pick(['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeE']), x8, z8, 1.8 + r() * 2.2, r() * 6.283, '#9a9a80', .1); if (it3) ctx.PEBS.push({ x: x8, z: z8, y: it3.y, r: 1.1, h: 2.5 }); }
+          else if (q2 < .36) put('log_large', x8, z8, .8, r() * 6.283, '#8a8a70');
+          else if (q2 < .5) put(pick(['stump_old', 'stump_oldTall']), x8, z8, .9 + r() * .6, r() * 6.283, '#9a9a80');
+          else if (q2 < .82) put(pick(['mushroom_redGroup', 'mushroom_redTall', 'mushroom_tanGroup', 'mushroom_red']), x8, z8, .5 + r() * .7, r() * 6.283);
+          else put(pick(['plant_bushDetailed', 'plant_bushLarge']), x8, z8, 1 + r() * .7, r() * 6.283, '#76883a'); }
+        var cx2 = DF[0] + 12, cz2 = DF[1] - 8; if (free(cx2, cz2, 4)) { for (k = 0; k < 9; k++) { var a7 = k / 9 * 6.283, x9 = cx2 + Math.cos(a7) * 6, z9 = cz2 + Math.sin(a7) * 6; put(k % 4 === 3 ? 'statue_columnDamaged' : 'stone_tallA', x9, z9, k % 4 === 3 ? 1.8 : 2.6 + r(), a7, '#8a9a8a'); ctx.PEBS.push({ x: x9, z: z9, y: ctx.hgt(x9, z9), r: .6, h: 2.4 }); } put('statue_ring', cx2, cz2, 1.2, 0, '#9aa89a'); }
+        FLY.at = DF; }
       // 5) ruines sur une colline (colonnes en cercle autour d'un obélisque)
       var best = null; for (n = 0; n < 200; n++) { p = rand(14); if (!p) continue; var hh = ctx.hgt(p[0], p[1]); if (slope(p[0], p[1]) < 2.2 && (!best || hh > best[2])) best = [p[0], p[1], hh]; }
       if (best) { put('statue_obelisk', best[0], best[1], 6.5, .3); for (k = 0; k < 7; k++) { var a3 = k / 7 * 6.283, x4 = best[0] + Math.cos(a3) * 7, z4 = best[1] + Math.sin(a3) * 7; put(k % 3 === 2 ? 'statue_columnDamaged' : 'statue_column', x4, z4, k % 3 === 2 ? 2.2 : 4.2, a3); ctx.PEBS.push({ x: x4, z: z4, y: ctx.hgt(x4, z4), r: .7, h: 4 }); }
@@ -57,6 +67,12 @@
       for (n = 0; n < 140; n++) { p = rand(4); if (!p) continue; var tall = r() < .5; put(tall ? 'cactus_tall' : 'cactus_short', p[0], p[1], tall ? 3.5 + r() * 2.5 : 1.4 + r(), r() * 6.283); if (tall) ctx.PEBS.push({ x: p[0], z: p[1], y: ctx.hgt(p[0], p[1]), r: .45, h: 3 }); }
       for (n = 0; n < 900 && ITEMS.filter(function (i) { return /palm/.test(i.n); }).length < 45; n++) { var a4 = r() * 6.283, sr = ctx.shoreR(a4) - 10 - r() * 16, x5 = Math.cos(a4) * sr, z5 = Math.sin(a4) * sr;
         if (!free(x5, z5, 3) || Math.cos(a4) > -.2) continue; put(pick(['tree_palmDetailedTall', 'tree_palmDetailedShort', 'tree_palmBend']), x5, z5, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x5, z: z5, y: ctx.hgt(x5, z5), r: .35, h: 6 }); }
+      // oasis : palmiers en couronne, buissons verts, fleurs, nénuphars, campement
+      if (ctx.LAKE) { var O = ctx.LAKE;
+        for (n = 0; n < 16; n++) { var a8 = n / 16 * 6.283 + r() * .3, d8 = O[2] + 4 + r() * 9, x10 = O[0] + Math.cos(a8) * d8, z10 = O[1] + Math.sin(a8) * d8; put(pick(['tree_palmDetailedTall', 'tree_palmDetailedShort', 'tree_palmBend']), x10, z10, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x10, z: z10, y: ctx.hgt(x10, z10), r: .35, h: 6 }); }
+        for (n = 0; n < 40; n++) { var a9 = r() * 6.283, d9 = O[2] + 2 + r() * 16, x11 = O[0] + Math.cos(a9) * d9, z11 = O[1] + Math.sin(a9) * d9; put(pick(['plant_bushLarge', 'plant_bushDetailed', 'plant_bush', 'flower_redA', 'flower_yellowA', 'flower_purpleA', 'grass_leafsLarge']), x11, z11, .6 + r() * .9, r() * 6.283); }
+        for (n = 0; n < 14; n++) { var a10 = r() * 6.283, d10 = r() * (O[2] - 4), t3 = TPL[n % 2 ? 'lily_small' : 'lily_large']; if (t3) ITEMS.push({ n: n % 2 ? 'lily_small' : 'lily_large', x: O[0] + Math.cos(a10) * d10, y: -.72, z: O[1] + Math.sin(a10) * d10, s: (n % 2 ? 1.1 : 1.8) / Math.max(t3.s.x, t3.s.z), ry: r() * 6.283 }); }
+        var ox = O[0] + O[2] + 16, oz = O[1] + 4; put('tent_detailedOpen', ox, oz, 2.6, -1.2); put('campfire_logs', ox - 4, oz + 3, .5, 0); put('pot_large', ox + 2.5, oz + 3.5, .9, 0); put('canoe', O[0] - O[2] + 1, O[1], .55, 1.57); }
       p = rand(10); if (p) { put('tent_detailedClosed', p[0], p[1], 2.6, .4); put('tent_detailedOpen', p[0] + 5, p[1] + 2, 2.4, -.6); put('campfire_logs', p[0] + 2, p[1] + 4.5, .5, 0); put('pot_large', p[0] - 2.5, p[1] + 3, .9, 0); ctx.FIRES && ctx.FIRES.push([p[0] + 2, ctx.hgt(p[0] + 2, p[1] + 4.5), p[1] + 4.5]); }
       (ctx.PEAKS || []).forEach(function (pk, i) { if (i > 1) return; var x6 = pk[0] + pk[2] * .82, z6 = pk[1]; if (!free(x6, z6, 6)) return; put('statue_obelisk', x6, z6, 7, 0, '#f2c89a'); for (var k2 = 0; k2 < 5; k2++) { var a5 = k2 / 5 * 6.283, x7 = x6 + Math.cos(a5) * 6, z7 = z6 + Math.sin(a5) * 6; put(k2 % 2 ? 'statue_columnDamaged' : 'statue_column', x7, z7, k2 % 2 ? 2 : 4, a5, '#f2c89a'); ctx.PEBS.push({ x: x7, z: z7, y: ctx.hgt(x7, z7), r: .7, h: 4 }); } });
     }
@@ -74,13 +90,22 @@
       var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('normal', new T.BufferAttribute(nor, 3)); g.setAttribute('color', new T.BufferAttribute(col, 3)); g.setIndex(new T.BufferAttribute(idx, 1)); g.computeBoundingSphere();
       var mesh = new T.Mesh(g, mat); mesh.castShadow = true; mesh.receiveShadow = true; ctx.scene.add(mesh); MESHES.push({ m: mesh, x: sx / L.length, z: sz / L.length }); });
   }
+  // lucioles de la forêt sombre (points lumineux qui flottent)
+  var FLY = { at: null, pts: null };
+  function makeFlies() { if (!FLY.at) return; var n = 260, pos = new Float32Array(n * 3), ph = new Float32Array(n), r = rng(99);
+    for (var i = 0; i < n; i++) { var a = r() * 6.283, d = Math.sqrt(r()) * FLY.at[2], x = FLY.at[0] + Math.cos(a) * d, z = FLY.at[1] + Math.sin(a) * d; pos[i * 3] = x; pos[i * 3 + 1] = ctx.hgt(x, z) + .6 + r() * 3; pos[i * 3 + 2] = z; ph[i] = r() * 6.283; }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aPh', new T.BufferAttribute(ph, 1)); g.computeBoundingSphere();
+    var m = new T.ShaderMaterial({ transparent: true, depthWrite: false, blending: T.AdditiveBlending, uniforms: { uT: { value: 0 } },
+      vertexShader: 'attribute float aPh; uniform float uT; varying float vA; void main(){ vec3 p = position + vec3(sin(uT * .7 + aPh) * 1.2, sin(uT * 1.3 + aPh * 2.0) * .5, cos(uT * .6 + aPh) * 1.2); vec4 mv = modelViewMatrix * vec4(p, 1.0); vA = .5 + .5 * sin(uT * 3.0 + aPh * 5.0); gl_PointSize = (90.0 / -mv.z) * (.6 + vA); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'varying float vA; void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, 0.0, d); gl_FragColor = vec4(vec3(.85, 1.0, .45) * 2.0, a * (.25 + vA * .75)); }' });
+    FLY.pts = new T.Points(g, m); FLY.pts.frustumCulled = false; ctx.scene.add(FLY.pts); }
   var NAMES = ['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeD', 'rock_largeE', 'rock_largeF', 'rock_tallA', 'rock_tallB', 'rock_tallC', 'rock_tallD', 'rock_tallE', 'rock_tallF', 'rock_tallG', 'rock_tallH', 'stone_largeA', 'stone_largeB', 'stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA',
     'stump_old', 'stump_oldTall', 'stump_roundDetailed', 'stump_squareDetailed', 'log', 'log_large', 'log_stack', 'log_stackLarge', 'mushroom_red', 'mushroom_redGroup', 'mushroom_redTall', 'mushroom_tan', 'mushroom_tanGroup', 'mushroom_tanTall',
     'flower_purpleA', 'flower_redA', 'flower_yellowA', 'flower_purpleC', 'flower_redC', 'flower_yellowC', 'plant_bush', 'plant_bushDetailed', 'plant_bushLarge', 'grass_large', 'grass_leafsLarge', 'lily_large', 'lily_small', 'canoe', 'canoe_paddle',
-    'tent_detailedOpen', 'tent_detailedClosed', 'tent_smallOpen', 'campfire_stones', 'campfire_logs', 'statue_column', 'statue_columnDamaged', 'statue_obelisk', 'statue_head', 'cactus_tall', 'cactus_short', 'tree_palmDetailedTall', 'tree_palmDetailedShort', 'tree_palmBend', 'pot_large'];
+    'tent_detailedOpen', 'tent_detailedClosed', 'tent_smallOpen', 'campfire_stones', 'campfire_logs', 'statue_column', 'statue_columnDamaged', 'statue_obelisk', 'statue_head', 'cactus_tall', 'cactus_short', 'stone_tallA', 'statue_ring', 'tree_palmDetailedTall', 'tree_palmDetailedShort', 'tree_palmBend', 'pot_large'];
   window.PROPS = {
-    build: function (THREE, c) { T = THREE; ctx = c; if (!T.GLTFLoader) return; load(NAMES, function () { try { place(); bake(); } catch (e) { console.error('PROPS', e); } if (ctx.onReady) ctx.onReady(ITEMS.length); }); },
-    update: function (cam) { var px = cam.position.x, pz = cam.position.z, R = cam.position.y > 120 ? 600 : 330; MESHES.forEach(function (q) { q.m.visible = Math.hypot(q.x - px, q.z - pz) < R; }); },
+    build: function (THREE, c) { T = THREE; ctx = c; if (!T.GLTFLoader) return; load(NAMES, function () { try { place(); bake(); makeFlies(); } catch (e) { console.error('PROPS', e); } if (ctx.onReady) ctx.onReady(ITEMS.length); }); },
+    update: function (cam) { if (FLY.pts) { FLY.pts.material.uniforms.uT.value = performance.now() / 1000; FLY.pts.visible = Math.hypot(cam.position.x - FLY.at[0], cam.position.z - FLY.at[1]) < FLY.at[2] + 60; } var px = cam.position.x, pz = cam.position.z, R = cam.position.y > 120 ? 600 : 330; MESHES.forEach(function (q) { q.m.visible = Math.hypot(q.x - px, q.z - pz) < R; }); },
     stats: function () { return { items: ITEMS.length, meshes: MESHES.length }; }
   };
 })();

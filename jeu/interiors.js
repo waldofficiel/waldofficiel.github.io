@@ -48,8 +48,35 @@
     if (steps.length) { var stm = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), ctx.worldMat(ctx.TX.beton, .3, { lit: .3 }), steps.length); steps.forEach(function (s, i) { o.position.set((s.b[0] + s.b[2]) / 2, (s.y0 + s.y1) / 2, (s.b[1] + s.b[3]) / 2); o.scale.set(s.b[2] - s.b[0], s.y1 - s.y0, s.b[3] - s.b[1]); o.updateMatrix(); stm.setMatrixAt(i, o.matrix); }); stm.receiveShadow = stm.castShadow = true; stm.frustumCulled = false; ctx.scene.add(stm); if (window.OPT) OPT.chunk(stm); }
   }
   // hauteur du sol sous (x, z) pour quelqu'un à la hauteur y (planchers et marches compris)
+  /* escaliers de secours extérieurs (métal, en zigzag) sur le côté des immeubles à étages : on monte jusqu'au toit */
+  var EXR = [], EXL = [], ROOFS = [];
+  function makeFireEscapes() {
+    var steps = [], plats = [], beams = [], o = new T.Object3D();
+    ctx.HOUSES.forEach(function (hs) { if (hs.flat && !hs.fav) ROOFS.push(hs); if (!hs.flat || (hs.nf || 1) < 2 || hs.fav || hs.barn) return;
+      var f = { s: [0, 1], n: [0, -1], e: [1, 0], w: [-1, 0] }[hs.door] || [0, 1], r = [f[1], -f[0]], alongX = f[0] === 0, half = alongX ? hs.hx : hs.hz, D = (alongX ? hs.hz : hs.hx) * 2;
+      var nf = hs.nf, FH = hs.h / nf, Lf = Math.min(D - 2.8, FH * 1.9); if (Lf < 3.6) return;
+      function W(u, v) { return [hs.x + r[0] * u + f[0] * v, hs.z + r[1] * u + f[1] * v]; }
+      function box(u0, v0, u1, v1) { var a = W(u0, v0), b = W(u1, v1); return [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])]; }
+      var S = [[half + .12, half + 1.32], [half + 1.32, half + 2.52]], lvl = function (k) { return k >= nf ? hs.y0 + hs.h + .3 : hs.y0 + k * FH; };
+      for (var k = 0; k < nf; k++) { var st = S[k % 2], dir = k % 2 ? -1 : 1, y0 = lvl(k), y1 = lvl(k + 1), v0 = -Lf / 2 * dir, v1 = Lf / 2 * dir;
+        EXR.push({ b: box(st[0], Math.min(v0, v1), st[1], Math.max(v0, v1)), y0: y0, y1: y1, ax: alongX ? 'z' : 'x', s0: (alongX ? W(0, v0)[1] : W(0, v0)[0]), s1: (alongX ? W(0, v1)[1] : W(0, v1)[0]) });
+        for (var i = 0; i < 12; i++) { var va = v0 + (v1 - v0) * i / 12, vb = v0 + (v1 - v0) * (i + 1) / 12, top = y0 + (y1 - y0) * (i + 1) / 12; steps.push({ b: box(st[0], Math.min(va, vb), st[1], Math.max(va, vb)), y0: top - .12, y1: top }); }
+        var lv = Lf / 2 * dir, pb = box(S[0][0], Math.min(lv, lv + 1.3 * dir), S[1][1], Math.max(lv, lv + 1.3 * dir)); EXL.push({ b: pb, y: y1 }); plats.push({ b: pb, y0: y1 - .12, y1: y1 });
+        var pA = W(half + 2.52, v0), pB = W(half + 2.52, v1); beams.push([[pA[0], y0 + 1, pA[1]], [pB[0], y1 + 1, pB[1]], .06]);   // main courante
+        var pC = W(half + 2.52, lv + 1.3 * dir), pD = W(half + 2.52, lv); beams.push([[pD[0], y1 + 1, pD[1]], [pC[0], y1 + 1, pC[1]], .06]); }
+      [[-Lf / 2 - 1.3], [Lf / 2 + 1.3]].forEach(function (q) { var pp = W(half + 2.5, q[0]); beams.push([[pp[0], hs.y0, pp[1]], [pp[0], hs.y0 + hs.h + 1.4, pp[1]], .12]); var pq = W(half + .14, q[0]); beams.push([[pq[0], hs.y0, pq[1]], [pq[0], hs.y0 + hs.h + .3, pq[1]], .1]); }); });
+    if (!steps.length) return;
+    var met = new T.MeshLambertMaterial({ color: '#3c424c' }), bx = new T.BoxGeometry(1, 1, 1);
+    function inst(list, fn) { var m = new T.InstancedMesh(bx, met, list.length); list.forEach(function (q, i) { fn(q); o.updateMatrix(); m.setMatrixAt(i, o.matrix); }); m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; ctx.scene.add(m); if (window.OPT) OPT.chunk(m); }
+    inst(steps.concat(plats), function (q) { o.position.set((q.b[0] + q.b[2]) / 2, (q.y0 + q.y1) / 2, (q.b[1] + q.b[3]) / 2); o.rotation.set(0, 0, 0); o.scale.set(q.b[2] - q.b[0], q.y1 - q.y0, q.b[3] - q.b[1]); });
+    var up = new T.Vector3(0, 1, 0), d = new T.Vector3();
+    inst(beams, function (q) { d.set(q[1][0] - q[0][0], q[1][1] - q[0][1], q[1][2] - q[0][2]); var L = d.length(); o.position.set((q[0][0] + q[1][0]) / 2, (q[0][1] + q[1][1]) / 2, (q[0][2] + q[1][2]) / 2); o.scale.set(q[2], L, q[2]); o.quaternion.setFromUnitVectors(up, d.normalize()); });
+  }
   function groundAt(x, z, y) {
-    var g = ctx.hgt(x, z);
+    var g = ctx.hgt(x, z), lim = y + .7;
+    for (var e = 0; e < EXR.length; e++) { var R = EXR[e]; if (x < R.b[0] - .05 || x > R.b[2] + .05 || z < R.b[1] - .05 || z > R.b[3] + .05) continue; var sv = R.ax === 'z' ? z : x, t = Math.max(0, Math.min(1, (sv - R.s0) / (R.s1 - R.s0))), hh = R.y0 + (R.y1 - R.y0) * t; if (hh <= lim && hh > g) g = hh; }
+    for (e = 0; e < EXL.length; e++) { var L2 = EXL[e]; if (x < L2.b[0] || x > L2.b[2] || z < L2.b[1] || z > L2.b[3]) continue; if (L2.y <= lim && L2.y > g) g = L2.y; }
+    for (e = 0; e < ROOFS.length; e++) { var rh = ROOFS[e]; if (rh.broken >= 2 || Math.abs(x - rh.x) > rh.hx || Math.abs(z - rh.z) > rh.hz) continue; var top = rh.y0 + rh.h + .3; if (top <= lim && top > g) g = top; }
     for (var i = 0; i < FLOORED.length; i++) { var hs = FLOORED[i]; if (Math.abs(x - hs.x) > hs.hx || Math.abs(z - hs.z) > hs.hz || hs.broken >= 2) continue;
       var fl = hs.fl, F = fl.F, dx = x - hs.x, dz = z - hs.z, u = dx * F.r[0] + dz * F.r[1], v = dx * F.f[0] + dz * F.f[1], best = hs.y0, lim = y + .7;
       for (var k = 1; k < hs.nf; k++) { var lv = hs.y0 + k * fl.FH; if (lv > lim) break; var st = fl.strips[(k - 1) % 2]; if (!(v > st[0] && v < st[1] && Math.abs(u) < fl.Lr / 2)) best = Math.max(best, lv); }
@@ -300,7 +327,7 @@
   window.INTERIORS = {
     build: function (THREE, c) { T = THREE; ctx = c;
       ctx.HOUSES.forEach(function (hs) { hs.ty = houseType(hs); });
-      makeFloors(); makeWindows();
+      makeFloors(); makeWindows(); makeFireEscapes();
       FIX.furnMat = new T.MeshLambertMaterial({ vertexColors: true });
       loadModels(function () { var r = (function (a) { return function () { a = (a * 16807) % 2147483647; return a / 2147483647; }; })(4242);
         ctx.HOUSES.forEach(function (hs) { if (hs.ty !== 'grange') try { furnish(hs, r); } catch (e) { console.warn('meubles', e); } });

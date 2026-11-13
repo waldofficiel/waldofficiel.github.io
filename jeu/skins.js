@@ -238,7 +238,12 @@
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];
   window.buildSkin = function (THREE, id, opts) {
     init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts);
-    [R.body, R.lL, R.lR, R.aL, R.aR, R.head].forEach(merge);
+    // genoux : tout ce qui est sous le genou (tibia, chaussette, chaussure, lacets) passe dans un groupe qui pivote au genou
+    var KY = -.43, bb = new T3.Box3();
+    [['lL', 'kL'], ['lR', 'kR']].forEach(function (q) { var l = R[q[0]], k = new T3.Group(); k.position.set(0, KY, 0); l.add(k); R[q[1]] = k;
+      l.children.slice().forEach(function (m) { if (!m.isMesh) return; m.updateMatrix(); if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); bb.copy(m.geometry.boundingBox).applyMatrix4(m.matrix);
+        if ((bb.min.y + bb.max.y) / 2 < KY - .01) { l.remove(m); m.position.y -= KY; k.add(m); } }); });
+    [R.body, R.lL, R.lR, R.kL, R.kR, R.aL, R.aR, R.head].forEach(merge);
     R.cols = cols; return R;
   };
 })();

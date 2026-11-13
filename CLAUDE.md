@@ -40,7 +40,7 @@ Ce fichier sert à reprendre le développement du jeu **Wald Royal** dans une no
 | `jeu/interiors.js` | Fenêtres à pièce visible, étages + escaliers, meubles Kenney (voir plus bas) |
 | `jeu/city.js` | `window.CITY.build(THREE, ctx)` : décor des villes en `Kit` instanciés (clims, châteaux d'eau, antennes, panneaux solaires, cabanons, auvents, enseignes néon sans marque, lampadaires le long des routes, bancs, poubelles, bouches d'incendie, abribus, pubs du jeu, conteneurs + grue aux docks, bidons/pneus au ranch, clôtures/foin/puits au village, drapeaux à l'avenue). Rebords de toit, bandeaux d'étage et piliers pour les toits plats. Les gros objets ajoutent des boîtes dans `PCOL` (testées dans `pushCircle`). `house()` mémorise `hs.door` |
 | `jeu/polo3d.html` | Visionneuse 3D de La Wald (rotation, phares, faire rouler) |
-| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v19` : **monter la version à chaque modif** |
+| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v25` : **monter la version à chaque modif** |
 | `jeu/logo.jpg`, `jeu/icons/` | Logo et icônes (512/192/180) |
 | `wald-royal/index.html`, `wald-royal/img/*.jpg` | Page vitrine + captures du jeu |
 | `app/android/` | Appli Android : WebView + WebViewAssetLoader, `fr.waldoff.royal` |
@@ -221,6 +221,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## Enseignes de magasins (novembre 2026)
 - `jeu/signs.js` (`window.BRAND`) : 16 **marques inventées** (aucune vraie marque), chacune avec fond, icône dessinée et police à elle : burger (Luckiest Guy), café (Pacifico), pizza (Lobster), salle de sport (Russo One), pharmacie (Righteous), supermarché (Fredoka), jeux vidéo (Press Start 2P), mode (Abril Fatface), baskets (Permanent Marker), donuts (Shrikhand), club (Monoton), hôtel (Bungee), tacos (Bangers), banque (Alfa Slab One), glaces (Fredoka), surplus (Black Ops One). Noms différents sur le désert. Polices libres (OFL / Apache) dans `jeu/fonts/` avec leurs licences, chargées par `FontFace` ; les textures se redessinent quand elles sont prêtes (`BRAND.later`). `neonTex` (lodge, motel) et les panneaux de pub (`adTex`) utilisent aussi ces polices.
+
+## Bulle bouclier, genoux, escaliers de secours, oasis, forêt sombre (novembre 2026)
+- **Bulle bouclier** (`HEAL.bulle`, max 2, 0,5 s) : sphère de 4,8 m qui dure 15 s (`spawnBubble`, `bubbleTick`, shader hexagones + bord lumineux rose/violet). Les balles ne la traversent pas (`castRay` teste la sphère, `kind:'bubble'`, elle clignote quand on la touche). Pas de construction. Les bots la posent quand ils ont moins de 80 vie + bouclier. `WR.bubble(x,y,z)` pour les tests.
+- **Accroupi avec genoux** : `skins.js` coupe chaque jambe au genou (`R.kL`, `R.kR` à y −0,43). `animChar` plie cuisses et genoux comme un humain (accroupi, marche, chute, conduite, danse) ; le corps descend selon la hauteur réelle des jambes. Tête plus basse pour les tirs quand on est accroupi.
+- **Villes** : escaliers de secours métalliques sur les immeubles (`makeFireEscapes`, volées + paliers sur le mur de côté) qui mènent aux **toits où l'on peut marcher** (`groundAt` teste `EXR/EXL/ROOFS`).
+- **Oasis** sur le désert (`LAKE = [-40,-40,17]`) : eau turquoise, herbe verte autour, palmiers et décor (props.js). **Forêt sombre** sur la campagne (`DARKF = [-150,-205,95]`) : sapins foncés serrés (`pineD`), brouillard et lumière qui baissent quand on y entre (`DARKK`), rochers moussus, troncs, champignons, **lucioles** (`makeFlies`).
 
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
