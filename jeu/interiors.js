@@ -44,8 +44,8 @@
       }
     });
     var o = new T.Object3D();
-    if (slabs.length) { var top = ctx.worldMat(ctx.TX.sol, .45, { lit: .3 }), under = new T.MeshLambertMaterial({ color: '#efede6', emissive: '#6a6862' }), sm = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), [under, under, top, under, under, under], slabs.length); slabs.forEach(function (s, i) { o.position.set((s.b[0] + s.b[2]) / 2, s.y - .07, (s.b[1] + s.b[3]) / 2); o.scale.set(s.b[2] - s.b[0], .14, s.b[3] - s.b[1]); o.updateMatrix(); sm.setMatrixAt(i, o.matrix); }); sm.receiveShadow = true; sm.frustumCulled = false; ctx.scene.add(sm); }
-    if (steps.length) { var stm = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), ctx.worldMat(ctx.TX.beton, .3, { lit: .3 }), steps.length); steps.forEach(function (s, i) { o.position.set((s.b[0] + s.b[2]) / 2, (s.y0 + s.y1) / 2, (s.b[1] + s.b[3]) / 2); o.scale.set(s.b[2] - s.b[0], s.y1 - s.y0, s.b[3] - s.b[1]); o.updateMatrix(); stm.setMatrixAt(i, o.matrix); }); stm.receiveShadow = stm.castShadow = true; stm.frustumCulled = false; ctx.scene.add(stm); }
+    if (slabs.length) { var top = ctx.worldMat(ctx.TX.sol, .45, { lit: .3 }), under = new T.MeshLambertMaterial({ color: '#efede6', emissive: '#6a6862' }), sm = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), [under, under, top, under, under, under], slabs.length); slabs.forEach(function (s, i) { o.position.set((s.b[0] + s.b[2]) / 2, s.y - .07, (s.b[1] + s.b[3]) / 2); o.scale.set(s.b[2] - s.b[0], .14, s.b[3] - s.b[1]); o.updateMatrix(); sm.setMatrixAt(i, o.matrix); }); sm.receiveShadow = true; sm.frustumCulled = false; ctx.scene.add(sm); if (window.OPT) OPT.chunk(sm); }
+    if (steps.length) { var stm = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), ctx.worldMat(ctx.TX.beton, .3, { lit: .3 }), steps.length); steps.forEach(function (s, i) { o.position.set((s.b[0] + s.b[2]) / 2, (s.y0 + s.y1) / 2, (s.b[1] + s.b[3]) / 2); o.scale.set(s.b[2] - s.b[0], s.y1 - s.y0, s.b[3] - s.b[1]); o.updateMatrix(); stm.setMatrixAt(i, o.matrix); }); stm.receiveShadow = stm.castShadow = true; stm.frustumCulled = false; ctx.scene.add(stm); if (window.OPT) OPT.chunk(stm); }
   }
   // hauteur du sol sous (x, z) pour quelqu'un à la hauteur y (planchers et marches compris)
   function groundAt(x, z, y) {
@@ -108,45 +108,85 @@
     g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.ellipse(18, 18, 12, 5, 0, 0, 6.3); g.fill(); g.fillStyle = '#f4f2ea'; g.fillRect(30, 0, 4, 64); g.fillRect(0, 22, 64, 3); var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; }
 
   function fract(v) { return v - Math.floor(v); }
+  /* textures des murs vus de l'intérieur */
+  function ctex(sz, fn) { var c = document.createElement('canvas'); c.width = c.height = sz; var g = c.getContext('2d'); fn(g, sz); var t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t; }
+  function srnd(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function intTex() {
+    return {
+      papier: ctex(256, function (g, s) { g.fillStyle = '#d8ebe2'; g.fillRect(0, 0, s, s); for (var x = 0; x < s; x += 32) { g.fillStyle = 'rgba(70,140,120,.18)'; g.fillRect(x, 0, 12, s); g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(x + 12, 0, 2, s); }
+        for (var k = 0; k < 24; k++) { var px = (k % 6) * 42 + 22 + (k % 2) * 8, py = Math.floor(k / 6) * 64 + 20; g.fillStyle = '#e88a9a'; for (var a = 0; a < 5; a++) { g.beginPath(); g.arc(px + Math.cos(a * 1.257) * 4, py + Math.sin(a * 1.257) * 4, 3, 0, 6.3); g.fill(); } g.fillStyle = '#ffd23d'; g.beginPath(); g.arc(px, py, 2.2, 0, 6.3); g.fill(); } }),
+      lambris: ctex(256, function (g, s) { for (var x = 0; x < 8; x++) { var l = 70 + srnd(x) * 8; g.fillStyle = 'hsl(32,52%,' + l + '%)'; g.fillRect(x * 32, 0, 32, s); g.strokeStyle = 'hsla(28,45%,40%,.28)'; g.lineWidth = 1; for (var k = 0; k < 3; k++) { g.beginPath(); g.moveTo(x * 32 + 8 + k * 8, 0); for (var y = 0; y <= s; y += 16) g.lineTo(x * 32 + 8 + k * 8 + Math.sin(y * .05 + x + k) * 2, y); g.stroke(); }
+        g.fillStyle = 'rgba(90,50,20,.55)'; g.fillRect(x * 32, 0, 2, s); g.fillStyle = 'rgba(255,240,210,.5)'; g.fillRect(x * 32 + 2, 0, 1.5, s); } }),
+      platre: ctex(256, function (g, s) { g.fillStyle = '#f3eee4'; g.fillRect(0, 0, s, s); for (var k = 0; k < 900; k++) { g.fillStyle = 'rgba(' + (k % 2 ? '255,255,255' : '160,140,110') + ',' + (.05 + srnd(k) * .06) + ')'; var r = 2 + srnd(k + 3) * 7; g.beginPath(); g.arc(srnd(k + 1) * s, srnd(k + 2) * s, r, 0, 6.3); g.fill(); } }),
+      blanc: ctex(256, function (g, s) { g.fillStyle = '#fbfaf7'; g.fillRect(0, 0, s, s); g.strokeStyle = 'rgba(200,190,175,.4)'; g.lineWidth = 2; for (var y = 0; y < s; y += 128) { g.beginPath(); g.moveTo(0, y); g.lineTo(s, y); g.stroke(); } })
+    };
+  }
+  var INTK = { bois: 'lambris', ferme: 'lambris', grange: 'lambris', brique: 'papier', peint: 'platre', facade: 'blanc', beton: 'platre', riche: 'blanc', metal: 'platre' };
+
+  /* ---------- fenêtres : vrais trous dans les murs + vitre transparente ---------- */
   function makeWindows() {
-    var list = [];
+    var list = [], byWall = new Map();
     ctx.WALLS.forEach(function (w) { var hs = w.house; if (!hs || w.lintel || w.m === 'verre' || hs.barn || w.bigWall) return;
-      var alongX = w.hw > w.hd, len = (alongX ? w.hw : w.hd) * 2, nx = alongX ? 0 : (w.x > hs.x ? 1 : -1), nz = alongX ? (w.z > hs.z ? 1 : -1) : 0;
+      var alongX = w.hw > w.hd, len = (alongX ? w.hw : w.hd) * 2;
       var big = hs.m === 'facade' || hs.m === 'riche', fav = hs.m === 'peint', ww = big ? 1.9 : fav ? 1.0 : 1.3, wh = big ? 1.9 : fav ? 1.0 : 1.35, sp = big ? 2.7 : fav ? 3.2 : 3.1;
       if (hs.m === 'metal' && !hs.flat) { ww = 1.1; wh = .9; }
-      var n = Math.floor((len - .5) / sp); if (n < 1) { if (len < ww + .6) return; n = 1; }
+      var n = Math.floor((len - .5) / sp); if (n < 1) { if (len < ww + .8) return; n = 1; }
       var nf = hs.nf || 1, FH = hs.h / nf;
-      if (nf === 1 && hs.h > 4.6) { FH = hs.h; }
       for (var f = 0; f < nf; f++) for (var i = 0; i < n; i++) { var off = (i - (n - 1) / 2) * (len / n), cy = hs.y0 + f * FH + (fav ? 1.1 : big ? .75 : .95) + wh / 2;
         if (nf === 1 && hs.h > 4.6) cy = hs.y0 + hs.h * .55;
-        if (cy + wh / 2 > hs.y0 + hs.h - .2) continue;
-        var x = w.x + (alongX ? off : 0), z = w.z + (alongX ? 0 : off);
-        list.push({ w: w, x: x, z: z, y: cy, nx: nx, nz: nz, ww: ww, wh: wh, d: (alongX ? w.hd : w.hw), bal: f > 0 && (hs.m === 'facade' || hs.m === 'beton' || hs.m === 'riche') && fract(Math.sin(x * 12.9 + z * 78.2 + f * 3.1) * 43758.5) < .3 }); } });
+        if (cy + wh / 2 > hs.y0 + hs.h - .25) continue;
+        var q = { w: w, off: off, y: cy, ww: ww, wh: wh, bal: f > 0 && (hs.m === 'facade' || hs.m === 'beton' || hs.m === 'riche') && fract(Math.sin(off * 12.9 + w.x * 7.7 + w.z * 3.3 + f * 3.1) * 43758.5) < .3 };
+        list.push(q); if (!byWall.has(w)) byWall.set(w, []); byWall.get(w).push(q); } });
+    var IT = intTex(), wallMeshes = {}, segs = {}, o = new T.Object3D(), tc = new T.Color();
+    // tous les murs de maison sont redessinés en morceaux autour des ouvertures, avec la face intérieure texturée
+    ctx.WALLS.forEach(function (w) { if (!w.house || w.m === 'verre' || !w.im) return;
+      var hs = w.house, alongX = w.hw >= w.hd, L = (alongX ? w.hw : w.hd) * 2, th = (alongX ? w.hd : w.hw) * 2, yb = w.y0 + (w.lintel ? 2.6 : 0), yt = w.y0 + w.h;
+      var nx = alongX ? 0 : (w.x > hs.x ? 1 : -1), nz = alongX ? (w.z > hs.z ? 1 : -1) : 0, ry = Math.atan2(nx, nz), ax = alongX ? [1, 0] : [0, 1];
+      // le sens « +x local » après rotation : (cos ry, -sin ry) ; on exprime les décalages dans ce sens
+      var lx = [Math.cos(ry), -Math.sin(ry)], sgn = lx[0] * ax[0] + lx[1] * ax[1];
+      var wins = byWall.get(w) || [], cols = [];
+      wins.forEach(function (q) { var c0 = q.off - q.ww / 2 - .12, c1 = q.off + q.ww / 2 + .12, col = cols.filter(function (c) { return Math.abs(c.c0 - c0) < .01; })[0]; if (!col) { col = { c0: c0, c1: c1, w: [] }; cols.push(col); } col.w.push(q); });
+      cols.sort(function (a, b) { return a.c0 - b.c0; });
+      var pieces = [], u = -L / 2;
+      cols.forEach(function (c) { if (c.c0 > u + .01) pieces.push([u, c.c0, yb, yt]); var yy = yb; c.w.sort(function (a, b) { return a.y - b.y; }).forEach(function (q) { var b0 = q.y - q.wh / 2 - .12, b1 = q.y + q.wh / 2 + .12; if (b0 > yy + .01) pieces.push([c.c0, c.c1, yy, b0]); yy = b1; }); if (yt > yy + .01) pieces.push([c.c0, c.c1, yy, yt]); u = c.c1; });
+      if (L / 2 > u + .01) pieces.push([u, L / 2, yb, yt]);
+      var key = w.m; if (!segs[key]) segs[key] = []; w.segs = [];
+      pieces.forEach(function (pc) { var mid = (pc[0] + pc[1]) / 2; segs[key].push({ w: w, x: w.x + ax[0] * mid, z: w.z + ax[1] * mid, y: (pc[2] + pc[3]) / 2, sx: pc[1] - pc[0], sy: pc[3] - pc[2], sz: th, ry: ry }); });
+      w.cut = true; });
+    Object.keys(segs).forEach(function (k) { var L = segs[k], wm = L[0].w.im.material, ik = INTK[k] || 'platre', im2 = ctx.worldMat(IT[ik], ik === 'lambris' ? .4 : ik === 'papier' ? .45 : .3, { lit: .22 });
+      var M = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), [wm, wm, wm, wm, wm, im2], L.length); M.castShadow = true; M.receiveShadow = true; M.frustumCulled = false;
+      L.forEach(function (sg, i) { o.position.set(sg.x, sg.y, sg.z); o.rotation.set(0, sg.ry, 0); o.scale.set(sg.sx, sg.sy, sg.sz); o.updateMatrix(); M.setMatrixAt(i, o.matrix); sg.w.segs.push([M, i, o.matrix.clone()]); if (k === 'peint') M.setColorAt(i, tc.set(sg.w.col || '#ffffff')); else if (k === 'facade' || k === 'beton' || k === 'riche') { var hh = sg.w.house, pal = k === 'riche' ? ['#ffffff', '#f6efe4'] : ['#ffffff', '#f2e6d6', '#dfeaf6', '#f3dede', '#e2eedb', '#e9e2f4', '#f6efcf']; M.setColorAt(i, tc.set(pal[Math.floor(fract(Math.sin(hh.x * 3.1 + hh.z * 7.7) * 9157.3) * pal.length)])); } });
+      ctx.scene.add(M); wallMeshes[k] = M; });
+    // le mur d'origine (bloc plein) n'est plus dessiné : il ne sert plus qu'aux collisions et aux dégâts
+    ctx.WALLS.forEach(function (w) { if (w.cut) { w.im.setMatrixAt(w.ii, new T.Matrix4().makeScale(0, 0, 0)); w.im.instanceMatrix.needsUpdate = true; } });
     if (!list.length) return;
     var plane = new T.PlaneGeometry(1, 1), box = new T.BoxGeometry(1, 1, 1);
-    FIX.winMat = new T.ShaderMaterial({ uniforms: { fogColor: { value: new T.Color('#cfe4f5') }, fogNear: { value: 200 }, fogFar: { value: 500 }, uT: { value: 0 } }, vertexShader: WIN_VS, fragmentShader: WIN_FS });
-    var gOut = new T.InstancedMesh(plane, FIX.winMat, list.length), gIn = new T.InstancedMesh(plane, new T.MeshBasicMaterial({ map: dayTex(), color: '#e8eef2' }), list.length),
-      fr = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f6f3ec' }), list.length), sill = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f2eee6', emissive: '#4a4640' }), list.length);
-    var bal = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#eceff4', emissive: '#55585e' }), list.length), rail = new T.InstancedMesh(box, new T.MeshPhongMaterial({ color: '#bfe6ff', transparent: true, opacity: .4, shininess: 120, specular: '#ffffff' }), list.length),
+    var glass = new T.InstancedMesh(plane, new T.MeshPhongMaterial({ color: '#cfeaff', transparent: true, opacity: .26, shininess: 140, specular: '#ffffff', depthWrite: false, side: T.DoubleSide }), list.length),
+      fr = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f6f3ec', emissive: '#3a3834' }), list.length * 6), sill = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f2eee6', emissive: '#4a4640' }), list.length),
+      bal = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#d9dde4', emissive: '#8a8d93' }), list.length), rail = new T.InstancedMesh(box, new T.MeshPhongMaterial({ color: '#bfe6ff', transparent: true, opacity: .4, shininess: 120, specular: '#ffffff' }), list.length),
       bar = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#3a3f48' }), list.length), Z1 = new T.Matrix4().makeScale(0, 0, 0);
-    var o = new T.Object3D();
-    list.forEach(function (q, i) { var ry = Math.atan2(q.nx, q.nz), d = q.d + .07; q.mats = [];
-      o.rotation.set(0, ry, 0); o.position.set(q.x + q.nx * (d + .005), q.y, q.z + q.nz * (d + .005)); o.scale.set(q.ww, q.wh, 1); o.updateMatrix(); gOut.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-      o.rotation.set(0, ry + Math.PI, 0); o.position.set(q.x - q.nx * (d + .005), q.y, q.z - q.nz * (d + .005)); o.updateMatrix(); gIn.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-      o.rotation.set(0, ry, 0); o.position.set(q.x, q.y, q.z); o.scale.set(q.ww + .26, q.wh + .26, d * 2); o.updateMatrix(); fr.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-      o.position.set(q.x + q.nx * (d + .08), q.y - q.wh / 2 - .17, q.z + q.nz * (d + .08)); o.scale.set(q.ww + .4, .08, .22); o.updateMatrix(); sill.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-      if (q.bal) { var by = q.y - q.wh / 2 - .1, bw = q.ww + 1.0;   // balcon : dalle, garde-corps vitré, main courante
-        o.position.set(q.x + q.nx * (d + .55), by, q.z + q.nz * (d + .55)); o.scale.set(bw, .14, 1.1); o.updateMatrix(); bal.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-        o.position.set(q.x + q.nx * (d + 1.08), by + .5, q.z + q.nz * (d + 1.08)); o.scale.set(bw, .86, .04); o.updateMatrix(); rail.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone());
-        o.position.set(q.x + q.nx * (d + 1.08), by + .95, q.z + q.nz * (d + 1.08)); o.scale.set(bw + .04, .06, .08); o.updateMatrix(); bar.setMatrixAt(i, o.matrix); q.mats.push(o.matrix.clone()); }
-      else { [bal, rail, bar].forEach(function (m) { m.setMatrixAt(i, Z1); }); q.mats.push(Z1, Z1, Z1); }
-      (q.w.wins = q.w.wins || []).push(i); });
-    [gOut, gIn, fr, sill, bal, rail, bar].forEach(function (m) { m.frustumCulled = false; ctx.scene.add(m); }); fr.castShadow = true; sill.castShadow = true; bal.castShadow = true;
-    FIX.win = { list: list, meshes: [gOut, gIn, fr, sill, bal, rail, bar] };
+    glass.renderOrder = 2;
+    function S(m, i, x, y, z, ry, sx, sy, sz, q) { o.position.set(x, y, z); o.rotation.set(0, ry, 0); o.scale.set(sx, sy, sz); o.updateMatrix(); m.setMatrixAt(i, o.matrix); q.parts.push([m, i, o.matrix.clone()]); }
+    list.forEach(function (q, i) { var w = q.w, hs = w.house, alongX = w.hw >= w.hd, th = (alongX ? w.hd : w.hw), nx = alongX ? 0 : (w.x > hs.x ? 1 : -1), nz = alongX ? (w.z > hs.z ? 1 : -1) : 0, ry = Math.atan2(nx, nz);
+      var cx = w.x + (alongX ? q.off : 0), cz = w.z + (alongX ? 0 : q.off), ux = alongX ? 1 : 0, uz = alongX ? 0 : 1, hw = q.ww / 2 + .06, hh = q.wh / 2 + .06; q.parts = [];
+      S(glass, i, cx, q.y, cz, ry, q.ww, q.wh, 1, q);
+      // cadre (4 montants) + croisillon
+      S(fr, i * 6, cx - ux * hw, q.y, cz - uz * hw, ry, .12, q.wh + .24, th * 2 + .06, q); S(fr, i * 6 + 1, cx + ux * hw, q.y, cz + uz * hw, ry, .12, q.wh + .24, th * 2 + .06, q);
+      S(fr, i * 6 + 2, cx, q.y + hh, cz, ry, q.ww + .24, .12, th * 2 + .06, q); S(fr, i * 6 + 3, cx, q.y - hh, cz, ry, q.ww + .24, .12, th * 2 + .06, q);
+      S(fr, i * 6 + 4, cx, q.y, cz, ry, .05, q.wh, .06, q); S(fr, i * 6 + 5, cx, q.y + q.wh * .14, cz, ry, q.ww, .05, .06, q);
+      S(sill, i, cx + nx * (th + .1), q.y - hh - .04, cz + nz * (th + .1), ry, q.ww + .4, .08, .24, q);
+      if (q.bal) { var by = q.y - q.wh / 2 - .1, bw = q.ww + 1.0;
+        S(bal, i, cx + nx * (th + .55), by, cz + nz * (th + .55), ry, bw, .14, 1.1, q); S(rail, i, cx + nx * (th + 1.08), by + .5, cz + nz * (th + 1.08), ry, bw, .86, .04, q); S(bar, i, cx + nx * (th + 1.08), by + .95, cz + nz * (th + 1.08), ry, bw + .04, .06, .08, q); }
+      else [bal, rail, bar].forEach(function (m) { m.setMatrixAt(i, Z1); });
+      (w.wins = w.wins || []).push(i); });
+    [glass, fr, sill, bal, rail, bar].forEach(function (m) { m.frustumCulled = false; ctx.scene.add(m); }); sill.castShadow = true; bal.castShadow = true;
+    FIX.win = { list: list };
   }
   var Z0 = null;
-  function setWall(w, on) { if (!w.wins || !FIX.win) return; Z0 = Z0 || new T.Matrix4().makeScale(0, 0, 0);
-    w.wins.forEach(function (i) { var q = FIX.win.list[i]; FIX.win.meshes.forEach(function (m, j) { m.setMatrixAt(i, on ? q.mats[j] : Z0); m.instanceMatrix.needsUpdate = true; }); }); }
+  function setWall(w, on) { Z0 = Z0 || new T.Matrix4().makeScale(0, 0, 0); var touched = new Set();
+    (w.segs || []).forEach(function (sg) { sg[0].setMatrixAt(sg[1], on ? sg[2] : Z0); touched.add(sg[0]); });
+    if (w.wins && FIX.win) w.wins.forEach(function (i) { FIX.win.list[i].parts.forEach(function (pt) { pt[0].setMatrixAt(pt[1], on ? pt[2] : Z0); touched.add(pt[0]); }); });
+    touched.forEach(function (m) { m.instanceMatrix.needsUpdate = true; }); }
 
   /* ---------- meubles ---------- */
   var TPL = {}, PLACED = [];
@@ -227,7 +267,7 @@
   // fusionne tous les meubles d'un quartier en un seul mesh à couleurs de sommets
   function bake() {
     var groups = {}, o = new T.Object3D(), m4 = new T.Matrix4(), nm = new T.Matrix3(), v = new T.Vector3(), c = new T.Color();
-    PLACED.forEach(function (p) { var key = Math.round(p.x / 140) + ',' + Math.round(p.z / 140); (groups[key] = groups[key] || []).push(p); });
+    PLACED.forEach(function (p) { var key = Math.round(p.x / 70) + ',' + Math.round(p.z / 70); (groups[key] = groups[key] || []).push(p); });
     Object.keys(groups).forEach(function (key) { var L = groups[key], nV = 0;
       L.forEach(function (p) { TPL[p.n].parts.forEach(function (pt) { nV += pt.g.attributes.position.count; }); });
       var nI = 0; L.forEach(function (p) { TPL[p.n].parts.forEach(function (pt) { nI += pt.g.index ? pt.g.index.count : pt.g.attributes.position.count; }); });
@@ -269,7 +309,7 @@
     },
     groundAt: groundAt, ceilAt: ceilAt, setWall: setWall,
     update: function (cam, fog) { if (FIX.winMat && fog) { FIX.winMat.uniforms.fogColor.value.copy(fog.color); FIX.winMat.uniforms.fogNear.value = fog.near; FIX.winMat.uniforms.fogFar.value = fog.far; }
-      var cx = cam.position.x, cz = cam.position.z; var R2 = cam.position.y > 70 ? 0 : (window.SET && SET.gfx === 0 ? 110 : 170); FIX.clusters.forEach(function (q) { q.m.visible = Math.hypot(q.x - cx, q.z - cz) < R2; }); },
+      var cx = cam.position.x, cz = cam.position.z; var R2 = cam.position.y > 60 ? 0 : (window.SET && SET.gfx === 2 ? 80 : 60); FIX.clusters.forEach(function (q) { q.m.visible = Math.hypot(q.x - cx, q.z - cz) < R2; }); },
     stats: function () { var nv = 0; FIX.clusters.forEach(function (q) { nv += q.m.geometry.attributes.position.count; }); return { verts: nv, windows: FIX.win ? FIX.win.list.length : 0, furniture: PLACED.length, clusters: FIX.clusters.length, floors: FLOORED.length, ready: !!FIX.ready }; }
   };
 })();

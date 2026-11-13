@@ -19,7 +19,7 @@
     this.parts.forEach(function (pt) {
       var im = new T.InstancedMesh(pt.g, pt.m, L.length); loc.position.fromArray(pt.p || [0, 0, 0]); loc.rotation.fromArray((pt.r || [0, 0, 0]).concat(['XYZ'])); loc.scale.fromArray(pt.s || [1, 1, 1]); loc.updateMatrix();
       L.forEach(function (it, i) { o.position.set(it[0], it[1], it[2]); o.rotation.set(0, it[3], 0); o.scale.setScalar(it[4]); o.updateMatrix(); m4.multiplyMatrices(o.matrix, loc.matrix); im.setMatrixAt(i, m4); if (pt.tint && it[5]) im.setColorAt(i, c.set(it[5])); });
-      im.frustumCulled = false; im.castShadow = shadow !== false && !pt.noShadow; im.receiveShadow = true; scene.add(im);
+      im.frustumCulled = false; im.castShadow = shadow !== false && !pt.noShadow; im.receiveShadow = true; im.userData.kit = 1; scene.add(im); if (window.OPT) OPT.chunk(im);
     });
   };
   var GB, GC, GC8, GS;
@@ -71,7 +71,7 @@
     // eau animée (ondulations, reflets) dans le bassin et la vasque
     var wm = new T.ShaderMaterial({ transparent: true, uniforms: { uT: { value: 0 } }, vertexShader: 'varying vec2 vP; void main(){ vP = position.xy; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
       fragmentShader: 'uniform float uT; varying vec2 vP; void main(){ float r = length(vP); float w = sin(r * 6. - uT * 3.) * .5 + .5, w2 = sin(vP.x * 3. + uT * 1.7) * sin(vP.y * 3.4 - uT * 1.3);\n vec3 c = mix(vec3(.02, .3, .42), vec3(.15, .75, .9), w * .6 + w2 * .2); c += vec3(1.) * smoothstep(.82, 1., w + w2 * .3) * .55;\n gl_FragColor = vec4(c, .86);\n#include <tonemapping_fragment>\n#include <encodings_fragment>\n}' });
-    FX.water.push(wm); var w1 = new T.Mesh(new T.CircleGeometry(4.15, 48), wm); w1.rotation.x = -Math.PI / 2; w1.position.y = .62; G.add(w1);
+    FX.water.push(wm); wm.userData.noBatch = true; var w1 = new T.Mesh(new T.CircleGeometry(4.15, 48), wm); w1.rotation.x = -Math.PI / 2; w1.position.y = .62; G.add(w1);
     // colonne + vasque haute
     var col = [[.0, 0], [.95, .1], [.7, .5], [.55, 1.2], [.65, 1.9], [.9, 2.05], [0, 2.1]].map(function (q) { return new T.Vector2(q[0], q[1]); });
     add(new T.LatheGeometry(col, 24), stoneW, 0, .5, 0);
@@ -79,7 +79,7 @@
     add(new T.LatheGeometry(bowl, 32), stoneW, 0, 2.55, 0); var w2m = new T.Mesh(new T.CircleGeometry(1.95, 32), wm); w2m.rotation.x = -Math.PI / 2; w2m.position.y = 3.2; G.add(w2m);
     add(new T.CylinderGeometry(.55, .75, .8, 16), stoneW, 0, 3.55, 0); add(new T.CylinderGeometry(.85, .85, .14, 20), gold, 0, 4.0, 0);
     // statue de La Wald en or
-    if (window.buildPolo) { var car = window.buildPolo(T, { lite: true }); car.traverse(function (o) { if (o.isMesh) { o.material = gold; o.castShadow = true; } }); car.scale.setScalar(.38); car.position.set(0, 4.07, 0); car.rotation.set(0, .6, -.18); G.add(car); FX.statue = car; }
+    if (window.buildPolo) { var car = window.buildPolo(T, { lite: true }); car.traverse(function (o) { if (o.isMesh) { o.material = gold; o.castShadow = true; } }); car.scale.setScalar(.38); car.position.set(0, 4.07, 0); car.rotation.set(0, .6, -.18); if (window.OPT) OPT.mergeLocal(car); G.add(car); FX.statue = car; car.userData.dyn = true; }
     var halo = new T.PointLight('#ffd23d', 1.5, 14, 2); halo.position.set(0, 6, 0); G.add(halo);
     // jets d'eau : gouttes instanciées qui suivent des paraboles (8 jets du bord vers le centre + la vasque qui déborde)
     var N = 360, drop = new T.InstancedMesh(new T.SphereGeometry(.07, 6, 4), new T.MeshBasicMaterial({ color: '#d8f6ff', transparent: true, opacity: .8 }), N); drop.frustumCulled = false; G.add(drop);
@@ -107,7 +107,7 @@
     var body = new T.SphereGeometry(.12, 8, 6), head = new T.SphereGeometry(.07, 8, 6);
     for (var k = 0; k < 10; k++) { var bird = new T.Group(), bd = new T.Mesh(body, pb); bd.scale.set(1.3, .9, .9); bird.add(bd); var hd = new T.Mesh(head, pb); hd.position.set(.15, .1, 0); bird.add(hd); var bk = new T.Mesh(new T.ConeGeometry(.025, .07, 5), pk); bk.rotation.z = -Math.PI / 2; bk.position.set(.24, .09, 0); bird.add(bk);
       var a2 = k / 10 * 6.283 + Math.random(), r2 = 5 + Math.random() * 1.5; bird.userData = { hx: Math.cos(a2) * r2, hz: Math.sin(a2) * r2, fly: 0, ph: Math.random() * 6 }; bird.position.set(bird.userData.hx, .12, bird.userData.hz); bird.rotation.y = Math.random() * 6; pg.add(bird); FX.pig.push(bird); }
-    G.add(pg); FX.G = G;
+    pg.userData.dyn = true; G.add(pg); FX.G = G;
   }
   window.CITY_FX = FX;
   window.CITY_UPDATE = function (t, dt, px, pz) {
@@ -311,7 +311,7 @@
         var hf = new T.Group(), timber = M('#7a5432'), hy = hgt(t[1] - 2, t[2] + 2); hf.position.set(t[1] - 2, hy, t[2] + 2); S.add(hf);
         [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (q) { var m = new T.Mesh(GB, timber); m.scale.set(.4, 12, .4); m.position.set(q[0] * 2.2, 6, q[1] * 2.2); m.rotation.set(-q[1] * .08, 0, q[0] * .08); hf.add(m); });
         for (var lv = 1; lv < 4; lv++) [[0, 2.2, 4.4, .25], [0, -2.2, 4.4, .25], [2.2, 0, .25, 4.4], [-2.2, 0, .25, 4.4]].forEach(function (q) { var m = new T.Mesh(GB, timber); m.position.set(q[0] * (1 - lv * .06), lv * 3, q[1] * (1 - lv * .06)); m.scale.set(q[2], .25, q[3]); hf.add(m); });
-        var wheel = new T.Mesh(new T.TorusGeometry(1.6, .12, 8, 28), M('#3a3a40')); wheel.position.set(0, 12.6, 0); hf.add(wheel); FX.mineWheel = wheel;
+        var wheel = new T.Mesh(new T.TorusGeometry(1.6, .12, 8, 28), M('#3a3a40')); wheel.position.set(0, 12.6, 0); hf.add(wheel); FX.mineWheel = wheel; wheel.userData.dyn = true;
         for (var sk = 0; sk < 6; sk++) { var m = new T.Mesh(GB, M('#3a3a40')); m.scale.set(.08, 3.1, .08); m.rotation.z = sk / 6 * Math.PI; wheel.add(m); }
         hf.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); col(t[1] - 2, t[2] + 2, 2.4, 2.4, 12);
         var ex = t[1] - 22, ez = t[2] + 20, ey = hgt(ex, ez), mound = new T.Mesh(new T.SphereGeometry(1, 14, 8, 0, 6.283, 0, Math.PI / 2), M('#a0583a')); mound.scale.set(11, 8, 9); mound.position.set(ex - 6, ey - .5, ez + 4); mound.castShadow = mound.receiveShadow = true; S.add(mound); col(ex - 6, ez + 4, 8, 6, 7);
@@ -399,7 +399,7 @@
       for (var bl = 0; bl < 14; bl++) { var bg = new T.Group(), b = new T.Mesh(GB, bl % 2 ? bladeM : M('#d83a30', { side: T.DoubleSide })); b.scale.set(.42, 1.7, .03); b.position.y = 1.55; b.rotation.y = .5; bg.add(b); bg.rotation.z = bl / 14 * 6.283; Gm.add(bg); }
       var ring = new T.Mesh(new T.TorusGeometry(2.35, .05, 6, 40), steelM); Gm.add(ring); var ring2 = new T.Mesh(new T.TorusGeometry(.75, .05, 6, 24), steelM); Gm.add(ring2);
       var hub = new T.Mesh(GC, M('#3a3a40')); hub.scale.set(.45, .4, .45); hub.rotation.x = Math.PI / 2; Gm.add(hub);
-      mill.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); FX.mill = Gm; col(mx, mz, 1.9, 1.9, 4);
+      mill.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); FX.mill = Gm; Gm.userData.dyn = true; col(mx, mz, 1.9, 1.9, 4);
       [CORN, WHEAT, PUMP, CABB, SCARE, SILO, TRAC, RAIL, BALE, TROUGH].forEach(function (k) { k.flush(S, true); });
     })();
 
