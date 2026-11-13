@@ -334,6 +334,8 @@ body:not(.touch) #bCrouch{display:none}
 <script src="nature.js"></script>
 <script src="weapons3d.js"></script>
 <script src="city.js"></script>
+<script src="GLTFLoader.js"></script>
+<script src="interiors.js"></script>
 <script>
 (function () {
 'use strict';
@@ -565,20 +567,11 @@ var TX = {
       g.fillStyle = 'rgba(60,55,50,.45)'; [[60, 60], [196, 60], [60, 196], [196, 196]].forEach(function (q) { g.beginPath(); g.arc(x + q[0], y + q[1], 6, 0, 6.283); g.fill(); g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.arc(x + q[0] + 1.5, y + q[1] + 1.5, 3, 0, 6.283); g.fill(); g.fillStyle = 'rgba(60,55,50,.45)'; }); }
     g.strokeStyle = 'rgba(70,64,58,.75)'; g.lineWidth = 4; for (var k2 = 0; k2 <= 2; k2++) { g.beginPath(); g.moveTo(0, k2 * 256); g.lineTo(s, k2 * 256); g.stroke(); g.beginPath(); g.moveTo(k2 * 256, 0); g.lineTo(k2 * 256, s); g.stroke(); }
     g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 2; for (k2 = 0; k2 <= 2; k2++) { g.beginPath(); g.moveTo(0, k2 * 256 + 3); g.lineTo(s, k2 * 256 + 3); g.stroke(); g.beginPath(); g.moveTo(k2 * 256 + 3, 0); g.lineTo(k2 * 256 + 3, s); g.stroke(); } }),
-  facade: ctex(512, function (g, s) {
-    var gr0 = g.createLinearGradient(0, 0, 0, s); gr0.addColorStop(0, '#f4f2ee'); gr0.addColorStop(1, '#e2ded8'); g.fillStyle = gr0; g.fillRect(0, 0, s, s);
-    var CUR = ['#ff6aa8', '#ffd23d', '#9b6aff', null];
-    for (var r = 0; r < 2; r++) for (var c = 0; c < 2; c++) { var cx0 = c * 256, cy0 = r * 256, x = cx0 + 24, y = cy0 + 30, w = 208, h = 176, idx = r * 2 + c;
-      g.fillStyle = '#d4d0ca'; g.fillRect(cx0, cy0 + 222, 256, 34); g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(cx0, cy0 + 222, 256, 4); g.fillStyle = 'rgba(80,70,60,.3)'; g.fillRect(cx0, cy0 + 252, 256, 4);   // bandeau d'étage
-      rrect(g, x - 8, y - 8, w + 16, h + 16, 8); g.fillStyle = '#2f3d52'; g.fill();   // cadre
-      var gr = g.createLinearGradient(x, y, x, y + h); gr.addColorStop(0, '#bfe9ff'); gr.addColorStop(.45, '#5aa8e8'); gr.addColorStop(1, '#2a5fa8'); g.fillStyle = gr; g.fillRect(x, y, w, h);   // vitre
-      if (CUR[idx]) { g.fillStyle = CUR[idx]; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 46, y); g.quadraticCurveTo(x + 30, y + h * .6, x + 52, y + h); g.lineTo(x, y + h); g.fill(); g.fillStyle = 'rgba(0,0,0,.18)'; for (var f = 1; f < 4; f++) g.fillRect(x + f * 11, y, 3, h); }
-      if (idx === 3) { g.fillStyle = 'rgba(255,220,140,.55)'; g.fillRect(x + 120, y + 70, 70, 106); g.fillStyle = '#3a7a3a'; g.beginPath(); g.arc(x + 160, y + 140, 18, 0, 6.283); g.fill(); g.fillStyle = '#a0603a'; g.fillRect(x + 150, y + 150, 20, 26); }   // pièce éclairée + plante
-      g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(x + 60, y); g.lineTo(x + 100, y); g.lineTo(x + 40, y + h); g.lineTo(x, y + h); g.lineTo(x, y + h - 40); g.closePath(); g.fill();
-      g.fillStyle = 'rgba(255,255,255,.3)'; g.beginPath(); g.moveTo(x + 118, y); g.lineTo(x + 132, y); g.lineTo(x + 72, y + h); g.lineTo(x + 58, y + h); g.closePath(); g.fill();   // reflets peints
-      g.fillStyle = 'rgba(10,30,60,.35)'; g.fillRect(x, y, w, 10); g.fillRect(x, y, 8, h);   // ombre intérieure
-      g.fillStyle = '#2f3d52'; g.fillRect(x + w / 2 - 4, y, 8, h); g.fillRect(x, y + h * .62, w, 6);   // meneaux
-      g.fillStyle = '#ffffff'; g.fillRect(x - 12, y + h + 8, w + 24, 8); g.fillStyle = 'rgba(80,70,60,.35)'; g.fillRect(x - 12, y + h + 16, w + 24, 4); } }),   // appui de fenêtre
+  facade: ctex(512, function (g, s) {   // façade moderne sans fenêtres peintes (les vraies fenêtres sont posées par interiors.js)
+    var gr0 = g.createLinearGradient(0, 0, 0, s); gr0.addColorStop(0, '#f4f2ee'); gr0.addColorStop(1, '#e6e2dc'); g.fillStyle = gr0; g.fillRect(0, 0, s, s);
+    for (var r = 0; r < 2; r++) { var y0 = r * 256; g.fillStyle = '#c9d4e2'; g.fillRect(0, y0 + 222, s, 34); g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(0, y0 + 222, s, 4); g.fillStyle = 'rgba(60,70,90,.3)'; g.fillRect(0, y0 + 252, s, 4);   // bandeau d'étage bleu gris
+      for (var c = 0; c < 4; c++) { var x0 = c * 128; g.strokeStyle = 'rgba(120,110,100,.22)'; g.lineWidth = 2; g.strokeRect(x0 + 4, y0 + 6, 120, 212); g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(x0 + 6, y0 + 8, 116, 3); } }
+    for (var p = 0; p < 4; p++) { g.fillStyle = 'rgba(200,190,180,.25)'; g.fillRect(p * 128 + 60, 0, 8, s); } }),
   verre: ctex(64, function (g, s) { g.fillStyle = '#d6efff'; g.fillRect(0, 0, s, s); g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(8, 0, 6, s); }),
   toit: ctex(256, function (g, s) { g.fillStyle = '#5a1e14'; g.fillRect(0, 0, s, s);
     for (var y = 9; y >= -1; y--) for (var x = -1; x < 9; x++) { var cx = x * 32 + (y % 2 ? 16 : 0) + 16, cy = y * 28, k = srnd(x * 17 + y * 5), l = 40 + k * 10;
@@ -982,8 +975,9 @@ var GFX = (function () {
   return G;
 })();
 if (window.CITY) try { CITY.build(THREE, { scene: scene, HOUSES: HOUSES, TOWNS: TOWNS, ROADS: ROADS, ROADP: ROADP, FARM: FARM, inField: inField, onFarmPath: onFarmPath, hgt: hgt, inTown: inTown, nearRoad: nearRoad, DES: DES, H: H, PCOL: PCOL }); } catch (e) { console.error('CITY', e); }
+if (window.INTERIORS) try { INTERIORS.build(THREE, { scene: scene, HOUSES: HOUSES, WALLS: WALLS, hgt: hgt, PCOL: PCOL, worldMat: worldMat, TX: TX, H: H }); } catch (e) { console.error('INTERIORS', e); }
 var dummy = new THREE.Object3D(), ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
-function setWall(w, on) { var h = w.lintel ? w.h - 2.6 : w.h, y = w.y0 + (w.lintel ? 2.6 + h / 2 : h / 2); dummy.position.set(w.x, y, w.z); dummy.rotation.set(0, 0, 0); if (on) dummy.scale.set(w.hw * 2, h, w.hd * 2); else dummy.scale.set(0, 0, 0); dummy.updateMatrix(); w.im.setMatrixAt(w.ii, dummy.matrix); w.im.instanceMatrix.needsUpdate = true; }
+function setWall(w, on) { var h = w.lintel ? w.h - 2.6 : w.h, y = w.y0 + (w.lintel ? 2.6 + h / 2 : h / 2); dummy.position.set(w.x, y, w.z); dummy.rotation.set(0, 0, 0); if (on) dummy.scale.set(w.hw * 2, h, w.hd * 2); else dummy.scale.set(0, 0, 0); dummy.updateMatrix(); w.im.setMatrixAt(w.ii, dummy.matrix); w.im.instanceMatrix.needsUpdate = true; if (w.wins && window.INTERIORS) INTERIORS.setWall(w, on); }
 function setRoof(hs, on) { var cOn = !(hs.broken >= 2); if (hs.cim && hs.cOn !== cOn) { hs.cOn = cOn; hs.cim.setMatrixAt(hs.ci, cOn ? hs.cmat : ZERO); hs.cim.instanceMatrix.needsUpdate = true; } if (hs.roofOn === on) return; hs.roofOn = on; hs.ri.forEach(function (ii, j) { hs.rim.setMatrixAt(ii, on ? hs.mats[j] : ZERO); }); hs.rim.instanceMatrix.needsUpdate = true;
   if (hs.gim) { var gon = on || hs.broken < 2; hs.gi.forEach(function (ii, j) { hs.gim.setMatrixAt(ii, gon ? hs.gmats[j] : ZERO); }); hs.gim.instanceMatrix.needsUpdate = true; } }
 function resetWalls() { WALLS.forEach(function (w) { w.hp = MATS[w.m].hp * (w.h > H ? 1.4 : 1); w.alive = true; setWall(w, true); }); HOUSES.forEach(function (hs) { hs.broken = 0; hs.roofOn = null; setRoof(hs, true); }); }
@@ -1391,7 +1385,7 @@ function dist(ax, az, bx, bz) { return Math.hypot(ax - bx, az - bz); }
 function pushCircle(o, r) {
   for (var qi = 0; qi < PEBS.length; qi++) { var pb = PEBS[qi], ex = o.x - pb.x, ez = o.z - pb.z; if (Math.abs(ex) > 2 || Math.abs(ez) > 2) continue; if (o.y != null && o.y > pb.y + pb.h) continue; var ed = Math.hypot(ex, ez), em = r + pb.r;
     if (ed < em && ed > 0) { var enx = ex / ed, enz = ez / ed, evn = o.vx * enx + o.vz * enz; o.x = pb.x + enx * em; o.z = pb.z + enz * em; if (evn < 0) { o.vx -= evn * enx; o.vz -= evn * enz; } } }
-  for (var pi = 0; pi < PCOL.length; pi++) { var c = PCOL[pi], qx = o.x - c.x, qz = o.z - c.z; if (Math.abs(qx) > c.hw + r || Math.abs(qz) > c.hd + r) continue; if (o.y != null && o.y > c.y0 + c.h) continue;
+  for (var pi = 0; pi < PCOL.length; pi++) { var c = PCOL[pi], qx = o.x - c.x, qz = o.z - c.z; if (Math.abs(qx) > c.hw + r || Math.abs(qz) > c.hd + r) continue; if (o.y != null && (o.y > c.y0 + c.h || o.y + 1.7 < c.y0)) continue;
     var px2 = c.hw + r - Math.abs(qx), pz2 = c.hd + r - Math.abs(qz); if (px2 < pz2) o.x += qx < 0 ? -px2 : px2; else o.z += qz < 0 ? -pz2 : pz2; }
   for (var i = 0; i < WALLS.length; i++) { var w = WALLS[i]; if (!w.alive) continue; var dx = o.x - w.x, dz = o.z - w.z; if (Math.abs(dx) > w.hw + r || Math.abs(dz) > w.hd + r) continue; if (o.y != null && o.y > w.y0 + w.h) continue; if (w.lintel && (o.y || 0) - w.y0 + 2 < 2.6) continue;
     var cx = Math.max(-w.hw, Math.min(w.hw, dx)), cz = Math.max(-w.hd, Math.min(w.hd, dz)), px = dx - cx, pz = dz - cz, d = Math.hypot(px, pz);
@@ -1582,7 +1576,7 @@ function update(dt) {
       if (actPress) { if (p.veh) leave(p); else { var nv = nearVeh(p), sw = nearSwap(p); if (nv) enter(p, nv); else if (sw) { var old = p.inv[p.slot]; p.inv[p.slot] = sw.slot; removeItem(sw); if (old) dropItem(p.x + 1.4, p.z, old.k, old); SFX.pick(); toast(WEAPONS[sw.t].name.toUpperCase()); } } }
     }
     if (p.veh) { p.x = p.veh.x; p.z = p.veh.z; p.y = p.gy = p.veh.y; p.vx = p.veh.vx; p.vz = p.veh.vz; }
-    else { pushCircle(p, .45); p.gy = hgt(p.x, p.z); p.vy -= 25 * dt; p.y += p.vy * dt; if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } }
+    else { pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); p.vy -= 25 * dt; p.y += p.vy * dt; if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } }
   });
   actPress = jumpPress = nitroPress = false;
   vehicles.forEach(function (v) { if (!v.alive) return; if (!v.driver) { var k = Math.exp(-2 * dt); v.vx *= k; v.vz *= k; } v.x += v.vx * dt; v.z += v.vz * dt; if (Math.abs(v.vx) + Math.abs(v.vz) > .05) pushCircle(v, v.r); v.y = hgt(v.x, v.z); if (v.driver) { v.driver.x = v.x; v.driver.z = v.z; }
@@ -1668,9 +1662,9 @@ function updCam(dt) {
   camKick *= Math.exp(-dt * 14); var p2 = camP + camKick;
   var dx = Math.cos(p2) * Math.cos(camA), dy = Math.sin(p2), dz = Math.cos(p2) * Math.sin(camA), rx = -Math.sin(camA), rz = Math.cos(camA);
   var px = tx + rx * sh, py = ty + h, pz = tz + rz * sh;
-  var hb = castRayStatic(px, py, pz, -dx, -dy, -dz, dd); dd = Math.max(1.2, Math.min(dd, hb - .3));
+  var hb = castRayStatic(px, py, pz, -dx, -dy, -dz, dd); dd = Math.max(.45, Math.min(dd, hb - .25));
   cam.position.set(px - dx * dd, py - dy * dd, pz - dz * dd); cam.position.y = Math.max(cam.position.y, hgt(cam.position.x, cam.position.z) + .5);
-  if (me.mode === 'ground' && !me.veh) for (var hi = 0; hi < HOUSES.length; hi++) { var hs = HOUSES[hi]; if (hs.broken < 2 && Math.abs(me.x - hs.x) < hs.hx && Math.abs(me.z - hs.z) < hs.hz && me.y < hs.y0 + hs.h - .5) { cam.position.y = Math.min(cam.position.y, hs.y0 + hs.h - .4); break; } }   // sous le plafond
+  if (me.mode === 'ground' && !me.veh && window.INTERIORS) { var cl = INTERIORS.ceilAt(me.x, me.z, me.y); if (cl != null) cam.position.y = Math.max(me.y + .6, Math.min(cam.position.y, cl - .35)); }   // sous le plafond de l'étage
   var ff = (SET.gfx === 0 ? 300 : SET.gfx === 1 ? 420 : 560) + Math.max(0, cam.position.y - 10) * 2.5; scene.fog.far = ff; scene.fog.near = ff * .5; cam.far = ff + 60; cam.near = Math.min(4, Math.max(.25, (cam.position.y - hgt(cam.position.x, cam.position.z)) * .035)); cam.updateProjectionMatrix(); cam.lookAt(cam.position.x + dx, cam.position.y + dy, cam.position.z + dz);
 }
 function drawMini() {
@@ -1748,7 +1742,7 @@ function loop(now) {
   else {
     if (state === 'play') update(dt); else if (state === 'end') { updParts(dt); updTracers(dt); }
     if (state === 'play' && invOpen() && (invT += dt) > .5) { invT = 0; invRender(); }
-    updCam(dt); syncModels(t, dt); if (window.CITY_UPDATE) CITY_UPDATE(t, dt, me.x, me.z); if (document.body.classList.contains('scoped')) me.model.root.visible = false; roofsUpdate(); var fx0 = me.mode === 'bus' ? bus.x : me.x, fz0 = me.mode === 'bus' ? bus.z : me.z; sun.position.set(fx0 + 40, 90, fz0 + 25); sun.target.position.set(fx0, 0, fz0); sky.position.copy(cam.position); sky.scale.setScalar(cam.far * .92); skyMat.uniforms.uTime.value = t; GFX.update(t, dt); drawScene(scene, cam); if (state === 'play') { hud(); drawMini(); } updDN(dt);
+    updCam(dt); syncModels(t, dt); if (window.CITY_UPDATE) CITY_UPDATE(t, dt, me.x, me.z); if (window.INTERIORS) INTERIORS.update(cam, scene.fog); if (document.body.classList.contains('scoped')) me.model.root.visible = false; roofsUpdate(); var fx0 = me.mode === 'bus' ? bus.x : me.x, fz0 = me.mode === 'bus' ? bus.z : me.z; sun.position.set(fx0 + 40, 90, fz0 + 25); sun.target.position.set(fx0, 0, fz0); sky.position.copy(cam.position); sky.scale.setScalar(cam.far * .92); skyMat.uniforms.uTime.value = t; GFX.update(t, dt); drawScene(scene, cam); if (state === 'play') { hud(); drawMini(); } updDN(dt);
   }
   document.body.classList.toggle('inmenu', state !== 'play');
   requestAnimationFrame(loop);
@@ -1875,7 +1869,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:' && !/WaldRoya
 
 setGfx(SET.gfx); showStats(); reset(); try { R3.compile(scene, cam); R3.compile(lscene, lcam); } catch (e) {} requestAnimationFrame(loop);
 if (!$('lobby').hidden) { initAudio(); music(true); }
-window.WR = { cam: cam, gfx: GFX, roads: ROADP, farm: FARM, towns: TOWNS, mask: MASK, terr: groundTex, drop: DROP, dropItem: function (x, z, t) { return dropItem(x, z, t); }, useHeal: function (t) { useHeal(t); }, inv: invToggle, balloon: balloon, aim: function () { var cp = cam.position, cd = cam.getWorldDirection(new THREE.Vector3()), tMin = cp.distanceTo(new THREE.Vector3(me.x, me.y + 1.5, me.z)); var h = castRay(cp.x + cd.x * tMin, cp.y + cd.y * tMin, cp.z + cd.z * tMin, cd.x, cd.y, cd.z, 120, me, .06); return { kind: h.kind, t: h.t, name: h.o && h.o.name, cp: [cp.x, cp.y, cp.z], cd: [cd.x, cd.y, cd.z], me: [me.x, me.y, me.z], mode: me.mode, AUTO: AUTO, w: cur(me) && cur(me).k, state: state }; }, get me() { return me; }, pl: pl, vehicles: vehicles, get state() { return state; }, start: start, update: update, items: items, setCam: function (a, p) { camA = a; camP = p; }, fire: function (on) { fireHeld = on; }, give: function (k) { me.inv[me.slot] = newSlot(k); } };
+window.WR = { interiors: function () { return window.INTERIORS && INTERIORS.stats(); }, cam: cam, gfx: GFX, roads: ROADP, farm: FARM, towns: TOWNS, mask: MASK, terr: groundTex, drop: DROP, dropItem: function (x, z, t) { return dropItem(x, z, t); }, useHeal: function (t) { useHeal(t); }, inv: invToggle, balloon: balloon, aim: function () { var cp = cam.position, cd = cam.getWorldDirection(new THREE.Vector3()), tMin = cp.distanceTo(new THREE.Vector3(me.x, me.y + 1.5, me.z)); var h = castRay(cp.x + cd.x * tMin, cp.y + cd.y * tMin, cp.z + cd.z * tMin, cd.x, cd.y, cd.z, 120, me, .06); return { kind: h.kind, t: h.t, name: h.o && h.o.name, cp: [cp.x, cp.y, cp.z], cd: [cd.x, cd.y, cd.z], me: [me.x, me.y, me.z], mode: me.mode, AUTO: AUTO, w: cur(me) && cur(me).k, state: state }; }, get me() { return me; }, pl: pl, vehicles: vehicles, get state() { return state; }, start: start, update: update, items: items, setCam: function (a, p) { camA = a; camP = p; }, fire: function (on) { fireHeld = on; }, give: function (k) { me.inv[me.slot] = newSlot(k); } };
 })();
 </script>
 </body>

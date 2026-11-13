@@ -128,6 +128,7 @@
         if (u.fly > 9) { u.fly = 0; b.position.set(u.hx, .12, u.hz); b.children[0].scale.z = .9; } }
       else { b.position.y = .12 + Math.max(0, Math.sin(t * 6 + u.ph)) * .02; b.children[1].position.y = .1 - Math.max(0, Math.sin(t * 4 + u.ph)) * .08; if (Math.sin(t * .7 + u.ph) > .98) b.rotation.y += dt * 3; } });
   };
+  window.EXT_FURN = window.EXT_FURN || [];
   window.CITY = { build: function (THREE, ctx) {
     T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.2, DES = ctx.DES, PCOL = ctx.PCOL || [];
     GB = new T.BoxGeometry(1, 1, 1); GC = new T.CylinderGeometry(.5, .5, 1, 14); GC8 = new T.CylinderGeometry(.5, .5, 1, 8); GS = new T.SphereGeometry(.5, 12, 8);
@@ -176,6 +177,7 @@
     var PUMP = new Kit([part(GB, M('#e8e8ee'), [0, .9, 0], [.8, 1.8, .55]), part(GB, M('#d8202e'), [0, 1.65, 0], [.82, .3, .57]), part(GB, M('#1a1a20'), [0, 1.2, .28], [.5, .35, .02]), part(GB, M('#2a2a30'), [0, .08, 0], [1.2, .16, .9])]);
     var LOUNGE = new Kit([part(GB, white, [0, .3, 0], [.7, .1, 1.9]), part(GB, white, [0, .55, -.85], [.7, .5, .08], [-.6, 0, 0]), part(GB, M('#2ab8f0'), [0, .37, .1], [.65, .06, 1.4])]);
     var GOLDF = new Kit([part(GB, P('#ffc83a', { emissive: '#3a2400' }), [0, 1.2, 0], [3.4, .1, .1]), part(GB, P('#ffc83a', { emissive: '#3a2400' }), [0, .3, 0], [3.4, .1, .1])].concat([-1.5, -.9, -.3, .3, .9, 1.5].map(function (x) { return part(GC8, P('#ffc83a', { emissive: '#3a2400' }), [x, .8, 0], [.08, 1.6, .08]); })));
+    var PARASOL = new Kit([part(GC8, M('#e8e8ee'), [0, 1.2, 0], [.07, 2.4, .07]), part(new T.ConeGeometry(1.5, .55, 10, 1, true), M('#ffffff', { side: T.DoubleSide }), [0, 2.35, 0], null, null, { tint: 1 }), part(GC8, M('#e8e8ee'), [0, .05, 0], [.5, .1, .5])]);
     var CHIM = new Kit([part(GB, M('#8a4a3a'), [0, .7, 0], [.6, 1.4, .6]), part(GB, dark, [0, 1.42, 0], [.7, .08, .7])]);
 
     // ---------- bâtiments ----------
@@ -232,6 +234,13 @@
       if (hs.barn || hs.farmhouse) farmDecor(hs, y, top);
       // devant la porte : auvent + enseigne néon (villes), jardinières
       var dx = hs.x + fx * (fD + .02), dz = hs.z + fz * (fD + .02);
+      // terrasses de café devant les immeubles des villes modernes (tables et chaises Kenney + parasol)
+      var tw = ctx.TOWNS.filter(function (t) { return Math.hypot(hs.x - t[1], hs.z - t[2]) < t[3]; })[0];
+      if (tw && hs.flat && !hs.fav && !hs.villa && (tw[4] === 'centre' || tw[4] === 'concess' || tw[4] === 'motel') && r() < .7) [-1, 1].forEach(function (sd) {
+        var tx = dx + fx * 3.6 + (fz ? sd * Math.min(fW - 1.6, 4) : 0), tz = dz + fz * 3.6 + (fx ? sd * Math.min(fW - 1.6, 4) : 0);
+        if (Math.hypot(tx - tw[1], tz - tw[2]) < 13 || ctx.HOUSES.some(function (h) { return Math.abs(h.x - tx) < h.hx + 1.8 && Math.abs(h.z - tz) < h.hz + 1.8; })) return;
+        var ty = hgt(tx, tz); window.EXT_FURN.push(['tableRound', tx, ty, tz, 0]); [0, 2.1, 4.2].forEach(function (a) { window.EXT_FURN.push([r() < .5 ? 'chairCushion' : 'chair', tx + Math.sin(a) * 1.05, ty, tz + Math.cos(a) * 1.05, a + Math.PI]); });
+        PARASOL.add(tx, ty, tz, r() * 6, 1, ['#ff2bd6', '#ffd23d', '#2de2ff', '#ff4a3a', '#7dff6a'][(i + (sd > 0 ? 1 : 0)) % 5]); col(tx, tz, .6, .6, .8); });
       if (town && !hs.barn && !hs.farmhouse && !hs.fav && !hs.villa) {
         AWN.add(dx, y + 3.1, dz, ry, 1, AWNC[i % AWNC.length]);
         if (hs.flat && signN < 40 && hs.m !== 'metal') { var sg = SIGNS[signN++ % SIGNS.length], mt = new T.MeshBasicMaterial({ map: neonTex(sg[0], sg[1]) }), sw = Math.min(fW * 1.6, 7), sm = new T.Mesh(new T.PlaneGeometry(sw, sw / 4), mt);
@@ -398,6 +407,6 @@
     (ctx.ROADP || []).forEach(function (pts) { var acc = 0, n = 0;
       for (var i = 1; i < pts.length; i++) { var dx = pts[i][0] - pts[i - 1][0], dz = pts[i][1] - pts[i - 1][1], L = Math.hypot(dx, dz) || 1; acc += L; if (acc < 26) continue; acc = 0; n++;
         var ux = dx / L, uz = dz / L, sd = n % 2 ? 1 : -1, x = pts[i][0] - uz * 6.8 * sd, z = pts[i][1] + ux * 6.8 * sd; if (ctx.inTown(x, z, 2) || ctx.nearRoad(x, z, 5.5)) continue; LAMP.add(x, hgt(x, z), z, Math.atan2(ux * sd, uz * sd)); } });
-    [AC, TANK, ANT, SOLAR, HUT, AWN, LAMP, BENCH, BIN, HYD, BOLL, PLANT, STOP, CONE, BARREL, TIRE, CRATE, FENCE, HAY, CONT, FLAG, POT, WELL, CHIM, BTANK, REBAR, LINE, ORE, LOGS, PALM, TENT, FIRE, PICNIC, RAILT, CART, PUMP, LOUNGE, GOLDF].forEach(function (k) { k.flush(S, true); });
+    [AC, TANK, ANT, SOLAR, HUT, AWN, LAMP, BENCH, BIN, HYD, BOLL, PLANT, STOP, CONE, BARREL, TIRE, CRATE, FENCE, HAY, CONT, FLAG, POT, WELL, CHIM, PARASOL, BTANK, REBAR, LINE, ORE, LOGS, PALM, TENT, FIRE, PICNIC, RAILT, CART, PUMP, LOUNGE, GOLDF].forEach(function (k) { k.flush(S, true); });
   } };
 })();

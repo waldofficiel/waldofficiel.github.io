@@ -120,7 +120,22 @@
     [-1, 1].forEach(function (sd) { S(g, wh, 1.43, Y + 1.25, sd * .3, .16, .18, .12); S(g, bk, 1.55, Y + 1.27, sd * .32, .08, .1, .06); S(g, yel, -.25, Y + .2, sd * 1.25, .9, .35, .32).rotation.x = sd * -.4; });
     var ring = new T.Mesh(new T.TorusGeometry(.95, .06, 8, 32), M('#ff2bd6', { emissive: '#7a0060' })); ring.rotation.x = Math.PI / 2; ring.position.set(-.2, Y - .3, 0); ring.scale.set(1.5, 1.2, 1); g.add(ring);
     ropes(g, [[.6, Y - .6, .6], [.6, Y - .6, -.6], [-.9, Y - .6, .6], [-.9, Y - .6, -.6]]); g.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); return g; }
-  function waldcar(THREE) { var g = new THREE.Group(), Y = 2.5, body = M('#16161c', { shininess: 160, specular: '#ffffff', emissive: '#08040e' }), red = M('#ff1f3a', { emissive: '#ff0020', emissiveIntensity: .7 }), gl = M('#9fd8ff', { shininess: 160, specular: '#ffffff', transparent: true, opacity: .75 }), pink = M('#ff2bd6', { emissive: '#7a0060' }), tyre = M('#26262c', { shininess: 80 }), chrome = M('#e8ecf2', { shininess: 160, specular: '#ffffff' });
+  function waldcar(THREE) { if (window.buildPolo) return waldcarPolo(THREE); return waldcarOld(THREE); }
+  // la vraie La Wald (polo3d.js) en version gonflable : plastique brillant, coutures roses, valve, cordes
+  function waldcarPolo(THREE) { var g = new THREE.Group(), car = window.buildPolo(THREE, { lite: true }), Y = 2.25, S2 = 1.32;
+    car.traverse(function (o) { if (!o.isMesh) return; var mats = Array.isArray(o.material) ? o.material : [o.material];
+      var nm = mats.map(function (m) { var c = m.color ? m.color.clone() : new THREE.Color(1, 1, 1); return new THREE.MeshPhongMaterial({ color: c, map: m.map || null, shininess: 120, specular: new THREE.Color(.45, .45, .55), emissive: m.map ? new THREE.Color(.02, .05, .16) : c.clone().multiplyScalar(.08), transparent: m.transparent, opacity: m.opacity, side: m.side }); });
+      o.material = Array.isArray(o.material) ? nm : nm[0]; o.castShadow = true; });
+    car.scale.setScalar(S2); car.position.y = Y; g.add(car);
+    var box = new THREE.Box3().setFromObject(car), mn = box.min, mx = box.max, cz = (mn.z + mx.z) / 2, cx = (mn.x + mx.x) / 2;
+    // coutures roses de bouée tout autour de la caisse + valve jaune sur le capot
+    var seam = M('#ff2bd6', { emissive: '#7a0060', emissiveIntensity: .6 });
+    [.5, .95].forEach(function (yy, k) { var r = new THREE.Mesh(new THREE.TorusGeometry(1, .06, 6, 48), seam); r.rotation.x = Math.PI / 2; r.position.set(cx, Y + yy * S2, cz); r.scale.set(2.08 * S2 - k * .25, .92 * S2, 1); g.add(r); });   // coutures de bouée
+    var valve = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .22, 10), M('#ffd23d', { shininess: 120 })); valve.position.set(cx + 1.2 * S2, Y + 1.0 * S2, cz); g.add(valve);
+    var cap = new THREE.Mesh(new THREE.SphereGeometry(.09, 10, 8), M('#ffd23d')); cap.position.copy(valve.position).add(new THREE.Vector3(0, .13, 0)); g.add(cap);
+    ropes(g, [[mx.x - .5, mn.y + .25, mx.z - .2], [mx.x - .5, mn.y + .25, mn.z + .2], [mn.x + .5, mn.y + .25, mx.z - .2], [mn.x + .5, mn.y + .25, mn.z + .2]]);
+    g.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); return g; }
+  function waldcarOld(THREE) { var g = new THREE.Group(), Y = 2.5, body = M('#16161c', { shininess: 160, specular: '#ffffff', emissive: '#08040e' }), red = M('#ff1f3a', { emissive: '#ff0020', emissiveIntensity: .7 }), gl = M('#9fd8ff', { shininess: 160, specular: '#ffffff', transparent: true, opacity: .75 }), pink = M('#ff2bd6', { emissive: '#7a0060' }), tyre = M('#26262c', { shininess: 80 }), chrome = M('#e8ecf2', { shininess: 160, specular: '#ffffff' });
     S(g, body, 0, Y, 0, 2.1, .62, 1.05);   // caisse gonflée
     S(g, body, -.25, Y + .55, 0, 1.15, .48, .9);   // habitacle
     S(g, gl, .5, Y + .62, 0, .5, .36, .78); S(g, gl, -1.0, Y + .62, 0, .35, .3, .74);   // pare-brise / lunette
