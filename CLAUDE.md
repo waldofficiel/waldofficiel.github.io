@@ -219,6 +219,9 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Optimisation** `jeu/optimize.js` : `OPT.chunk(im)` découpe les InstancedMesh fixes (végétation, kits de `city.js`) en paquets de 200 m avec vraie sphère englobante ; `OPT.batch(roots)` fusionne tous les petits meshes fixes du décor par matériau et par zone (les couleurs unies sont écrites dans les sommets, les petits kits instanciés sont fondus aussi) ; `OPT.mergeLocal(g)` fusionne un objet qui bouge (véhicules, butin, coffres, statue). Tout ce qui s'anime doit avoir `userData.dyn = true` (ou `material.userData.noBatch` pour un shader d'eau). **Sol** en 36 morceaux avec 2 niveaux de détail et une jupe (`groundChunk`, `groundLOD`). Persos cachés au-delà de 260 m, meubles au-delà de 60/80 m, ombres recalculées 1 image sur 2 en Moyen/Bas. Mesures headless (Max, en ville) : ~2 fois moins d'appels de dessin et de triangles qu'avant.
 - `WR.r3`, `WR.scene`, `WR.props()` pour les tests.
 
+## Enseignes de magasins (novembre 2026)
+- `jeu/signs.js` (`window.BRAND`) : 16 **marques inventées** (aucune vraie marque), chacune avec fond, icône dessinée et police à elle : burger (Luckiest Guy), café (Pacifico), pizza (Lobster), salle de sport (Russo One), pharmacie (Righteous), supermarché (Fredoka), jeux vidéo (Press Start 2P), mode (Abril Fatface), baskets (Permanent Marker), donuts (Shrikhand), club (Monoton), hôtel (Bungee), tacos (Bangers), banque (Alfa Slab One), glaces (Fredoka), surplus (Black Ops One). Noms différents sur le désert. Polices libres (OFL / Apache) dans `jeu/fonts/` avec leurs licences, chargées par `FontFace` ; les textures se redessinent quand elles sont prêtes (`BRAND.later`). `neonTex` (lodge, motel) et les panneaux de pub (`adTex`) utilisent aussi ces polices.
+
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.

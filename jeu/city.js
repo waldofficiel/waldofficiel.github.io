@@ -25,17 +25,22 @@
   var GB, GC, GC8, GS;
   function part(g, m, p, s, r, extra) { return Object.assign({ g: g, m: m, p: p, s: s, r: r }, extra || {}); }
 
-  function neonTex(txt, col, w) {
+  function neonTex(txt, col, w, font) {
     var c = document.createElement('canvas'); c.width = w || 512; c.height = 128; var g = c.getContext('2d');
-    g.fillStyle = '#0c0614'; g.fillRect(0, 0, c.width, 128); g.strokeStyle = col; g.lineWidth = 6; g.shadowColor = col; g.shadowBlur = 24; g.strokeRect(10, 10, c.width - 20, 108);
-    g.font = '900 64px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.shadowBlur = 30; g.fillText(txt, c.width / 2, 68); g.fillStyle = col; g.shadowBlur = 0; g.globalAlpha = .35; g.fillText(txt, c.width / 2, 68);
-    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t;
+    function draw(g, c) { g.save(); g.clearRect(0, 0, c.width, 128); g.fillStyle = '#0c0614'; g.fillRect(0, 0, c.width, 128); g.strokeStyle = col; g.lineWidth = 6; g.shadowColor = col; g.shadowBlur = 24; g.strokeRect(10, 10, c.width - 20, 108);
+      var sz = 64; g.font = sz + 'px "' + (font || 'Bungee') + '", Arial Black, Arial'; while (g.measureText(txt).width > c.width - 60 && sz > 24) { sz -= 4; g.font = sz + 'px "' + (font || 'Bungee') + '", Arial Black, Arial'; }
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.shadowBlur = 30; g.fillText(txt, c.width / 2, 68); g.fillStyle = col; g.shadowBlur = 0; g.globalAlpha = .35; g.fillText(txt, c.width / 2, 68); g.restore(); }
+    draw(g, c); var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; if (window.BRAND) BRAND.later(t, g, c, draw); return t;
   }
+  var adN = 0;
   function adTex(lines, bg, fg) {
     var c = document.createElement('canvas'); c.width = 512; c.height = 256; var g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 512, 256); gr.addColorStop(0, bg[0]); gr.addColorStop(1, bg[1]); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
     g.fillStyle = 'rgba(255,255,255,.08)'; for (var i = 0; i < 12; i++) g.fillRect(i * 48, 0, 20, 256);
-    g.textAlign = 'center'; g.fillStyle = fg; g.shadowColor = '#000'; g.shadowBlur = 10; g.font = '900 70px Arial Black, Arial'; g.fillText(lines[0], 256, 110); g.font = '800 34px Arial'; g.fillText(lines[1], 256, 175);
-    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t;
+    var fnt = ['Luckiest Guy', 'Bangers', 'Bungee', 'Shrikhand', 'Righteous'][adN++ % 5];
+    function draw(g) { g.save(); g.fillStyle = gr; g.fillRect(0, 0, 512, 256); g.fillStyle = 'rgba(255,255,255,.08)'; for (var i = 0; i < 12; i++) g.fillRect(i * 48, 0, 20, 256);
+      g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = fg; g.shadowColor = '#000'; g.shadowBlur = 10; var sz = 76; g.font = sz + 'px "' + fnt + '", Arial Black, Arial'; while (g.measureText(lines[0]).width > 470 && sz > 30) { sz -= 4; g.font = sz + 'px "' + fnt + '", Arial Black, Arial'; }
+      g.lineWidth = 8; g.strokeStyle = 'rgba(0,0,0,.5)'; g.strokeText(lines[0], 256, 115); g.fillText(lines[0], 256, 115); g.font = '32px "Righteous", Arial'; g.fillText(lines[1], 256, 178); g.restore(); }
+    draw(g); var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; if (window.BRAND) BRAND.later(t, g, c, draw); return t;
   }
   function ribTex() { var c = document.createElement('canvas'); c.width = 128; c.height = 64; var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 128, 64); for (var x = 0; x < 128; x += 8) { g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(x, 0, 3, 64); g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(x + 3, 0, 1, 64); } g.fillStyle = 'rgba(80,40,10,.25)'; for (var i = 0; i < 60; i++) g.fillRect(Math.random() * 128, Math.random() * 64, 2 + Math.random() * 6, 1 + Math.random() * 3); var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(3, 1); return t; }
 
@@ -183,7 +188,7 @@
     // ---------- bâtiments ----------
     var SIGNS = DES ? [['MIRAGE CAFÉ', '#ff2bd6'], ['OASIS BURGER', '#ffb02a'], ['HÔTEL DUNE', '#2de2ff'], ['TURBO GYM', '#7dff6a'], ['PIZZA SABLE', '#ff4a3a'], ['NÉON BAR', '#c77dff']]
       : [['WALD BURGER', '#ff2bd6'], ['NÉON CAFÉ', '#2de2ff'], ['HÔTEL ROYAL', '#ffd23d'], ['TURBO GYM', '#7dff6a'], ['PIZZA ROYALE', '#ff4a3a'], ['CLUB VIOLET', '#c77dff'], ['PHARMACIE', '#3dff8a'], ['GARAGE W', '#ff8a2d']];
-    var signN = 0, AWNC = ['#ff2bd6', '#9b4dff', '#ff1f4b', '#2de2ff', '#ffd23d'];
+    var BRANDS = window.BRAND ? BRAND.list() : ['WALD BURGER'], signN = DES ? 5 : 0, AWNC = ['#ff2bd6', '#9b4dff', '#ff1f4b', '#2de2ff', '#ffd23d'];
     function farmDecor(hs, y, top) {   // grange : boiseries blanches, portes ouvertes à croix, porte de grenier ; maison : porche, fenêtres à volets
       var wt = M('#f6f2e8'), rd = M('#b0302a'), gl = new T.MeshPhongMaterial({ color: '#8fd0ff', shininess: 90, specular: '#fff' }), sh = M('#2e5a3a');
       function bx(m, x, yy, z, sx, sy, sz, rx) { var o = new T.Mesh(GB, m); o.position.set(x, yy, z); o.scale.set(sx, sy, sz); if (rx) o.rotation.x = rx; o.castShadow = true; S.add(o); return o; }
@@ -243,7 +248,7 @@
         PARASOL.add(tx, ty, tz, r() * 6, 1, ['#ff2bd6', '#ffd23d', '#2de2ff', '#ff4a3a', '#7dff6a'][(i + (sd > 0 ? 1 : 0)) % 5]); col(tx, tz, .6, .6, .8); });
       if (town && !hs.barn && !hs.farmhouse && !hs.fav && !hs.villa) {
         AWN.add(dx, y + 3.1, dz, ry, 1, AWNC[i % AWNC.length]);
-        if (hs.flat && signN < 40 && hs.m !== 'metal') { var sg = SIGNS[signN++ % SIGNS.length], mt = new T.MeshBasicMaterial({ map: neonTex(sg[0], sg[1]) }), sw = Math.min(fW * 1.6, 7), sm = new T.Mesh(new T.PlaneGeometry(sw, sw / 4), mt);
+        if (hs.flat && signN < 48 && hs.m !== 'metal') { var bid = BRANDS[signN++ % BRANDS.length], sg = [bid, window.BRAND ? BRAND.color(bid) : '#ff2bd6'], mt = new T.MeshBasicMaterial({ map: window.BRAND ? BRAND.tex(T, bid, DES) : neonTex(bid, sg[1]) }), sw = Math.min(fW * 1.6, 7), sm = new T.Mesh(new T.PlaneGeometry(sw, sw / 4), mt);
           sm.position.set(hs.x + fx * (fD + .2), y + Math.min(hs.h - 1, 4.6), hs.z + fz * (fD + .2)); sm.rotation.y = ry; S.add(sm);
           var lt = new T.PointLight(sg[1], 1.2, 9, 2); lt.position.set(hs.x + fx * (fD + 1.5), y + 4.3, hs.z + fz * (fD + 1.5)); if (signN <= 6) S.add(lt); }
         [-1, 1].forEach(function (sd) { var px = dx + fx * 1.2 + (fz ? sd * (fW - 1.2) : 0), pz = dz + fz * 1.2 + (fx ? sd * (fW - 1.2) : 0); if (r() < .7) PLANT.add(px, hgt(px, pz), pz, ry, .9); });
@@ -305,7 +310,7 @@
         [0, 1.57, 3.14, 4.71].forEach(function (a) { LOGS.add(fx2 + Math.cos(a) * 2.6, fy, fz2 + Math.sin(a) * 2.6, a + 1.57, .8); });
         [[-12, -2], [12, 22]].forEach(function (q) { LOGS.add(t[1] + q[0], hgt(t[1] + q[0], t[2] + q[1]), t[2] + q[1], 0, 1.3); col(t[1] + q[0], t[2] + q[1], 1.6, .8, 1); });
         for (var pt = 0; pt < 3; pt++) { var px2 = t[1] - 14 + pt * 6, pz2 = t[2] + 32; PICNIC.add(px2, hgt(px2, pz2), pz2, .3 * pt); }
-        var sign = new T.Mesh(new T.PlaneGeometry(6, 1.5), new T.MeshBasicMaterial({ map: neonTex('LODGE DES PINS', '#ffb02a', 1024) })); sign.position.set(t[1], hgt(t[1], t[2] - 2) + 4.6, t[2] - 6.85); sign.rotation.y = 0; S.add(sign);
+        var sign = new T.Mesh(new T.PlaneGeometry(6, 1.5), new T.MeshBasicMaterial({ map: neonTex('LODGE DES PINS', '#ffb02a', 1024, 'Lobster') })); sign.position.set(t[1], hgt(t[1], t[2] - 2) + 4.6, t[2] - 6.85); sign.rotation.y = 0; S.add(sign);
       }
       if (kind === 'mine') {   // chevalement, rails, wagonnets, entrée de mine dans la roche
         var hf = new T.Group(), timber = M('#7a5432'), hy = hgt(t[1] - 2, t[2] + 2); hf.position.set(t[1] - 2, hy, t[2] + 2); S.add(hf);
@@ -328,7 +333,7 @@
         var roof = new T.Mesh(GB, M('#d8202e')); roof.scale.set(13, .7, 9); roof.position.set(gx, gy + 4.9, gz); roof.castShadow = true; S.add(roof); var rl2 = new T.Mesh(GB, new T.MeshBasicMaterial({ color: '#fff4c8' })); rl2.scale.set(12, .05, 8); rl2.position.set(gx, gy + 4.53, gz); S.add(rl2);
         [-2.5, 2.5].forEach(function (dx) { PUMP.add(gx + dx, gy, gz, 0); col(gx + dx, gz, .5, .4, 1.8); });
         var pole = new T.Mesh(GC8, dark); pole.scale.set(.5, 10, .5); pole.position.set(t[1] - 26, hgt(t[1] - 26, t[2] - 6) + 5, t[2] - 6); S.add(pole); col(t[1] - 26, t[2] - 6, .3, .3, 10);
-        var ns = new T.Group(); [-1, 1].forEach(function (sd) { var pl = new T.Mesh(new T.PlaneGeometry(7, 1.75), new T.MeshBasicMaterial({ map: neonTex('MOTEL NÉON', '#ff2bd6', 1024) })); pl.position.z = sd * .2; if (sd < 0) pl.rotation.y = Math.PI; ns.add(pl); });
+        var ns = new T.Group(); [-1, 1].forEach(function (sd) { var pl = new T.Mesh(new T.PlaneGeometry(7, 1.75), new T.MeshBasicMaterial({ map: neonTex('MOTEL NÉON', '#ff2bd6', 1024, 'Monoton') })); pl.position.z = sd * .2; if (sd < 0) pl.rotation.y = Math.PI; ns.add(pl); });
         var nb = new T.Mesh(GB, dark); nb.scale.set(7.4, 2, .3); ns.add(nb); ns.position.set(t[1] - 26, hgt(t[1] - 26, t[2] - 6) + 10.5, t[2] - 6); ns.rotation.y = .5; S.add(ns);
         var nl = new T.PointLight('#ff2bd6', 1.4, 14, 2); nl.position.set(t[1] - 24, hgt(t[1] - 26, t[2] - 6) + 8, t[2] - 4); S.add(nl);
         var px3 = t[1] - 14, pz3 = t[2] + 12.5, py3 = hgt(px3, pz3), pw = new T.Mesh(GB, new T.MeshPhongMaterial({ color: '#2ab8f0', shininess: 140, specular: '#fff', transparent: true, opacity: .85 })); pw.position.set(px3, py3 + .08, pz3); pw.scale.set(8, .1, 5); S.add(pw);

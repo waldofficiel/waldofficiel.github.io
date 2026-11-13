@@ -118,7 +118,7 @@
       lambris: ctex(256, function (g, s) { for (var x = 0; x < 8; x++) { var l = 70 + srnd(x) * 8; g.fillStyle = 'hsl(32,52%,' + l + '%)'; g.fillRect(x * 32, 0, 32, s); g.strokeStyle = 'hsla(28,45%,40%,.28)'; g.lineWidth = 1; for (var k = 0; k < 3; k++) { g.beginPath(); g.moveTo(x * 32 + 8 + k * 8, 0); for (var y = 0; y <= s; y += 16) g.lineTo(x * 32 + 8 + k * 8 + Math.sin(y * .05 + x + k) * 2, y); g.stroke(); }
         g.fillStyle = 'rgba(90,50,20,.55)'; g.fillRect(x * 32, 0, 2, s); g.fillStyle = 'rgba(255,240,210,.5)'; g.fillRect(x * 32 + 2, 0, 1.5, s); } }),
       platre: ctex(256, function (g, s) { g.fillStyle = '#f3eee4'; g.fillRect(0, 0, s, s); for (var k = 0; k < 900; k++) { g.fillStyle = 'rgba(' + (k % 2 ? '255,255,255' : '160,140,110') + ',' + (.05 + srnd(k) * .06) + ')'; var r = 2 + srnd(k + 3) * 7; g.beginPath(); g.arc(srnd(k + 1) * s, srnd(k + 2) * s, r, 0, 6.3); g.fill(); } }),
-      blanc: ctex(256, function (g, s) { g.fillStyle = '#fbfaf7'; g.fillRect(0, 0, s, s); g.strokeStyle = 'rgba(200,190,175,.4)'; g.lineWidth = 2; for (var y = 0; y < s; y += 128) { g.beginPath(); g.moveTo(0, y); g.lineTo(s, y); g.stroke(); } })
+      blanc: ctex(256, function (g, s) { g.fillStyle = '#ece8e0'; g.fillRect(0, 0, s, s); g.strokeStyle = 'rgba(200,190,175,.4)'; g.lineWidth = 2; for (var y = 0; y < s; y += 128) { g.beginPath(); g.moveTo(0, y); g.lineTo(s, y); g.stroke(); } })
     };
   }
   var INTK = { bois: 'lambris', ferme: 'lambris', grange: 'lambris', brique: 'papier', peint: 'platre', facade: 'blanc', beton: 'platre', riche: 'blanc', metal: 'platre' };
@@ -161,7 +161,7 @@
     ctx.WALLS.forEach(function (w) { if (w.cut) { w.im.setMatrixAt(w.ii, new T.Matrix4().makeScale(0, 0, 0)); w.im.instanceMatrix.needsUpdate = true; } });
     if (!list.length) return;
     var plane = new T.PlaneGeometry(1, 1), box = new T.BoxGeometry(1, 1, 1);
-    var glass = new T.InstancedMesh(plane, new T.MeshPhongMaterial({ color: '#cfeaff', transparent: true, opacity: .26, shininess: 140, specular: '#ffffff', depthWrite: false, side: T.DoubleSide }), list.length),
+    var glass = new T.InstancedMesh(plane, new T.MeshPhongMaterial({ color: '#3d6f9c', emissive: '#0b1d33', transparent: true, opacity: .5, shininess: 220, specular: '#e8f4ff', depthWrite: false, side: T.DoubleSide }), list.length),
       fr = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f6f3ec', emissive: '#3a3834' }), list.length * 6), sill = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#f2eee6', emissive: '#4a4640' }), list.length),
       bal = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#d9dde4', emissive: '#8a8d93' }), list.length), rail = new T.InstancedMesh(box, new T.MeshPhongMaterial({ color: '#bfe6ff', transparent: true, opacity: .4, shininess: 120, specular: '#ffffff' }), list.length),
       bar = new T.InstancedMesh(box, new T.MeshLambertMaterial({ color: '#3a3f48' }), list.length), Z1 = new T.Matrix4().makeScale(0, 0, 0);
