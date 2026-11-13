@@ -39,7 +39,7 @@ Ce fichier sert à reprendre le développement du jeu **Wald Royal** dans une no
 | `jeu/weapons3d.js` | `window.buildGun(THREE, k, rarColor)` : armes en profils extrudés biseautés (bois, acier, or, chargeur courbé, lunette, pompe rainuré…), mises à l'échelle par `GUNSCALE` dans `gunModel` ; `window.buildGlider(THREE, col)` : deltaplane (voile texturée W, armature, trapèze, câbles, feux), barre de contrôle aux mains (`glider.position (-.15, 1.98, 0)`) |
 | `jeu/city.js` | `window.CITY.build(THREE, ctx)` : décor des villes en `Kit` instanciés (clims, châteaux d'eau, antennes, panneaux solaires, cabanons, auvents, enseignes néon sans marque, lampadaires le long des routes, bancs, poubelles, bouches d'incendie, abribus, pubs du jeu, conteneurs + grue aux docks, bidons/pneus au ranch, clôtures/foin/puits au village, drapeaux à l'avenue). Rebords de toit, bandeaux d'étage et piliers pour les toits plats. Les gros objets ajoutent des boîtes dans `PCOL` (testées dans `pushCircle`). `house()` mémorise `hs.door` |
 | `jeu/polo3d.html` | Visionneuse 3D de La Wald (rotation, phares, faire rouler) |
-| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v17` : **monter la version à chaque modif** |
+| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v18` : **monter la version à chaque modif** |
 | `jeu/logo.jpg`, `jeu/icons/` | Logo et icônes (512/192/180) |
 | `wald-royal/index.html`, `wald-royal/img/*.jpg` | Page vitrine + captures du jeu |
 | `app/android/` | Appli Android : WebView + WebViewAssetLoader, `fr.waldoff.royal` |
@@ -176,6 +176,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## Occlusion ambiante et ressources 3D (novembre 2026)
 - **SSAO** maison dans le shader de composition (`ssao()`, 12 échantillons sur la profondeur 24 bits), seulement en Max (`POST.ao = .6`).
 - **Modèles libres** : on peut cloner des dépôts GitHub publics (ex. `KenneyNL/Starter-Kit-City-Builder`, modèles .glb sous licence MIT : créditer Kenney si on les utilise). `GLTFLoader.js` et les effets officiels de three r128 se récupèrent par `git clone --depth 1 --branch r128 --filter=blob:none --sparse https://github.com/mrdoob/three.js` puis `sparse-checkout set examples/js/...` (raw.githubusercontent est bloqué, git marche). Pas encore intégrés dans le jeu.
+
+## Place centrale et textures cartoon (novembre 2026)
+- **Place de Turbo Towers** (`plaza()` dans `city.js`, au centre de la ville `centre`) : pavage en rosace (canvas 1024), bordure, grande fontaine (bassin en pierres, colonne et vasque en `LatheGeometry`, eau animée en ShaderMaterial), **statue de La Wald en or** qui tourne au sommet (`buildPolo` + matériau or), 360 gouttes instanciées en paraboles (8 jets + débord de la vasque), 4 bancs, 4 bacs à fleurs avec arbre, 8 lampadaires à globe, 10 pigeons qui s'envolent quand on approche à moins de 4,5 m. Animé par `window.CITY_UPDATE(t, dt, x, z)` appelé dans la boucle. Collisions du bassin et des bacs dans `PCOL`. Le mobilier de rue évite la place (rayon 11,5 m).
+- **Textures des bâtiments refaites en style cartoon peint** (`TX`, avec `rrect` et `srnd`) : briques arrondies avec reflet, planches avec veines et nœuds, tôle ondulée avec rouille cernée, béton en panneaux biseautés, façades avec cadres sombres, reflets peints, rideaux colorés et une pièce éclairée avec plante, tuiles en écailles, parquet.
+- **Sol** : `maskTex` sans mipmaps, et dans le shader le vert de base de la carte n'est jamais utilisé (`isG`) : plus de bande vert fluo le long des routes et des villes. Herbe un peu désaturée.
+- `WR.gfx`, `WR.mask`, `WR.terr` pour les tests.
 
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
