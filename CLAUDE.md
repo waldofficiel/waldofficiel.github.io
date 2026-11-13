@@ -189,6 +189,20 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Bots** : skin `npc` (même corps sculpté), variantes par `o.v` : t-shirt ou sweat à capuche, short ou pantalon, casquette, bonnet à pompon, bob ou tête nue, 6 couleurs de cheveux, barbe, lunettes rondes. `buildSkin(THREE, id, opts)` ; les bots sans skin ont `lk.sk = 'npc'`.
 - **Images** : galerie de `wald-royal/` refaite (place, Turbo Towers, planeur, Golden Hollow, sac, boutique, salon, mer, collines, désert, La Wald). Sur l'accueil, le bloc « Mon jeu » a la place en fond et un bandeau de 4 captures (`.gshots`) qui mène à `wald-royal/#images`.
 
+## Cartes refaites, ferme, capitale du désert, planeurs, danse (novembre 2026)
+- **Deux îles différentes** : la campagne est une grande île découpée (baies, presqu'îles, `bumps`) avec **6 villes**, une **montagne** (`PEAKS`, type 0) et un **lac** (`LAKE`, l'eau de mer passe sous le relief creusé ; `inLake`, `onLand` exclut le lac). Le désert est une île allongée nord-sud avec un **immense lagon à l'ouest** (ellipse tournée + baie profonde), **7 villes**, des **plateaux rocheux** (`PEAKS`, type 1). Les villes ne sont plus en croix : coordonnées dans `TOWNS`, la côte est repoussée pour qu'elles restent à terre (rayon ville + 50 m). `ISLM` = rayon max de l'île pour semer arbres/loot.
+- **Routes qui serpentent** : `ROADP` (Bézier + ondulation, 5 m entre les points, on évite la mer), champ de distance `RDG`/`roadD()` (grille 2 m) pour `nearRoad`, le relief et l'herbe. Lampadaires le long des courbes (`ctx.ROADP` dans `city.js`). Les routes s'arrêtent à l'entrée de la ferme (chemins de terre `FARM.pp`).
+- **Ferme** (2e ville, kind `2cv`, sur les deux cartes) : grange rouge (`grange`, toit tôle `toitm`, porte à l'est avec battants à croix, porte de grenier), maison blanche à bardage (`ferme`, toit ardoise `toitf`, porche, fenêtres à volets), remise, 2 silos, éolienne de ferme qui tourne (`FX.mill`), tracteur, champs `FARM.fields` (maïs haut où se cacher, blé, citrouilles, choux) avec rangs peints, clôtures en bois, épouvantails, foin, abreuvoir, château d'eau. Herbe autorisée dans les prés de la ferme (`farmGrass`).
+- **Pignons** : triangles sous les toits à 2 pentes (`hs.gim`), même texture que les murs. Toits par matière (`hs.roof`).
+- **Nouvelles villes** : `chalet` Lodge des Pins (chalets, tentes, feu de camp qui vacille, tables de pique-nique), `mine` Mine Rouge (chevalement avec roue qui tourne, entrée de mine, rails, wagonnets, tas de minerai), `motel` Motel Néon (chambres en rang, station-service, enseigne néon, piscine).
+- **Capitale du désert Mirage City** (rayon 88) : au sud-ouest une **favela** (`peint`, cabanes colorées par instance `w.col`, citernes bleues, fers à béton, linge), un **grand mur** cassable (`beton`, barbelés, tags) et au sud-est le **quartier ultra riche** (`riche`, villas à façade vitrée, piscines, palmiers, transats, grille dorée, héliport).
+- **Plafonds** : chaque maison a un plafond opaque (bois / brique / tôle / béton, `hs.cim`) ; dedans la caméra reste sous le plafond.
+- **Collisions** : cailloux (`PEBS`) et mobilier des rues (`col()`).
+- **Coffres** : il faut rester 1 s à côté (`CHEST_T`, anneau `#openUI`, le coffre tremble).
+- **Accroupi** : bouton `#bCrouch` (mobile) / C ou Ctrl : vitesse ×0,5, caméra plus basse. **Danse du Top 1** : débloquée au premier TOP 1 (`ST.dance`), bouton 💃 `#bDance` / touche B, aperçu au casier. Plus de bouton pause (Échap sur PC).
+- **Planeurs** `GLIDERS` : Aile Wald, **Canard Gonflable** (500), **Wald Car Gonflable** (1000) — `buildGlider(THREE, col, type)` dans `weapons3d.js`, `ST.gl`, `ST.ownG`, boutique + casier.
+- **Fluidité** : la lumière de la montgolfière reste dans la scène (intensité 0) pour ne pas recompiler les shaders, et `R3.compile` au lancement avec montgolfière, La Wald et planeur visibles.
+
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.

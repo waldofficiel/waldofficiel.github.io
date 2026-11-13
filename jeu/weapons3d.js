@@ -107,8 +107,32 @@
     g.fillStyle = '#fff'; g.font = '900 76px Arial Black, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.shadowColor = '#ff2bd6'; g.shadowBlur = 18; g.fillText('W', 256, 150);
     var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; GT[col] = t; return t;
   }
-  window.buildGlider = function (THREE, col) {
-    T = THREE; var g = new THREE.Group(), span = 3.1, chord = 2.3, NU = 16, NV = 8, pos = [], uv = [], idx = [];
+  /* planeurs gonflables : on se tient à une barre (y ≈ 0), le gonflable flotte au-dessus */
+  function ropes(g, pts, top) { var dk = M('#22252c'); pts.forEach(function (p) { var A = new T.Vector3(p[0], p[1], p[2]), B = new T.Vector3(.15, .02, p[2] > 0 ? .7 : -.7), d = B.clone().sub(A), m = new T.Mesh(new T.CylinderGeometry(.012, .012, d.length(), 4), dk); m.position.copy(A).add(B).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); g.add(m); });
+    var bar = new T.Mesh(new T.CylinderGeometry(.03, .03, 1.5, 8), dk); bar.rotation.x = Math.PI / 2; bar.position.set(.15, .02, 0); g.add(bar);
+    [-.7, .7].forEach(function (z) { var gp = new T.Mesh(new T.CylinderGeometry(.045, .045, .18, 10), M('#ffd23d')); gp.rotation.x = Math.PI / 2; gp.position.set(.15, .02, z * .85); g.add(gp); }); }
+  function S(g, m, x, y, z, sx, sy, sz) { var o = new T.Mesh(new T.SphereGeometry(1, 24, 16), m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); g.add(o); return o; }
+  function duck(THREE) { var g = new THREE.Group(), Y = 2.6, yel = M('#ffd21f', { shininess: 120, specular: '#ffffff', emissive: '#3a2a00' }), org = M('#ff7a12', { shininess: 120, specular: '#ffffff' }), wh = M('#ffffff', { shininess: 90 }), bk = M('#111114', { shininess: 140, specular: '#ffffff' });
+    S(g, yel, -.2, Y, 0, 1.55, 1.0, 1.25);   // corps
+    S(g, yel, -1.55, Y + .45, 0, .45, .55, .5).rotation.z = .6;   // queue
+    S(g, yel, .95, Y + 1.05, 0, .72, .7, .68);   // tête
+    S(g, org, 1.62, Y + .95, 0, .42, .12, .32);   // bec
+    [-1, 1].forEach(function (sd) { S(g, wh, 1.43, Y + 1.25, sd * .3, .16, .18, .12); S(g, bk, 1.55, Y + 1.27, sd * .32, .08, .1, .06); S(g, yel, -.25, Y + .2, sd * 1.25, .9, .35, .32).rotation.x = sd * -.4; });
+    var ring = new T.Mesh(new T.TorusGeometry(.95, .06, 8, 32), M('#ff2bd6', { emissive: '#7a0060' })); ring.rotation.x = Math.PI / 2; ring.position.set(-.2, Y - .3, 0); ring.scale.set(1.5, 1.2, 1); g.add(ring);
+    ropes(g, [[.6, Y - .6, .6], [.6, Y - .6, -.6], [-.9, Y - .6, .6], [-.9, Y - .6, -.6]]); g.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); return g; }
+  function waldcar(THREE) { var g = new THREE.Group(), Y = 2.5, body = M('#16161c', { shininess: 160, specular: '#ffffff', emissive: '#08040e' }), red = M('#ff1f3a', { emissive: '#ff0020', emissiveIntensity: .7 }), gl = M('#9fd8ff', { shininess: 160, specular: '#ffffff', transparent: true, opacity: .75 }), pink = M('#ff2bd6', { emissive: '#7a0060' }), tyre = M('#26262c', { shininess: 80 }), chrome = M('#e8ecf2', { shininess: 160, specular: '#ffffff' });
+    S(g, body, 0, Y, 0, 2.1, .62, 1.05);   // caisse gonflée
+    S(g, body, -.25, Y + .55, 0, 1.15, .48, .9);   // habitacle
+    S(g, gl, .5, Y + .62, 0, .5, .36, .78); S(g, gl, -1.0, Y + .62, 0, .35, .3, .74);   // pare-brise / lunette
+    [[1.25, .78], [1.25, -.78], [-1.25, .78], [-1.25, -.78]].forEach(function (q) { var w = new T.Mesh(new T.TorusGeometry(.32, .17, 10, 20), tyre); w.position.set(q[0], Y - .45, q[1] * 1.12); g.add(w); var hub = new T.Mesh(new T.SphereGeometry(.17, 12, 8), chrome); hub.position.copy(w.position); hub.scale.z = .5; g.add(hub); });
+    [-1, 1].forEach(function (sd) { S(g, M('#fff8d0', { emissive: '#fff0a0', emissiveIntensity: .8 }), 2.0, Y + .1, sd * .6, .12, .14, .2); S(g, red, -2.05, Y + .15, sd * .62, .08, .12, .22); });
+    var stripe = new T.Mesh(new T.TorusGeometry(1.02, .04, 6, 40), pink); stripe.rotation.x = Math.PI / 2; stripe.scale.set(2.06, 1.02, 1); stripe.position.y = Y + .05; g.add(stripe);
+    var c = document.createElement('canvas'); c.width = 256; c.height = 128; var x = c.getContext('2d'); x.font = '900 70px Arial Black, Arial'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#fff'; x.shadowColor = '#ff2bd6'; x.shadowBlur = 16; x.fillText('WALD', 128, 66);
+    var tx = new T.CanvasTexture(c); tx.encoding = T.sRGBEncoding; [-1, 1].forEach(function (sd) { var pl = new T.Mesh(new T.PlaneGeometry(1.4, .7), new T.MeshBasicMaterial({ map: tx, transparent: true })); pl.position.set(0, Y + .05, sd * 1.06); if (sd < 0) pl.rotation.y = Math.PI; g.add(pl); });
+    var valve = new T.Mesh(new T.CylinderGeometry(.06, .06, .2, 8), M('#ffd23d')); valve.position.set(-.3, Y + 1.05, 0); g.add(valve);
+    ropes(g, [[.9, Y - .5, .7], [.9, Y - .5, -.7], [-.9, Y - .5, .7], [-.9, Y - .5, -.7]]); g.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); return g; }
+  window.buildGlider = function (THREE, col, type) {
+    T = THREE; if (type === 'canard') return duck(THREE); if (type === 'waldcar') return waldcar(THREE); var g = new THREE.Group(), span = 3.1, chord = 2.3, NU = 16, NV = 8, pos = [], uv = [], idx = [];
     for (var i = 0; i <= NU; i++) for (var j = 0; j <= NV; j++) { var u = i / NU * 2 - 1, v = j / NV, au = Math.abs(u), x = .9 - v * chord * (1 - au * .55) - au * 1.25, z = u * span, y = Math.sin(v * Math.PI) * .22 * (1 - au * .7) + au * .3;
       pos.push(x, y, z); uv.push(i / NU, 1 - v); }
     for (i = 0; i < NU; i++) for (j = 0; j < NV; j++) { var a = i * (NV + 1) + j, b = a + NV + 1; idx.push(a, b, a + 1, b, b + 1, a + 1); }
