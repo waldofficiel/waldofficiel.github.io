@@ -78,7 +78,7 @@
     }
   }
   function bake() {
-    var groups = {}, o = new T.Object3D(), m4 = new T.Matrix4(), nm = new T.Matrix3(), v = new T.Vector3(), cc = new T.Color(), tc = new T.Color(), mat = new T.MeshLambertMaterial({ vertexColors: true });
+    var groups = {}, o = new T.Object3D(), m4 = new T.Matrix4(), nm = new T.Matrix3(), v = new T.Vector3(), cc = new T.Color(), tc = new T.Color(), mat = new T.MeshLambertMaterial({ vertexColors: true }); mat.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * .22;'); }; mat.customProgramCacheKey = function () { return 'propfill'; };
     ITEMS.forEach(function (it) { if (!TPL[it.n]) return; var key = Math.floor(it.x / 150) + ',' + Math.floor(it.z / 150); (groups[key] = groups[key] || []).push(it); });
     Object.keys(groups).forEach(function (key) { var L = groups[key], nV = 0, nI = 0, sx = 0, sz = 0;
       L.forEach(function (it) { TPL[it.n].parts.forEach(function (pt) { nV += pt.g.attributes.position.count; nI += pt.g.index ? pt.g.index.count : pt.g.attributes.position.count; }); });
