@@ -101,7 +101,7 @@
   };
   N.bush = function (THREE, seed, des) {
     var r = rng(seed), B = new Builder(THREE), n = 4 + (r() * 3 | 0);
-    for (var k = 0; k < n; k++) { var a = r() * 6.28, d = r() * .5, s = .45 + r() * .4, ball = jitter(new THREE.IcosahedronGeometry(1, 0), r, .3);
+    for (var k = 0; k < n; k++) { var a = r() * 6.28, d = r() * .5, s = .45 + r() * .4, ball = jitter(new THREE.IcosahedronGeometry(1, 1), r, .35);
       B.add(ball, M4(THREE, Math.cos(a) * d, s * .7, Math.sin(a) * d, s, s * .8, s, 0, r() * 6, 0), function (c, x, y, z, ny) { if (des) c.setHSL(.12 + r() * .03, .35, .32 + Math.max(0, ny) * .1); else c.setHSL(.27 + r() * .05, .45, .27 + Math.max(0, ny) * .14 + r() * .04); }, function (y) { return Math.min(1, y / 1.2); }); }
     if (!des && r() < .55) { var bc = r() < .5 ? '#d8344a' : '#f2e05a'; for (var b = 0; b < 7; b++) { var aa = r() * 6.28, dd = .35 + r() * .35; B.add(new THREE.IcosahedronGeometry(.06, 0), M4(THREE, Math.cos(aa) * dd, .55 + r() * .35, Math.sin(aa) * dd, 1, 1, 1), function (c) { c.set(bc); }, .8); } }
     return B.geo();
