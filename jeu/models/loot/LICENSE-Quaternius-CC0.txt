@@ -1,0 +1,2 @@
+Butin et bancs : modèles de Quaternius (https://quaternius.com), licence CC0 1.0 : RPG Items Pack (coffre, potions), Survival Pack (trousse de secours), Cyberpunk Pack (caisse de munitions Lootbox), Medieval Village Pack (banc).
+Récupérés depuis github.com/trebeljahr/quaternius-showcase (public/glb).

@@ -6,7 +6,7 @@
    - chaque ville : conteneurs + grue (docks), château d'eau + bidons + pneus (ranch), clôtures + foin + puits (village), drapeaux + arche néon (avenue)
    Les gros objets (conteneurs, abribus, château d'eau) ajoutent des boîtes de collision dans ctx.PCOL. */
 (function () {
-  var T, MC = {}, EXT = window.EXT_TREES = [];   // arbres, buissons et fleurs en vrais modèles 3D, posés ensuite par trees.js
+  var T, MC = {}, EXT = window.EXT_TREES = [], BENCHES = window.EXT_BENCH = [];   // arbres, buissons et fleurs en vrais modèles 3D, posés ensuite par trees.js
   function M(col, o) { var k = col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshLambertMaterial(Object.assign({ color: col }, o || {})); return MC[k]; }
   function P(col, o) { var k = 'p' + col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshPhongMaterial(Object.assign({ color: col, shininess: 60, specular: '#666' }, o || {})); return MC[k]; }
   function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -92,9 +92,8 @@
     // bancs, arbres en bacs, parterres, lampadaires à globes
     var wood = new T.MeshLambertMaterial({ color: '#8a5a32' }), iron = new T.MeshLambertMaterial({ color: '#1e2228' }), globe = new T.MeshBasicMaterial({ color: '#fff2c8' });
     for (var b = 0; b < 8; b++) { var a = b / 8 * 6.283 + Math.PI / 8, bx = Math.cos(a) * 7.3, bz = Math.sin(a) * 7.3, gB = new T.Group(); gB.position.set(bx, 0, bz); gB.rotation.y = -a + Math.PI / 2; G.add(gB);
-      if (b % 2) {   // banc
-        [[0, .48, 0, 1.9, .07, .55], [0, .82, .26, 1.9, .42, .06]].forEach(function (q) { var o = new T.Mesh(T.BoxGeometry ? new T.BoxGeometry(1, 1, 1) : null, wood); o.position.set(q[0], q[1], q[2]); o.scale.set(q[3], q[4], q[5]); o.castShadow = true; gB.add(o); });
-        [-.85, .85].forEach(function (sx) { var o = new T.Mesh(new T.BoxGeometry(.08, .48, .6), iron); o.position.set(sx, .24, 0); gB.add(o); });
+      if (b % 2) {   // banc : vrai modèle 3D (loot3d.js), dossier tourné vers la fontaine
+        BENCHES.push({ x: x0 + bx, y: y0, z: z0 + bz, ry: -a + Math.PI / 2 + Math.PI });
       } else {   // bac à fleurs + arbre
         var pot = new T.Mesh(new T.CylinderGeometry(1.1, 1, .7, 20), stone); pot.position.y = .35; pot.castShadow = true; gB.add(pot);
         var soil = new T.Mesh(new T.CylinderGeometry(1.02, 1.02, .05, 20), new T.MeshLambertMaterial({ color: '#4a3020' })); soil.position.y = .68; gB.add(soil);
@@ -134,7 +133,7 @@
       else { b.position.y = .12 + Math.max(0, Math.sin(t * 6 + u.ph)) * .02; b.children[1].position.y = .1 - Math.max(0, Math.sin(t * 4 + u.ph)) * .08; if (Math.sin(t * .7 + u.ph) > .98) b.rotation.y += dt * 3; } });
   };
   window.EXT_FURN = window.EXT_FURN || [];
-  window.CITY = { build: function (THREE, ctx) { EXT.length = 0;
+  window.CITY = { build: function (THREE, ctx) { EXT.length = 0; BENCHES.length = 0;
     T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.2, DES = ctx.DES, PCOL = ctx.PCOL || [];
     GB = new T.BoxGeometry(1, 1, 1); GC = new T.CylinderGeometry(.5, .5, 1, 14); GC8 = new T.CylinderGeometry(.5, .5, 1, 8); GS = new T.SphereGeometry(.5, 12, 8);
     var steel = P('#9aa2ae'), dark = M('#2a2d34'), white = M('#e8eaee'), concrete = M('#b8b4ac'), glow = new T.MeshBasicMaterial({ color: '#fff4c8' });
@@ -150,6 +149,7 @@
     var AWN = new Kit([part(GB, M('#ffffff'), [0, 0, .7], [3.4, .08, 1.5], [.25, 0, 0], { tint: 1 }), part(GB, dark, [-1.65, -.5, 1.35], [.05, 1, .05]), part(GB, dark, [1.65, -.5, 1.35], [.05, 1, .05])]);
     var LAMP = new Kit([part(GC8, M('#2c2f36'), [0, 3.1, 0], [.16, 6.2, .16]), part(GC8, M('#2c2f36'), [0, .15, 0], [.4, .3, .4]), part(GB, M('#2c2f36'), [.6, 6.15, 0], [1.3, .1, .14]), part(GB, glow, [1.15, 6.05, 0], [.5, .08, .26], null, { noShadow: true })]);
     var BENCH = new Kit([part(GB, M('#7a4a2a'), [0, .45, 0], [1.7, .06, .5]), part(GB, M('#7a4a2a'), [0, .75, -.24], [1.7, .4, .05], [-.15, 0, 0]), part(GB, dark, [-.75, .22, 0], [.07, .45, .5]), part(GB, dark, [.75, .22, 0], [.07, .45, .5])]);
+    BENCH.add = function (x, y, z, ry) { BENCHES.push({ x: x, y: y, z: z, ry: ry || 0 }); };   // bancs : vrai modèle 3D (loot3d.js)
     var BIN = new Kit([part(GC, M('#2e6a3a'), [0, .45, 0], [.55, .9, .55], null, { tint: 1 }), part(GC, dark, [0, .92, 0], [.6, .06, .6])]);
     var HYD = new Kit([part(GC, M('#d8202e'), [0, .35, 0], [.26, .7, .26]), part(GS, M('#d8202e'), [0, .72, 0], [.3, .25, .3]), part(GC8, M('#e8b020'), [0, .45, .16], [.1, .14, .1], [Math.PI / 2, 0, 0])]);
     var BOLL = new Kit([part(GC8, M('#e8e8e8'), [0, .45, 0], [.18, .9, .18]), part(GC8, M('#ff2bd6', { emissive: '#ff2bd6', emissiveIntensity: .8 }), [0, .78, 0], [.19, .08, .19], null, { noShadow: true })]);
@@ -225,12 +225,21 @@
         [[0, hs.hz, hs.hx * 2 + .3, .3], [0, -hs.hz, hs.hx * 2 + .3, .3], [hs.hx, 0, .3, hs.hz * 2], [-hs.hx, 0, .3, hs.hz * 2]].forEach(function (q) { var m = new T.Mesh(GB, pm); m.position.set(hs.x + q[0], top + .35, hs.z + q[1]); m.scale.set(q[2], .7, q[3]); m.castShadow = true; S.add(m); });
         for (var f = 1; f * H < hs.h - .5; f++) [[0, hs.hz + .12, hs.hx * 2 + .45, .25], [0, -hs.hz - .12, hs.hx * 2 + .45, .25], [hs.hx + .12, 0, .25, hs.hz * 2 + .45], [-hs.hx - .12, 0, .25, hs.hz * 2 + .45]].forEach(function (q) { var m = new T.Mesh(GB, pm); m.position.set(hs.x + q[0], y + f * H, hs.z + q[1]); m.scale.set(q[2], .22, q[3]); S.add(m); });
         if (hs.h > 6) [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (q) { var m = new T.Mesh(GB, pm); m.position.set(hs.x + q[0] * (hs.hx + .1), y + hs.h / 2, hs.z + q[1] * (hs.hz + .1)); m.scale.set(.5, hs.h, .5); m.castShadow = true; S.add(m); });
+        // gratte-ciel des capitales : couronne LED, flèche avec feu rouge, ou héliport sur le toit
+        if (hs.land) { var led = new T.MeshBasicMaterial({ color: DES ? '#ffb02e' : '#2de2ff' }), led2 = new T.MeshBasicMaterial({ color: '#ff2bd6' });
+          [[0, hs.hz + .2, hs.hx * 2 + .6, .12], [0, -hs.hz - .2, hs.hx * 2 + .6, .12], [hs.hx + .2, 0, .12, hs.hz * 2 + .6], [-hs.hx - .2, 0, .12, hs.hz * 2 + .6]].forEach(function (q, k) { [-.6, -2.2].forEach(function (dy, j) { var m = new T.Mesh(GB, j ? led2 : led); m.position.set(hs.x + q[0], top + dy, hs.z + q[1]); m.scale.set(q[2], .22, q[3]); S.add(m); }); });
+          if (hs.land === 'neon') { var sp = new T.Group(); [[0, 2.5, 0, 2.6, 1.2, 2.6, dark], [0, 4, 0, 1.4, 2, 1.4, pm], [0, 8.5, 0, .35, 9, .35, steel], [0, 13.2, 0, .5, .5, .5, new T.MeshBasicMaterial({ color: '#ff2a2a' })]].forEach(function (b) { var m = new T.Mesh(b[6] === steel || b[3] < .6 ? GC8 : GB, b[6]); m.position.set(b[0], b[1] - 2, b[2]); m.scale.set(b[3], b[4], b[5]); m.castShadow = true; sp.add(m); });
+            sp.position.set(hs.x, top, hs.z); S.add(sp); var bl = sp.children[3]; bl.userData.dyn = 1; (window.BLINK = window.BLINK || []).push(bl); }
+          else { var hp = new T.Mesh(GC, dark); hp.position.set(hs.x, top + .08, hs.z); hp.scale.set(Math.min(hs.hx, hs.hz) * 1.7, .16, Math.min(hs.hx, hs.hz) * 1.7); hp.receiveShadow = true; S.add(hp);
+            var yl = M('#ffd23d'); [[-1, 0, .45, 3.2], [1, 0, .45, 3.2], [0, 0, 1.6, .45]].forEach(function (q) { var m = new T.Mesh(GB, yl); m.position.set(hs.x + q[0], top + .18, hs.z + q[1]); m.scale.set(q[2], .04, q[3]); S.add(m); });
+            for (var lk = 0; lk < 8; lk++) { var la = lk / 8 * 6.283, rr2 = Math.min(hs.hx, hs.hz) * .82, m = new T.Mesh(GB, led); m.position.set(hs.x + Math.cos(la) * rr2, top + .2, hs.z + Math.sin(la) * rr2); m.scale.set(.25, .08, .25); S.add(m); } }
+        }
         // toit : clims, antenne, château d'eau / panneaux solaires, cabanon
         if (hs.fav) { if (r() < .75) BTANK.add(hs.x + (r() - .5) * (hs.hx - 1), top, hs.z + (r() - .5) * (hs.hz - 1), r() * 3); if (r() < .5) for (var rb = 0; rb < 4; rb++) REBAR.add(hs.x + (rb % 2 ? 1 : -1) * (hs.hx - .3), top, hs.z + (rb > 1 ? 1 : -1) * (hs.hz - .3), 0);
           if (r() < .4) LINE.add(hs.x, top, hs.z, r() < .5 ? 0 : 1.57, 1); }
         else if (hs.villa) { [[0, hs.hz, hs.hx * 2, .06], [0, -hs.hz, hs.hx * 2, .06], [hs.hx, 0, .06, hs.hz * 2], [-hs.hx, 0, .06, hs.hz * 2]].forEach(function (q) { var m = new T.Mesh(GB, glassR); m.position.set(hs.x + q[0], top + 1.1, hs.z + q[1]); m.scale.set(q[2], 1, q[3]); S.add(m); });
           for (var sp2 = 0; sp2 < 4; sp2++) SOLAR.add(hs.x - hs.hx * .5 + sp2 * 2.2, top, hs.z - hs.hz * .45, 0); }
-        else {
+        else if (hs.land !== 'heli') {
         var nAC = Math.max(1, Math.round(hs.hx * hs.hz / 18)); for (var k = 0; k < nAC; k++) AC.add(hs.x + (r() - .5) * (hs.hx * 2 - 2.5), top, hs.z + (r() - .5) * (hs.hz * 2 - 2.5), (r() * 4 | 0) * Math.PI / 2);
         if (hs.h > 8 || r() < .5) ANT.add(hs.x + hs.hx * .55, top, hs.z - hs.hz * .5, r() * 6);
         if (hs.h > 10) TANK.add(hs.x - hs.hx * .45, top, hs.z + hs.hz * .4, 0, .8);
@@ -281,6 +290,21 @@
           var pole = new T.Mesh(GC8, dark); pole.scale.set(.3, 6, .3); pole.position.y = 3; g.add(pole); var bd = new T.Mesh(GB, dark); bd.scale.set(6.4, 3.4, .3); bd.position.y = 7.2; g.add(bd);
           var mat = new T.MeshBasicMaterial({ map: adTex(ad, BGS[k], '#fff') }); [-1, 1].forEach(function (sd) { var pl = new T.Mesh(new T.PlaneGeometry(6, 3), mat); pl.position.set(0, 7.2, sd * .16); if (sd < 0) pl.rotation.y = Math.PI; g.add(pl); });
           g.position.set(x, y, z); g.rotation.y = -a + Math.PI / 2; g.traverse(function (o) { if (o.isMesh) o.castShadow = true; }); S.add(g); col(x, z, .3, .3, 9); });
+      }
+      if (kind === 'centre') {   // kiosques colorés (glaces, kebab, journaux) et feux tricolores au bord des routes
+        var KC = [['#ff4a8a', '#fff'], ['#2de2ff', '#0a2a4a'], ['#ffd23d', '#c8302a'], ['#7dff6a', '#1a4a2a']], nk = 0;
+        for (var kq = 0; kq < 40 && nk < 4; kq++) { var ka = kq * 2.39996, kr = 19 + (kq % 5) * 3.2, kx = t[1] + Math.cos(ka) * kr, kz = t[2] + Math.sin(ka) * kr;
+          if (ctx.nearRoad(kx, kz, 3.2) || ctx.HOUSES.some(function (h) { return Math.abs(h.x - kx) < h.hx + 3 && Math.abs(h.z - kz) < h.hz + 3; })) continue;
+          var kc = KC[nk % 4], kg = new T.Group(), ky = hgt(kx, kz);
+          [[0, 1.1, 0, 2.6, 2.2, 1.8, M(kc[0])], [0, 1.05, .95, 2.4, .12, .35, white], [0, 2.32, 0, 3, .12, 2.4, M(kc[1])], [0, 2.75, 0, 2.6, .7, .2, new T.MeshBasicMaterial({ color: kc[0] })], [0, .55, .92, 2.3, 1, .05, dark]].forEach(function (b) { var m = new T.Mesh(GB, b[6]); m.position.set(b[0], b[1], b[2]); m.scale.set(b[3], b[4], b[5]); m.castShadow = true; kg.add(m); });
+          for (var st = 0; st < 5; st++) { var m = new T.Mesh(GB, st % 2 ? white : M(kc[0])); m.position.set(-1.2 + st * .6, 2.2, 1.45); m.scale.set(.6, .08, .9); m.rotation.x = .35; kg.add(m); }
+          kg.position.set(kx, ky, kz); kg.rotation.y = Math.atan2(t[1] - kx, t[2] - kz); S.add(kg); col(kx, kz, 1.5, 1.5, 2.8); nk++; }
+        var tl = 0; for (var ta = 0; ta < 48 && tl < 6; ta++) { var aa = ta / 48 * 6.283, tx3 = t[1] + Math.cos(aa) * R * .78, tz3 = t[2] + Math.sin(aa) * R * .78; if (!ctx.nearRoad(tx3, tz3, 1.2)) continue;
+          [-1, 1].forEach(function (sd) { var px = tx3 + Math.sin(aa) * sd * 5.2, pz = tz3 - Math.cos(aa) * sd * 5.2; if (ctx.nearRoad(px, pz, 3.5)) return; var g = new T.Group();
+            var pole = new T.Mesh(GC8, dark); pole.scale.set(.16, 4, .16); pole.position.y = 2; g.add(pole); var bx = new T.Mesh(GB, dark); bx.scale.set(.5, 1.4, .4); bx.position.y = 4.3; g.add(bx);
+            ['#ff2a2a', '#ffb02e', '#2aff5a'].forEach(function (c, k) { var l = new T.Mesh(GS, new T.MeshBasicMaterial({ color: k === (sd > 0 ? 2 : 0) ? c : '#222' })); l.scale.setScalar(.3); l.position.set(0, 4.75 - k * .45, .2); g.add(l); });
+            g.position.set(px, hgt(px, pz), pz); g.rotation.y = -aa - Math.PI / 2; S.add(g); col(px, pz, .2, .2, 5); });
+          tl++; ta += 5; }
       }
       if (kind === 'garage') {   // conteneurs empilés + grue
         var CC = ['#c8302a', '#2a5ab8', '#2a8a4a', '#d89a20', '#7a2ab8', '#e8e8e8'];
