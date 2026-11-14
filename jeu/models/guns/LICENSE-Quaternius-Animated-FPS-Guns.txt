@@ -1,0 +1,2 @@
+Armes : « Animated FPS Guns » (juin 2018) par Quaternius (https://quaternius.com), licence CC0 1.0 (domaine public).
+FBX récupérés depuis github.com/beep2bleep/FreeAssetsByKenneyNLandQuaternius, convertis en .glb (une partie par matière, couleurs données dans le jeu).

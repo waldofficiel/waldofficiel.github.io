@@ -44,7 +44,7 @@
     s.lineTo(.7, .66); s.lineTo(-1.18, .66);              // creux de l'habitacle
     s.lineTo(-1.24, .98); s.lineTo(-1.9, .99);            // couvre-capote / coffre
     s.quadraticCurveTo(-2.07, .98, -2.09, .84); s.lineTo(-2.1, .5); s.quadraticCurveTo(-2.1, .36, -2.06, .34);
-    var depth = 1.56, body = new THREE.ExtrudeGeometry(s, { depth: depth, bevelEnabled: true, bevelThickness: .07, bevelSize: .06, bevelSegments: lite ? 2 : 4, curveSegments: lite ? 10 : 24 });
+    var depth = 1.56, body = new THREE.ExtrudeGeometry(s, { depth: depth, bevelEnabled: true, bevelThickness: .07, bevelSize: .06, bevelSegments: lite ? 3 : 4, curveSegments: lite ? 16 : 24 });
     body.translate(0, 0, -depth / 2); add(body, paint, 0, 0, 0);
     // flancs des portières (le haut de la caisse autour de l'habitacle)
     var d = new THREE.Shape(); d.moveTo(.72, .6); d.lineTo(.74, .99); d.lineTo(-1.24, .98); d.lineTo(-1.2, .6); d.lineTo(.72, .6);
@@ -128,13 +128,23 @@
     car.userData.wheels = [];
     [[WF, 1], [WF, -1], [WR, 1], [WR, -1]].forEach(function (w) {
       var g = new THREE.Group(); g.position.set(w[0], .33, w[1] * (depth / 2 - .02)); car.add(g); car.userData.wheels.push(g);
-      add(new THREE.CylinderGeometry(.33, .33, .21, lite ? 16 : 28), rubber, 0, 0, 0, Math.PI / 2, 0, 0, g);
-      add(new THREE.TorusGeometry(.29, .045, 8, lite ? 16 : 28), rubber, 0, 0, w[1] * .1, 0, 0, 0, g);
+      add(new THREE.CylinderGeometry(.33, .33, .21, lite ? 22 : 28), rubber, 0, 0, 0, Math.PI / 2, 0, 0, g);
+      add(new THREE.TorusGeometry(.29, .045, 8, lite ? 22 : 28), rubber, 0, 0, w[1] * .1, 0, 0, 0, g);
       add(new THREE.CylinderGeometry(.21, .21, .22, lite ? 14 : 24), steel, 0, 0, w[1] * .005, Math.PI / 2, 0, 0, g);
       add(new THREE.CylinderGeometry(.075, .075, .23, 12), chrome, 0, 0, w[1] * .01, Math.PI / 2, 0, 0, g);
-      if (!lite) for (var k = 0; k < 6; k++) { var a = k / 6 * Math.PI * 2; add(new THREE.CylinderGeometry(.03, .03, .225, 8), plastic, Math.cos(a) * .14, Math.sin(a) * .14, w[1] * .006, Math.PI / 2, 0, 0, g); }
+      for (var t2 = 0; t2 < 18; t2++) { var ta = t2 / 18 * Math.PI * 2; add(new THREE.BoxGeometry(.035, .016, .2), rubber, Math.cos(ta) * .33, Math.sin(ta) * .33, 0, 0, 0, ta, g); }   // crampons du pneu
+      add(new THREE.TorusGeometry(.215, .012, 6, 22), chrome, 0, 0, w[1] * .115, 0, 0, 0, g);   // liseré de jante
+      for (var k = 0; k < 6; k++) { var a = k / 6 * Math.PI * 2; add(new THREE.CylinderGeometry(.03, .03, .225, 8), plastic, Math.cos(a) * .14, Math.sin(a) * .14, w[1] * .006, Math.PI / 2, 0, 0, g); }
     });
 
+    /* ---------- petits détails en plus ---------- */
+    add(new THREE.CylinderGeometry(.008, .012, .9, 6), plastic, WR - .25, 1.25, -(depth / 2 - .08), 0, 0, .12);   // antenne de radio
+    add(new THREE.SphereGeometry(.02, 8, 6), chrome, WR - .3, 1.7, -(depth / 2 - .08));
+    [1, -1].forEach(function (sd) {
+      add(new THREE.BoxGeometry(.22, .05, .05), new M({ color: '#ff9a1e', emissive: '#4a2200' }), WF + .35, .6, sd * (depth / 2 + .06));   // clignotant latéral
+      add(new THREE.BoxGeometry(2.3, .035, .03), chrome, (WF + WR) / 2, .42, sd * (depth / 2 + .07));   // baguette chromée
+      add(new THREE.CylinderGeometry(.06, .06, .03, 14), steel, WR - .35, .86, sd * (depth / 2 + .065), Math.PI / 2, 0, 0);   // trappe à essence
+    });
     function plate(x, y, z, ry) {
       var t = canvasTex(256, 56, function (g, w, h) { g.fillStyle = '#f4f4f4'; g.fillRect(0, 0, w, h); g.fillStyle = '#1d3fa8'; g.fillRect(0, 0, 26, h); g.fillStyle = '#ffd23d'; g.font = '700 10px Arial'; g.fillText('F', 9, 46);
         g.fillStyle = '#111'; g.font = '700 34px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('WA-LD-OF', 140, 30); g.strokeStyle = '#111'; g.lineWidth = 2; g.strokeRect(1, 1, w - 2, h - 2); });

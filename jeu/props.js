@@ -62,10 +62,10 @@
       for (n = 0; n < 70; n++) { p = rand(5); if (!p || nearTree(p[0], p[1], 5) || slope(p[0], p[1]) > 2) continue; var fl = pick([['flower_purpleA', 'flower_purpleC'], ['flower_redA', 'flower_redC'], ['flower_yellowA', 'flower_yellowC']]);
         for (k = 0; k < 9; k++) { x2 = p[0] + (r() - .5) * 7; z2 = p[1] + (r() - .5) * 7; if (free(x2, z2, 2)) put(pick(fl), x2, z2, .45 + r() * .35, r() * 6.283); } }
       // 4) le lac : nénuphars, canoës, petit camping avec feu de camp
-      if (ctx.LAKE) { var Lk = ctx.LAKE;
-        for (n = 0; n < 46; n++) { var a = r() * 6.283, d = r() * (Lk[2] - 6), x = Lk[0] + Math.cos(a) * d, z = Lk[1] + Math.sin(a) * d, t2 = TPL.q_Lilypad; if (!t2) continue; ITEMS.push({ n: 'q_Lilypad', x: x, y: -.72, z: z, s: (n % 3 ? 1.1 : 1.8) / Math.max(t2.s.x, t2.s.z), ry: r() * 6.283 }); }
-        [[.3, 1], [.36, 1]].forEach(function (q, i) { var a2 = q[0] * 6.283 + i * .12, d2 = Lk[2] + 3, x3 = Lk[0] + Math.cos(a2) * d2, z3 = Lk[1] + Math.sin(a2) * d2; put('canoe', x3, z3, .55, a2 + 1.57); put('canoe_paddle', x3 + 1.2, z3 + .6, .12, a2); });
-        var ca = 2.4, cx = Lk[0] + Math.cos(ca) * (Lk[2] + 14), cz = Lk[1] + Math.sin(ca) * (Lk[2] + 14);
+      if (ctx.LAKE) { var Lk = ctx.LAKE, LR = function (a) { return Lk[2] * (ctx.lakeK ? ctx.lakeK(a) : 1); };   // le bord du lac n'est pas un cercle
+        for (n = 0; n < 46; n++) { var a = r() * 6.283, d = r() * (LR(a) - 6), x = Lk[0] + Math.cos(a) * d, z = Lk[1] + Math.sin(a) * d, t2 = TPL.q_Lilypad; if (!t2) continue; ITEMS.push({ n: 'q_Lilypad', x: x, y: -.72, z: z, s: (n % 3 ? 1.1 : 1.8) / Math.max(t2.s.x, t2.s.z), ry: r() * 6.283 }); }
+        [[.3, 1], [.36, 1]].forEach(function (q, i) { var a2 = q[0] * 6.283 + i * .12, d2 = LR(a2) + 3, x3 = Lk[0] + Math.cos(a2) * d2, z3 = Lk[1] + Math.sin(a2) * d2; put('canoe', x3, z3, .55, a2 + 1.57); put('canoe_paddle', x3 + 1.2, z3 + .6, .12, a2); });
+        var ca = 2.4, cx = Lk[0] + Math.cos(ca) * (LR(ca) + 14), cz = Lk[1] + Math.sin(ca) * (LR(ca) + 14);
         if (free(cx, cz, 3)) { put('campfire_stones', cx, cz, .5, 0); put('tent_detailedOpen', cx + 4, cz - 3, 2.4, -.8); put('tent_smallOpen', cx - 4.5, cz - 2.5, 1.8, .9); put('log', cx, cz + 2.6, .5, 0); put('log', cx + 2.6, cz + .4, .5, 1.57); ctx.FIRES && ctx.FIRES.push([cx, ctx.hgt(cx, cz), cz]); } }
       // 4b) forêt sombre : rochers moussus, troncs couchés, souches, champignons, cercle de pierres, lucioles
       if (ctx.DARKF) { var DF = ctx.DARKF;
@@ -87,11 +87,11 @@
       for (n = 0; n < 900 && (ctx.EXTRA || []).filter(function (e) { return e.sp === 'palm'; }).length < 45; n++) { var a4 = r() * 6.283, sr = ctx.shoreR(a4) - 10 - r() * 16, x5 = Math.cos(a4) * sr, z5 = Math.sin(a4) * sr;
         if (!free(x5, z5, 3) || Math.cos(a4) > -.2) continue; palm(x5, z5, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x5, z: z5, y: ctx.hgt(x5, z5), r: .35, h: 6 }); }
       // oasis : palmiers en couronne, buissons verts, fleurs, nénuphars, campement
-      if (ctx.LAKE) { var O = ctx.LAKE;
-        for (n = 0; n < 16; n++) { var a8 = n / 16 * 6.283 + r() * .3, d8 = O[2] + 4 + r() * 9, x10 = O[0] + Math.cos(a8) * d8, z10 = O[1] + Math.sin(a8) * d8; palm(x10, z10, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x10, z: z10, y: ctx.hgt(x10, z10), r: .35, h: 6 }); }
-        for (n = 0; n < 40; n++) { var a9 = r() * 6.283, d9 = O[2] + 2 + r() * 16, x11 = O[0] + Math.cos(a9) * d9, z11 = O[1] + Math.sin(a9) * d9; put(pick(['plant_bushLarge', 'plant_bushDetailed', 'plant_bush', 'flower_redA', 'flower_yellowA', 'flower_purpleA', 'grass_leafsLarge']), x11, z11, .6 + r() * .9, r() * 6.283); }
-        for (n = 0; n < 14; n++) { var a10 = r() * 6.283, d10 = r() * (O[2] - 4), t3 = TPL.q_Lilypad; if (t3) ITEMS.push({ n: 'q_Lilypad', x: O[0] + Math.cos(a10) * d10, y: -.72, z: O[1] + Math.sin(a10) * d10, s: (n % 2 ? 1.1 : 1.8) / Math.max(t3.s.x, t3.s.z), ry: r() * 6.283 }); }
-        var ox = O[0] + O[2] + 16, oz = O[1] + 4; put('tent_detailedOpen', ox, oz, 2.6, -1.2); put('campfire_logs', ox - 4, oz + 3, .5, 0); put('pot_large', ox + 2.5, oz + 3.5, .9, 0); put('canoe', O[0] - O[2] + 1, O[1], .55, 1.57); }
+      if (ctx.LAKE) { var O = ctx.LAKE, OR = function (a) { return O[2] * (ctx.lakeK ? ctx.lakeK(a) : 1); };
+        for (n = 0; n < 16; n++) { var a8 = n / 16 * 6.283 + r() * .3, d8 = OR(a8) + 4 + r() * 9, x10 = O[0] + Math.cos(a8) * d8, z10 = O[1] + Math.sin(a8) * d8; palm(x10, z10, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x10, z: z10, y: ctx.hgt(x10, z10), r: .35, h: 6 }); }
+        for (n = 0; n < 40; n++) { var a9 = r() * 6.283, d9 = OR(a9) + 2 + r() * 16, x11 = O[0] + Math.cos(a9) * d9, z11 = O[1] + Math.sin(a9) * d9; put(pick(['plant_bushLarge', 'plant_bushDetailed', 'plant_bush', 'flower_redA', 'flower_yellowA', 'flower_purpleA', 'grass_leafsLarge']), x11, z11, .6 + r() * .9, r() * 6.283); }
+        for (n = 0; n < 14; n++) { var a10 = r() * 6.283, d10 = r() * (OR(a10) - 4), t3 = TPL.q_Lilypad; if (t3) ITEMS.push({ n: 'q_Lilypad', x: O[0] + Math.cos(a10) * d10, y: -.72, z: O[1] + Math.sin(a10) * d10, s: (n % 2 ? 1.1 : 1.8) / Math.max(t3.s.x, t3.s.z), ry: r() * 6.283 }); }
+        var ox = O[0] + OR(0) + 16, oz = O[1] + 4; put('tent_detailedOpen', ox, oz, 2.6, -1.2); put('campfire_logs', ox - 4, oz + 3, .5, 0); put('pot_large', ox + 2.5, oz + 3.5, .9, 0); put('canoe', O[0] - OR(Math.PI) + 1, O[1], .55, 1.57); }
       p = rand(10); if (p) { put('tent_detailedClosed', p[0], p[1], 2.6, .4); put('tent_detailedOpen', p[0] + 5, p[1] + 2, 2.4, -.6); put('campfire_logs', p[0] + 2, p[1] + 4.5, .5, 0); put('pot_large', p[0] - 2.5, p[1] + 3, .9, 0); ctx.FIRES && ctx.FIRES.push([p[0] + 2, ctx.hgt(p[0] + 2, p[1] + 4.5), p[1] + 4.5]); }
       (ctx.PEAKS || []).forEach(function (pk, i) { if (i > 1) return; var x6 = pk[0] + pk[2] * .82, z6 = pk[1]; if (!free(x6, z6, 6)) return; put('statue_obelisk', x6, z6, 7, 0, '#f2c89a'); for (var k2 = 0; k2 < 5; k2++) { var a5 = k2 / 5 * 6.283, x7 = x6 + Math.cos(a5) * 6, z7 = z6 + Math.sin(a5) * 6; put(k2 % 2 ? 'statue_columnDamaged' : 'statue_column', x7, z7, k2 % 2 ? 2 : 4, a5, '#f2c89a'); ctx.PEBS.push({ x: x7, z: z7, y: ctx.hgt(x7, z7), r: .7, h: 4 }); } });
     }
