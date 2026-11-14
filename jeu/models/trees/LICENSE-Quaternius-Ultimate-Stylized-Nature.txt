@@ -1,0 +1,3 @@
+Arbres, palmiers et rochers : « Ultimate Stylized Nature » par Quaternius (https://quaternius.com), licence CC0 1.0 (domaine public).
+Fichiers FBX récupérés depuis le dépôt github.com/walterpalladino/godot-quaternius-ultimate-stylized-nature (MIT, Walter H. Palladino),
+convertis en .glb (mètres, axe Y vers le haut, écorce / feuilles séparées) et textures réduites (512 / 256 px) pour Wald Royal.

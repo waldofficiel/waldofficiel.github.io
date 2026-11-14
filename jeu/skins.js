@@ -138,7 +138,7 @@
     return { skin: '#dc9a72', shirt: '#c8101c', pants: '#f1f1f1' };
   };
   /* ---------- FLUBB : blob jaune, gros yeux, gilet rayé ouvert, baskets multicolores ---------- */
-  B.flubb = function (R) {
+  B.flubb = function (R) { R.EY = -.31;
     var y = M('#f5c518', { shininess: 55, specular: '#5a4a10' }), w = M('#ffffff', { shininess: 80 }), dark = M('#151515'), mouth = M('#7a3c10'), pin = M('#fff', Object.assign(pinstripe(), { side: T3.DoubleSide })), sh = M('#fff', fun()), cream = M('#f3ecd8'), irisB = M('#4a86c8'), irisH = M('#8a7a3a');
     R.lL.position.z = -.11; R.lR.position.z = .11; R.aL.position.set(0, 1.44, -.21); R.aR.position.set(0, 1.44, .21);
     [R.lL, R.lR].forEach(function (l) { seg(l, .06, .05, .05, -.42, y); seg(l, .05, .045, -.42, -.8, y); S(l, .055, .055, .055, 0, -.42, 0, y); shoe(l, sh, cream, null); });
@@ -238,12 +238,49 @@
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];
   window.buildSkin = function (THREE, id, opts) {
     init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts);
-    // genoux : tout ce qui est sous le genou (tibia, chaussette, chaussure, lacets) passe dans un groupe qui pivote au genou
-    var KY = -.43, bb = new T3.Box3();
-    [['lL', 'kL'], ['lR', 'kR']].forEach(function (q) { var l = R[q[0]], k = new T3.Group(); k.position.set(0, KY, 0); l.add(k); R[q[1]] = k;
-      l.children.slice().forEach(function (m) { if (!m.isMesh) return; m.updateMatrix(); if (!m.geometry.boundingBox) m.geometry.computeBoundingBox(); bb.copy(m.geometry.boundingBox).applyMatrix4(m.matrix);
-        if ((bb.min.y + bb.max.y) / 2 < KY - .01) { l.remove(m); m.position.y -= KY; k.add(m); } }); });
-    [R.body, R.lL, R.lR, R.kL, R.kR, R.aL, R.aR, R.head].forEach(merge);
-    R.cols = cols; return R;
+    R.cols = cols; return skinify(R);
   };
+  /* ---------- SQUELETTE COMMUN : tous les persos passent par ici ----------
+     Os : corps, cuisse + genou (x2), épaule + coude (x2), tête. Chaque sommet est attaché à son os ;
+     près du genou et du coude il est partagé entre les deux os, donc la jambe et le bras se plient en douceur.
+     Le perso devient un seul SkinnedMesh (un matériau par groupe) : peu d'appels de dessin. */
+  function smooth(a, b, x) { var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+  function skinify(R) {
+    var KY = R.KY || -.43, EY = R.EY || -.28, root = R.root;
+    root.updateMatrixWorld(true);
+    var names = ['body', 'lL', 'lR', 'aL', 'aR', 'head'], groupsP = names.map(function (n) { return R[n]; });
+    function bone(par, v) { var b = new T3.Bone(); b.position.copy(v); if (par) par.add(b); return b; }
+    var P = function (n) { return R[n].position.clone(); };
+    var bB = bone(null, new T3.Vector3()), bLL = bone(bB, P('lL')), bKL = bone(bLL, new T3.Vector3(0, KY, 0)), bLR = bone(bB, P('lR')), bKR = bone(bLR, new T3.Vector3(0, KY, 0)),
+        bAL = bone(bB, P('aL')), bEL = bone(bAL, new T3.Vector3(0, EY, 0)), bAR = bone(bB, P('aR')), bER = bone(bAR, new T3.Vector3(0, EY, 0)), bH = bone(bB, P('head'));
+    var bones = [bB, bLL, bKL, bLR, bKR, bAL, bEL, bAR, bER, bH];
+    var list = [];
+    function collect(o, pi) { o.children.forEach(function (ch) { if (groupsP.indexOf(ch) >= 0 || ch === R.gunHold) return; if (ch.isMesh) list.push([ch, pi]); if (ch.children.length) collect(ch, pi); }); }
+    groupsP.forEach(function (g, pi) { collect(g, pi); });
+    var mats = [], by = {};
+    list.forEach(function (q) { var k = q[0].material.uuid; if (!by[k]) { by[k] = []; mats.push(q[0].material); } by[k].push(q); });
+    var parts = [], n = 0, grp = [];
+    mats.forEach(function (mt, mi) { var st = n; by[mt.uuid].forEach(function (q) { var m = q[0], geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone(); geo.applyMatrix4(m.matrixWorld); parts.push([geo, q[1]]); n += geo.attributes.position.count; }); grp.push([st, n - st, mi]); });
+    var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uv = new Float32Array(n * 2), si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), o = 0;
+    var piv = groupsP.map(function (g) { return new T3.Vector3().setFromMatrixPosition(g.matrixWorld); });
+    parts.forEach(function (q) { var g = q[0], pi = q[1], pa = g.attributes.position, c = pa.count;
+      pos.set(pa.array, o * 3); nor.set(g.attributes.normal.array, o * 3); if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
+      for (var i = 0; i < c; i++) { var j = (o + i) * 4, ly = pa.getY(i) - piv[pi].y, a = 0, b = 0, w = 0;
+        if (pi === 0) a = 0; else if (pi === 5) a = 9;
+        else if (pi === 1 || pi === 2) { a = pi === 1 ? 1 : 3; b = a + 1; w = smooth(KY + .07, KY - .07, ly); }
+        else { a = pi === 3 ? 5 : 7; b = a + 1; w = smooth(EY + .05, EY - .08, ly); }
+        si[j] = a; si[j + 1] = b; sw[j] = 1 - w; sw[j + 1] = w; }
+      o += c; g.dispose(); });
+    var G = new T3.BufferGeometry();
+    G.setAttribute('position', new T3.BufferAttribute(pos, 3)); G.setAttribute('normal', new T3.BufferAttribute(nor, 3)); G.setAttribute('uv', new T3.BufferAttribute(uv, 2));
+    G.setAttribute('skinIndex', new T3.Uint16BufferAttribute(si, 4)); G.setAttribute('skinWeight', new T3.Float32BufferAttribute(sw, 4));
+    grp.forEach(function (q) { G.addGroup(q[0], q[1], q[2]); }); G.computeBoundingSphere(); G.boundingSphere.radius *= 1.35;
+    mats.forEach(function (m) { m.skinning = true; });
+    var sm = new T3.SkinnedMesh(G, mats); sm.name = 'perso'; sm.castShadow = true; sm.add(bB);
+    root.remove(R.body); root.add(sm); bB.add(R.gunHold);
+    sm.updateMatrixWorld(true); sm.bind(new T3.Skeleton(bones));
+    bones.forEach(function (b) { b.rotation.order = 'ZXY'; });
+    R.body = bB; R.lL = bLL; R.kL = bKL; R.lR = bLR; R.kR = bKR; R.aL = bAL; R.eL = bEL; R.aR = bAR; R.eR = bER; R.head = bH; R.mesh = sm;
+    return R;
+  }
 })();
