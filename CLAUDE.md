@@ -40,7 +40,7 @@ Ce fichier sert à reprendre le développement du jeu **Wald Royal** dans une no
 | `jeu/interiors.js` | Fenêtres à pièce visible, étages + escaliers, meubles Kenney (voir plus bas) |
 | `jeu/city.js` | `window.CITY.build(THREE, ctx)` : décor des villes en `Kit` instanciés (clims, châteaux d'eau, antennes, panneaux solaires, cabanons, auvents, enseignes néon sans marque, lampadaires le long des routes, bancs, poubelles, bouches d'incendie, abribus, pubs du jeu, conteneurs + grue aux docks, bidons/pneus au ranch, clôtures/foin/puits au village, drapeaux à l'avenue). Rebords de toit, bandeaux d'étage et piliers pour les toits plats. Les gros objets ajoutent des boîtes dans `PCOL` (testées dans `pushCircle`). `house()` mémorise `hs.door` |
 | `jeu/polo3d.html` | Visionneuse 3D de La Wald (rotation, phares, faire rouler) |
-| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v27` : **monter la version à chaque modif** |
+| `jeu/manifest.webmanifest`, `jeu/sw.js` | PWA. Cache `wald-royale-3d-v28` : **monter la version à chaque modif** |
 | `jeu/logo.jpg`, `jeu/icons/` | Logo et icônes (512/192/180) |
 | `wald-royal/index.html`, `wald-royal/img/*.jpg` | Page vitrine + captures du jeu |
 | `app/android/` | Appli Android : WebView + WebViewAssetLoader, `fr.waldoff.royal` |
@@ -238,6 +238,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Couleurs Kenney** (`props.js`, `recol`) : la palette du kit tirait sur le bleu-vert ; herbe, feuilles et pierres sont recolorées en vert naturel et gris chaud.
 - **Forêt sombre façon Valheim** : brume vert-bleu très sombre, soleil −60 %, exposition −40 %, vignette, désaturation (`POST.expo`, `POST.sat` avec `DARKK`), lucioles. `DARKK` est borné à 1 (avant, il pouvait dépasser et donner un brouillard négatif).
 - **Tests headless** : la forêt dense peut faire tomber Chromium (mémoire swiftshader) en 960×540 ; utiliser 640×360. `WR.dark(v)` force l'ambiance de la forêt sombre, `WR.darkv()` lit les valeurs.
+
+## Toute la végétation en vrais modèles 3D (novembre 2026)
+- **Plus aucun arbre, cactus, buisson, fleur ou rocher « fait maison »** : `NATURE` ne sert plus que de secours si les modèles ne chargent pas.
+- `trees.js` : sapins, chênes, bouleaux et **érables rouges** (≈ 20 % des feuillus) détaillés près de la caméra ; **au loin, des imposteurs** (chaque modèle est photographié au chargement dans une texture, sur un panneau qui se tourne vers la caméra, `farIM`). Les anciens arbres simples sont cachés dès que les imposteurs sont prêts. Les textures sont chargées **avant** la photo (sinon image vide). Aussi : **buissons texturés** (Bush, Bush_Large, Bush_Small, avec fleurs), **fleurs** autour du joueur (5 touffes, remplies par `placeGrass` via `TREES3D.flowers`), arbres des villes (`window.EXT_TREES` rempli par `city.js` : bacs de la place = érables / bouleaux + fleurs, bacs des rues = buissons fleuris, palmiers des villas), décor de `props.js` (`ctx.EXTRA` : palmiers, arbres morts du désert, buissons et fleurs des prés).
+- `props.js` : **Quaternius Ultimate Nature Pack (CC0)** en `models/nature/q_*.glb` à couleurs unies (cactus ×5, cactus en fleurs ×4, rochers ×7, rochers moussus ×7, souches, troncs, nénuphars). Les anciens noms Kenney sont remplacés automatiquement (`sub()`), et `plant_bush*` / `flower_*` / `grass_*` partent vers `trees.js`. Les **cactus et rochers de la carte** (`TREES`) sont posés ici (`TREEVIS` est caché), avec ~14 % d'arbres morts dans le désert. Les buissons du désert (`ctx.BUSHES`) deviennent des petits cactus en fleurs et des cailloux. Restent Kenney : tentes, feux de camp, ruines, champignons, canoës.
+- L'herbe reste en brins instanciés (trop d'instances pour un modèle).
 
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.

@@ -6,7 +6,7 @@
    - chaque ville : conteneurs + grue (docks), château d'eau + bidons + pneus (ranch), clôtures + foin + puits (village), drapeaux + arche néon (avenue)
    Les gros objets (conteneurs, abribus, château d'eau) ajoutent des boîtes de collision dans ctx.PCOL. */
 (function () {
-  var T, MC = {};
+  var T, MC = {}, EXT = window.EXT_TREES = [];   // arbres, buissons et fleurs en vrais modèles 3D, posés ensuite par trees.js
   function M(col, o) { var k = col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshLambertMaterial(Object.assign({ color: col }, o || {})); return MC[k]; }
   function P(col, o) { var k = 'p' + col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshPhongMaterial(Object.assign({ color: col, shininess: 60, specular: '#666' }, o || {})); return MC[k]; }
   function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -98,8 +98,8 @@
       } else {   // bac à fleurs + arbre
         var pot = new T.Mesh(new T.CylinderGeometry(1.1, 1, .7, 20), stone); pot.position.y = .35; pot.castShadow = true; gB.add(pot);
         var soil = new T.Mesh(new T.CylinderGeometry(1.02, 1.02, .05, 20), new T.MeshLambertMaterial({ color: '#4a3020' })); soil.position.y = .68; gB.add(soil);
-        if (window.NATURE) { var tg = NATURE.tree(T, b === 0 || b === 4 ? 'birch' : 'oak', 40 + b), tm = new T.Mesh(tg, new T.MeshLambertMaterial({ vertexColors: true })); tm.scale.setScalar(.55); tm.position.y = .6; tm.castShadow = true; gB.add(tm); }
-        var fc = ['#ff4a8a', '#ffd23d', '#c77dff', '#ff7a3a', '#ffffff']; for (var f = 0; f < 14; f++) { var fa = f / 14 * 6.283, fl = new T.Mesh(new T.IcosahedronGeometry(.11, 0), new T.MeshLambertMaterial({ color: fc[f % fc.length] })); fl.position.set(Math.cos(fa) * .82, .78, Math.sin(fa) * .82); gB.add(fl); }
+        EXT.push({ sp: b === 0 || b === 4 ? 'birch' : 'maple', x: x0 + bx, y: y0 + .66, z: z0 + bz, a: b * 1.3, h: 4.6 });   // vrai arbre 3D (trees.js)
+        for (var f = 0; f < 5; f++) { var fa = f / 5 * 6.283; EXT.push({ sp: 'flower', x: x0 + bx + Math.cos(fa) * .72, y: y0 + .66, z: z0 + bz + Math.sin(fa) * .72, a: fa, h: .55, mi: f }); }
         ctx.PCOL.push({ x: x0 + bx, z: z0 + bz, hw: .9, hd: .9, y0: y0, h: .8 });
       }
       // lampadaire à globe entre chaque élément
@@ -134,7 +134,7 @@
       else { b.position.y = .12 + Math.max(0, Math.sin(t * 6 + u.ph)) * .02; b.children[1].position.y = .1 - Math.max(0, Math.sin(t * 4 + u.ph)) * .08; if (Math.sin(t * .7 + u.ph) > .98) b.rotation.y += dt * 3; } });
   };
   window.EXT_FURN = window.EXT_FURN || [];
-  window.CITY = { build: function (THREE, ctx) {
+  window.CITY = { build: function (THREE, ctx) { EXT.length = 0;
     T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.2, DES = ctx.DES, PCOL = ctx.PCOL || [];
     GB = new T.BoxGeometry(1, 1, 1); GC = new T.CylinderGeometry(.5, .5, 1, 14); GC8 = new T.CylinderGeometry(.5, .5, 1, 8); GS = new T.SphereGeometry(.5, 12, 8);
     var steel = P('#9aa2ae'), dark = M('#2a2d34'), white = M('#e8eaee'), concrete = M('#b8b4ac'), glow = new T.MeshBasicMaterial({ color: '#fff4c8' });
@@ -153,7 +153,8 @@
     var BIN = new Kit([part(GC, M('#2e6a3a'), [0, .45, 0], [.55, .9, .55], null, { tint: 1 }), part(GC, dark, [0, .92, 0], [.6, .06, .6])]);
     var HYD = new Kit([part(GC, M('#d8202e'), [0, .35, 0], [.26, .7, .26]), part(GS, M('#d8202e'), [0, .72, 0], [.3, .25, .3]), part(GC8, M('#e8b020'), [0, .45, .16], [.1, .14, .1], [Math.PI / 2, 0, 0])]);
     var BOLL = new Kit([part(GC8, M('#e8e8e8'), [0, .45, 0], [.18, .9, .18]), part(GC8, M('#ff2bd6', { emissive: '#ff2bd6', emissiveIntensity: .8 }), [0, .78, 0], [.19, .08, .19], null, { noShadow: true })]);
-    var PLANT = new Kit([part(GB, concrete, [0, .3, 0], [1.4, .6, .7]), part(GS, M('#3f8a34'), [0, .75, 0], [1.3, .6, .65]), part(GS, M('#e84a8a'), [.35, .95, .1], [.25, .2, .25]), part(GS, M('#ffd83a'), [-.3, .95, -.1], [.2, .18, .2])]);
+    var PLANT = new Kit([part(GB, concrete, [0, .3, 0], [1.4, .6, .7]), part(GB, M('#4a3020'), [0, .61, 0], [1.3, .03, .6])]);
+    PLANT.add = function (x, y, z, ry, sc) { Kit.prototype.add.call(this, x, y, z, ry, sc); EXT.push({ sp: 'bush', x: x, y: y + .6, z: z, a: ry, h: .85 * (sc || 1), mi: 3 }); };   // bac en béton + vrai buisson fleuri
     var STOP = new Kit([part(GB, new T.MeshPhongMaterial({ color: '#bfe6ff', transparent: true, opacity: .35, shininess: 120 }), [0, 1.3, -.7], [3.2, 2.4, .05], null, { noShadow: true }), part(GB, dark, [0, 2.55, 0], [3.4, .1, 1.6]),
       part(GB, dark, [-1.6, 1.3, -.7], [.08, 2.6, .08]), part(GB, dark, [1.6, 1.3, -.7], [.08, 2.6, .08]), part(GB, dark, [-1.6, 1.3, .7], [.08, 2.6, .08]), part(GB, dark, [1.6, 1.3, .7], [.08, 2.6, .08]), part(GB, M('#7a4a2a'), [0, .5, -.45], [2.6, .08, .4])]);
     var CONE = new Kit([part(new T.ConeGeometry(.22, .7, 10), M('#ff6a1a'), [0, .38, 0]), part(GB, M('#ff6a1a'), [0, .03, 0], [.5, .06, .5]), part(GC, white, [0, .4, 0], [.3, .1, .3])]);
@@ -173,6 +174,7 @@
     var ORE = new Kit([part(new T.ConeGeometry(1, 1, 7), M('#a8482a'), [0, .5, 0], [1.6, 1, 1.6]), part(GS, M('#7a3420'), [.5, .2, .3], [.6, .4, .6])]);
     var LOGS = new Kit([part(GC, M('#8a5a32'), [0, .25, 0], [.5, 2.4, .5], [0, 0, Math.PI / 2]), part(GC, M('#7a4a28'), [0, .25, .5], [.5, 2.4, .5], [0, 0, Math.PI / 2]), part(GC, M('#9a6a3a'), [0, .68, .25], [.5, 2.4, .5], [0, 0, Math.PI / 2])]);
     var PALM = new Kit([part(GC8, M('#8a6a42'), [0, 2.5, 0], [.32, 5, .32], [0, 0, .06]), part(GS, M('#6a4a2a'), [.15, 5.1, 0], [.6, .5, .6])].concat([0, 1, 2, 3, 4, 5, 6].map(function (i) { var a = i / 7 * 6.283; return part(GB, M('#3aa83a', { side: T.DoubleSide }), [.15 + Math.cos(a) * 1.3, 4.95, Math.sin(a) * 1.3], [2.8, .05, .55], [0, -a, -.3]); })));
+    PALM.add = function (x, y, z, ry, sc) { EXT.push({ sp: 'palm', x: x, y: y, z: z, a: ry, h: 6.2 * (sc || 1) }); };   // vrais palmiers 3D (trees.js)
     var TENT = new Kit([part(new T.ConeGeometry(1.6, 2, 4), M('#ffffff', { side: T.DoubleSide }), [0, 1, 0], [1, 1, 1.3], [0, Math.PI / 4, 0], { tint: 1 }), part(GB, M('#3a2a1a'), [0, .6, 1.12], [.7, 1.1, .05])]);
     var FIRE = new Kit([part(GC8, M('#6a6a66'), [0, .12, 0], [1.6, .24, 1.6]), part(GC8, M('#4a2a14'), [0, .3, 0], [.15, 1.2, .15], [0, 0, 1.2]), part(GC8, M('#4a2a14'), [0, .3, 0], [.15, 1.2, .15], [1.2, 0, 0]),
       part(new T.ConeGeometry(.4, 1.2, 7), new T.MeshBasicMaterial({ color: '#ff8a2a' }), [0, .8, 0], null, null, { noShadow: true }), part(new T.ConeGeometry(.22, .8, 7), new T.MeshBasicMaterial({ color: '#ffe06a' }), [0, .7, 0], null, null, { noShadow: true })]);

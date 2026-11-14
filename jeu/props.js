@@ -14,12 +14,20 @@
         s.traverse(function (o) { if (!o.isMesh) return; var mats = Array.isArray(o.material) ? o.material : [o.material], m = new T.Matrix4().multiplyMatrices(off, o.matrixWorld);
           if (mats.length > 1 && o.geometry.groups.length) { var gn = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry; gn.groups.forEach(function (gr) { var sub = new T.BufferGeometry(); ['position', 'normal'].forEach(function (a) { var A = gn.attributes[a]; if (A) sub.setAttribute(a, new T.BufferAttribute(A.array.slice(gr.start * 3, (gr.start + gr.count) * 3), 3)); }); parts.push({ g: sub, m: m, c: recol(mats[gr.materialIndex], nm) }); }); }
           else parts.push({ g: o.geometry, m: m, c: recol(mats[0], nm) }); });
-        parts.forEach(function (p) { var c2 = p.c; c2.r = Math.pow(c2.r, 1.25); c2.g = Math.pow(c2.g, 1.25); c2.b = Math.pow(c2.b, 1.25); });   // un peu plus franc, comme le reste du jeu
+        parts.forEach(function (p) { var c2 = p.c; if (/^q_/.test(nm)) c2.multiplyScalar(/Rock/.test(nm) ? 1.35 : 1.5); else { c2.r = Math.pow(c2.r, 1.25); c2.g = Math.pow(c2.g, 1.25); c2.b = Math.pow(c2.b, 1.25); } });   // un peu plus franc, comme le reste du jeu
         TPL[nm] = { parts: parts, s: sz }; if (--left === 0) done(); }, undefined, function () { if (--left === 0) done(); }); });
   }
   // pose un modèle : h = hauteur voulue en mètres (l'échelle est calculée), tint = couleur multipliée
-  function palm(x, z, h, a) { (ctx.PALMS = ctx.PALMS || []).push({ x: x, z: z, y: ctx.hgt(x, z), h: h, a: a }); }   // palmiers : vrais modèles texturés (trees.js)
-    function put(nm, x, z, h, ry, tint, sink) { var t = TPL[nm]; if (!t) return null;  var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
+  var SUBN = 0;
+  function palm(x, z, h, a) { (ctx.EXTRA = ctx.EXTRA || []).push({ sp: 'palm', x: x, z: z, y: ctx.hgt(x, z), h: h, a: a }); }   // palmiers : vrais modèles texturés (trees.js)
+    // anciens noms Kenney → vrais modèles Quaternius ; buissons et fleurs → modèles texturés de trees.js (ctx.EXTRA)
+    function sub(nm) { var h = SUBN++ * .618 % 1, P = function (a) { return a[(h * a.length) | 0]; };
+      if (/^rock_large|^stone_large/.test(nm)) return P(ctx.DES ? QR : QM); if (/^rock_tall|^stone_tall/.test(nm)) return P(ctx.DES ? ['q_Rock_4', 'q_Rock_5', 'q_Rock_7'] : ['q_Rock_Moss_4', 'q_Rock_Moss_5', 'q_Rock_Moss_7']);
+      if (/^stone_small/.test(nm)) return P(QR); if (/^stump/.test(nm)) return h < .5 ? 'q_TreeStump_Moss' : 'q_TreeStump'; if (/^log$|^log_large/.test(nm)) return h < .5 ? 'q_WoodLog_Moss' : 'q_WoodLog';
+      if (/^cactus/.test(nm)) return P(QC); if (/^lily/.test(nm)) return 'q_Lilypad'; return nm; }
+    function put(nm, x, z, h, ry, tint, sink) {
+      if (/^plant_bush|^flower_|^grass_/.test(nm)) { (ctx.EXTRA = ctx.EXTRA || []).push({ sp: /^flower_/.test(nm) ? 'flower' : 'bush', x: x, z: z, y: ctx.hgt(x, z), h: Math.max(.5, h * (/^flower_/.test(nm) ? 1.3 : 1)), a: ry, mi: SUBN++ % 5 }); return null; }
+      nm = sub(nm); var t = TPL[nm]; if (!t) return null; if (/^q_/.test(nm) && tint && !ctx.DES) tint = null;  var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
   function free(x, z, m) { if (!ctx.onLand(x, z) || ctx.inTown(x, z, m) || ctx.nearRoad(x, z, m + 5)) return false;
     for (var i = 0; i < ctx.HOUSES.length; i++) { var h = ctx.HOUSES[i]; if (Math.abs(h.x - x) < h.hx + m && Math.abs(h.z - z) < h.hz + m) return false; }
     if (ctx.inField && ctx.inField(x, z, 3)) return false; return true; }
@@ -29,11 +37,18 @@
   function place() {
     var r = rng(ctx.DES ? 777 : 555), DES = ctx.DES, R = ctx.ISLM, pick = function (a) { return a[r() * a.length | 0]; };
     var RT = DES ? '#e8905a' : '#c4b8a4', ST = DES ? '#f0b07a' : '#aaa189';   // dans le désert, la roche est rouge orangé
+    // 0) les rochers et les cactus de la carte (liste TREES d'index.html) deviennent de vrais modèles ; quelques arbres morts dans le désert
+    (ctx.TREES || []).forEach(function (t) {
+      if (t.rock) { put(pick(DES ? QR : QM), t.x, t.z, (DES ? 3.2 : 2.2) * t.s, r() * 6.283, DES ? RT : null, .15); return; }
+      if (!DES) return;
+      if (r() < .14) { (ctx.EXTRA = ctx.EXTRA || []).push({ sp: 'dead', x: t.x, z: t.z, y: ctx.hgt(t.x, t.z), h: 6 * t.s, a: r() * 6.283 }); return; }
+      put(pick(QC), t.x, t.z, 5.3 * t.s, r() * 6.283); });
+    (ctx.BUSHES || []).forEach(function (b) { put(r() < .7 ? pick(QCF) : pick(QR), b.x, b.z, .55 + b.s * .45, b.a, null, .05); });   // désert : petits cactus en fleurs et cailloux
     function rand(m) { for (var k = 0; k < 40; k++) { var a = r() * 6.283, d = 25 + r() * (R - 30), x = Math.cos(a) * d, z = Math.sin(a) * d; if (free(x, z, m)) return [x, z]; } return null; }
     // 1) gros rochers et aiguilles rocheuses, plus nombreux sur les pentes et en montagne
     for (var n = 0; n < (DES ? 110 : 85); n++) { var p = rand(8); if (!p) continue; if (slope(p[0], p[1]) < (DES ? .8 : 1.6) && r() < .6) continue;
       var big = r() < .45, h = big ? 4 + r() * 6 : 2.2 + r() * 2.5, nm = big ? pick(['rock_tallA', 'rock_tallB', 'rock_tallC', 'rock_tallD', 'rock_tallE', 'rock_tallF', 'rock_tallG', 'rock_tallH']) : pick(['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeD', 'rock_largeE', 'rock_largeF']);
-      var it = put(nm, p[0], p[1], h, r() * 6.283, RT, .12); if (it) ctx.PEBS.push({ x: p[0], z: p[1], y: it.y, r: Math.max(TPL[nm].s.x, TPL[nm].s.z) * it.s * .38, h: h * .9 });
+      var it = put(nm, p[0], p[1], h, r() * 6.283, RT, .12); if (it) ctx.PEBS.push({ x: p[0], z: p[1], y: it.y, r: Math.max(TPL[it.n].s.x, TPL[it.n].s.z) * it.s * .38, h: h * .9 });
       for (var k = 0; k < 3; k++) { var x2 = p[0] + (r() - .5) * 9, z2 = p[1] + (r() - .5) * 9; if (free(x2, z2, 4)) put(pick(['stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA', 'stone_largeA', 'stone_largeB']), x2, z2, .4 + r() * .8, r() * 6.283, ST); } }
     if (!DES) {
       // 2) sous-bois : souches, troncs couchés, tas de bûches, champignons, mousse
@@ -48,7 +63,7 @@
         for (k = 0; k < 9; k++) { x2 = p[0] + (r() - .5) * 7; z2 = p[1] + (r() - .5) * 7; if (free(x2, z2, 2)) put(pick(fl), x2, z2, .45 + r() * .35, r() * 6.283); } }
       // 4) le lac : nénuphars, canoës, petit camping avec feu de camp
       if (ctx.LAKE) { var Lk = ctx.LAKE;
-        for (n = 0; n < 46; n++) { var a = r() * 6.283, d = r() * (Lk[2] - 6), x = Lk[0] + Math.cos(a) * d, z = Lk[1] + Math.sin(a) * d, t2 = TPL[n % 3 ? 'lily_small' : 'lily_large']; if (!t2) continue; ITEMS.push({ n: n % 3 ? 'lily_small' : 'lily_large', x: x, y: -.72, z: z, s: (n % 3 ? 1.1 : 1.8) / Math.max(t2.s.x, t2.s.z), ry: r() * 6.283 }); }
+        for (n = 0; n < 46; n++) { var a = r() * 6.283, d = r() * (Lk[2] - 6), x = Lk[0] + Math.cos(a) * d, z = Lk[1] + Math.sin(a) * d, t2 = TPL.q_Lilypad; if (!t2) continue; ITEMS.push({ n: 'q_Lilypad', x: x, y: -.72, z: z, s: (n % 3 ? 1.1 : 1.8) / Math.max(t2.s.x, t2.s.z), ry: r() * 6.283 }); }
         [[.3, 1], [.36, 1]].forEach(function (q, i) { var a2 = q[0] * 6.283 + i * .12, d2 = Lk[2] + 3, x3 = Lk[0] + Math.cos(a2) * d2, z3 = Lk[1] + Math.sin(a2) * d2; put('canoe', x3, z3, .55, a2 + 1.57); put('canoe_paddle', x3 + 1.2, z3 + .6, .12, a2); });
         var ca = 2.4, cx = Lk[0] + Math.cos(ca) * (Lk[2] + 14), cz = Lk[1] + Math.sin(ca) * (Lk[2] + 14);
         if (free(cx, cz, 3)) { put('campfire_stones', cx, cz, .5, 0); put('tent_detailedOpen', cx + 4, cz - 3, 2.4, -.8); put('tent_smallOpen', cx - 4.5, cz - 2.5, 1.8, .9); put('log', cx, cz + 2.6, .5, 0); put('log', cx + 2.6, cz + .4, .5, 1.57); ctx.FIRES && ctx.FIRES.push([cx, ctx.hgt(cx, cz), cz]); } }
@@ -69,13 +84,13 @@
     } else {
       // désert : cactus géants, palmiers au bord du lagon, campement nomade, ruines dans les plateaux
       for (n = 0; n < 140; n++) { p = rand(4); if (!p) continue; var tall = r() < .5; put(tall ? 'cactus_tall' : 'cactus_short', p[0], p[1], tall ? 3.5 + r() * 2.5 : 1.4 + r(), r() * 6.283); if (tall) ctx.PEBS.push({ x: p[0], z: p[1], y: ctx.hgt(p[0], p[1]), r: .45, h: 3 }); }
-      for (n = 0; n < 900 && (ctx.PALMS || []).length < 45; n++) { var a4 = r() * 6.283, sr = ctx.shoreR(a4) - 10 - r() * 16, x5 = Math.cos(a4) * sr, z5 = Math.sin(a4) * sr;
+      for (n = 0; n < 900 && (ctx.EXTRA || []).filter(function (e) { return e.sp === 'palm'; }).length < 45; n++) { var a4 = r() * 6.283, sr = ctx.shoreR(a4) - 10 - r() * 16, x5 = Math.cos(a4) * sr, z5 = Math.sin(a4) * sr;
         if (!free(x5, z5, 3) || Math.cos(a4) > -.2) continue; palm(x5, z5, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x5, z: z5, y: ctx.hgt(x5, z5), r: .35, h: 6 }); }
       // oasis : palmiers en couronne, buissons verts, fleurs, nénuphars, campement
       if (ctx.LAKE) { var O = ctx.LAKE;
         for (n = 0; n < 16; n++) { var a8 = n / 16 * 6.283 + r() * .3, d8 = O[2] + 4 + r() * 9, x10 = O[0] + Math.cos(a8) * d8, z10 = O[1] + Math.sin(a8) * d8; palm(x10, z10, 7 + r() * 5, r() * 6.283); ctx.PEBS.push({ x: x10, z: z10, y: ctx.hgt(x10, z10), r: .35, h: 6 }); }
         for (n = 0; n < 40; n++) { var a9 = r() * 6.283, d9 = O[2] + 2 + r() * 16, x11 = O[0] + Math.cos(a9) * d9, z11 = O[1] + Math.sin(a9) * d9; put(pick(['plant_bushLarge', 'plant_bushDetailed', 'plant_bush', 'flower_redA', 'flower_yellowA', 'flower_purpleA', 'grass_leafsLarge']), x11, z11, .6 + r() * .9, r() * 6.283); }
-        for (n = 0; n < 14; n++) { var a10 = r() * 6.283, d10 = r() * (O[2] - 4), t3 = TPL[n % 2 ? 'lily_small' : 'lily_large']; if (t3) ITEMS.push({ n: n % 2 ? 'lily_small' : 'lily_large', x: O[0] + Math.cos(a10) * d10, y: -.72, z: O[1] + Math.sin(a10) * d10, s: (n % 2 ? 1.1 : 1.8) / Math.max(t3.s.x, t3.s.z), ry: r() * 6.283 }); }
+        for (n = 0; n < 14; n++) { var a10 = r() * 6.283, d10 = r() * (O[2] - 4), t3 = TPL.q_Lilypad; if (t3) ITEMS.push({ n: 'q_Lilypad', x: O[0] + Math.cos(a10) * d10, y: -.72, z: O[1] + Math.sin(a10) * d10, s: (n % 2 ? 1.1 : 1.8) / Math.max(t3.s.x, t3.s.z), ry: r() * 6.283 }); }
         var ox = O[0] + O[2] + 16, oz = O[1] + 4; put('tent_detailedOpen', ox, oz, 2.6, -1.2); put('campfire_logs', ox - 4, oz + 3, .5, 0); put('pot_large', ox + 2.5, oz + 3.5, .9, 0); put('canoe', O[0] - O[2] + 1, O[1], .55, 1.57); }
       p = rand(10); if (p) { put('tent_detailedClosed', p[0], p[1], 2.6, .4); put('tent_detailedOpen', p[0] + 5, p[1] + 2, 2.4, -.6); put('campfire_logs', p[0] + 2, p[1] + 4.5, .5, 0); put('pot_large', p[0] - 2.5, p[1] + 3, .9, 0); ctx.FIRES && ctx.FIRES.push([p[0] + 2, ctx.hgt(p[0] + 2, p[1] + 4.5), p[1] + 4.5]); }
       (ctx.PEAKS || []).forEach(function (pk, i) { if (i > 1) return; var x6 = pk[0] + pk[2] * .82, z6 = pk[1]; if (!free(x6, z6, 6)) return; put('statue_obelisk', x6, z6, 7, 0, '#f2c89a'); for (var k2 = 0; k2 < 5; k2++) { var a5 = k2 / 5 * 6.283, x7 = x6 + Math.cos(a5) * 6, z7 = z6 + Math.sin(a5) * 6; put(k2 % 2 ? 'statue_columnDamaged' : 'statue_column', x7, z7, k2 % 2 ? 2 : 4, a5, '#f2c89a'); ctx.PEBS.push({ x: x7, z: z7, y: ctx.hgt(x7, z7), r: .7, h: 4 }); } });
@@ -103,10 +118,12 @@
       vertexShader: 'attribute float aPh; uniform float uT; varying float vA; void main(){ vec3 p = position + vec3(sin(uT * .7 + aPh) * 1.2, sin(uT * 1.3 + aPh * 2.0) * .5, cos(uT * .6 + aPh) * 1.2); vec4 mv = modelViewMatrix * vec4(p, 1.0); vA = .5 + .5 * sin(uT * 3.0 + aPh * 5.0); gl_PointSize = (90.0 / -mv.z) * (.6 + vA); gl_Position = projectionMatrix * mv; }',
       fragmentShader: 'varying float vA; void main(){ float d = length(gl_PointCoord - .5); float a = smoothstep(.5, 0.0, d); gl_FragColor = vec4(vec3(.85, 1.0, .45) * 2.0, a * (.25 + vA * .75)); }' });
     FLY.pts = new T.Points(g, m); FLY.pts.frustumCulled = false; ctx.scene.add(FLY.pts); }
-  var NAMES = ['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeD', 'rock_largeE', 'rock_largeF', 'rock_tallA', 'rock_tallB', 'rock_tallC', 'rock_tallD', 'rock_tallE', 'rock_tallF', 'rock_tallG', 'rock_tallH', 'stone_largeA', 'stone_largeB', 'stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA',
-    'stump_old', 'stump_oldTall', 'stump_roundDetailed', 'stump_squareDetailed', 'log', 'log_large', 'log_stack', 'log_stackLarge', 'mushroom_red', 'mushroom_redGroup', 'mushroom_redTall', 'mushroom_tan', 'mushroom_tanGroup', 'mushroom_tanTall',
-    'flower_purpleA', 'flower_redA', 'flower_yellowA', 'flower_purpleC', 'flower_redC', 'flower_yellowC', 'plant_bush', 'plant_bushDetailed', 'plant_bushLarge', 'grass_large', 'grass_leafsLarge', 'lily_large', 'lily_small', 'canoe', 'canoe_paddle',
-    'tent_detailedOpen', 'tent_detailedClosed', 'tent_smallOpen', 'campfire_stones', 'campfire_logs', 'statue_column', 'statue_columnDamaged', 'statue_obelisk', 'statue_head', 'cactus_tall', 'cactus_short', 'stone_tallA', 'statue_ring', 'tree_palmDetailedTall', 'tree_palmDetailedShort', 'tree_palmBend', 'pot_large'];
+  // tout le décor est en vrais modèles 3D libres : Quaternius Ultimate Nature Pack (q_*, CC0) + Kenney Nature Kit (camping, ruines, champignons, CC0)
+  var QR = ['q_Rock_1', 'q_Rock_2', 'q_Rock_3', 'q_Rock_4', 'q_Rock_5', 'q_Rock_6', 'q_Rock_7'], QM = ['q_Rock_Moss_1', 'q_Rock_Moss_2', 'q_Rock_Moss_3', 'q_Rock_Moss_4', 'q_Rock_Moss_5', 'q_Rock_Moss_6', 'q_Rock_Moss_7'],
+      QC = ['q_Cactus_1', 'q_Cactus_2', 'q_Cactus_3', 'q_Cactus_4', 'q_Cactus_5'], QCF = ['q_CactusFlowers_2', 'q_CactusFlowers_3', 'q_CactusFlowers_4', 'q_CactusFlowers_5'];
+  var NAMES = QR.concat(QM, QC, QCF, ['q_TreeStump', 'q_TreeStump_Moss', 'q_WoodLog', 'q_WoodLog_Moss', 'q_Lilypad',
+    'log_stack', 'log_stackLarge', 'mushroom_red', 'mushroom_redGroup', 'mushroom_redTall', 'mushroom_tan', 'mushroom_tanGroup', 'mushroom_tanTall', 'canoe', 'canoe_paddle',
+    'tent_detailedOpen', 'tent_detailedClosed', 'tent_smallOpen', 'campfire_stones', 'campfire_logs', 'statue_column', 'statue_columnDamaged', 'statue_obelisk', 'statue_head', 'statue_ring', 'pot_large']);
   window.PROPS = {
     build: function (THREE, c) { T = THREE; ctx = c; if (!T.GLTFLoader) return; load(NAMES, function () { try { place(); bake(); makeFlies(); } catch (e) { console.error('PROPS', e); } if (ctx.onReady) ctx.onReady(ITEMS.length); }); },
     update: function (cam) { if (FLY.pts) { FLY.pts.material.uniforms.uT.value = performance.now() / 1000; FLY.pts.visible = Math.hypot(cam.position.x - FLY.at[0], cam.position.z - FLY.at[1]) < FLY.at[2] + 60; } var px = cam.position.x, pz = cam.position.z, R = cam.position.y > 120 ? 600 : 330; MESHES.forEach(function (q) { q.m.visible = Math.hypot(q.x - px, q.z - pz) < R; }); },

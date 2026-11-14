@@ -978,7 +978,7 @@ var GFX = (function () {
   var vegMat = windMat({ emissive: '#0d1408' }), treeMat = windMat({ emissive: '#0d1408' }, true);
   function scatter(list, geos, mtxFn, small, mt) { var out = [], groups = geos.map(function () { return []; }); list.forEach(function (it, i) { groups[it.v % geos.length].push(it); });
     groups.forEach(function (gr, gi) { if (!gr.length) return; var im = new THREE.InstancedMesh(geos[gi], mt || vegMat, gr.length), o = new THREE.Object3D(); gr.forEach(function (it, k) { mtxFn(o, it); o.updateMatrix(); im.setMatrixAt(k, o.matrix); }); im.frustumCulled = false; im.castShadow = !small; im.receiveShadow = true; scene.add(im); if (window.OPT) OPT.chunk(im, 160); out.push(im); }); return out; }
-  if (window.TREEVIS) { TREEVIS.rocks.visible = false; if (!DES) { TREEVIS.trunk.visible = false; TREEVIS.crown.visible = false; } }
+  if (window.TREEVIS) { TREEVIS.rocks.visible = false; if (!DES || window.PROPS) { TREEVIS.trunk.visible = false; TREEVIS.crown.visible = false; } }   // cactus et rochers : vrais modèles (props.js)
   if (!DES) {
     var kinds = ['oak', 'oak', 'pine', 'birch'], TG = [], vi = 0;
     ['oak', 'pine', 'birch'].forEach(function (k, ki) { for (var sd = 0; sd < 3; sd++) TG.push({ k: k, g: NATURE.tree(THREE, k, 100 + ki * 10 + sd) }); });
@@ -990,12 +990,13 @@ var GFX = (function () {
     G.treeIM = scatter(trees, TG.map(function (q) { return q.g; }), function (o, t) { o.position.set(t.x, t.y + .25, t.z); o.rotation.set(0, (t.x * 13 + t.z * 7) % 6.283, 0); var sc = t.s * (t.kind === 'pine' ? 1.05 : t.kind === 'pineD' ? 1.2 : 1); o.scale.set(sc, sc * (.9 + ((t.x * 3) % 1 + 1) % 1 * .25), sc); }, false, treeMat);
   }
   var rockG = [0, 1, 2, 3].map(function (k) { return NATURE.rock(THREE, 300 + k * 17, !DES, DES); });
-  scatter(TREES.filter(function (t) { return t.rock; }).map(function (t, i) { t.v = i; return t; }), rockG, function (o, t) { o.position.set(t.x, t.y + .35, t.z); o.rotation.set(0, t.x * 1.7, 0); o.scale.set(1.9 * t.s, (DES ? 2.4 : 1.5) * t.s, 1.7 * t.s); });
+  if (!window.PROPS) scatter(TREES.filter(function (t) { return t.rock; }).map(function (t, i) { t.v = i; return t; }), rockG, function (o, t) { o.position.set(t.x, t.y + .35, t.z); o.rotation.set(0, t.x * 1.7, 0); o.scale.set(1.9 * t.s, (DES ? 2.4 : 1.5) * t.s, 1.7 * t.s); });
   // buissons et petits cailloux partout (décor, sans collision)
   var bushes = [], rb = mulberry(41); for (var bn = 0; bn < 6000 && bushes.length < (DES ? 400 : 1100); bn++) { var ba = rb() * 6.283, bd = 15 + rb() * (ISLM - 25), bx = Math.cos(ba) * bd, bz = Math.sin(ba) * bd;
     if (!onLand(bx, bz) || inTown(bx, bz, 4) || nearRoad(bx, bz, 7) || hgt(bx, bz) < .6) continue; if (!DES && vnoise(bx / 70 + 5, bz / 70 - 3) < .35 && rb() < .6) continue; bushes.push({ x: bx, z: bz, y: hgt(bx, bz), s: .7 + rb() * .8, v: bn, a: rb() * 6.28 }); }
   var bushG = [0, 1, 2, 3].map(function (k) { return NATURE.bush(THREE, 500 + k * 13, DES); }), pebG = [NATURE.rock(THREE, 900, false, DES), NATURE.rock(THREE, 901, !DES, DES)];
-  G.small = scatter(bushes.filter(function (b, i) { return i % 4; }), bushG, function (o, b) { o.position.set(b.x, b.y - .1, b.z); o.rotation.set(0, b.a, 0); o.scale.setScalar(b.s); }, true);
+  G.bushList = bushes.filter(function (b, i) { return i % 4; });
+  G.small = window.TREES3D ? [] : scatter(bushes.filter(function (b, i) { return i % 4; }), bushG, function (o, b) { o.position.set(b.x, b.y - .1, b.z); o.rotation.set(0, b.a, 0); o.scale.setScalar(b.s); }, true);
   PEBS = bushes.filter(function (b, i) { return !(i % 4); }).map(function (b) { return { x: b.x, z: b.z, y: b.y, r: b.s * .42, h: b.s * .45 }; });   // cailloux solides
   G.pebList = bushes.filter(function (b, i) { return !(i % 4); }); if (!window.TREES3D) G.small = G.small.concat(scatter(bushes.filter(function (b, i) { return !(i % 4); }), pebG, function (o, b) { o.position.set(b.x, b.y + .05, b.z); o.rotation.set(0, b.a, 0); o.scale.set(b.s * .45, b.s * .35, b.s * .4); }, true));
   G.flowerG = DES ? null : [0, 1, 2].map(function (k) { return NATURE.flower(THREE, 700 + k); });
@@ -1025,14 +1026,14 @@ var GFX = (function () {
       var sc = (.7 + h1 * .5) * (1 - .3 * dd / (R * R)) * Math.min(1, .45 + dd / 30); o.position.set(x, y - .03, z); o.rotation.set(0, h2 * 6.283, 0); o.scale.set(sc, sc * (.8 + h2 * .5), sc); o.updateMatrix(); grass.setMatrixAt(n++, o.matrix); if (n >= max) break;
     }
     grass.count = n; grass.instanceMatrix.needsUpdate = true; gC.x = cx; gC.z = cz;
-    if (G.flowers) { var nf = 0, mf = G.flowers.instanceMatrix.count; for (var fx = cx - R; fx <= cx + R && nf < mf; fx += 2.2) for (var fz = cz - R; fz <= cz + R && nf < mf; fz += 2.2) { var ix2 = Math.round(fx / 2.2), iz2 = Math.round(fz / 2.2), q1 = hash2(ix2 + 91, iz2), q2 = hash2(iz2 - 7, ix2 + 3);
+    if (G.flowers) { var nf = 0, mf = G.flowers.instanceMatrix.count, FM = []; for (var fx = cx - R; fx <= cx + R && nf < mf; fx += 2.2) for (var fz = cz - R; fz <= cz + R && nf < mf; fz += 2.2) { var ix2 = Math.round(fx / 2.2), iz2 = Math.round(fz / 2.2), q1 = hash2(ix2 + 91, iz2), q2 = hash2(iz2 - 7, ix2 + 3);
         if (q1 > .3 || vnoise(fx / 25 + 9, fz / 25) < .5) continue; var x2 = fx + (q2 - .5) * 2, z2 = fz + (q1 - .5) * 2; if (!onLand(x2, z2) || (inTown(x2, z2, 3) && !farmGrass(x2, z2)) || nearRoad(x2, z2, 6.5)) continue; var y2 = hgt(x2, z2); if (y2 < .5) continue;
-        o.position.set(x2, y2 - .02, z2); o.rotation.set(0, q2 * 6.28, 0); o.scale.setScalar(.9 + q1); o.updateMatrix(); G.flowers.setMatrixAt(nf++, o.matrix); }
-      G.flowers.count = nf; G.flowers.instanceMatrix.needsUpdate = true; }
+        o.position.set(x2, y2 - .02, z2); o.rotation.set(0, q2 * 6.28, 0); o.scale.setScalar(.9 + q1); o.updateMatrix(); G.flowers.setMatrixAt(nf++, o.matrix); FM.push(o.matrix.clone()); }
+      G.flowers.count = nf; G.flowers.instanceMatrix.needsUpdate = true; if (window.TREES3D && TREES3D.flowers(FM)) G.flowers.count = 0; }
   }
   G.update = function (t, dt) {
     waterMat.uniforms.uTime.value = t; if (G.gT) G.gT.value = t; if (G.wT) G.wT.value = t;
-    var high = me.mode === 'bus' || (me.mode === 'fall' && me.y - hgt(me.x, me.z) > 45), on = SET.gfx > 0 && !high; grass.visible = on; G.small.forEach(function (m) { m.visible = !high; }); if (G.flowers) G.flowers.visible = on; if (window.TREES3D) TREES3D.update(cam.position.x, cam.position.z, SET.gfx === 2 ? 95 : SET.gfx === 1 ? 70 : 45, SET.gfx === 2 ? 110 : SET.gfx === 1 ? 55 : 28, high); if (!on) return;
+    var high = me.mode === 'bus' || (me.mode === 'fall' && me.y - hgt(me.x, me.z) > 45), on = SET.gfx > 0 && !high; grass.visible = on; G.small.forEach(function (m) { m.visible = !high; }); if (G.flowers) G.flowers.visible = on; if (window.TREES3D) { TREES3D.flowerVis(on); if (TREES3D.ready() && !G.flRe) { G.flRe = 1; gC.x = 1e9; } } if (window.TREES3D) TREES3D.update(cam.position.x, cam.position.z, SET.gfx === 2 ? 95 : SET.gfx === 1 ? 70 : 45, SET.gfx === 2 ? 110 : SET.gfx === 1 ? 55 : 28, high); if (!on) return;
     var fx = me.mode === 'ground' || me.veh ? me.x : cam.position.x, fz = me.mode === 'ground' || me.veh ? me.z : cam.position.z, lim = SET.gfx === 2 ? 16 : 11;
     if ((fx - gC.x) * (fx - gC.x) + (fz - gC.z) * (fz - gC.z) > lim * lim || GR !== SET.gfx) { GR = SET.gfx; placeGrass(fx, fz); }
   };
@@ -1042,9 +1043,9 @@ if (window.OPT) OPT.scene = scene; var OPT_N0 = scene.children.length;
 if (window.CITY) try { CITY.build(THREE, { scene: scene, HOUSES: HOUSES, TOWNS: TOWNS, ROADS: ROADS, ROADP: ROADP, FARM: FARM, inField: inField, onFarmPath: onFarmPath, hgt: hgt, inTown: inTown, nearRoad: nearRoad, DES: DES, H: H, PCOL: PCOL }); } catch (e) { console.error('CITY', e); }
 if (window.INTERIORS) try { INTERIORS.build(THREE, { scene: scene, HOUSES: HOUSES, WALLS: WALLS, hgt: hgt, PCOL: PCOL, worldMat: worldMat, TX: TX, H: H }); } catch (e) { console.error('INTERIORS', e); }
 var PCTX = null;
-if (window.PROPS) try { PROPS.build(THREE, PCTX = { scene: scene, hgt: hgt, onLand: onLand, inTown: inTown, nearRoad: nearRoad, HOUSES: HOUSES, inField: inField, TREES: TREES, LAKE: LAKE, DARKF: DARKF, DES: DES, ISLM: ISLM, PEBS: PROPCOL, shoreR: shoreR, PEAKS: PEAKS }); } catch (e) { console.error('PROPS', e); }
-if (window.TREES3D) try { TREES3D.build(THREE, { scene: scene, DES: DES, trees: DES ? [] : TREES.filter(function (t) { return !t.rock; }), pebbles: GFX.pebList || [], uTime: GFX.wT, uR: GFX.treeR, uCam: GFX.treeC, palms: function () { return PCTX && PCTX.PALMS; },
-  onReady: function () { (GFX.treeIM || []).forEach(function (im) { im.castShadow = false; im.children.forEach(function (c) { c.castShadow = false; }); }); } }); } catch (e) { console.error('TREES3D', e); }
+if (window.PROPS) try { PROPS.build(THREE, PCTX = { BUSHES: DES ? GFX.bushList : null, onReady: function () { PCTX.done = true; }, scene: scene, hgt: hgt, onLand: onLand, inTown: inTown, nearRoad: nearRoad, HOUSES: HOUSES, inField: inField, TREES: TREES, LAKE: LAKE, DARKF: DARKF, DES: DES, ISLM: ISLM, PEBS: PROPCOL, shoreR: shoreR, PEAKS: PEAKS }); } catch (e) { console.error('PROPS', e); }
+if (window.TREES3D) try { TREES3D.build(THREE, { scene: scene, renderer: R3, DES: DES, trees: DES ? [] : TREES.filter(function (t) { return !t.rock; }), bushes: DES ? [] : GFX.bushList || [], pebbles: GFX.pebList || [], uTime: GFX.wT, uR: GFX.treeR, uCam: GFX.treeC, extra: function () { return PCTX && PCTX.done ? PCTX.EXTRA || [] : null; },
+  onReady: function () { var far = TREES3D.hasFar(); (GFX.treeIM || []).forEach(function (im) { im.castShadow = false; if (far) im.visible = false; im.children.forEach(function (c) { c.castShadow = false; }); }); } }); } catch (e) { console.error('TREES3D', e); }
 if (window.OPT) try { var OPTR = OPT.batch(scene.children.slice(OPT_N0)); console.log('OPT batch', JSON.stringify(OPTR)); } catch (e) { console.error('OPT', e); }
 var dummy = new THREE.Object3D(), ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 function setWall(w, on) { var h = w.lintel ? w.h - 2.6 : w.h, y = w.y0 + (w.lintel ? 2.6 + h / 2 : h / 2); dummy.position.set(w.x, y, w.z); dummy.rotation.set(0, 0, 0); if (on && !w.cut) dummy.scale.set(w.hw * 2, h, w.hd * 2); else dummy.scale.set(0, 0, 0); dummy.updateMatrix(); w.im.setMatrixAt(w.ii, dummy.matrix); w.im.instanceMatrix.needsUpdate = true; if ((w.wins || w.segs) && window.INTERIORS) INTERIORS.setWall(w, on); }

@@ -1,0 +1,2 @@
+Modèles q_*.glb : « Ultimate Nature Pack » par Quaternius (https://quaternius.com/packs/ultimatenature.html), licence CC0 1.0.
+Récupérés depuis github.com/trebeljahr/quaternius-showcase (public/glb/nature_pack).
