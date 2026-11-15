@@ -316,5 +316,11 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 - Rangs : emblèmes dessinés `emblem(i)` (blason métallique, gemme, chevrons, ailes dès Platine, couronne dès Maître, halo Néon, flammes Légende) ; exportés pour le site en `wald-royal/img/rk0..7.png`. Page du launcher : 10 armes, nouvelles cartes de fonctions. Cache v38.
 
+## Jeu entre potes + nouveaux viseurs (cache v39)
+- **`jeu/net.js`** (`window.NET`) : mini client MQTT 3.1.1 sur WebSocket vers des relais publics gratuits (broker.emqx.io:8084, puis hivemq, mosquitto). Aucun compte, aucun serveur à nous. Sujet `wr4/<salon>/...`, salon = `MODE-code` (sans code : `MODE-public`, tous ceux qui lancent la même map tombent ensemble).
+- Seulement dans les maps du **Créatif** (`CREA` : Mon monde, MAP 1V1, PROPANE). `netGo/netStop/netSend/netMsg/netTick` dans index.html : état 10 fois/s (`t:'s'` position, skin, arme, vie, déguisement, danse), tirs `f`, dégâts `h` (la victime applique les dégâts), élim `k`, sifflet `w`, constructions `b`/`r`/`e` via `SURVIE.hook` (+ `netPlace/netRemove/netEdit`, on renvoie ses pièces à chaque nouvel arrivant). Joueurs distants = entrées `pl` avec `net:true`. Badge `#netB`. Lobby : pseudo `wr_name`, code `wr_room`, bouton 🎲 CRÉER (`.friends`).
+- Testé en local avec un faux relais (messages injectés) ; le relais public n'est pas joignable depuis le conteneur.
+- **Viseurs** façon Fortnite : croix fine avec écart + point ; pompes = **carré à coins arrondis** (4 équerres `.k1..k4`) qui grandit/rétrécit avec la dispersion.
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

@@ -179,11 +179,17 @@
     if (p.t === 'mur') { slotWalls(p, true).forEach(function (w) { w.alive = false; C.setWall(w, false); }); wallSegs(p, im); }
     else { p.ii = im.free.pop(); im.setMatrixAt(p.ii, pieceMatrix(p, O3 || (O3 = new T.Object3D()))); im.instanceMatrix.needsUpdate = true; }
     PIECES.push(p); return true; }
-  function removePiece(p, fx) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1);
+  function removePiece(p, fx) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1); if (HOOK && !p._net) HOOK('r', { key: p.key });
     if (p.t === 'mur') wallFree(p);
     else { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.im.free.push(p.ii); }
     if (fx) { var c = C.MATS[MATW[p.m]].col; C.burst(p.x, p.L + 1.5, p.z, 16, [c, c, '#5a3a20'], 7, .5, 1.4); C.SFX.crack(); } }
   /* ÉDITER (façon Fortnite) : on vise un de ses murs → grille de 9 cases bleues ; on tire/clique sur les cases à enlever ; ÉDITER à nouveau = valider */
+  /* JEU EN LIGNE : chaque pièce posée / cassée / éditée est envoyée aux potes (HOOK branché par index.html) */
+  var HOOK = null;
+  function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, p.mask ? p.mask.map(Number).join('') : '']; }
+  function netPlace(a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null, _net: true }; placePiece(p); }
+  function netRemove(key) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) { var p = PIECES[i]; p._net = true; removePiece(p, true); return; } }
+  function netEdit(key, mk) { PIECES.forEach(function (p) { if (p.key !== key || p.t !== 'mur') return; wallFree(p); p.mask = mk ? String(mk).split('').map(function (c) { return c === '1'; }) : null; wallSegs(p, p.im); }); }
   var EDW = null, EMK = null, EGRID = null, ELAST = false;
   function aimWall() { var P = me(), cm = C.cam(), d = new T.Vector3(); cm.getWorldDirection(d); var o = cm.position, best = null, bt = 15;
     PIECES.forEach(function (p) { if (p.t !== 'mur' || Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1); if (t < bt) { bt = t; best = p; } });
@@ -194,7 +200,7 @@
     EGRID.children.forEach(function (m, i) { var r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .08 : .36, rh - .08, ax ? .36 : cw - .08);
       m.material.color.set(EMK[i] ? '#ff3b6b' : '#3ab0ff'); m.material.opacity = EMK[i] ? .18 : .5; }); }
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
-    if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; wallSegs(p, p.im); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
+    if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
     var h = aimWall(); if (!h) { C.toast('VISE UN DE TES MURS POUR L\'ÉDITER'); return; }
     EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast('✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
   var EPREV = null;
@@ -552,7 +558,7 @@
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
       else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = plan(); if (taken(p.key, p)) return; var mk = p.t === 'lit' ? 'bois' : MATK, cs = cost(p.t);
         if (!C.CREA && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
-        if (placePiece(p)) { if (!C.CREA) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
+        if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!C.CREA) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
     pose: function (o, c, ok) {   // bras qui tiennent la pioche / le plan de construction
       if (!TOOL || !ok) return; var th;
@@ -560,7 +566,7 @@
         o.ra = th; o.rb = .12; o.rw = 0; o.re = 0; o.la = th + .05; o.lb = -.42; o.lw = .3; o.le = .15; o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); }
       else { o.ra = .95; o.rb = .1; o.re = .5; o.rw = .2; o.la = .95; o.lb = -.25; o.le = .5; o.lw = .4; } },
     blendK: function () { return TOOL === 'pioche' ? 30 : 12; },
-    tool: function () { return TOOL; }, setTool: setTool, _edit: function () { editWall(); }, _etap: function () { editTap(); },
+    tool: function () { return TOOL; }, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
     toolName: function () { if (TOOL === 'place') return 'Poser ' + (PLACEK === 'lit' ? 'le LIT 🛏' : 'le COFFRE 📦') + ' · tire pour poser'; return TOOL === 'pioche' ? 'Pioche ⛏ · arbres = bois, rochers = pierre, carcasses = métal' : PIECE === 'lit' ? 'Construire 🔨 · LIT (30 bois) = réapparition' : 'Construire 🔨 · ' + PNAME[PIECE] + ' en ' + NAME[MATK].toLowerCase() + ' (' + COST + ')'; },
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + ZOMB.left() + '/' + ZOMB.total() : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
