@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
         // LAUNCHER : avec internet, on ouvre directement le jeu du site (toujours la dernière version) ;
         // la copie locale se met à jour en arrière-plan pour jouer hors ligne la prochaine fois.
         ui(100, "Lancement de la version " + vNew + "…", "v" + vNew);
-        launch(SITE + "index.html?jouer&v=" + vNew);
+        launch("https://waldofficiel.github.io/launcher/?app=1&v=" + vNew);   // écran du LAUNCHER (façon Epic Games), bouton JOUER
         if (vNew == vCur) return;
 
         File tmp = new File(getFilesDir(), "game_tmp"); delete(tmp); tmp.mkdirs();

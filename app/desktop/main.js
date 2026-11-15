@@ -39,7 +39,7 @@ async function update(ui) {
   let nw;
   try { nw = JSON.parse((await get(SITE + 'version.json?t=' + Date.now(), 5000)).toString('utf8')); } catch (e) { return; }   // pas d'internet : on joue avec ce qu'on a
   const vNew = nw.v, vCur = cur ? cur.v : -1;
-  ONLINE = SITE + 'index.html?jouer&v=' + vNew;   // LAUNCHER : avec internet on ouvre le jeu du site (toujours à jour)
+  ONLINE = 'https://waldofficiel.github.io/launcher/?app=1&v=' + vNew;   // écran du LAUNCHER (façon Epic Games), bouton JOUER   // LAUNCHER : avec internet on ouvre le jeu du site (toujours à jour)
   if (vNew === vCur) return;
   rm(tmp); fs.mkdirSync(tmp, { recursive: true });
   try {

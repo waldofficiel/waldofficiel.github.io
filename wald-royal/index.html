@@ -160,7 +160,7 @@ footer a{color:var(--cyan)}
   <a class="dl-mini" href="#telecharger">Télécharger</a>
 </div></header>
 
-<a class="launchbar" href="#telecharger">⬇ <b>INSTALLER LE LAUNCHER</b> <span>· le jeu se met à jour tout seul à chaque lancement</span></a>
+<a class="launchbar" id="lbar" href="#telecharger">⬇ <b>INSTALLER LE LAUNCHER</b> <span>· le jeu se met à jour tout seul à chaque lancement</span></a>
 <section class="hero" id="telecharger"><div class="wrap">
   <img class="logo" src="img/logo.jpg" alt="Logo Wald Royal : Wald Off au volant, bob noir et lunettes de ski" width="640" height="640">
   <div>
@@ -361,5 +361,8 @@ footer a{color:var(--cyan)}
   lb.addEventListener('click', function () { lb.close(); });
 })();
 </script>
+<script>(function () { var b = document.getElementById('lbar'), ua = navigator.userAgent, R = 'https://github.com/waldofficiel/waldofficiel.github.io/releases/download/jeu/';
+  if (/Android/i.test(ua)) { b.href = R + 'WaldRoyal.apk'; b.setAttribute('download', ''); b.querySelector('b').textContent = 'INSTALLER LE LAUNCHER (ANDROID)'; }
+  else if (/Windows/i.test(ua)) { b.href = R + 'WaldRoyal-Setup.exe'; b.setAttribute('download', ''); b.querySelector('b').textContent = 'INSTALLER LE LAUNCHER (PC)'; } })();</script>
 </body>
 </html>

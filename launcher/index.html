@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wald Launcher</title>
+<meta name="theme-color" content="#0b0418">
+<link rel="icon" href="../jeu/icons/icon-192.png">
+<style>
+:root{--bg:#0b0418;--panel:#140a24;--line:rgba(255,255,255,.08);--ink:#fff;--mute:#a99cc4;--pink:#ff2bd6;--violet:#7a2fff;--red:#d4262b;--cyan:#3dd6ff;--gold:#ffd23d}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:230px 1fr;height:100%}
+aside{background:linear-gradient(180deg,#120720,#0b0418);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px;gap:6px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}.brand img{width:40px;height:40px;border-radius:10px;box-shadow:0 0 14px rgba(255,43,214,.5)}
+.brand b{font:900 17px/1 Inter,system-ui;letter-spacing:.04em}.brand b span{color:var(--pink)}.brand small{display:block;font-size:10px;color:var(--mute);letter-spacing:.2em;margin-top:4px}
+nav button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:11px 12px;font-weight:700;font-size:14px;color:var(--mute)}
+nav button.on,nav button:hover{background:rgba(255,255,255,.06);color:#fff}nav button.on{box-shadow:inset 3px 0 0 var(--pink)}
+.acct{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:900;background:linear-gradient(135deg,var(--pink),var(--violet));flex:none}
+.acct b{display:block;font-size:13px}.acct small{font-size:11px;color:var(--mute)}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#3dff8a;margin-right:5px}.dot.off{background:#ff4d6d}
+main{overflow:auto;padding:22px 26px 40px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.top h1{margin:0;font-size:22px}.top .search{flex:1;max-width:360px;margin:0 16px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:999px;padding:9px 16px;color:var(--mute);font-size:13px}
+.hero{position:relative;border-radius:18px;overflow:hidden;min-height:340px;display:flex;align-items:flex-end;border:1px solid rgba(255,43,214,.35);box-shadow:0 0 40px rgba(122,47,255,.25)}
+.hero img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.15)}.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,4,24,.95) 0,rgba(11,4,24,.6) 45%,rgba(11,4,24,0) 75%),linear-gradient(0deg,rgba(11,4,24,.9),transparent 50%)}
+.hin{position:relative;z-index:1;padding:28px;max-width:520px}.tag{display:inline-block;font:900 11px Inter;letter-spacing:.14em;color:#fff;background:linear-gradient(90deg,var(--red),var(--pink));border-radius:6px;padding:4px 8px}
+.hin h2{margin:10px 0 6px;font:900 54px/0.95 Inter,system-ui;letter-spacing:.02em;background:linear-gradient(180deg,#fff,#ffc4ec 55%,var(--pink));-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 16px rgba(255,43,214,.5))}
+.hin p{margin:0 0 18px;color:#e0d4f4;font-size:14px;line-height:1.5}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.play{display:inline-flex;align-items:center;gap:10px;font:900 20px Inter;letter-spacing:.06em;color:#1a0820;background:linear-gradient(180deg,#ffe36a,#ffb23d);border:0;border-radius:14px;padding:16px 46px;box-shadow:0 8px 0 #b86a00,0 0 30px rgba(255,210,61,.5);transition:transform .08s}
+.play:active{transform:translateY(4px);box-shadow:0 4px 0 #b86a00}.play[disabled]{filter:grayscale(.6);opacity:.7}
+.ver{font-size:12px;color:var(--mute)}.ver b{color:#fff}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;width:260px;margin-top:10px;display:none}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--violet),var(--cyan));transition:width .2s}
+h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{position:relative;border-radius:14px;overflow:hidden;background:var(--panel);border:1px solid var(--line);cursor:pointer;transition:transform .12s,border-color .12s;text-align:left;padding:0}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,43,214,.6)}.card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.card div{padding:10px 12px}.card b{display:block;font-size:14px}.card small{font-size:12px;color:var(--mute)}
+.news{display:grid;gap:10px}.ni{display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px}.ni img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;flex:none}.ni b{display:block;font-size:14px}.ni small{color:var(--mute);font-size:12px}.ni em{font-style:normal;font-size:11px;color:var(--cyan);font-weight:800}
+.page{display:none}.page.on{display:block}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:560px}.box label{display:block;font-size:12px;color:var(--mute);margin:12px 0 6px}
+.box input{width:100%;font:700 15px Inter;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 12px}
+.btn2{font:800 13px Inter;color:#fff;background:linear-gradient(135deg,var(--pink),var(--violet));border:0;border-radius:10px;padding:10px 16px;margin-top:12px}
+.avs{display:flex;gap:8px;flex-wrap:wrap}.avs button{width:44px;height:44px;border-radius:50%;border:2px solid transparent;font-size:20px;background:rgba(255,255,255,.06)}.avs button.on{border-color:var(--pink)}
+.note{font-size:12px;color:var(--mute);line-height:1.5}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto}.brand{padding:0 6px}.brand small{display:none}nav{display:flex}nav button{padding:8px 10px;white-space:nowrap}nav button span.t{display:none}.acct{margin:0 0 0 auto;padding:4px 8px}.acct div{display:none}main{padding:14px}.hin h2{font-size:38px}.hero{min-height:280px}.top .search{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><img src="../jeu/icons/icon-192.png" alt=""><div><b>WALD <span>LAUNCHER</span></b><small>WALD OFF GAMES</small></div></div>
+    <nav>
+      <button class="on" data-p="home">🏠 <span class="t">Accueil</span></button>
+      <button data-p="lib">🎮 <span class="t">Bibliothèque</span></button>
+      <button data-p="news">📰 <span class="t">Nouveautés</span></button>
+      <button data-p="acct">👤 <span class="t">Mon compte</span></button>
+    </nav>
+    <div class="acct" id="acctBox"><span class="av" id="av">W</span><div><b id="accName">Joueur</b><small><span class="dot" id="dot"></span><span id="net">En ligne</span></small></div></div>
+  </aside>
+  <main>
+    <section class="page on" data-p="home">
+      <div class="top"><h1>Accueil</h1><div class="search">🔍 Rechercher</div><span class="ver" id="verTop"></span></div>
+      <div class="hero"><img class="bg" src="../wald-royal/img/capitale.jpg" alt="">
+        <div class="hin"><span class="tag">SAISON 1 · NOUVEAU</span><h2>WALD<br>ROYAL</h2>
+          <p>Battle Royale avec ou sans constructions, Créatif avec MAP 1V1 et PROPANE, Survie contre les zombies. Joue avec tes potes avec un code.</p>
+          <div class="row"><button class="play" id="play">▶ JOUER</button><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
+      <h3>Modes de jeu</h3>
+      <div class="grid">
+        <button class="card" data-go="br"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs · Classé ou Partie rapide</small></div></button>
+        <button class="card" data-go="creatif"><img src="../wald-royal/img/waldcar.jpg" alt=""><div><b>🎨 Créatif</b><small>Mon monde + maps publiques</small></div></button>
+        <button class="card" data-go="bf"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>⚔️ MAP 1V1</b><small>Build fight entre potes</small></div></button>
+        <button class="card" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie</b><small>Monde de 4 km, zombies, ta base</small></div></button>
+      </div>
+      <h3>Nouveautés</h3><div class="news" id="news1"></div>
+    </section>
+    <section class="page" data-p="lib">
+      <div class="top"><h1>Bibliothèque</h1></div>
+      <div class="grid"><button class="card" data-go=""><img src="../wald-royal/img/place.jpg" alt=""><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <p class="note" style="margin-top:14px">Le launcher ouvre toujours la dernière version du jeu : rien à réinstaller quand il y a une mise à jour.</p>
+    </section>
+    <section class="page" data-p="news"><div class="top"><h1>Nouveautés</h1></div><div class="news" id="news2"></div></section>
+    <section class="page" data-p="acct">
+      <div class="top"><h1>Mon compte</h1></div>
+      <div class="box"><label>Pseudo (affiché en jeu et chez tes potes)</label><input id="nameI" maxlength="16" placeholder="Ton pseudo">
+        <label>Avatar</label><div class="avs" id="avs"></div>
+        <label>Code pour jouer avec tes potes (Créatif)</label><input id="codeI" maxlength="6" placeholder="Laisse vide = salon public" style="text-transform:uppercase;letter-spacing:.15em">
+        <button class="btn2" id="codeNew">🎲 Créer un code</button>
+        <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne avec mot de passe arriveront avec le serveur du jeu.</p></div>
+    </section>
+  </main>
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, LS = function (k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
+  var NEWS = [['MAP 1V1 et PROPANE', 'Deux maps publiques dans le Créatif : build fight entre potes, et cache-cache en objets avec le laser.', 'creatif.jpg', 'NOUVEAU'],
+    ['Joue avec tes potes', 'Dans les maps du Créatif, lancez la même map ou entrez le même code : vous êtes ensemble.', 'buildfight.jpg', 'EN LIGNE'],
+    ['Constructions façon Fortnite', 'Construction au viseur, rampes parfaites, ÉDITER avec la grille de 9 cases bleues.', 'construction.jpg', 'GAMEPLAY'],
+    ['Nouvelles armes', 'Lance-roquette, lanceur laser, lance-patate, pompe auto et pompe spécialisé.', 'lobby.jpg', 'ARMES'],
+    ['Sync Dance', '8 danses avec leur propre musique, et les Sync Dance pour danser ensemble.', 'syncdance.jpg', 'DANSES']];
+  ['news1', 'news2'].forEach(function (id, j) { $(id).innerHTML = NEWS.slice(0, j ? 99 : 3).map(function (n) { return '<div class="ni"><img src="../wald-royal/img/' + n[2] + '" alt=""><div><em>' + n[3] + '</em><b>' + n[0] + '</b><small>' + n[1] + '</small></div></div>'; }).join(''); });
+  document.querySelectorAll('nav button').forEach(function (b) { b.onclick = function () { document.querySelectorAll('nav button').forEach(function (x) { x.classList.toggle('on', x === b); }); document.querySelectorAll('.page').forEach(function (p) { p.classList.toggle('on', p.dataset.p === b.dataset.p); }); }; });
+  $('acctBox').onclick = function () { document.querySelector('nav [data-p=acct]').click(); };
+  var AV = ['🕶️', '🎩', '👑', '🔥', '🧟', '🎭', '🚗', '💎'];
+  function acct() { var n = LS('wr_name') || 'Joueur', a = LS('wr_av'); $('accName').textContent = n; $('av').textContent = a || n[0].toUpperCase(); $('nameI').value = LS('wr_name'); $('codeI').value = LS('wr_room');
+    $('avs').innerHTML = AV.map(function (e) { return '<button type="button" class="' + (e === a ? 'on' : '') + '">' + e + '</button>'; }).join('');
+    $('avs').querySelectorAll('button').forEach(function (b) { b.onclick = function () { LS('wr_av', b.textContent); acct(); }; }); }
+  $('nameI').oninput = function () { LS('wr_name', $('nameI').value.trim()); $('accName').textContent = $('nameI').value.trim() || 'Joueur'; };
+  $('codeI').oninput = function () { $('codeI').value = $('codeI').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); LS('wr_room', $('codeI').value); };
+  $('codeNew').onclick = function () { var c = ''; for (var i = 0; i < 4; i++) c += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0]; LS('wr_room', c); acct(); };
+  acct();
+  function net() { var on = navigator.onLine !== false; $('dot').classList.toggle('off', !on); $('net').textContent = on ? 'En ligne' : 'Hors ligne'; } net(); addEventListener('online', net); addEventListener('offline', net);
+  fetch('../jeu/version.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (j) { $('ver').innerHTML = 'Version <b>' + j.v + '</b> · à jour ✔'; $('verTop').textContent = 'v' + j.v; $('libVer').textContent = 'Version ' + j.v + ' · à jour'; }).catch(function () { $('ver').textContent = 'Hors ligne : dernière version gardée'; });
+  function launch(mode) { if (mode) LS('wr_mode', mode); $('play').disabled = true; $('play').textContent = 'LANCEMENT…'; $('bar').style.display = 'block'; var i = 0, t = setInterval(function () { i += 12; $('bar').firstChild.style.width = Math.min(100, i) + '%'; if (i >= 100) { clearInterval(t); location.href = '../jeu/index.html?jouer&from=launcher' + (mode ? '&mode=' + mode : ''); } }, 40); }
+  $('play').onclick = function () { launch(''); };
+  document.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { launch(b.dataset.go); }; });
+})();
+</script>
+</body>
+</html>

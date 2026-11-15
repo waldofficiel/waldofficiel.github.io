@@ -322,5 +322,10 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Testé en local avec un faux relais (messages injectés) ; le relais public n'est pas joignable depuis le conteneur.
 - **Viseurs** façon Fortnite : croix fine avec écart + point ; pompes = **carré à coins arrondis** (4 équerres `.k1..k4`) qui grandit/rétrécit avec la dispersion.
 
+## Launcher façon Epic Games (cache v40)
+- **`launcher/index.html`** (en ligne sur /launcher/) : barre latérale (Accueil, Bibliothèque, Nouveautés, Mon compte), grosse bannière avec ▶ JOUER, version (`jeu/version.json`), cartes de modes (lancent directement le mode : `?mode=`), nouveautés (`NEWS`), compte local (pseudo `wr_name`, avatar `wr_av`, code potes `wr_room` : partagés avec le jeu, même origine). JOUER → `../jeu/index.html?jouer&from=launcher`.
+- Les applis ouvrent `/launcher/?app=1`. Les anciennes applis qui ouvrent `jeu/?jouer` sont redirigées vers le launcher (script en tête de jeu/index.html, si UA WaldRoyalApp/Electron et pas `from=launcher`). Bouton « ⬅ LAUNCHER » au salon du jeu.
+- Page wald-royal : la barre « INSTALLER LE LAUNCHER » télécharge directement l'APK (Android) ou l'EXE (Windows).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
