@@ -346,5 +346,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## Icône Wald Game (cache v44)
 - Icône originale (emblème chanfreiné néon rose→violet→cyan, W chromé, « GAME ») : mipmaps Android, app/desktop/build/icon.png + app/desktop/icon.png (fenêtre), launcher/icon-192/512.png. Source SVG dans l'historique de session.
 
+## Téléchargements Wald Game (cache v45)
+- Fichiers : WaldGame.apk / WaldGame-Setup.exe (copies WaldRoyal.apk / WaldRoyal-Setup.exe gardées pour les vieux liens). Le bouton INSTALLER du jeu dans le navigateur télécharge Wald Game sur Android/PC (plus d'appli web Wald Royal).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

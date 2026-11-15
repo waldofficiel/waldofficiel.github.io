@@ -2661,8 +2661,10 @@ setInterval(function () { if (SURV || PROPM) { $('rotT').textContent = ''; retur
 
 /* ================= installation ================= */
 var deferred = null, standalone = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || !!navigator.standalone;
-addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; $('install').hidden = false; });
-$('install').addEventListener('click', function () { if (deferred) { deferred.prompt(); deferred.userChoice.then(function (r) { if (r.outcome === 'accepted') { $('gate').hidden = true; $('lobby').hidden = false; } }); deferred = null; } });
+var WGDL = /Android/i.test(navigator.userAgent) ? 'WaldGame.apk' : /Windows/i.test(navigator.userAgent) ? 'WaldGame-Setup.exe' : '';   // Android / PC : on installe le launcher Wald Game, pas l'appli web
+if (WGDL) { $('install').hidden = false; $('install').textContent = '📲 INSTALLER WALD GAME'; }
+addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); if (WGDL) return; deferred = e; $('install').hidden = false; });
+$('install').addEventListener('click', function () { if (WGDL) { location.href = 'https://github.com/waldofficiel/waldofficiel.github.io/releases/download/jeu/' + WGDL; return; } if (deferred) { deferred.prompt(); deferred.userChoice.then(function (r) { if (r.outcome === 'accepted') { $('gate').hidden = true; $('lobby').hidden = false; } }); deferred = null; } });
 addEventListener('appinstalled', function () { $('gate').hidden = true; $('lobby').hidden = false; });
 if (standalone || /[?&]jouer/.test(location.search)) $('lobby').hidden = false; else $('gate').hidden = false;
 if ('serviceWorker' in navigator && location.protocol === 'https:' && !/WaldRoyalApp/.test(navigator.userAgent) && location.hostname !== 'appassets.androidplatform.net') navigator.serviceWorker.register('sw.js').catch(function () {});

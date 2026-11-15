@@ -33,9 +33,13 @@ jobs:
       - name: Construire l'APK
         working-directory: app/android
         run: gradle assembleRelease --no-daemon
-      - run: cp app/android/app/build/outputs/apk/release/app-release.apk WaldRoyal.apk
+      - run: cp app/android/app/build/outputs/apk/release/app-release.apk WaldGame.apk && cp WaldGame.apk WaldRoyal.apk
       - uses: actions/upload-artifact@v4
-        with: { name: android, path: WaldRoyal.apk }
+        with:
+          name: android
+          path: |
+            WaldGame.apk
+            WaldRoyal.apk
   windows:
     runs-on: windows-latest
     steps:
@@ -57,20 +61,22 @@ jobs:
           npm install --no-audit --no-fund
           npx electron-builder --win --x64 --publish never
       - uses: actions/upload-artifact@v4
-        with: { name: windows, path: app/desktop/dist/WaldRoyal-Setup.exe }
+        with: { name: windows, path: app/desktop/dist/WaldGame-Setup.exe }
   publier:
     needs: [android, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with: { path: out, merge-multiple: true }
-      - run: ls -la out
+      - run: cp out/WaldGame-Setup.exe out/WaldRoyal-Setup.exe && ls -la out
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: jeu
-          name: Wald Royal
-          body: "Wald Royal, le battle royale de Wald Off. Android : WaldRoyal.apk · PC Windows : WaldRoyal-Setup.exe"
+          name: Wald Game
+          body: "Wald Game, le launcher de Wald Royal. Android : WaldGame.apk · PC Windows : WaldGame-Setup.exe"
           make_latest: true
           files: |
+            out/WaldGame.apk
+            out/WaldGame-Setup.exe
             out/WaldRoyal.apk
             out/WaldRoyal-Setup.exe

@@ -21,7 +21,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Wald Game",
-      "artifactName": "WaldRoyal-Setup.${ext}"
+      "artifactName": "WaldGame-Setup.${ext}"
     }
   }
 }
