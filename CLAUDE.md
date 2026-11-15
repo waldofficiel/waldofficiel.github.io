@@ -349,5 +349,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## Téléchargements Wald Game (cache v45)
 - Fichiers : WaldGame.apk / WaldGame-Setup.exe (copies WaldRoyal.apk / WaldRoyal-Setup.exe gardées pour les vieux liens). Le bouton INSTALLER du jeu dans le navigateur télécharge Wald Game sur Android/PC (plus d'appli web Wald Royal).
 
+## Site centré Wald Game (cache v46)
+- Page wald-royal/ et accueil présentent Wald Game (launcher) avec Wald Royal dedans. Icône img/waldgame.png. Manifest web du jeu chargé seulement hors Android/Windows (plus de proposition « Installer Wald Royal » sur Android/PC) ; iPhone garde la version web Wald Royal.
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
