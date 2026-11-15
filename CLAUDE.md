@@ -398,5 +398,10 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - trees.js : la photo des imposteurs est vérifiée (`readRenderTargetPixels`) ; ratée (noire) → on réessaie (6 fois / 1,5 s), sinon pas d'imposteur (transparent) au lieu de taches noires.
 - Persos à 90 % (`makeChar`) ; un mur en hauteur (linteau, case éditée) ne bloque plus si la tête passe dessous (`pushCircle`).
 
+## Bâtiments 100 % aux dimensions de la construction (cache v57)
+- Toits à 2 pentes : pente d'une pièce TOIT/RAMPE (3,5 m pour 5 m, `TH = atan(H/GRID)`), faîtage plat sur la case du milieu si le nombre de cases est impair (`hs.rise`).
+- Pignons = murs de construction : murs pleins 5 × 3,5 m + murs édités en triangle, empilés en escalier (`pieces(hs)` ; un mur plein = 2 triangles, une seule InstancedMesh par matière, `hs.gim/gi/gmats` pour la casse).
+- Grand mur de Mirage City en panneaux 5 × 3,5 m sur 2 rangées ; murs isolés en 5 m × 3,5 m. Les maisons (`house`) étaient déjà en panneaux 5 m × 3,5 m (étages `H` = 3,5).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

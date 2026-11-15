@@ -1241,7 +1241,7 @@ var CHEST0 = [], WMAT = {};
     for (var gx = -82; gx < -4; gx += 10) for (var gz = 28; gz < 88; gz += 10) { var x = gx + (rr() - .5) * 1.6, z = gz + (rr() - .5) * 1.6, w = 5 + rr() * 1.8, d = 5 + rr() * 1.6;   // pas de 10 m : maisons de 5 m sur la grille + ruelles
       if (Math.hypot(x, z) > 82 || x + w / 2 > -2.5 || rr() < .1) continue; var h = [H, H, H, H * 2, H * 2][rr() * 5 | 0], hs = house(cx + x, cz + z, w, d, 'peint', h, 'nsew'[rr() * 4 | 0]); hs.flat = true; hs.fav = 1;
       var c = PAL[rr() * PAL.length | 0]; hs.walls.forEach(function (wl) { wl.col = c; }); if (nf++ % 3 === 0) CHEST0.push([cx + x, cz + z]); }
-    for (var wz = 27; wz < 86; wz += 6) { var wl = W(cx, cz + wz + 3, .7, 6, 'beton', 5.2); wl.bigWall = 1; }   // le mur
+    for (var wz = 25; wz < 85; wz += GRID) [0, 1].forEach(function (row) { var wl = W(cx, cz + wz + GRID / 2, .5, GRID, 'beton', H); if (row) { wl.y0 += H + 1; wl.h = H; } wl.bigWall = 1; });   // le mur : panneaux de construction 5 m × 3,5 m sur 2 rangées
     [[26, 40, 's'], [58, 34, 'w'], [34, 68, 'n']].forEach(function (o, i) { var hs = house(cx + o[0], cz + o[1], 16, 12, 'riche', 6.4, o[2]); hs.flat = true; hs.villa = 1; hs.walls.filter(function (w) { return Math.abs(w.z - (hs.z + hs.hz)) < .1 && !w.lintel; }).forEach(function (w) { w.m = 'verre'; }); CHEST0.push([cx + o[0] - 4, cz + o[1]], [cx + o[0] + 4, cz + o[1]]); });
   })();
   // Lodge des Pins (campagne) : chalets en rondins au pied de la montagne
@@ -1265,7 +1265,7 @@ var CHEST0 = [], WMAT = {};
   var r = mulberry(5), placed = [];
   function spot(clear) { for (var k = 0; k < 400; k++) { var a = r() * 6.283, d = 40 + r() * (ISLM - 60), x = Math.cos(a) * d, z = Math.sin(a) * d; if (!onLand(x, z) || inTown(x, z, 14) || nearRoad(x, z, 9)) continue; if (treeNear(x, z, clear * .6) || placed.some(function (q) { return Math.hypot(q[0] - x, q[1] - z) < clear; })) continue; placed.push([x, z]); return [x, z]; } return null; }
   for (var n = 0; n < (SURV ? 16 : 12); n++) { var s2 = spot(30); if (s2) { house(s2[0], s2[1], 9, 8, 'bois', H, 'nsew'[n % 4]); if (!SURV || n % 3 === 0) CHEST0.push(s2); } }
-  for (n = 0; n < (SURV ? 10 : 30); n++) { s2 = spot(14); if (s2) { if (r() < .5) W(s2[0], s2[1], 8, .3, 'bois'); else W(s2[0], s2[1], .3, 8, 'bois'); } }
+  for (n = 0; n < (SURV ? 10 : 30); n++) { s2 = spot(14); if (s2) { if (r() < .5) W(s2[0], s2[1], GRID, .3, 'bois', H); else W(s2[0], s2[1], .3, GRID, 'bois', H); } }
   for (n = 0; n < (SURV ? 9 : 12); n++) { s2 = spot(14); if (s2) CHEST0.push(s2); }   // coffres cachés (survie : peu, au fond des bois)
   CHEST0.forEach(function (c) { for (var i = 0; i < HOUSES.length; i++) { var q = HOUSES[i]; if (Math.abs(c[0] - q.ox) > q.ohx + .3 || Math.abs(c[1] - q.oz) > q.ohz + .3) continue;   // les coffres suivent leur maison recalée sur la grille
       c[0] = q.x + Math.max(-q.hx + 1.2, Math.min(q.hx - 1.2, c[0] - q.ox)); c[1] = q.z + Math.max(-q.hz + 1.2, Math.min(q.hz - 1.2, c[1] - q.oz)); return; } });
@@ -1281,23 +1281,34 @@ var CHEST0 = [], WMAT = {};
   [RF].concat(Object.keys(RTS).map(function (k) { return RTS[k].m; })).forEach(function (m) { m.castShadow = true; m.receiveShadow = true; scene.add(m); }); scene.add(floors);
   var o = new THREE.Object3D();
   HOUSES.forEach(function (hs, i) { o.position.set(hs.x, hs.y0 + .04, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2, .08, hs.hz * 2); o.updateMatrix(); floors.setMatrixAt(i, o.matrix); });
-  roofsT.forEach(function (hs) { var RT = RTS[hs.roof || 'toit'].m, i = hs.rk; hs.rim = RT; hs.ri = [i * 3, i * 3 + 1, i * 3 + 2]; var th = .45, w = hs.hz + .5, rise = Math.tan(th) * w;
-    hs.mats = [];
-    [-1, 1].forEach(function (sd, j) { o.position.set(hs.x, hs.y0 + hs.h + rise / 2 + .1, hs.z + sd * w / 2); o.rotation.set(sd * th, 0, 0); o.scale.set(hs.hx * 2 + .8, .22, w / Math.cos(th) + .05); o.updateMatrix(); hs.mats.push(o.matrix.clone()); });
-    o.position.set(hs.x, hs.y0 + hs.h + rise / 2, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 - .2, rise, .15); o.updateMatrix(); hs.mats.push(o.matrix.clone());   // pignon (rempli)
+  /* TOITS À 2 PENTES aux dimensions de la construction : pente = 3,5 m de haut pour 5 m (comme une pièce TOIT / RAMPE), faîtage plat sur la case du milieu si le nombre de cases est impair */
+  var TH = Math.atan(H / GRID);
+  roofsT.forEach(function (hs) { var RT = RTS[hs.roof || 'toit'].m, i = hs.rk; hs.rim = RT; hs.ri = [i * 3, i * 3 + 1, i * 3 + 2];
+    var nz = Math.max(1, Math.round(hs.hz * 2 / GRID)), half = Math.floor(nz / 2), odd = nz % 2, run = half * GRID, rise = half * H; hs.rise = rise; hs.mats = [];
+    [-1, 1].forEach(function (sd) { o.position.set(hs.x, hs.y0 + hs.h + rise / 2 + .12, hs.z + sd * (hs.hz - run / 2)); o.rotation.set(sd * TH, 0, 0); o.scale.set(hs.hx * 2 + .5, .22, Math.max(.01, run / Math.cos(TH) + .1)); o.updateMatrix(); hs.mats.push(o.matrix.clone()); });
+    o.position.set(hs.x, hs.y0 + hs.h + rise + .12, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 + .5, odd ? .22 : .001, odd ? GRID + .1 : .001); o.updateMatrix(); hs.mats.push(o.matrix.clone());   // faîtage plat (case du milieu)
     hs.mats.forEach(function (mm, j) { RT.setMatrixAt(hs.ri[j], mm); }); });
   // plafonds (vus de l'intérieur) : bois, brique, tôle ou béton selon le bâtiment — jamais transparent
   (function () { var CK = { bois: 'bois', grange: 'bois', ferme: 'bois', peint: 'beton', brique: 'brique', metal: 'metal', beton: 'beton', facade: 'beton', riche: 'bois' }, by = {};
     HOUSES.forEach(function (hs) { var k = CK[hs.m] || 'beton'; (by[k] = by[k] || []).push(hs); });
     Object.keys(by).forEach(function (k) { var L = by[k], cm = new THREE.InstancedMesh(BOX, worldMat(TX[k === 'bois' ? 'sol' : k], { brique: .55, beton: .25, metal: .35, bois: .45 }[k], { lit: .55 }), L.length); cm.receiveShadow = true; scene.add(cm);
       L.forEach(function (hs, i) { hs.cim = cm; hs.ci = i; o.position.set(hs.x, hs.y0 + hs.h - .07, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 - .1, .14, hs.hz * 2 - .1); o.updateMatrix(); hs.cmat = o.matrix.clone(); cm.setMatrixAt(i, hs.cmat); }); }); })();
-  // pignons triangulaires (les bouts du toit ne sont plus ouverts), même matière que les murs
-  (function () { var sh = new THREE.Shape(); sh.moveTo(-1, 0); sh.lineTo(1, 0); sh.lineTo(0, 1); sh.closePath(); var tg = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); tg.translate(0, 0, -.5);
+  /* PIGNONS faits de MURS DE CONSTRUCTION : murs pleins de 5 m × 3,5 m + murs édités en triangle (comme un mur édité en diagonale), empilés en escalier jusqu'au faîtage */
+  (function () { var sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(1, 0); sh.lineTo(0, 1); sh.closePath(); var tg = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); tg.translate(0, 0, -.5);
     var by = {}; roofsT.forEach(function (hs) { (by[hs.m] = by[hs.m] || []).push(hs); });
-    Object.keys(by).forEach(function (k) { var L = by[k], gm = new THREE.InstancedMesh(tg, worldMat(TX[k], { brique: .55, ferme: .4 }[k] || .35), L.length * 2); gm.castShadow = gm.receiveShadow = true; scene.add(gm);
-      L.forEach(function (hs, i) { var th = .45, w = hs.hz + .5, rise = Math.tan(th) * w; hs.gim = gm; hs.gi = [i * 2, i * 2 + 1]; hs.gmats = [];
-        [-1, 1].forEach(function (sd) { o.position.set(hs.x + sd * (hs.hx - .14), hs.y0 + hs.h, hs.z); o.rotation.set(0, Math.PI / 2, 0); o.scale.set(w, rise, .28); o.updateMatrix(); hs.gmats.push(o.matrix.clone()); });
-        hs.gmats.forEach(function (mm, j) { gm.setMatrixAt(hs.gi[j], mm); }); }); }); })();
+    function pieces(hs) { var nz = Math.max(1, Math.round(hs.hz * 2 / GRID)), half = Math.floor(nz / 2), odd = nz % 2, L = [];   // [u origine, v, sens, plein ?]
+      for (var k = 1; k <= half; k++) { var uL = -hs.hz + (k - 1) * GRID, uR = hs.hz - (k - 1) * GRID;
+        for (var j = 0; j < k - 1; j++) { L.push([uL, j * H, 1, 1]); L.push([uR - GRID, j * H, 1, 1]); }
+        L.push([uL + GRID, (k - 1) * H, -1, 0]); L.push([uR - GRID, (k - 1) * H, 1, 0]); }
+      if (odd) for (var j2 = 0; j2 < half; j2++) L.push([-GRID / 2, j2 * H, 1, 1]);
+      return L; }
+    Object.keys(by).forEach(function (k) { var L = by[k], cnt = 0; L.forEach(function (hs) { pieces(hs).forEach(function (q) { cnt += (q[3] ? 2 : 1) * 2; }); });
+      var gmat = worldMat(TX[k], { brique: .55, ferme: .4 }[k] || .35); gmat.side = THREE.DoubleSide;
+      var gm = new THREE.InstancedMesh(tg, gmat, Math.max(1, cnt)), idx = 0; gm.castShadow = gm.receiveShadow = true; scene.add(gm);
+      L.forEach(function (hs) { hs.gim = gm; hs.gi = []; hs.gmats = [];
+        function put(gx, u, v, sx, sy) { o.position.set(gx, hs.y0 + hs.h + v, hs.z + u); o.rotation.set(0, -Math.PI / 2, 0); o.scale.set(sx * GRID, sy * H, .28); o.updateMatrix(); hs.gi.push(idx); hs.gmats.push(o.matrix.clone()); gm.setMatrixAt(idx++, o.matrix); }
+        [-1, 1].forEach(function (sd) { var gx = hs.x + sd * (hs.hx - .14);
+          pieces(hs).forEach(function (q) { if (q[3]) { put(gx, q[0], q[1], 1, 1); put(gx, q[0] + GRID, q[1] + H, -1, -1); } else put(gx, q[0], q[1], q[2], 1); }); }); }); }); })();
   roofsF.forEach(function (hs, i) { hs.rim = RF; hs.ri = [i]; o.position.set(hs.x, hs.y0 + hs.h + .15, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 + .4, .3, hs.hz * 2 + .4); o.updateMatrix(); hs.mats = [o.matrix.clone()]; RF.setMatrixAt(i, o.matrix); });
 })();
 buildGroundGeo();
