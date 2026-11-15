@@ -12,7 +12,7 @@
   "build": {
     "appId": "fr.waldoff.royal",
     "productName": "Wald Game",
-    "files": ["main.js", "game/**/*"],
+    "files": ["main.js", "icon.png", "game/**/*"],
     "directories": { "output": "dist" },
     "win": { "target": "nsis", "icon": "build/icon.png" },
     "nsis": {

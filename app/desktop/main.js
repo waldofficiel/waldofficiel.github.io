@@ -75,7 +75,7 @@ app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
   const win = new BrowserWindow({
     width: 1600, height: 900, fullscreen: true, backgroundColor: '#0b0418', title: 'Wald Game',
-    icon: path.join(__dirname, 'game', 'icons', 'icon-512.png'),
+    icon: path.join(__dirname, 'icon.png'),
     webPreferences: { backgroundThrottling: false }
   });
   win.webContents.on('before-input-event', (e, input) => {
