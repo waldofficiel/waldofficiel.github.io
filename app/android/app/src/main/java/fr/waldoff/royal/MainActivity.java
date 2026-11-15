@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
     private void launch(final String base) {
         runOnUiThread(new Runnable() { public void run() {
             if (launched) return; launched = true;
-            web.loadUrl(HOST + base + "index.html?jouer");
+            web.loadUrl(base.startsWith("http") ? base : HOST + base + "index.html?jouer");
         } });
     }
 
@@ -108,7 +108,11 @@ public class MainActivity extends Activity {
         try { nw = new JSONObject(new String(get(SITE + "version.json?t=" + System.currentTimeMillis(), 5000), "UTF-8")); }
         catch (Exception e) { launch(base); return; }   // pas d'internet : on joue avec ce qu'on a
         int vNew = nw.optInt("v", 0), vCur = cur == null ? -1 : cur.optInt("v", -1);
-        if (vNew == vCur) { launch(base); return; }
+        // LAUNCHER : avec internet, on ouvre directement le jeu du site (toujours la dernière version) ;
+        // la copie locale se met à jour en arrière-plan pour jouer hors ligne la prochaine fois.
+        ui(100, "Lancement de la version " + vNew + "…", "v" + vNew);
+        launch(SITE + "index.html?jouer&v=" + vNew);
+        if (vNew == vCur) return;
 
         File tmp = new File(getFilesDir(), "game_tmp"); delete(tmp); tmp.mkdirs();
         try {

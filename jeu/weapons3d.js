@@ -121,11 +121,42 @@
     G.translate(-(b.min.x + b.max.x) / 2 + len * .12, -(b.min.y + b.max.y) / 2 - (b.max.y - b.min.y) * .08, -(b.min.z + b.max.z) / 2); G.computeBoundingSphere();
     var m = new T.Mesh(G, new T.MeshPhongMaterial({ vertexColors: true, shininess: over ? 90 : 45, specular: over === TACPAL ? '#5a4a7a' : over ? '#8a6a20' : '#3a3a3a' })); m.castShadow = true; return m;
   }
-  /* MODÈLES PROVISOIRES (blocs) : lance-patate, lance-roquette, lanceur laser — À REVOIR plus tard */
-  function blk(g, sx, sy, sz, x, y, z, col, em) { var m = new T.Mesh(new T.BoxGeometry(sx, sy, sz), new T.MeshPhongMaterial({ color: col, emissive: em || '#000000' })); m.position.set(x, y, z); g.add(m); return m; }
-  B.patate = function (g, c) { blk(g, .7, .14, .14, .1, 0, 0, '#7a5a2a'); blk(g, .14, .2, .1, -.12, -.14, 0, '#4a3018'); blk(g, .12, .12, .12, .5, 0, 0, '#c8a060'); };
-  B.roquette = function (g, c) { blk(g, 1, .18, .18, .05, .02, 0, '#3a4a2a'); blk(g, .16, .22, .12, -.05, -.16, 0, '#22261c'); blk(g, .14, .14, .14, .58, .02, 0, '#c83a2a'); };
-  B.laser = function (g, c) { blk(g, .55, .12, .1, .08, 0, 0, '#1a1a24'); blk(g, .5, .03, .03, .12, .07, 0, '#ff2bd6', '#ff2bd6'); blk(g, .12, .18, .08, -.1, -.13, 0, '#2a2a36'); };
+  /* LANCE-PATATE : tube orange en PVC, chambre de combustion rouge, scotch gris, crosse en bois, bouton d'allumage, une patate au bout */
+  B.patate = function (g, c) {
+    var pvc = M('#ff7a1a', { shininess: 70, specular: '#ffd0a0' }), red = M('#d82a2a', { shininess: 60 }), tape = M('#8a8f98', { shininess: 20 });
+    cyl(g, .045, .045, .62, .2, .03, 0, pvc, 20); cyl(g, .052, .052, .04, .5, .03, 0, pvc, 20);
+    cyl(g, .085, .085, .22, -.18, .03, 0, red, 22); cyl(g, .07, .045, .06, -.04, .03, 0, red, 22); cyl(g, .09, .09, .02, -.29, .03, 0, M('#222'), 22);
+    [.02, .16, .33].forEach(function (x) { cyl(g, .049, .049, .03, x, .03, 0, tape, 20); });
+    ext(g, [[-.33, -.03], [-.2, -.03], [-.16, -.16], [-.42, -.14], [-.44, -.06]], .05, WOOD(), 0, .01);   // crosse
+    ext(g, [[-.04, -.04], [.02, -.04], [0, -.15], [-.06, -.15]], .045, POLY(), 0, .008); guard(g, .02, -.05, .025, POLY());
+    cyl(g, .015, .015, .03, -.12, .12, 0, red, 10, 'y'); var bt = cyl(g, .012, .012, .015, -.12, .14, 0, M('#ffd23d', { emissive: '#7a5a00' }), 10, 'y');
+    var pot = new T.Mesh(new T.SphereGeometry(.055, 14, 10), M('#b8864a', { shininess: 8 })); pot.scale.set(1.3, .9, .9); pot.position.set(.55, .03, 0); g.add(pot);
+    boxm(g, .03, .03, .012, .45, .09, 0, DARK()); accent(g, -.25, -.1, .1, c, .17);
+  };
+  /* LANCE-ROQUETTE : gros tube kaki, pavillon arrière évasé, roquette rouge qui dépasse, poignée, viseur, bandes jaunes */
+  B.roquette = function (g, c) {
+    var olive = M('#4a5a32', { shininess: 30 }), dkO = M('#2e3820'), yel = M('#ffd23d', { shininess: 50 });
+    cyl(g, .075, .075, .95, .02, .04, 0, olive, 22); cyl(g, .075, .11, .14, -.52, .04, 0, dkO, 22); cyl(g, .08, .08, .03, .48, .04, 0, dkO, 22);
+    [.3, -.25].forEach(function (x) { cyl(g, .077, .077, .03, x, .04, 0, yel, 22); });
+    var war = new T.Mesh(new T.ConeGeometry(.06, .2, 18), M('#d8302a', { shininess: 80 })); war.rotation.z = -Math.PI / 2; war.position.set(.6, .04, 0); g.add(war);
+    cyl(g, .062, .062, .06, .5, .04, 0, M('#e8e0d0'), 18);
+    ext(g, [[.02, -.03], [.08, -.03], [.06, -.17], [0, -.17]], .05, POLY(), 0, .01); guard(g, .08, -.04, .025, POLY());
+    ext(g, [[-.18, -.03], [-.12, -.03], [-.13, -.13], [-.19, -.13]], .05, POLY(), 0, .01);
+    boxm(g, .12, .05, .04, .05, .14, .05, DARK()); cyl(g, .02, .02, .06, .14, .14, .05, M('#3aa8ff', { emissive: '#0a3a6a', shininess: 120 }), 12);
+    boxm(g, .22, .06, .02, -.3, .04, -.085, M('#3a2a1a'));   // appui d'épaule
+    accent(g, -.1, .2, .12, c, .15);
+  };
+  /* LANCEUR LASER : coque blanche futuriste, anneaux d'émetteur roses qui brillent, batterie cyan, ailerons */
+  B.laser = function (g, c) {
+    var wh = M('#f2f0f8', { shininess: 110, specular: '#ffffff' }), pk = M('#ff2bd6', { emissive: '#ff2bd6', emissiveIntensity: 1, shininess: 90 }), cy = M('#3dd6ff', { emissive: '#1a8ab0', emissiveIntensity: .9, shininess: 120 });
+    ext(g, [[-.22, -.02], [.14, -.03], [.3, 0], [.3, .05], [.1, .07], [-.18, .07], [-.24, .04]], .07, wh, 0, .015);
+    ext(g, [[-.06, -.02], [0, -.02], [-.03, -.16], [-.09, -.16]], .05, POLY(), 0, .01); guard(g, .0, -.03, .025, POLY());
+    cyl(g, .022, .022, .22, .38, .025, 0, DARK(), 16); [.3, .36, .42, .48].forEach(function (x) { cyl(g, .034, .034, .014, x, .025, 0, pk, 18); });
+    cyl(g, .014, .014, .03, .505, .025, 0, M('#ffffff', { emissive: '#ffc0f0', emissiveIntensity: 1 }), 12);
+    boxm(g, .14, .05, .074, -.1, .025, 0, cy);   // batterie
+    [-1, 1].forEach(function (sd) { ext(g, [[-.2, .06], [-.08, .06], [-.16, .14]], .01, pk, sd * .03, .002); });
+    rail(g, -.12, .08, .078, .03, DARK());
+  };
   window.buildGun = function (THREE, k, rc) { T = THREE; var g = new THREE.Group();
     if (GUNT[k]) { var m = GUNT[k].clone(); g.add(m); g.userData.real = true; g.userData.gscale = 1; return g; }   // vraie arme 3D (déjà à la bonne taille)
     (B[k] || (k === 'pompeS' ? B.pompe : B.pistolet))(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };

@@ -305,5 +305,14 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.
 - Du multijoueur réel (pour l'instant ce sont des bots).
 
+## Launcher, constru au viseur, édition Fortnite, tempête, Partie rapide, PROPANE (cache v37)
+- **Launcher** : les applis (Android `MainActivity`, PC `main.js`) ouvrent directement `https://waldofficiel.github.io/jeu/index.html?jouer` quand il y a internet (toujours la dernière version), la copie locale se met à jour en arrière-plan pour jouer hors ligne. Page `wald-royal/` : barre « INSTALLER LE LAUNCHER » en haut. ⚠ L'origine change (site au lieu d'appassets/app://) : la progression locale repart de zéro une fois.
+- **Constructions** : pièces 5 m × 3,5 m (`LH` = `H` = 3.5 ; proportions 4 × 2,8 demandées, Fortnite = 512 × 384 cm), toutes les maisons au même format. Placement **au viseur** (`planAim`/`aimHit`/`lvl` dans survie.js) ; sur une rampe on garde la règle « dans la foulée ». Rampe sans marche (pente continue 0 → LH). Viseur d'arme caché avec la pioche / la constru.
+- **ÉDITER façon Fortnite** : bouton rond à part `#sEdit` (tactile) / touche G ; grille 3×3 de cases bleues (`EGRID`), on tire sur les cases à enlever (rouges), ÉDITER à nouveau = valider (`p.mask`, `maskSegs`, sauvegardé).
+- **Tempête** : ShaderMaterial violet animé + éclairs (`STORMU`), flashs et grondements.
+- **Armes** : modèles détaillés `B.patate` (tube PVC + patate), `B.roquette` (tube kaki + ogive), `B.laser` (coque blanche + anneaux roses) ; projectiles visibles `shot3d`/`updProj` (patate en cloche, roquette avec fumée, explosion à l'arrivée).
+- **PARTIE RAPIDE** (`RANKED`, `localStorage.wr_ranked`, `#segRk`) : non classé, pas de trophées ni d'entrée, bots faciles.
+- **Maps publiques** : n°1 **MAP 1V1** (mode `bf`), n°2 **PROPANE** (mode `prop`, carte `propane`, `PROPM`, ✔ Wald Royal Creator) : mini-île (HALF 300, ISL 240), 8 villes, petits sommets, pas de bus ni tempête, seul pour l'instant. **Cache-cache** : le lanceur laser transforme en objet (`pickDisguise`, `disguiseModel`, `becomeProp`, `unProp`), touche F / bouton 😗 = siffler (`whistle`), E / 🎭 = redevenir soi. Miniatures dessinées en canvas (`#th1`, `#th2`).
+
 ## À REVOIR (rappeler à l'utilisateur)
-- 3 nouvelles armes en **modèles provisoires (blocs)** à refaire : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
+- (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

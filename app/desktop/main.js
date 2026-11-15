@@ -13,7 +13,7 @@ app.commandLine.appendSwitch('ignore-gpu-blocklist');
 app.commandLine.appendSwitch('force_high_performance_gpu');
 
 const BUNDLED = path.join(__dirname, 'game');
-let GAME = null, ROOT = BUNDLED;   // dossier servi par app://jeu/
+let GAME = null, ROOT = BUNDLED, ONLINE = null;   // dossier servi par app://jeu/
 
 const SCREEN = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 35%,#3a0f5e,#0b0418 70%);color:#fff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -39,6 +39,7 @@ async function update(ui) {
   let nw;
   try { nw = JSON.parse((await get(SITE + 'version.json?t=' + Date.now(), 5000)).toString('utf8')); } catch (e) { return; }   // pas d'internet : on joue avec ce qu'on a
   const vNew = nw.v, vCur = cur ? cur.v : -1;
+  ONLINE = SITE + 'index.html?jouer&v=' + vNew;   // LAUNCHER : avec internet on ouvre le jeu du site (toujours à jour)
   if (vNew === vCur) return;
   rm(tmp); fs.mkdirSync(tmp, { recursive: true });
   try {
@@ -83,7 +84,10 @@ app.whenReady().then(async () => {
   });
   await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(SCREEN));
   const ui = (p, m, v) => { win.webContents.executeJavaScript(`setP(${Math.round(p)},${JSON.stringify(m || '')},${JSON.stringify(v || '')})`).catch(() => {}); };
-  try { await update(ui); } catch (e) {}
-  win.loadURL('app://jeu/index.html?jouer');
+  const upd = update(ui).catch(() => {});
+  let done = false; upd.then(() => { done = true; });
+  for (let i = 0; i < 60 && !ONLINE && !done; i++) await new Promise((r) => setTimeout(r, 100));   // le site répond vite ; la copie hors ligne finit en arrière-plan
+  if (ONLINE) { win.loadURL(ONLINE).catch(() => win.loadURL('app://jeu/index.html?jouer')); }
+  else { await upd; win.loadURL('app://jeu/index.html?jouer'); }
 });
 app.on('window-all-closed', () => app.quit());
