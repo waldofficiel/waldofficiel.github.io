@@ -63,6 +63,11 @@ public class MainActivity extends Activity {
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return loader.shouldInterceptRequest(request.getUrl());
             }
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
+                if (request.isForMainFrame() && request.getUrl().toString().startsWith("https://waldofficiel.github.io/"))
+                    view.loadDataWithBaseURL(HOST + "/", screen("Impossible de joindre Wald Game. Vérifie ta connexion internet.<br><br><a href='" + LAUNCHER + "' style='color:#ffd23d;font-size:18px'>↻ Réessayer</a>"), "text/html", "utf-8", null);
+            }
         });
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -84,12 +89,12 @@ public class MainActivity extends Activity {
     /* ---------- démarrage : launcher en ligne, sinon jeu installé, sinon message ---------- */
     private void start() {
         boolean online;
-        try { get(SITE + "version.json?t=" + System.currentTimeMillis(), 6000); online = true; } catch (Exception e) { online = false; }
+        try { get(SITE + "version.json?t=" + System.currentTimeMillis(), 10000); online = true; } catch (Exception e) { online = false; }
         final boolean on = online;
         runOnUiThread(new Runnable() { public void run() {
             if (on) web.loadUrl(LAUNCHER);
             else if (installedVersion() >= 0) web.loadUrl(HOST + "/game/index.html?jouer&from=launcher&off=1");
-            else web.loadDataWithBaseURL(HOST + "/", screen("Pas de connexion internet. Connecte-toi pour installer Wald Royal, puis relance Wald Game."), "text/html", "utf-8", null);
+            else web.loadUrl(LAUNCHER);   // on essaie quand même le launcher (la vérification a pu échouer pour une autre raison)
         } });
     }
 
