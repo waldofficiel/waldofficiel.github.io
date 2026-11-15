@@ -73,7 +73,7 @@
         var set = { sp: sp, mi: mi, ims: [] };
         parts(S, g).forEach(function (q) { var im = newIM(q[1], mat(q[2], q[3], true, q[4]), mine.length); im.count = 0; im.castShadow = true; if (q[3]) im.customDepthMaterial = depthMat(q[2]); im.instanceMatrix.setUsage(T.DynamicDrawUsage); C.scene.add(im); set.ims.push(im); });
         SETS.push(set);
-        var imp = impostor(n, S); if (imp) FAR.push(farIM(imp, mine)); }); });
+        (function retry(k) { var imp = impostor(n, S); if (imp) FAR.push(farIM(imp, mine)); else if (k < 6) setTimeout(function () { retry(k + 1); }, 1500); })(0); }); });
   }
   // imposteur : on photographie le modèle de face (lumière du jeu) dans une petite texture, une fois pour toutes
   function impostor(n, S) {
@@ -85,7 +85,9 @@
     var rt = new T.WebGLRenderTarget(tw, th);
     var oldRT = R.getRenderTarget(), oldC = R.getClearColor(new T.Color()), oldA = R.getClearAlpha(), tm = R.toneMapping, oe = R.outputEncoding;
     R.toneMapping = T.NoToneMapping; R.outputEncoding = T.LinearEncoding; R.setRenderTarget(rt); R.setClearColor(0x405030, 0); R.clear(); R.render(sc, cam);
+    var px = new Uint8Array(tw * th * 4), ok = true; try { R.readRenderTargetPixels(rt, 0, 0, tw, th, px); var n2 = 0, sum = 0; for (var i = 0; i < px.length; i += 16) if (px[i + 3] > 128) { n2++; sum += px[i] + px[i + 1] + px[i + 2]; } ok = n2 > 20 && sum / n2 > 45; } catch (e) { ok = true; }   // photo ratée (textures pas prêtes = taches noires) : on réessaiera
     R.setRenderTarget(oldRT); R.setClearColor(oldC, oldA); R.toneMapping = tm; R.outputEncoding = oe;
+    if (!ok) { rt.dispose(); return null; }
     return { tex: rt.texture, rt: rt, W: Wd, H: Hd };
   }
   function farIM(imp, mine) {   // panneau qui pivote vers la caméra (autour de la verticale), caché dans le rayon des arbres détaillés

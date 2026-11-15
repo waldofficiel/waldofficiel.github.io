@@ -348,8 +348,8 @@
         var bars = ctx.HOUSES.filter(function (h) { return h.beach && h.flat; }); ['BAR DES VAGUES', 'LE COQUILLAGE', 'CHEZ MAMIE PLAGE'].forEach(function (nm, i) { var h = bars[i]; if (!h) return; var sg = new T.Mesh(new T.PlaneGeometry(5, 1.25), new T.MeshBasicMaterial({ map: neonTex(nm, ['#3affd0', '#ff4ad8', '#ffd23d'][i], 1024, 'Lobster'), color: '#7a7a7a' }));
           sg.position.set(h.x + sx * (h.hz + .2), (h.y0 || hgt(h.x, h.z)) + 3.6, h.z + sz * (h.hz + .2)); sg.rotation.y = Math.PI / 4; sg.rotation.z = (i - 1) * .12; S.add(sg); });   // enseignes éteintes et de travers
       }
-      if (kind === 'arena') {   // ZONE BUILD FIGHT : dalle plate de 50 m calée sur la grille de construction (cases de 5 m), bord néon, pylônes, enseigne
-        var ay = hgt(t[1], t[2]), HA = 25, ac = document.createElement('canvas'); ac.width = ac.height = 256; var ag = ac.getContext('2d');
+      if (kind === 'arena') {   // ZONE BUILD FIGHT : dalle plate de 50 m (70 m sur la petite île de la MAP 1V1, générateurs d'armes dessus) calée sur la grille de construction (cases de 5 m), bord néon, pylônes, enseigne
+        var ay = hgt(t[1], t[2]), HA = t[3] >= 50 ? 35 : 25, ac = document.createElement('canvas'); ac.width = ac.height = 256; var ag = ac.getContext('2d');
         ag.fillStyle = '#2a2436'; ag.fillRect(0, 0, 256, 256); for (var an = 0; an < 900; an++) { ag.fillStyle = 'rgba(' + (Math.random() < .5 ? '0,0,0' : '255,255,255') + ',' + Math.random() * .06 + ')'; ag.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 5, 2 + Math.random() * 5); }
         ag.strokeStyle = 'rgba(255,43,214,.55)'; ag.lineWidth = 4; ag.strokeRect(2.5, 2.5, 251, 251); ag.strokeStyle = 'rgba(255,255,255,.08)'; ag.lineWidth = 2; ag.strokeRect(20, 20, 216, 216);
         var at = new T.CanvasTexture(ac); at.encoding = T.sRGBEncoding; at.wrapS = at.wrapT = T.RepeatWrapping; at.repeat.set(HA * 2 / 5, HA * 2 / 5); at.anisotropy = 8;

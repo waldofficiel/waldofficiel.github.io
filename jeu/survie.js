@@ -495,7 +495,7 @@
   /* GÉNÉRATEURS D'ARMES (comme dans les modes créatifs des gros jeux) : une dalle de 5 m (comme un sol construit) avec un plot futuriste
      bleu-violet au milieu ; l'arme ou la potion réapparaît dessus à l'infini ; une pancarte à côté dit ce que c'est. Toutes les armes + toutes les potions. */
   function armory() { var BF = C.BF && C.ARENA, T0 = BF ? C.ARENA : C.TOWNS[0], K = ['pompeS', 'pompe', 'fusil', 'smg', 'scar', 'sniper', 'pistolet', 'roquette', 'laser', 'patate', 'mini', 'shield', 'heal'], n = K.length, ARM2 = [];
-    var cx0 = Math.round((T0[1] - n * CELL / 2) / CELL) * CELL, cz = Math.round((T0[2] + (BF ? 32.5 : -22.5)) / CELL) * CELL + CELL / 2; ARM = [];
+    var cx0 = Math.round((T0[1] - n * CELL / 2) / CELL) * CELL, cz = Math.round((T0[2] + (BF ? (T0[3] >= 50 ? -30 : 32.5) : -22.5)) / CELL) * CELL + CELL / 2, IN = BF && T0[3] >= 50; ARM = [];   /* grande arène : la rangée de générateurs est SUR le carré, côté nord */
     var g = new T.Group(), slab = new T.MeshLambertMaterial({ color: '#3a3448' }), rim = new T.MeshBasicMaterial({ color: '#7a2fff' }), core = new T.MeshBasicMaterial({ color: '#3dd6ff', transparent: true, opacity: .85 }), dk = new T.MeshLambertMaterial({ color: '#1a1424' }), WN = C.WEAPONS, HN = C.HEAL;
     K.forEach(function (k, i) { var x = cx0 + i * CELL + CELL / 2, z = cz, y = Math.max(C.hgt(x, z), C.hgt(x - 2, z - 2), C.hgt(x + 2, z + 2)) + .02;
       var fl = new T.Mesh(new T.BoxGeometry(CELL - .1, .3, CELL - .1), slab); fl.position.set(x, y + .15, z); g.add(fl);   // dalle = un sol de construction
@@ -507,8 +507,8 @@
       var cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; var c2 = cv.getContext('2d'), nm = WN[k] ? WN[k].name : HN[k] ? HN[k].name : k, rc = WN[k] ? ['#b9bcc4', '#4dd65a', '#3d9bff', '#b05cff', '#ffb52e'][WN[k].rar] : '#3dd6ff';
       c2.fillStyle = '#0c0614'; c2.fillRect(0, 0, 256, 128); c2.strokeStyle = rc; c2.lineWidth = 6; c2.strokeRect(5, 5, 246, 118); c2.fillStyle = rc; c2.fillRect(5, 5, 246, 26); c2.fillStyle = '#0c0614'; c2.font = '900 18px Arial'; c2.textAlign = 'center'; c2.fillText(WN[k] ? 'GÉNÉRATEUR D\'ARMES' : 'GÉNÉRATEUR DE SOINS', 128, 25);
       c2.fillStyle = '#fff'; var fs = nm.length > 14 ? 26 : 32; c2.font = '900 ' + fs + 'px Arial Black, Arial'; c2.fillText(nm.toUpperCase(), 128, 84); c2.font = '700 15px Arial'; c2.fillStyle = '#c9b8e8'; c2.fillText('RÉAPPARAÎT À L\'INFINI', 128, 112);
-      var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; var sg = new T.Mesh(new T.PlaneGeometry(2.2, 1.1), new T.MeshBasicMaterial({ map: tx, side: T.DoubleSide })); sg.position.set(x, y + 2.3, z + (BF ? 2.35 : -2.35)); sg.rotation.y = BF ? 0 : Math.PI; g.add(sg);
-      var po = new T.Mesh(new T.BoxGeometry(.12, 2.3, .12), dk); po.position.set(x, y + 1.15, z + (BF ? 2.4 : -2.4)); g.add(po);
+      var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; var sg = new T.Mesh(new T.PlaneGeometry(2.2, 1.1), new T.MeshBasicMaterial({ map: tx, side: T.DoubleSide })); sg.position.set(x, y + 2.3, z + (IN ? -2.35 : BF ? 2.35 : -2.35)); sg.rotation.y = BF ? 0 : Math.PI; g.add(sg);
+      var po = new T.Mesh(new T.BoxGeometry(.12, 2.3, .12), dk); po.position.set(x, y + 1.15, z + (IN ? -2.4 : BF ? 2.4 : -2.4)); g.add(po);
       ARM.push({ k: k, x: x, z: z, y: y + .6, it: null, t: 9, ring: ring, glow: glow }); });
     g.traverse(function (o) { o.userData.dyn = true; }); C.scene.add(g); }
   function armoryTick(dt) { if (!ARM || !C.items) return; var L = C.items(), now = performance.now() / 1000; ARM.forEach(function (a) { a.ring.rotation.z = now * 1.5; a.glow.material.opacity = .6 + Math.sin(now * 4 + a.x) * .25; if (a.it && L.indexOf(a.it) >= 0) { a.it.m.position.y = a.y + .2 + Math.sin(now * 2 + a.x) * .12; a.it.m.rotation.y = now; return; } a.t += dt; if (a.t < 1.5) return; a.t = 0; C.dropItem(a.x, a.z, a.k); a.it = L[L.length - 1]; if (a.it) a.it.m.position.y = a.y; }); }
@@ -605,7 +605,7 @@
       if (!WRK && C.cars) WRK = buildWrecks(); if ((TICK += dt) > .5) { TICK = 0; wreckVis(); if (C.SURV) { saveT += .5; if (saveT > 20) { saveT = 0; save(); } } }
       if (window.ZOMB && ZOMB.on) ZOMB.update(dt, C.isNight && C.isNight());
       if (el.open) { var ns = C.SURV && P.alive && !BAGON ? nearStor() : null; if (!!ns === el.open.hidden) el.open.hidden = !ns; }
-      if (C.CREA && !C.PROPM) { if (!ARM) armory(); armoryTick(dt); }
+      if (C.CREA && (!C.PROPM || C.BF)) { if (!ARM) armory(); armoryTick(dt); }
       if (C.SURV) { if (!BUT) critters(); crittersTick(dt); if (NIM.MET && Math.hypot(P.x - PACKP.x, P.z - PACKP.z) > 40) nodePack(P.x, P.z); }
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
