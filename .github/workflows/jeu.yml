@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: python3 app/manifest.py
       - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: '17' }
       - name: SDK Android
@@ -38,6 +40,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - run: python app/manifest.py
+        shell: bash
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
       - name: Copier le jeu

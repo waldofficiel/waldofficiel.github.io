@@ -289,6 +289,11 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - PC : pas de tir auto ni de boutons tactiles ; réglage graphique ULTRA (q=3, PC seulement, par défaut) : suréchantillonnage ×1,5, ombres 4096, AO renforcé, anisotropie 16 (`gfxAniso`), vue et herbe plus loin.
 - Danses : chaque danse a sa musique ORIGINALE jouée par le synthé du jeu (`DTR`, `dStepFn`, calée sur `danceT0` et le BPM de anim.js, la musique du jeu baisse via `DUCK`). Nouvelles SYNC DANCES `syncrobot` (voix robot `dVox`) et `syncshuffle` : on se synchronise avec ceux qui dansent à moins de 15 m.
 
+## Mise à jour automatique des applis (cache v34)
+- `app/manifest.py` écrit `jeu/version.json` (`v` = nombre de commits, empreinte sha1 + taille de chaque fichier). Lancé par les 2 workflows (checkout `fetch-depth: 0`), le fichier n'est pas versionné (.gitignore).
+- **Android** (`MainActivity.java`) et **PC** (`app/desktop/main.js`) : à chaque lancement, écran « Recherche de mises à jour… », lecture de `https://waldofficiel.github.io/jeu/version.json`. Si le numéro diffère : téléchargement des seuls fichiers modifiés (les autres sont recopiés) dans `files/game` (Android, servi par `InternalStoragePathHandler` sur `/game/`) ou `userData/game` (PC, servi par `app://jeu/`), barre de progression, puis lancement. Sans internet : dernière version téléchargée, sinon celle de l'installeur. Même origine qu'avant → sauvegardes gardées.
+- Donc **chaque push = nouvelle version** chez tout le monde au prochain lancement, sans réinstaller. Réinstaller seulement si on change `app/**` (coque Android/PC). Le numéro s'affiche au salon (`#ver`).
+
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.

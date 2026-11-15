@@ -209,6 +209,7 @@ body.buying #lobby>*:not(#buyPop){visibility:hidden}
 .set input{flex:1;accent-color:var(--pink)}.set output{width:3ch;text-align:right}
 .seg{display:flex;gap:4px}.seg button{font:800 12px var(--body);color:var(--mute);background:rgba(255,255,255,.08);border:0;border-radius:8px;padding:6px 10px;cursor:pointer}.seg button.on{background:var(--pink);color:#fff}
 .pcOnly{}body.touch .pcOnly{display:none!important}
+#ver{position:absolute;right:12px;bottom:8px;font:800 11px var(--body);color:rgba(255,255,255,.45);letter-spacing:.08em;pointer-events:none;z-index:5}
 .stabs{display:flex;gap:6px;flex-wrap:wrap}.stabs button{font:900 11px var(--body);letter-spacing:.04em;color:var(--mute);background:rgba(11,4,24,.7);border:2px solid transparent;border-radius:10px;padding:8px 11px;cursor:pointer}.stabs button.on{color:#fff;border-color:var(--pink);background:linear-gradient(180deg,rgba(255,61,167,.35),rgba(11,4,24,.8))}
 .spane{display:none;gap:8px}.spane.on{display:grid}.snote{margin:0;font-size:12px;color:var(--mute)}
 .binds{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}.binds h4{grid-column:1/-1;margin:6px 0 0;font:900 11px var(--body);letter-spacing:.12em;color:var(--cyan)}
@@ -300,6 +301,7 @@ body:not(.touch) #bCrouch{display:none}
 </div>
 
 <div id="lobby" hidden>
+  <div id="ver" aria-label="Version du jeu"></div>
   <div id="buyPop" hidden><button id="bpX" type="button" aria-label="Fermer">✕</button><div class="bpc" id="bpC"><i id="bpTag"></i><b id="bpName"></b><small id="bpKind"></small><p id="bpDesc"></p><button class="go" id="bpBuy" type="button"></button></div><div id="bpHint">Glisse pour faire tourner</div></div>
   <header class="lb-top">
     <div class="lb-logo">WALD <span>ROYAL</span></div>
@@ -2455,6 +2457,7 @@ if (window.LOOT3D) { LOOT3D.onReady = function () { LOOT3D.benches(scene); }; LO
 setGfx(SET.gfx); showStats(); reset(); try { R3.compile(scene, cam); R3.compile(lscene, lcam); } catch (e) {} requestAnimationFrame(loop);
 if (!$('lobby').hidden) { initAudio(); music(true); }
 window.WR = { day: function (v) { if (v != null) DAY.t = v; return DAY.t; }, hgt: function (x, z) { return hgt(x, z); }, houses: function () { return HOUSES; }, trees: function () { return TREES; }, win: function () { place = 1; endGame(true); }, st: function () { return ST; }, dark: function (v) { DARKK = v; }, darkv: function () { return [DARKK, scene.fog.near, scene.fog.far, sun.intensity, hemi.intensity]; }, gfxo: function () { return GFX; }, bubble: function (x, y, z) { return spawnBubble(x, y, z, null); }, props: function () { return window.PROPS && PROPS.stats(); }, r3: R3, scene: scene, interiors: function () { return window.INTERIORS && INTERIORS.stats(); }, cam: cam, gfx: GFX, roads: ROADP, farm: FARM, towns: TOWNS, mask: MASK, terr: groundTex, drop: DROP, dropItem: function (x, z, t) { return dropItem(x, z, t); }, useHeal: function (t) { useHeal(t); }, inv: invToggle, balloon: balloon, aim: function () { var cp = cam.position, cd = cam.getWorldDirection(new THREE.Vector3()), tMin = cp.distanceTo(new THREE.Vector3(me.x, me.y + 1.5, me.z)); var h = castRay(cp.x + cd.x * tMin, cp.y + cd.y * tMin, cp.z + cd.z * tMin, cd.x, cd.y, cd.z, 120, me, .06); return { kind: h.kind, t: h.t, name: h.o && h.o.name, cp: [cp.x, cp.y, cp.z], cd: [cd.x, cd.y, cd.z], me: [me.x, me.y, me.z], mode: me.mode, AUTO: AUTO, w: cur(me) && cur(me).k, state: state }; }, get me() { return me; }, pl: pl, vehicles: vehicles, get state() { return state; }, start: start, update: update, items: items, setCam: function (a, p) { camA = a; camP = p; }, fire: function (on) { fireHeld = on; }, give: function (k) { me.inv[me.slot] = newSlot(k); } };
+try { fetch('version.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (j) { $('ver').textContent = 'VERSION ' + j.v; }).catch(function () {}); } catch (e) {}   // numéro de version (mis à jour automatiquement par l'appli)
 window.SET = SET; var bt = $('boot'); if (bt) { bt.classList.add('off'); setTimeout(function () { bt.hidden = true; }, 500); }   // fin du chargement : le menu apparaît
 });
 requestAnimationFrame(function () { setTimeout(window.__WRMAIN, 30); });   // on laisse l'écran de chargement s'afficher avant de construire la carte
