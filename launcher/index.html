@@ -45,6 +45,16 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .tvbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent)}
 .tvbar button{font:800 12px Inter;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 12px}.tvbar button.on{background:var(--pink);border-color:var(--pink)}#tvPlay{background:linear-gradient(180deg,#ffe36a,#ffb23d)!important;color:#1a0820!important;border:0!important}
 .note{font-size:12px;color:var(--mute);line-height:1.5}
+.harr{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(11,4,24,.55);color:#fff;font:900 26px/1 Inter;cursor:pointer}.harr.l{left:10px}#hero .hin{padding-left:62px;padding-right:62px}.harr.r{right:10px}.harr:hover{background:var(--pink)}
+.hdots{position:absolute;right:18px;bottom:14px;z-index:3;display:flex;gap:6px}.hdots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer}.hdots i.on{background:var(--pink);box-shadow:0 0 8px var(--pink)}
+.hero .bg{transition:opacity .5s}.hx{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}.hx button{font:800 12px Inter;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:8px 12px;cursor:pointer}.hx button.sh{background:linear-gradient(135deg,var(--pink),var(--violet));border:0}
+.shopgo{display:block;margin:14px 0 0;padding:12px 20px;font-size:14px}.btn2.off{filter:grayscale(1);opacity:.5;cursor:not-allowed}
+.games{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:8px}.gm{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}.gm img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block}.gm>div{padding:12px;display:flex;flex-direction:column;gap:4px;flex:1}.gm em{font:900 10px Inter;font-style:normal;letter-spacing:.12em;color:#ffd23d}.gm b{font:900 17px Inter}.gm small{color:var(--mute);font-size:12px;line-height:1.4;flex:1}.gm.soon img{filter:blur(3px) grayscale(.6)}
+#auth{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#3a0f5e,#0b0418 70%);padding:16px;overflow:auto}#auth[hidden]{display:none}
+#auth .ab{width:min(420px,100%);background:rgba(22,8,40,.92);border:1px solid rgba(255,43,214,.45);border-radius:18px;padding:22px;box-shadow:0 0 50px rgba(122,47,255,.4)}#auth .ab img{width:64px;height:64px;border-radius:14px;display:block;margin:0 auto 8px}
+#auth h2{text-align:center;margin:0 0 4px;font:900 22px Inter}#auth .tabs{display:flex;gap:6px;margin:14px 0}#auth .tabs button{flex:1;font:800 13px Inter;color:#fff;background:rgba(255,255,255,.08);border:0;border-radius:10px;padding:10px;cursor:pointer}#auth .tabs button.on{background:linear-gradient(135deg,var(--pink),var(--violet))}
+#auth label{display:block;font-size:12px;color:var(--mute);margin:10px 0 4px}#auth input{width:100%;box-sizing:border-box;font:600 15px Inter;color:#fff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:11px 12px}
+#auth .go{width:100%;margin-top:16px;font:900 16px Inter;color:#1a0820;background:linear-gradient(180deg,#ffe36a,#ffb23d);border:0;border-radius:12px;padding:13px;cursor:pointer}#auth .err{color:#ff6a8a;font-size:12px;min-height:16px;margin-top:8px;text-align:center}
 .split{position:relative;display:inline-flex}.split #play{border-radius:14px 0 0 14px}.split .arr{border-radius:0 14px 14px 0;padding:16px 16px;margin-left:2px;font-size:18px}
 .edm{position:absolute;left:0;bottom:calc(100% + 12px);z-index:20;width:300px;background:#160828;border:1px solid rgba(255,43,214,.45);border-radius:14px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.6)}.edm[hidden]{display:none}
 .edm button{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer}.edm button:hover:not([disabled]){background:rgba(255,255,255,.07)}
@@ -60,6 +70,12 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 </style>
 </head>
 <body>
+<div id="auth" hidden><div class="ab"><img src="icon-192.png" alt=""><h2>Bienvenue sur Wald Game</h2><p class="note" style="text-align:center;margin:0">Crée ton compte pour jouer.</p>
+  <div class="tabs"><button type="button" class="on" data-at="new">Créer un compte</button><button type="button" data-at="log">J'ai un compte</button></div>
+  <div id="aNew"><label>Pseudo</label><input id="aPs" maxlength="16" autocomplete="nickname" placeholder="Ton pseudo en jeu"><label>Adresse e-mail</label><input id="aEm" type="email" autocomplete="email" placeholder="toi@exemple.fr"><label>Mot de passe (8 caractères minimum)</label><input id="aPw" type="password" autocomplete="new-password"><label>Confirme le mot de passe</label><input id="aPw2" type="password" autocomplete="new-password"></div>
+  <div id="aLog" hidden><label>Adresse e-mail</label><input id="lEm" type="email" autocomplete="email"><label>Mot de passe</label><input id="lPw" type="password" autocomplete="current-password"></div>
+  <button class="go" id="aGo" type="button">CRÉER MON COMPTE</button><div class="err" id="aErr"></div>
+  <p class="note" style="text-align:center">Ton compte est gardé sur cet appareil. Les comptes en ligne arrivent avec le serveur du jeu.</p></div></div>
 <div class="app">
   <aside>
     <div class="brand"><img src="icon-192.png" alt=""><div><b>WALD <span>GAME</span></b><small>WALD OFF GAMES</small></div></div>
@@ -75,17 +91,27 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   <main>
     <section class="page on" data-p="home">
       <div class="top"><h1>Accueil</h1><div class="search">🔍 Rechercher</div><span class="ver" id="verTop"></span></div>
-      <div class="hero"><img class="bg" src="../wald-royal/img/capitale.jpg" alt="">
-        <div class="hin"><span class="tag">SAISON 1</span><h2>WALD<br>ROYAL</h2>
-          <p>Battle Royale avec ou sans constructions, Créatif avec MAP 1V1 et PROPANE, Survie contre les zombies. Joue avec tes potes avec un code.</p>
+      <div class="hero" id="hero"><img class="bg" id="hBg" src="../wald-royal/img/crea_boss.jpg" alt="">
+        <button class="harr l" id="hPrev" type="button" aria-label="Précédent">‹</button><button class="harr r" id="hNext" type="button" aria-label="Suivant">›</button><div class="hdots" id="hDots"></div>
+        <div class="hin"><span class="tag" id="hTag">NOUVEAU · DLC</span><h2 id="hT">WALD ROYAL<br>+ SURVIE</h2>
+          <p id="hP">La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer.</p>
+          <div class="hx" id="hX"></div>
           <div class="row"><div class="split"><button class="play" id="play">▶ JOUER</button><button class="play arr" id="edB" type="button" aria-label="Choisir l'édition">▾</button>
             <div class="edm" id="edM" hidden><button type="button" class="on" data-ed="wr"><b>Wald Royal</b><small>Battle Royale · Créatif · gratuit</small><i>✔</i></button><button type="button" class="off" data-ed="wrs" disabled><b>Wald Royal + Survie</b><small>32 créatures · monde de 4 km · bientôt disponible</small><i>5,99 €</i></button></div></div><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
+      <h3>🎬 Cinématiques</h3>
+      <div class="grid cine">
+        <button class="card" data-tv="4"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><b>🧟 Wald Royal + Survie</b><small>la pub · 32 créatures</small></div></button>
+        <button class="card" data-tv="2"><img src="../wald-royal/img/collines.jpg" alt=""><div><b>📖 Mode histoire</b><small>La Brume Violette</small></div></button>
+        <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal</small></div></button>
+        <button class="card" data-tv="1"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs, 1 bus volant</small></div></button>
+        <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, entre potes</small></div></button></div>
+      <button class="btn2 shopgo" type="button" data-shop>🛒 ACCÈS BOUTIQUE</button>
       <h3>Modes de jeu</h3>
       <div class="grid">
         <button class="card" data-go="br"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs · Classé ou Partie rapide</small></div></button>
         <button class="card" data-go="creatif"><img src="../wald-royal/img/waldcar.jpg" alt=""><div><b>🎨 Créatif</b><small>Mon monde + maps publiques</small></div></button>
         <button class="card" data-go="bf"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>⚔️ MAP 1V1</b><small>Build fight entre potes</small></div></button>
-        <button class="card" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie <span class="price">5,99 €</span></b><small>32 créatures · monde de 4 km · ta base</small></div></button>
+        <button class="card lockc" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie <span class="price">5,99 €</span></b><small>32 créatures · monde de 4 km · ta base</small></div></button>
       </div>
       <h3>Nouveautés</h3><div class="news" id="news1"></div>
     </section>
@@ -103,6 +129,14 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
     <section class="page" data-p="shop">
       <div class="top"><h1>Boutique</h1></div>
+      <h3 style="margin-top:0">Tous les jeux</h3>
+      <div class="games">
+        <div class="gm"><img src="../wald-royal/img/capitale.jpg" alt=""><div><em>JEU · GRATUIT</em><b>Wald Royal</b><small>Battle Royale avec ou sans constructions, Partie rapide, Classé, Créatif et MAP 1V1.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
+        <div class="gm"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><em>ÉDITION · 5,99 €</em><b>Wald Royal + Survie</b><small>Tout Wald Royal + le mode Survie : monde de 4 km, 32 créatures, mode histoire.</small><button class="btn2 off" type="button" data-buy>🔒 BIENTÔT · 5,99 €</button></div></div>
+        <div class="gm"><img src="../wald-royal/img/creatif.jpg" alt=""><div><em>MAP · BIENTÔT</em><b>PROPANE · Prop Hunt</b><small>Cache-cache en objets avec le lanceur laser, sifflets et pièges.</small><button class="btn2 off" type="button" disabled>🔒 BIENTÔT</button></div></div>
+        <div class="gm soon"><img src="../wald-royal/img/lobby.jpg" alt=""><div><em>PROCHAIN JEU</em><b>??? · Wald Off Games</b><small>Le prochain jeu de Wald Off. Reste connecté…</small><button class="btn2 off" type="button" disabled>🔒 À VENIR</button></div></div>
+      </div>
+      <h3>Wald Royal + Survie</h3>
       <div class="sv">
         <div class="svh"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · DLC</span><h2>MODE <em>SURVIE</em></h2><p>La Brume Violette a tout envahi. Un monde de 4 km, <b>32 créatures</b> à découvrir, des boss, ta base à construire, et des animations à débloquer.</p>
           <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + SURVIE · 5,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p></div></div>
@@ -119,7 +153,10 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
         <label>Avatar</label><div class="avs" id="avs"></div>
         <label>Code pour jouer avec tes potes (Créatif)</label><input id="codeI" maxlength="6" placeholder="Laisse vide = salon public" style="text-transform:uppercase;letter-spacing:.15em">
         <button class="btn2" id="codeNew">🎲 Créer un code</button>
-        <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne avec mot de passe arriveront avec le serveur du jeu.</p></div>
+        <label>Adresse e-mail du compte</label><div class="note" id="accEm">—</div>
+        <label>Code créateur</label><input id="crI" maxlength="20" placeholder="WALD-XXXXXX-XXXXXX" style="text-transform:uppercase"><button class="btn2" id="crGo" type="button">✔ Valider le code</button><div class="note" id="crS"></div>
+        <button class="btn2" id="logout" type="button" style="background:rgba(255,255,255,.1)">⎋ Se déconnecter</button>
+        <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne arriveront avec le serveur du jeu.</p></div>
     </section>
   </main>
 </div>
@@ -155,6 +192,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       else { var o2 = {}; for (var i = 0; i < localStorage.length; i++) { var kk = localStorage.key(i); if (/^wr/.test(kk)) o2[kk] = localStorage.getItem(kk); } WG.saveProfile(JSON.stringify(o2)); }
     } catch (e) {}
   }
+  window.WGsyncOut = function () { prof('out'); };
   function mo(b) { return (b / 1048576).toFixed(0) + ' Mo'; }
   function ui() {
     if (!APP) return;
@@ -260,6 +298,56 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('svAd').onclick = function () { play(4); };
   if (window.SURV_PAY_URL) $('svBuy').classList.remove('off');
   $('svBuy').onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; else $('svMsg').innerHTML = '🔒 Pas encore en vente : le paiement arrive très bientôt.'; };
-  try { if (!localStorage.getItem('wg_adSurv1')) { localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { document.querySelector('nav [data-p=shop]').click(); play(4); }, 1500); } } catch (e) {}
+  /* ---- ACCUEIL : carrousel (pub Survie · Battle Royale · Mode histoire) ---- */
+  var LSg = function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+  var CREA = LSg('wr_creator') === '1';
+  var SL = [
+    { bg: 'crea_boss.jpg', tag: 'NOUVEAU · DLC', t: 'WALD ROYAL<br>+ SURVIE', p: 'La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer. 5,99 € · bientôt.', x: [['▶ Cinématique', 4], ['🛒 Accès boutique', 'shop']] },
+    { bg: 'capitale.jpg', tag: 'SAISON 1 · GRATUIT', t: 'WALD<br>ROYAL', p: 'Battle Royale avec ou sans constructions, Partie rapide ou Classé, Créatif avec MAP 1V1. Joue avec tes potes avec un code.', x: [['▶ Bande-annonce', 1], ['🎨 Créatif', 3]] },
+    { bg: 'collines.jpg', tag: 'MODE HISTOIRE', t: 'LA BRUME<br>VIOLETTE', p: 'Il y a trois ans, la Brume Violette est sortie de la terre. Retrouve les affiches, remplis le Livre des créatures… et trouve le Roi Violet.', x: [['▶ Cinématique', 2], ['🛒 Accès boutique', 'shop']] }];
+  var SI = 0, sT = null;
+  $('hDots').innerHTML = SL.map(function (q, i) { return '<i data-i="' + i + '"></i>'; }).join('');
+  function shopGo() { stop(); $('tv').hidden = true; document.querySelector('nav [data-p=shop]').click(); }
+  function slide(i) { SI = (i + SL.length) % SL.length; var q = SL[SI]; $('hBg').style.opacity = 0;
+    setTimeout(function () { $('hBg').src = '../wald-royal/img/' + q.bg; $('hBg').style.opacity = 1; }, 250);
+    $('hTag').textContent = q.tag; $('hT').innerHTML = q.t; $('hP').textContent = q.p;
+    $('hX').innerHTML = q.x.map(function (b, k) { return '<button type="button" class="' + (b[1] === 'shop' ? 'sh' : '') + '" data-k="' + k + '">' + b[0] + '</button>'; }).join('');
+    $('hX').querySelectorAll('button').forEach(function (b) { b.onclick = function () { var v = q.x[+b.dataset.k][1]; if (v === 'shop') shopGo(); else play(v); }; });
+    document.querySelectorAll('#hDots i').forEach(function (d, k) { d.classList.toggle('on', k === SI); });
+    clearTimeout(sT); sT = setTimeout(function () { slide(SI + 1); }, 9000); }
+  $('hPrev').onclick = function () { slide(SI - 1); }; $('hNext').onclick = function () { slide(SI + 1); };
+  document.querySelectorAll('#hDots i').forEach(function (d) { d.onclick = function () { slide(+d.dataset.i); }; });
+  slide(0);
+  document.querySelectorAll('[data-shop]').forEach(function (b) { b.onclick = shopGo; });
+  document.querySelectorAll('[data-home]').forEach(function (b) { b.onclick = function () { document.querySelector('nav [data-p=home]').click(); $('play').click(); }; });
+  document.querySelectorAll('[data-buy]').forEach(function (b) { b.onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; }; });
+  /* Survie verrouillée (sauf compte créateur) */
+  var sc0 = document.querySelector('[data-go=survie]');
+  if (sc0 && !CREA) { sc0.classList.add('lockc'); sc0.querySelector('small').textContent = '🔒 Bientôt · Wald Royal + Survie'; sc0.onclick = function () { shopGo(); }; } else if (sc0) sc0.classList.remove('lockc');
+  /* ---- COMPTE OBLIGATOIRE (pseudo + e-mail + mot de passe), gardé sur l'appareil ---- */
+  function hx(str) { return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str)).then(function (b) { return Array.from(new Uint8Array(b)).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }); }
+  function setLS(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function acc() { try { return JSON.parse(LSg('wg_acc') || 'null'); } catch (e) { return null; } }
+  var AT = 'new';
+  document.querySelectorAll('#auth [data-at]').forEach(function (b) { b.onclick = function () { AT = b.dataset.at; document.querySelectorAll('#auth [data-at]').forEach(function (x) { x.classList.toggle('on', x === b); }); $('aNew').hidden = AT !== 'new'; $('aLog').hidden = AT !== 'log'; $('aGo').textContent = AT === 'new' ? 'CRÉER MON COMPTE' : 'SE CONNECTER'; $('aErr').textContent = ''; }; });
+  function authShow() { var a = acc(); $('auth').hidden = false; if (a) document.querySelector('#auth [data-at=log]').click(); }
+  function authOk(a) { $('auth').hidden = true; setLS('wg_sess', '1'); setLS('wr_name', a.pseudo); $('accName').textContent = a.pseudo; $('accEm').textContent = a.email; if (window.WGsyncOut) WGsyncOut(); }
+  $('aGo').onclick = function () { var er = $('aErr');
+    if (AT === 'new') { var ps = $('aPs').value.trim(), em = $('aEm').value.trim().toLowerCase(), pw = $('aPw').value;
+      if (ps.length < 3) return er.textContent = 'Pseudo : 3 caractères minimum.';
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er.textContent = 'Adresse e-mail invalide.';
+      if (pw.length < 8) return er.textContent = 'Mot de passe : 8 caractères minimum.';
+      if (pw !== $('aPw2').value) return er.textContent = 'Les deux mots de passe ne sont pas pareils.';
+      var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      hx(salt + '|' + pw).then(function (h) { var a = { pseudo: ps, email: em, salt: salt, h: h, t: Date.now() }; setLS('wg_acc', JSON.stringify(a)); authOk(a); });
+    } else { var a = acc(), em2 = $('lEm').value.trim().toLowerCase();
+      if (!a || a.email !== em2) return er.textContent = 'Aucun compte avec cette adresse sur cet appareil.';
+      hx(a.salt + '|' + $('lPw').value).then(function (h) { if (h !== a.h) er.textContent = 'Mot de passe incorrect.'; else authOk(a); }); } };
+  $('logout').onclick = function () { setLS('wg_sess', '0'); authShow(); };
+  $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
+    hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie et PROPANE débloqués.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };
+  if (CREA) $('crS').textContent = '✔ Compte créateur actif.';
+  (function () { var a = acc(); if (!a || LSg('wg_sess') !== '1') authShow(); else authOk(a); })();
+  try { if (!localStorage.getItem('wg_adSurv1')) { var adT = setInterval(function () { if (!$('auth').hidden) return; clearInterval(adT); localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { play(4); }, 800); }, 500); } } catch (e) {}
 })();
 </script>
