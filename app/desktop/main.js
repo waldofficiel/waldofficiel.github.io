@@ -20,7 +20,7 @@ html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 35%,#3a0
 .b{width:min(520px,80vw);text-align:center}h1{margin:0 0 8px;font-size:54px;font-weight:900;letter-spacing:.04em;background:linear-gradient(180deg,#fff,#ffc4ec 55%,#ff2bd6);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,43,214,.6))}
 p{margin:0 0 18px;color:#d9c8f0;font-weight:700;font-size:17px}.t{height:14px;border-radius:9px;background:rgba(255,255,255,.12);overflow:hidden}
 .t i{display:block;height:100%;width:3%;border-radius:9px;background:linear-gradient(90deg,#ff2bd6,#8a3dff,#3dd6ff);box-shadow:0 0 16px #ff2bd6;transition:width .2s}
-small{display:block;margin-top:12px;color:#9a86b8;font-weight:700}</style></head><body><div class="b"><h1>WALD ROYAL</h1><p id="m">Recherche de mises à jour…</p><div class="t"><i id="i"></i></div><small id="v"></small></div>
+small{display:block;margin-top:12px;color:#9a86b8;font-weight:700}</style></head><body><div class="b"><h1>WALD GAME</h1><p id="m">Recherche de mises à jour…</p><div class="t"><i id="i"></i></div><small id="v"></small></div>
 <script>function setP(p,m,v){document.getElementById('i').style.width=Math.max(3,p)+'%';if(m)document.getElementById('m').textContent=m;if(v)document.getElementById('v').textContent=v;}</script></body></html>`;
 
 function readJSON(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } }
@@ -74,7 +74,7 @@ app.whenReady().then(async () => {
   });
   Menu.setApplicationMenu(null);
   const win = new BrowserWindow({
-    width: 1600, height: 900, fullscreen: true, backgroundColor: '#0b0418', title: 'Wald Royal',
+    width: 1600, height: 900, fullscreen: true, backgroundColor: '#0b0418', title: 'Wald Game',
     icon: path.join(__dirname, 'game', 'icons', 'icon-512.png'),
     webPreferences: { backgroundThrottling: false }
   });
