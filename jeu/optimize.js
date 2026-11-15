@@ -5,6 +5,9 @@
 (function () {
   var EMPTY = null;
   function sharedGeo(g) { var n = new THREE.BufferGeometry(); for (var k in g.attributes) n.setAttribute(k, g.attributes[k]); if (g.index) n.setIndex(g.index); g.groups.forEach(function (q) { n.addGroup(q.start, q.count, q.materialIndex); }); return n; }
+  var SUBS = [];
+  // les paquets plus loin que le brouillard ne sont pas dessinés (grande carte de survie : des milliers de paquets)
+  function cull(cam, far) { var px = cam.position.x, pz = cam.position.z; for (var i = 0; i < SUBS.length; i++) { var s = SUBS[i], b = s.geometry.boundingSphere; if (!b) continue; s.visible = Math.hypot(b.center.x - px, b.center.z - pz) - b.radius < far; } }
   function chunk(im, cell) {
     cell = cell || 200; if (!im || !im.isInstancedMesh || im.count < 24 || im.userData.chunked) return; im.userData.chunked = true;
     var g = im.geometry; if (!g.boundingSphere) g.computeBoundingSphere(); var gr = g.boundingSphere.radius, gc = g.boundingSphere.center;
@@ -14,7 +17,7 @@
     Object.keys(cells).forEach(function (key) { var L = cells[key], sub = new THREE.InstancedMesh(sharedGeo(g), im.material, L.length), mn = new THREE.Vector3(1e9, 1e9, 1e9), mx = new THREE.Vector3(-1e9, -1e9, -1e9), rMax = 0;
       L.forEach(function (i, k) { (im.userData.cmap = im.userData.cmap || {})[i] = [sub, k]; im.getMatrixAt(i, m); sub.setMatrixAt(k, m); m.decompose(p, q, sc); var c = gc.clone().applyMatrix4(m); mn.min(c); mx.max(c); rMax = Math.max(rMax, gr * Math.max(sc.x, sc.y, sc.z)); if (im.instanceColor) { im.getColorAt(i, col); sub.setColorAt(k, col); } });
       sub.geometry.boundingSphere = new THREE.Sphere(mn.clone().add(mx).multiplyScalar(.5), mn.distanceTo(mx) / 2 + rMax);
-      sub.castShadow = im.castShadow; sub.receiveShadow = im.receiveShadow; sub.frustumCulled = true; sub.userData.st = 1; im.add(sub); });
+      sub.castShadow = im.castShadow; sub.receiveShadow = im.receiveShadow; sub.frustumCulled = true; sub.userData.st = 1; im.add(sub); SUBS.push(sub); });
     EMPTY = EMPTY || new THREE.BufferGeometry(); im.geometry = EMPTY;   // le parent ne dessine plus rien (0 sommet) mais garde sa visibilité pour ses paquets
   }
   // deux matériaux identiques (même type, couleur, texture…) sont fusionnés ensemble même si ce sont deux objets différents
@@ -64,5 +67,5 @@
   // fusionne un objet qui bouge d'un bloc (véhicule…) : ses morceaux sont regroupés par matériau dans son repère local
   function mergeLocal(g) { var p = g.position.clone(), r = g.rotation.clone(), sc = g.scale.clone(); g.position.set(0, 0, 0); g.rotation.set(0, 0, 0); g.scale.set(1, 1, 1); g.updateMatrixWorld(true);
     try { batch([g], 1e6, g); } catch (e) { console.warn('mergeLocal', e); } g.position.copy(p); g.rotation.copy(r); g.scale.copy(sc); return g; }
-  window.OPT = { chunk: chunk, batch: batch, mergeLocal: mergeLocal, scene: null };
+  window.OPT = { chunk: chunk, batch: batch, mergeLocal: mergeLocal, cull: cull, scene: null };
 })();

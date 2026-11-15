@@ -6,7 +6,7 @@
    - chaque ville : conteneurs + grue (docks), château d'eau + bidons + pneus (ranch), clôtures + foin + puits (village), drapeaux + arche néon (avenue)
    Les gros objets (conteneurs, abribus, château d'eau) ajoutent des boîtes de collision dans ctx.PCOL. */
 (function () {
-  var T, MC = {}, EXT = window.EXT_TREES = [], BENCHES = window.EXT_BENCH = [];   // arbres, buissons et fleurs en vrais modèles 3D, posés ensuite par trees.js
+  var T, MC = {}, EXT = window.EXT_TREES = [], BENCHES = window.EXT_BENCH = [], WRECK = window.EXT_WRECK = [];   // arbres, buissons et fleurs en vrais modèles 3D, posés ensuite par trees.js
   function M(col, o) { var k = col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshLambertMaterial(Object.assign({ color: col }, o || {})); return MC[k]; }
   function P(col, o) { var k = 'p' + col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshPhongMaterial(Object.assign({ color: col, shininess: 60, specular: '#666' }, o || {})); return MC[k]; }
   function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -15,13 +15,17 @@
   function Kit(parts) { this.parts = parts; this.list = []; }
   Kit.prototype.add = function (x, y, z, ry, s, col) { this.list.push([x, y, z, ry || 0, s || 1, col]); };
   Kit.prototype.flush = function (scene, shadow) {
-    var L = this.list; if (!L.length) return; var o = new T.Object3D(), loc = new T.Object3D(), m4 = new T.Matrix4(), c = new T.Color();
+    var L = this.list, self = this; if (!L.length) return; var o = new T.Object3D(), loc = new T.Object3D(), m4 = new T.Matrix4(), c = new T.Color();
     this.parts.forEach(function (pt) {
       var im = new T.InstancedMesh(pt.g, pt.m, L.length); loc.position.fromArray(pt.p || [0, 0, 0]); loc.rotation.fromArray((pt.r || [0, 0, 0]).concat(['XYZ'])); loc.scale.fromArray(pt.s || [1, 1, 1]); loc.updateMatrix();
       L.forEach(function (it, i) { o.position.set(it[0], it[1], it[2]); o.rotation.set(0, it[3], 0); o.scale.setScalar(it[4]); o.updateMatrix(); m4.multiplyMatrices(o.matrix, loc.matrix); im.setMatrixAt(i, m4); if (pt.tint && it[5]) im.setColorAt(i, c.set(it[5])); });
-      im.frustumCulled = false; im.castShadow = shadow !== false && !pt.noShadow; im.receiveShadow = true; im.userData.kit = 1; scene.add(im); if (window.OPT) OPT.chunk(im);
+      im.frustumCulled = false; im.castShadow = shadow !== false && !pt.noShadow; im.receiveShadow = true; im.userData.kit = 1; scene.add(im); if (self.dyn) { im.userData.dyn = true; (self.ims = self.ims || []).push(im); } else if (window.OPT) OPT.chunk(im);
     });
   };
+  // cacher / remettre un objet d'un kit « dyn » (la carcasse du tracteur qu'on casse à la pioche)
+  Kit.prototype.show = function (i, on) { var it = this.list[i], o = new T.Object3D(), loc = new T.Object3D(), m4 = new T.Matrix4(); (this.ims || []).forEach(function (im, k) { var pt = this.parts[k];
+    if (on) { loc.position.fromArray(pt.p || [0, 0, 0]); loc.rotation.fromArray((pt.r || [0, 0, 0]).concat(['XYZ'])); loc.scale.fromArray(pt.s || [1, 1, 1]); loc.updateMatrix(); o.position.set(it[0], it[1], it[2]); o.rotation.set(0, it[3], 0); o.scale.setScalar(it[4]); o.updateMatrix(); m4.multiplyMatrices(o.matrix, loc.matrix); } else m4.makeScale(0, 0, 0);
+    im.setMatrixAt(i, m4); im.instanceMatrix.needsUpdate = true; }, this); };
   var GB, GC, GC8, GS;
   function part(g, m, p, s, r, extra) { return Object.assign({ g: g, m: m, p: p, s: s, r: r }, extra || {}); }
 
@@ -133,7 +137,7 @@
       else { b.position.y = .12 + Math.max(0, Math.sin(t * 6 + u.ph)) * .02; b.children[1].position.y = .1 - Math.max(0, Math.sin(t * 4 + u.ph)) * .08; if (Math.sin(t * .7 + u.ph) > .98) b.rotation.y += dt * 3; } });
   };
   window.EXT_FURN = window.EXT_FURN || [];
-  window.CITY = { build: function (THREE, ctx) { EXT.length = 0; BENCHES.length = 0;
+  window.CITY = { build: function (THREE, ctx) { EXT.length = 0; BENCHES.length = 0; WRECK.length = 0;
     T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.2, DES = ctx.DES, PCOL = ctx.PCOL || [];
     GB = new T.BoxGeometry(1, 1, 1); GC = new T.CylinderGeometry(.5, .5, 1, 14); GC8 = new T.CylinderGeometry(.5, .5, 1, 8); GS = new T.SphereGeometry(.5, 12, 8);
     var steel = P('#9aa2ae'), dark = M('#2a2d34'), white = M('#e8eaee'), concrete = M('#b8b4ac'), glow = new T.MeshBasicMaterial({ color: '#fff4c8' });
@@ -330,6 +334,20 @@
         var hx = t[1] + 66, hz = t[2] + 58, hp = new T.Mesh(GC, M('#54585e')); hp.position.set(hx, hgt(hx, hz) + .1, hz); hp.scale.set(14, .2, 14); hp.receiveShadow = true; S.add(hp);
         [[-1.3, 0, .6, 4.2], [1.3, 0, .6, 4.2], [0, 0, 2, .6]].forEach(function (q) { var m = new T.Mesh(GB, white); m.position.set(hx + q[0], hgt(hx, hz) + .22, hz + q[1]); m.scale.set(q[2], .04, q[3]); S.add(m); });
       }
+      if (kind === 'plage') {   // survie : plage des naufragés, vieux bars de plage attaqués (parasols arrachés, transats, ponton cassé, enseigne néon éteinte)
+        var rp = function (a, b) { return a + Math.random() * (b - a); }, sx = Math.SQRT1_2, sz = Math.SQRT1_2, ax = -Math.SQRT1_2, az = Math.SQRT1_2;
+        var PCOLS = ['#ff4a8a', '#3ab0ff', '#ffd23d', '#ff8a2a', '#3affb0'];
+        for (var pi = 0; pi < 14; pi++) { var u = rp(-44, 44), v = rp(10, 26), px3 = t[1] + ax * u + sx * v, pz3 = t[2] + az * u + sz * v, py3 = hgt(px3, pz3); if (py3 < -.2) continue;
+          var tilt = Math.random() < .5 ? rp(.3, 1.2) : 0, pole = new T.Mesh(GC8, M('#e8e0d0')); pole.scale.set(.06, 2.6, .06); pole.position.set(px3, py3 + 1.3, pz3); pole.rotation.z = tilt; S.add(pole);
+          if (Math.random() < .8) { var can = new T.Mesh(new T.ConeGeometry(1.5, .55, 10, 1, true), M(PCOLS[pi % 5])); can.material.side = T.DoubleSide; can.position.set(px3 + Math.sin(tilt) * -1.3, py3 + 2.55 - (1 - Math.cos(tilt)) * 1.3, pz3); can.rotation.z = tilt + (Math.random() < .3 ? 2.6 : 0); S.add(can); }
+          if (Math.random() < .7) { var lg = new T.Mesh(GB, M(Math.random() < .5 ? '#f2efe6' : '#3ab0ff')); lg.scale.set(.7, .12, 1.9); lg.position.set(px3 + 1.6, py3 + .35, pz3 + .6); lg.rotation.set(Math.random() < .4 ? 1.2 : .15, rp(0, 6), 0); S.add(lg); } }
+        for (var bq = 0; bq < 10; bq++) { var u2 = rp(-40, 40), v2 = rp(-14, 8), bx2 = t[1] + ax * u2 + sx * v2, bz2 = t[2] + az * u2 + sz * v2; if (Math.random() < .5) BARREL.add(bx2, hgt(bx2, bz2), bz2, 0, 1, ['#2a6ad8', '#c84a2a', '#e8c22a'][bq % 3]); else CRATE.add(bx2, hgt(bx2, bz2), bz2, rp(0, 6), .8); }
+        for (var pa = 0; pa < 9; pa++) { var u3 = rp(-50, 50), v3 = rp(-6, 30), qx = t[1] + ax * u3 + sx * v3, qz = t[2] + az * u3 + sz * v3; if (hgt(qx, qz) > -.3 && !ctx.HOUSES.some(function (h) { return Math.abs(h.x - qx) < h.hx + 2 && Math.abs(h.z - qz) < h.hz + 2; })) PALM.add(qx, hgt(qx, qz), qz, rp(0, 6), rp(.9, 1.3)); }
+        var wood = M('#8a6a48'); for (var pk = 0; pk < 12; pk++) { if (pk === 7 || pk === 8) continue; var pd = 30 + pk * 2.2, dx3 = t[1] + sx * pd + ax * 6, dz3 = t[2] + sz * pd + az * 6, plank = new T.Mesh(GB, wood); plank.scale.set(2.2, .16, 2.4); plank.position.set(dx3, .55 + (pk > 8 ? -.25 : 0), dz3); plank.rotation.y = -Math.PI / 4; plank.rotation.z = pk > 8 ? .15 : 0; S.add(plank);
+          [-1, 1].forEach(function (sd) { var pl3 = new T.Mesh(GC8, wood); pl3.scale.set(.18, 2.2, .18); pl3.position.set(dx3 + ax * sd * 1.1, -.4, dz3 + az * sd * 1.1); S.add(pl3); }); }   // ponton cassé
+        var bars = ctx.HOUSES.filter(function (h) { return h.beach && h.flat; }); ['BAR DES VAGUES', 'LE COQUILLAGE', 'CHEZ MAMIE PLAGE'].forEach(function (nm, i) { var h = bars[i]; if (!h) return; var sg = new T.Mesh(new T.PlaneGeometry(5, 1.25), new T.MeshBasicMaterial({ map: neonTex(nm, ['#3affd0', '#ff4ad8', '#ffd23d'][i], 1024, 'Lobster'), color: '#7a7a7a' }));
+          sg.position.set(h.x + sx * (h.hz + .2), (h.y0 || hgt(h.x, h.z)) + 3.6, h.z + sz * (h.hz + .2)); sg.rotation.y = Math.PI / 4; sg.rotation.z = (i - 1) * .12; S.add(sg); });   // enseignes éteintes et de travers
+      }
       if (kind === 'chalet') {   // tentes, feu de camp, tas de bois, tables de pique-nique
         [[22, -10, .4], [-22, -12, -.5], [8, 30, 2.6]].forEach(function (q, i) { TENT.add(t[1] + q[0], hgt(t[1] + q[0], t[2] + q[1]), t[2] + q[1], q[2], 1, ['#e85a2a', '#2a8ae8', '#e8c22a'][i]); col(t[1] + q[0], t[2] + q[1], 1.2, 1.2, 1.6); });
         var fx2 = t[1] + 2, fz2 = t[2] + 6, fy = hgt(fx2, fz2); FIRE.add(fx2, fy, fz2, 0); var fl = new T.PointLight('#ff9a3a', 1.6, 12, 2); fl.position.set(fx2, fy + 1.2, fz2); S.add(fl); FX.fires.push({ l: fl, m: null });
@@ -411,7 +429,7 @@
       // silos à côté de la grange
       [[-25.5, -18.5], [-25.5, -9.5]].forEach(function (q, i) { var x = X + q[0], z = Z + q[1]; SILO.add(x, hgt(x, z), z, i * 1.3, i ? .9 : 1); col(x, z, 2.3, 2.3, 14); });
       // tracteur garé dans la cour, foin, abreuvoir, château d'eau
-      var tx = X + 3, tz = Z + 3; TRAC.add(tx, hgt(tx, tz), tz, .7); col(tx, tz, 1.3, 1.3, 2.6);
+      var tx = X + 3, tz = Z + 3; TRAC.dyn = true; TRAC.add(tx, hgt(tx, tz), tz, .7); col(tx, tz, 1.3, 1.3, 2.6); WRECK.push({ x: tx, z: tz, y: hgt(tx, tz), r: 1.6, kit: TRAC, i: TRAC.list.length - 1, col: PCOL[PCOL.length - 1], hp: 8 });   // carcasse de tracteur = métal
       [[-1, -19, 0], [-1, -17.6, 0], [.4, -18.3, 0], [-2.4, -18.3, 0]].forEach(function (q, i) { var x = X + q[0], z = Z + q[1]; BALE.add(x, hgt(x, z) + (i > 1 ? .6 : 0), z, q[2]); });
       col(X - 1, Z - 18.3, 1.6, 1.4, 1.2);
       [[-14, -14], [-16.5, -16], [-9, -11.5]].forEach(function (q) { var x = X + q[0], z = Z + q[1]; HAY.add(x, hgt(x, z), z, rf() * 3); });

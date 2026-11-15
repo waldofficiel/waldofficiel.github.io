@@ -28,6 +28,8 @@
     function put(nm, x, z, h, ry, tint, sink) {
       if (/^plant_bush|^flower_|^grass_/.test(nm)) { (ctx.EXTRA = ctx.EXTRA || []).push({ sp: /^flower_/.test(nm) ? 'flower' : 'bush', x: x, z: z, y: ctx.hgt(x, z), h: Math.max(.5, h * (/^flower_/.test(nm) ? 1.3 : 1)), a: ry, mi: SUBN++ % 5 }); return null; }
       nm = sub(nm); var t = TPL[nm]; if (!t) return null; if (/^q_/.test(nm) && tint && !ctx.DES) tint = null;  var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
+  // objets qu'on peut casser à la pioche (rochers → pierre, cactus → bois) : dessinés à part (instanciés) pour pouvoir disparaître
+  function hv(it, k, col, hp) { if (it) { it.hv = k; it.col = col; it.hp = it.hp0 = hp; } return it; }
   function free(x, z, m) { if (!ctx.onLand(x, z) || ctx.inTown(x, z, m) || ctx.nearRoad(x, z, m + 5)) return false;
     for (var i = 0; i < ctx.HOUSES.length; i++) { var h = ctx.HOUSES[i]; if (Math.abs(h.x - x) < h.hx + m && Math.abs(h.z - z) < h.hz + m) return false; }
     if (ctx.inField && ctx.inField(x, z, 3)) return false; return true; }
@@ -39,18 +41,18 @@
     var RT = DES ? '#e8905a' : '#c4b8a4', ST = DES ? '#f0b07a' : '#aaa189';   // dans le désert, la roche est rouge orangé
     // 0) les rochers et les cactus de la carte (liste TREES d'index.html) deviennent de vrais modèles ; quelques arbres morts dans le désert
     (ctx.TREES || []).forEach(function (t) {
-      if (t.rock) { put(pick(DES ? QR : QM), t.x, t.z, (DES ? 3.2 : 2.2) * t.s, r() * 6.283, DES ? RT : null, .15); return; }
+      if (t.rock) { hv(put(pick(DES ? QR : QM), t.x, t.z, (DES ? 3.2 : 2.2) * t.s, r() * 6.283, DES ? RT : null, .15), 'pierre', t, 4 + (t.s * 2 | 0)); return; }
       if (!DES) return;
       if (r() < .14) { (ctx.EXTRA = ctx.EXTRA || []).push({ sp: 'dead', x: t.x, z: t.z, y: ctx.hgt(t.x, t.z), h: 6 * t.s, a: r() * 6.283 }); return; }
-      put(pick(QC), t.x, t.z, 5.3 * t.s, r() * 6.283); });
+      hv(put(pick(QC), t.x, t.z, 5.3 * t.s, r() * 6.283), 'bois', t, 4); });
     (ctx.BUSHES || []).forEach(function (b) { put(r() < .7 ? pick(QCF) : pick(QR), b.x, b.z, .55 + b.s * .45, b.a, null, .05); });   // désert : petits cactus en fleurs et cailloux
     function rand(m) { for (var k = 0; k < 40; k++) { var a = r() * 6.283, d = 25 + r() * (R - 30), x = Math.cos(a) * d, z = Math.sin(a) * d; if (free(x, z, m)) return [x, z]; } return null; }
     // 1) gros rochers et aiguilles rocheuses, plus nombreux sur les pentes et en montagne
-    var SK = ctx.SURV ? 3.2 : 1;   // survie : monde 4x plus grand
-    for (var n = 0; n < (DES ? 110 : 85) * (ctx.SURV ? .8 : 1); n++) { var p = rand(8);   // survie : peu de gros rochers de décor (les rochers à casser sont dans survie.js) if (!p) continue; if (slope(p[0], p[1]) < (DES ? .8 : 1.6) && r() < .6) continue;
+    var SK = ctx.SURV ? 6 : 1;   // survie : monde 4x plus grand
+    for (var n = 0; n < (DES ? 110 : 85) * (ctx.SURV ? 3 : 1); n++) { var p = rand(8); /* survie : un peu moins de gros rochers */ if (!p) continue; if (slope(p[0], p[1]) < (DES ? .8 : 1.6) && r() < .6) continue;
       var big = r() < .45, h = big ? 4 + r() * 6 : 2.2 + r() * 2.5, nm = big ? pick(['rock_tallA', 'rock_tallB', 'rock_tallC', 'rock_tallD', 'rock_tallE', 'rock_tallF', 'rock_tallG', 'rock_tallH']) : pick(['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeD', 'rock_largeE', 'rock_largeF']);
-      var it = put(nm, p[0], p[1], h, r() * 6.283, RT, .12); if (it) ctx.PEBS.push({ x: p[0], z: p[1], y: it.y, r: Math.max(TPL[it.n].s.x, TPL[it.n].s.z) * it.s * .38, h: h * .9 });
-      for (var k = 0; k < 3; k++) { var x2 = p[0] + (r() - .5) * 9, z2 = p[1] + (r() - .5) * 9; if (free(x2, z2, 4)) put(pick(['stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA', 'stone_largeA', 'stone_largeB']), x2, z2, .4 + r() * .8, r() * 6.283, ST); } }
+      var it = put(nm, p[0], p[1], h, r() * 6.283, RT, .12); if (it) { var pc = { x: p[0], z: p[1], y: it.y, r: Math.max(TPL[it.n].s.x, TPL[it.n].s.z) * it.s * .38, h: h * .9 }; ctx.PEBS.push(pc); hv(it, 'pierre', pc, Math.min(12, 3 + Math.round(h))); }
+      for (var k = 0; k < 3; k++) { var x2 = p[0] + (r() - .5) * 9, z2 = p[1] + (r() - .5) * 9; if (free(x2, z2, 4)) hv(put(pick(['stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA', 'stone_largeA', 'stone_largeB']), x2, z2, .4 + r() * .8, r() * 6.283, ST), 'pierre', null, 2); } }
     if (!DES) {
       // 2) sous-bois : souches, troncs couchés, tas de bûches, champignons, mousse
       (ctx.TREES || []).forEach(function (t, i) { if (t.rock || r() > .5) return; var a = r() * 6.283, d = 2.5 + r() * 3, x = t.x + Math.cos(a) * d, z = t.z + Math.sin(a) * d; if (!free(x, z, 2)) return; var q = r();
@@ -99,7 +101,7 @@
   }
   function bake() {
     var groups = {}, o = new T.Object3D(), m4 = new T.Matrix4(), nm = new T.Matrix3(), v = new T.Vector3(), cc = new T.Color(), tc = new T.Color(), mat = new T.MeshLambertMaterial({ vertexColors: true }); mat.onBeforeCompile = function (sh) { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += diffuseColor.rgb * .22;'); }; mat.customProgramCacheKey = function () { return 'propfill'; };
-    ITEMS.forEach(function (it) { if (!TPL[it.n]) return; var key = Math.floor(it.x / 150) + ',' + Math.floor(it.z / 150); (groups[key] = groups[key] || []).push(it); });
+    ITEMS.forEach(function (it) { if (!TPL[it.n] || it.hv) return; var key = Math.floor(it.x / 150) + ',' + Math.floor(it.z / 150); (groups[key] = groups[key] || []).push(it); });
     Object.keys(groups).forEach(function (key) { var L = groups[key], nV = 0, nI = 0, sx = 0, sz = 0;
       L.forEach(function (it) { TPL[it.n].parts.forEach(function (pt) { nV += pt.g.attributes.position.count; nI += pt.g.index ? pt.g.index.count : pt.g.attributes.position.count; }); });
       var pos = new Float32Array(nV * 3), nor = new Float32Array(nV * 3), col = new Float32Array(nV * 3), idx = nV > 65000 ? new Uint32Array(nI) : new Uint16Array(nI), k = 0, ki = 0;
@@ -109,7 +111,24 @@
           for (var i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).applyMatrix4(m4); pos[k * 3] = v.x; pos[k * 3 + 1] = v.y; pos[k * 3 + 2] = v.z; if (N) { v.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[k * 3] = v.x; nor[k * 3 + 1] = v.y; nor[k * 3 + 2] = v.z; } col[k * 3] = cc.r; col[k * 3 + 1] = cc.g; col[k * 3 + 2] = cc.b; k++; } }); });
       var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('normal', new T.BufferAttribute(nor, 3)); g.setAttribute('color', new T.BufferAttribute(col, 3)); g.setIndex(new T.BufferAttribute(idx, 1)); g.computeBoundingSphere();
       var mesh = new T.Mesh(g, mat); mesh.castShadow = true; mesh.receiveShadow = true; ctx.scene.add(mesh); MESHES.push({ m: mesh, x: sx / L.length, z: sz / L.length }); });
+    // les objets cassables : un InstancedMesh par modèle (couleurs de sommets + teinte par instance)
+    var by = {}; ITEMS.forEach(function (it) { if (it.hv && TPL[it.n]) (by[it.n] = by[it.n] || []).push(it); });
+    Object.keys(by).forEach(function (n) { var L = by[n], parts = TPL[n].parts, nV = 0, nI = 0; parts.forEach(function (pt) { nV += pt.g.attributes.position.count; nI += pt.g.index ? pt.g.index.count : pt.g.attributes.position.count; });
+      var pos = new Float32Array(nV * 3), nor = new Float32Array(nV * 3), col = new Float32Array(nV * 3), idx = new Uint32Array(nI), k = 0, ki = 0;
+      parts.forEach(function (pt) { nm.getNormalMatrix(pt.m); var P = pt.g.attributes.position, N = pt.g.attributes.normal, I = pt.g.index, base = k;
+        if (I) for (var j = 0; j < I.count; j++) idx[ki++] = base + I.getX(j); else for (j = 0; j < P.count; j++) idx[ki++] = base + j;
+        for (var i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).applyMatrix4(pt.m); pos[k * 3] = v.x; pos[k * 3 + 1] = v.y; pos[k * 3 + 2] = v.z; if (N) { v.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[k * 3] = v.x; nor[k * 3 + 1] = v.y; nor[k * 3 + 2] = v.z; } col[k * 3] = pt.c.r; col[k * 3 + 1] = pt.c.g; col[k * 3 + 2] = pt.c.b; k++; } });
+      var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('normal', new T.BufferAttribute(nor, 3)); g.setAttribute('color', new T.BufferAttribute(col, 3)); g.setIndex(new T.BufferAttribute(idx, 1));
+      var im = new T.InstancedMesh(g, mat, L.length); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true;
+      L.forEach(function (it, i) { it.im = im; it.ii = -1; HARV.push(it); }); im.userData.L = L; HIMS.push(im);
+      ctx.scene.add(im); });
+    harvPack(0, 0);
   }
+  var HARV = [], HIMS = [], Z0 = null, HP = { x: 1e9, z: 1e9 }, HC = null;
+  // seuls les cassables à moins de 330 m sont rangés dans les instances (sinon des milliers de rochers dessinés pour rien)
+  function harvPack(px, pz) { HP.x = px; HP.z = pz; var R2 = 330 * 330; HC = HC || new T.Color();
+    HIMS.forEach(function (im) { var k = 0; im.userData.L.forEach(function (it) { var dx = it.x - px, dz = it.z - pz; if (dx * dx + dz * dz < R2) { it.ii = k++; im.setColorAt(it.ii, it.tint ? HC.set(it.tint) : HC.setRGB(1, 1, 1)); harvSet(it, !it.dead); } else it.ii = -1; }); im.count = k; if (im.instanceColor) im.instanceColor.needsUpdate = true; }); }
+  function harvSet(it, on) { if (!it.im || it.ii < 0) return; var o = new T.Object3D(); if (on) { o.position.set(it.x, it.y, it.z); o.rotation.set(0, it.ry, 0); o.scale.setScalar(it.s * (it.shk > 0 ? 1 + Math.sin(it.shk * 60) * .04 : 1)); } else o.scale.setScalar(0); o.updateMatrix(); it.im.setMatrixAt(it.ii, o.matrix); it.im.instanceMatrix.needsUpdate = true; }
   // lucioles de la forêt sombre (points lumineux qui flottent)
   var FLY = { at: null, pts: null };
   function makeFlies() { if (!FLY.at) return; var n = 260, pos = new Float32Array(n * 3), ph = new Float32Array(n), r = rng(99);
@@ -127,7 +146,11 @@
     'tent_detailedOpen', 'tent_detailedClosed', 'tent_smallOpen', 'campfire_stones', 'campfire_logs', 'statue_column', 'statue_columnDamaged', 'statue_obelisk', 'statue_head', 'statue_ring', 'pot_large']);
   window.PROPS = {
     build: function (THREE, c) { T = THREE; ctx = c; if (!T.GLTFLoader) return; load(NAMES, function () { try { place(); bake(); makeFlies(); } catch (e) { console.error('PROPS', e); } if (ctx.onReady) ctx.onReady(ITEMS.length); }); },
-    update: function (cam) { if (FLY.pts) { FLY.pts.material.uniforms.uT.value = performance.now() / 1000; FLY.pts.visible = Math.hypot(cam.position.x - FLY.at[0], cam.position.z - FLY.at[1]) < FLY.at[2] + 60; } var px = cam.position.x, pz = cam.position.z, R = cam.position.y > 120 ? 600 : 330; MESHES.forEach(function (q) { q.m.visible = Math.hypot(q.x - px, q.z - pz) < R; }); },
-    stats: function () { return { items: ITEMS.length, meshes: MESHES.length }; }
+    update: function (cam) { if (HIMS.length && Math.hypot(cam.position.x - HP.x, cam.position.z - HP.z) > 45) harvPack(cam.position.x, cam.position.z); if (FLY.pts) { FLY.pts.material.uniforms.uT.value = performance.now() / 1000; FLY.pts.visible = Math.hypot(cam.position.x - FLY.at[0], cam.position.z - FLY.at[1]) < FLY.at[2] + 60; } var px = cam.position.x, pz = cam.position.z, R = cam.position.y > 120 ? 600 : 330; MESHES.forEach(function (q) { q.m.visible = Math.hypot(q.x - px, q.z - pz) < R; }); },
+    stats: function () { return { items: ITEMS.length, meshes: MESHES.length, harv: HARV.length }; },
+    // cassables (survie.js) : liste, tremblement, disparition (+ collision retirée), retour
+    harv: function () { return HARV; }, harvSet: harvSet,
+    harvBreak: function (it) { it.dead = true; harvSet(it, false); var c = it.col; if (c) { if (c.r != null && c.h != null && ctx.TREES && ctx.TREES.indexOf(c) >= 0) { c.r0 = c.r; c.h0 = c.h; c.r = 0; c.h = -99; } else { var i = ctx.PEBS.indexOf(c); if (i >= 0) ctx.PEBS.splice(i, 1); } } },
+    harvBack: function (it) { it.dead = false; it.hp = it.hp0; harvSet(it, true); var c = it.col; if (c) { if (c.r0 != null) { c.r = c.r0; c.h = c.h0; } else if (ctx.PEBS.indexOf(c) < 0) ctx.PEBS.push(c); } }
   };
 })();
