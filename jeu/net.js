@@ -26,10 +26,25 @@
       else if (type === 3) { var tl = (body[0] << 8) | body[1], topic = dec.decode(body.subarray(2, 2 + tl)); try { var m = JSON.parse(dec.decode(body.subarray(2 + tl))); if (m && m.id !== id && onMsg) onMsg(m, topic); } catch (e) {} }
     }
   }
+  /* JEUX PUBLIÉS (Créatif) : stockés en messages « retenus » sur le relais (sujet wr4pub/v1/...), lus par une connexion courte à part */
+  var PUBT = 'wr4pub/v1/';
+  function shot(onUp, onPub, ms, done) { var w, b = new Uint8Array(0), fin = false, cid = 'wrp' + Math.random().toString(36).slice(2, 9), to;
+    function end(ok) { if (fin) return; fin = true; clearTimeout(to); try { w.send(new Uint8Array([0xE0, 0])); w.close(); } catch (e) {} if (done) done(ok); }
+    try { w = new WebSocket(BROKERS[0], 'mqtt'); } catch (e) { if (done) done(false); return; } w.binaryType = 'arraybuffer'; to = setTimeout(function () { end(true); }, ms || 6000);
+    w.onopen = function () { w.send(pkt(0x10, str('MQTT').concat([4, 2, 0, 60], str(cid)))); };
+    w.onerror = function () { end(false); }; w.onclose = function () { end(false); };
+    w.onmessage = function (e) { var d = new Uint8Array(e.data), nb = new Uint8Array(b.length + d.length); nb.set(b); nb.set(d, b.length); b = nb;
+      while (b.length >= 2) { var mul = 1, len = 0, i = 1, x; do { if (i >= b.length) return; x = b[i++]; len += (x & 127) * mul; mul *= 128; } while (x & 128); if (b.length < i + len) return;
+        var ty = b[0] >> 4, body = b.subarray(i, i + len); b = b.slice(i + len);
+        if (ty === 2) onUp(w, end); else if (ty === 3) { var tl = (body[0] << 8) | body[1], tp = dec.decode(body.subarray(2, 2 + tl)); try { onPub(tp, JSON.parse(dec.decode(body.subarray(2 + tl))), end); } catch (er) {} } } }; }
+  function sub(w, topic) { w.send(pkt(0x82, [0, 1].concat(str(topic), [0]))); }
   window.NET = {
     join: function (r, myId, fn, st) { NET.leave(); room = String(r).toLowerCase().replace(/[^a-z0-9_-]/g, ''); base = 'wr4/' + room + '/'; id = myId; onMsg = fn; onState = st; bi = 0; connect(); },
     leave: function () { room = ''; clearTimeout(retry); clearInterval(ping); if (ws) { try { send(new Uint8Array([0xE0, 0])); ws.close(); } catch (e) {} } ws = null; up = false; },
     pub: function (m) { if (!up) return false; m.id = id; send(pkt(0x30, str(base + (m.t || 'x')).concat(Array.from(enc.encode(JSON.stringify(m)))))); return true; },
-    up: function () { return up; }, room: function () { return room; }
+    up: function () { return up; }, room: function () { return room; },
+    store: function (key, obj, cb) { shot(function (w, end) { w.send(pkt(0x31, str(PUBT + key).concat(Array.from(enc.encode(JSON.stringify(obj)))))); setTimeout(function () { end(true); }, 900); }, function () {}, 8000, cb); },
+    list: function (prefix, cb) { var L = []; shot(function (w) { sub(w, PUBT + prefix + '+'); }, function (tp, o) { L.push(o); }, 3500, function () { cb(L); }); },
+    fetch: function (key, cb) { var got = false; shot(function (w) { sub(w, PUBT + key); }, function (tp, o, end) { if (!got) { got = true; cb(o); end(true); } }, 6000, function () { if (!got) cb(null); }); }
   };
 })();

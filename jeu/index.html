@@ -177,7 +177,11 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .pmap canvas.pthumb{width:84px;height:69px;padding:0}.n2{background:#c0c8d8!important}
 #netB{left:50%;top:calc(46px + env(safe-area-inset-top,0px));transform:translateX(-50%);font:800 11px var(--body);color:#fff;background:rgba(11,4,24,.65);border:1px solid rgba(61,214,255,.5);border-radius:10px;padding:3px 10px;pointer-events:none}
 .friends{display:grid;gap:5px;background:rgba(11,4,24,.78);border:2px solid rgba(61,214,255,.35);border-radius:14px;padding:8px 10px}.friends b{font:900 12px var(--body);color:var(--cyan)}.friends small{font-size:11px;color:var(--mute)}.frow{display:grid;grid-template-columns:1.4fr 1fr auto;gap:5px}.frow input{font:800 13px var(--body);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:7px 8px;min-width:0;text-transform:none}#codeI{text-transform:uppercase;letter-spacing:.15em}.frow button{font:900 11px var(--body);color:#fff;background:linear-gradient(135deg,#ff2bd6,#7a2fff);border:0;border-radius:9px;padding:0 10px;cursor:pointer}
-#eaB[hidden]{display:none!important}#wroom{position:fixed;right:max(12px,env(safe-area-inset-right));top:calc(60px + env(safe-area-inset-top,0px));z-index:40;width:min(300px,42vw)}#wroom[hidden],#rHud[hidden],#rBlind[hidden]{display:none}
+#eaB[hidden]{display:none!important}#bFly{position:fixed;right:calc(14px + env(safe-area-inset-right));top:50%;z-index:9;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(11,4,24,.55);color:#fff;font-size:22px;line-height:1;pointer-events:auto}#bFly small{display:block;font:900 8px var(--body)}#bFly.on{background:#ff2bd6}#bFly[hidden]{display:none}.n3{background:linear-gradient(135deg,#ff6a1a,#ffd23d)!important;color:#2a0a00!important}#commL{display:flex;flex-direction:column;gap:8px}#commL .cl{color:#b9a8d0;font:700 11px var(--body)}.pmap.cm .pthumb{font-size:30px;background:linear-gradient(135deg,#3a0f5e,#7a2fff)}
+#pubM{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(11,4,24,.78);padding:10px;overflow:auto}#pubM[hidden]{display:none}.pubc{width:min(560px,96vw);max-height:92vh;overflow:auto;background:#160828;border:2px solid #ff2bd6;border-radius:16px;padding:16px;color:#fff;display:flex;flex-direction:column;gap:6px}
+.pubc h2{margin:0;font:900 22px var(--display)}.pubc .sm{margin:0;font:600 12px var(--body);color:#c8b8e0}.pubc label{font:800 11px var(--body);color:#d9c8f0;letter-spacing:.06em}.pubc input,.pubc select{font:700 14px var(--body);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:8px}
+.pbT{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pbT button{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:8px 4px;cursor:pointer}.pbT button.on{border-color:#ff2bd6;background:rgba(255,43,214,.15)}.pbT b{display:block;font:900 12px var(--body)}.pbT small{font:600 10px var(--body);color:#b9a8d0}
+.pbR{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pbR>div{display:flex;flex-direction:column;gap:4px}.pbK{display:flex;flex-wrap:wrap;gap:6px}.pbK label{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);border-radius:8px;padding:4px 8px;font:700 11px var(--body);color:#fff}.pbB{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.pbB .go{flex:1;font:900 15px var(--display);padding:10px}#wroom{position:fixed;right:max(12px,env(safe-area-inset-right));top:calc(60px + env(safe-area-inset-top,0px));z-index:40;width:min(300px,42vw)}#wroom[hidden],#rHud[hidden],#rBlind[hidden]{display:none}
 #wroom .wr{background:rgba(16,6,30,.9);border:2px solid #ff2bd6;border-radius:16px;padding:14px;box-shadow:0 0 30px rgba(255,43,214,.35);display:flex;flex-direction:column;gap:8px;color:#fff}#wroom small{font:900 10px var(--body);letter-spacing:.12em;color:#ffd23d}#wroom b{font:900 18px var(--display)}
 #wrL{display:flex;flex-direction:column;gap:4px;max-height:30vh;overflow:auto}#wrL span{font:800 13px var(--body);background:rgba(255,255,255,.07);border-radius:8px;padding:6px 8px}#wrMsg{margin:0;font:700 12px var(--body);color:#d9c8f0}#wrMsg.bad{color:#ff7a9a}
 #wroom .go{font:900 15px var(--display);padding:12px;border-radius:12px}#wroom .ghost{padding:8px;font-size:12px}
@@ -341,7 +345,7 @@ body:not(.touch) #bCrouch{display:none}
 <div id="lobby" hidden>
   <div id="ver" aria-label="Version du jeu"></div>
   <a id="toLauncher" href="https://waldofficiel.github.io/launcher/?app=2" hidden onclick="if(window.WGsave)WGsave();if(window.WG&&WG.launcher){WG.launcher();return false;}">⬅ WALD GAME</a>
-  <div id="eaB" hidden><button type="button" id="fbOpen"></button></div>
+  <button type="button" id="bFly" hidden>✈️<small>VOLER</small></button><div id="eaB" hidden><button type="button" id="fbOpen"></button></div>
   <div id="buyPop" hidden><button id="bpX" type="button" aria-label="Fermer">✕</button><div class="bpc" id="bpC"><i id="bpTag"></i><b id="bpName"></b><small id="bpKind"></small><p id="bpDesc"></p><button class="go" id="bpBuy" type="button"></button></div><div id="bpHint">Glisse pour faire tourner</div></div>
   <header class="lb-top">
     <div class="lb-logo">WALD <span>ROYAL</span></div>
@@ -368,11 +372,13 @@ body:not(.touch) #bCrouch{display:none}
         <div class="msub" id="subCR" hidden>
           <button type="button" class="world" data-mode="creatif"><span>🌍</span><div><b>MON MONDE</b><small>Fais ce que tu veux · constructions illimitées · armurerie infinie</small></div></button>
           <h4>MAPS PUBLIQUES</h4>
-          <button type="button" class="pmap" data-mode="bf"><i class="n1">N°1</i><canvas class="pthumb" id="th1" width="224" height="184"></canvas><div><b>MAP 1V1</b><small class="ver">✔ Créateur Wald Royal</small><small>Zone de build fight plate · 200 PV · pompes, AR, PM, shields</small></div></button>
-          <button type="button" class="pmap" data-mode="prop"><i class="n1 n2">N°2</i><canvas class="pthumb" id="th2" width="224" height="184"></canvas><div><b>PROP HUNT</b><small class="ver">✔ Wald Royal Creator</small><small>Mini-map pleine de villes · cache-cache : transforme-toi en objet au laser et siffle</small></div></button>
+          <button type="button" class="pmap" data-mode="bf"><i class="n1">N°1</i><canvas class="pthumb" id="th1" width="224" height="184"></canvas><div><b>MAP 1V1</b><small class="ver">✔ Wald Game</small><small>Zone de build fight plate · 200 PV · pompes, AR, PM, shields</small></div></button>
+          <button type="button" class="pmap" data-mode="prop"><i class="n1 n2">N°2</i><canvas class="pthumb" id="th2" width="224" height="184"></canvas><div><b>PROP HUNT</b><small class="ver">✔ Wald Game</small><small>3 joueurs min. · 1 chercheur, les autres se transforment en objets au laser</small></div></button>
+          <button type="button" class="pmap" data-mode="lave"><i class="n1 n3">N°3</i><canvas class="pthumb" id="th3" width="224" height="184"></canvas><div><b>SOL EN LAVE</b><small class="ver">✔ Wald Game</small><small>La lave monte toutes les secondes : construis vers le haut, le dernier en vie gagne</small></div></button>
+          <h4>JEUX DE LA COMMUNAUTÉ</h4><div id="commL"></div>
           <div class="friends"><b>👥 JOUER AVEC MES POTES</b><small>Lancez la même map : sans code vous tombez ensemble (salon public). Avec un code, vous êtes entre vous.</small>
             <div class="frow"><input id="nameI" maxlength="16" placeholder="Ton pseudo" autocomplete="off"><input id="codeI" maxlength="6" placeholder="CODE" autocomplete="off"><button type="button" id="codeNew">🎲 CRÉER</button></div></div>
-          <button type="button" class="pub" id="pubBtn">📤 Rendre ma map publique</button>
+          <button type="button" class="pub" id="pubBtn">📤 Créer et publier mon jeu</button>
         </div>
               </section>
       <section class="pane" data-p="rangs">
@@ -431,7 +437,7 @@ body:not(.touch) #bCrouch{display:none}
   <div class="card"><h2 class="big">PAUSE</h2>
     <div class="row"><button class="go" id="resume" type="button">REPRENDRE</button></div>
     <div class="row"><button class="ghost" id="pSet" type="button">⚙️ Paramètres</button><button class="ghost" id="pFb" type="button">💬 Laisser un commentaire</button></div>
-    <div class="row"><button class="ghost" id="quit" type="button">🏠 Retour au salon</button></div><p class="ea">ACCÈS ANTICIPÉ · le jeu est en développement</p></div>
+    <div class="row"><button class="ghost" id="pPub" type="button" hidden>📤 Publier le jeu</button><button class="ghost" id="quit" type="button">🏠 Retour au salon</button></div><p class="ea">ACCÈS ANTICIPÉ · le jeu est en développement</p></div>
 </div>
 
 <div class="screen" id="setM" hidden><div class="card wide"><button class="mx" id="setX" type="button">✕</button><div id="setSlot"></div></div></div>
@@ -481,10 +487,10 @@ var $ = function (id) { return document.getElementById(id); };
 var isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window; if (isTouch) document.body.classList.add('touch');
 /* modes : BATTLE ROYALE (la carte change toute seule toutes les 10 min : Los Campagnes / Sable Rouge) et SURVIE (Terres Sauvages, monde 2x plus grand, seul).
    La page se recharge pour construire la carte ; ?map=xxx force une carte (tests). */
-var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE', survie: 'TERRES SAUVAGES', propane: 'PROP HUNT' }, BRMAPS = ['campagne', 'desert'], ROT = 600000;
+var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE', survie: 'TERRES SAUVAGES', propane: 'MINI-ÎLE' }, BRMAPS = ['campagne', 'desert'], ROT = 600000;
 function brMap(t) { return BRMAPS[Math.floor((t || Date.now()) / ROT) % BRMAPS.length]; }
 /* 4 modes : br (Battle Royale avec constructions), zb (Zéro Construction : pas de constructions, bulle bouclier), survie (zombies), creatif (terrain de jeu : constructions illimitées, armurerie) */
-var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROP HUNT' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
+var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROP HUNT', lave: 'SOL EN LAVE' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
 var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) MODE = mm; } catch (e) {}
 try { var mo = (location.search.match(/[?&]mode=(\w+)/) || [])[1]; if (MODES[mo]) MODE = mo; } catch (e) {}
 var IOSW = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);   // Wald Royal iOS (web) : pas de Survie (payant, PC + Android)
@@ -492,8 +498,8 @@ if (IOSW && MODE === 'survie') MODE = 'br';
 /* Survie (Wald Royal + Survie, 5,99 €) pas encore jouable, sauf compte créateur (code saisi dans Wald Game). Tout le Créatif est gratuit. */
 var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_creator') === '1'; SURVOK = CREATOR || localStorage.getItem('wr_survie_ok') === '1'; } catch (e) {}
 if (MODE === 'survie' && !SURVOK) MODE = 'br';
-var MAP = MODE === 'prop' ? 'propane' : MODE === 'survie' || MODE === 'creatif' || MODE === 'bf' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
-var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', CREA = MODE === 'creatif' || MODE === 'bf' || MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop', MAPNAME = MAPS[MAP];
+var MAP = MODE === 'prop' || MODE === 'lave' ? 'propane' : MODE === 'survie' || MODE === 'creatif' || MODE === 'bf' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
+var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', CREA = MODE === 'creatif' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop', MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM ? 1 : 30, ISL = SURV ? 1720 : PROPM ? 240 : 420, HALF = SURV ? 2000 : PROPM ? 300 : 500;   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
@@ -1447,10 +1453,11 @@ function propTick() { pl.forEach(function (p) { if (p.net) { if ((p.pr || null) 
    On arrive dans la salle d'attente avec les joueurs du salon, quelqu'un appuie sur LANCER LA PARTIE.
    PROP HUNT : 3 joueurs minimum. 1 chercheur tiré au hasard (pompe), les autres se cachent (laser = se transformer en objet).
    60 s pour se cacher (le chercheur est aveuglé), puis 4 min de chasse. Les tirs cassent les objets ; un joueur-objet touché est éliminé. Personne ne construit. */
-var ROUND = null, PROPOBJ = [], HIDE_T = 60, HUNT_T = 240, RSEEN = 0, RSPUB = 0, RLAST = 0;
+var ROUND = null, PROPOBJ = [], HIDE_T = 60, HUNT_T = 240, RSEEN = 0, RSPUB = 0, RLAST = 0, PUB = null, PUBKEY = '', PUBDONE = false, LAVA = null, LASTJ = 0;
+var TPL = MODE === 'prop' ? 'prop' : MODE === 'lave' ? 'lave' : BF ? 'bf' : 'libre';   // type de partie : libre, bf (1v1), prop (prop hunt), lave (sol en lave) — une map publiée peut choisir son type
 function mrng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function propObjs() { if (!PROPM || PROPOBJ.length) return; var R = mrng(4242), i = 0;   // objets cassables posés pareil chez tous les joueurs (même graine)
-  TOWNS.forEach(function (t) { for (var k = 0; k < 16; k++) { var a = R() * 6.283, d = 5 + R() * t[3] * .85, x = t[1] + Math.cos(a) * d, z = t[2] + Math.sin(a) * d, ty = ['banc', 'poubelle', 'tonneau', 'caisse', 'cone', 'fleurs', 'buisson', 'caisse', 'tonneau'][R() * 9 | 0], ry = R() * 6.283;
+function propObjs() { if (TPL !== 'prop' || PROPOBJ.length) return; var R = mrng(4242), i = 0;   // objets cassables posés pareil chez tous les joueurs (même graine)
+  (PROPM ? TOWNS : [[0, TOWNS[0][1], TOWNS[0][2], 45]]).forEach(function (t) { for (var k = 0; k < 16; k++) { var a = R() * 6.283, d = 5 + R() * t[3] * .85, x = t[1] + Math.cos(a) * d, z = t[2] + Math.sin(a) * d, ty = ['banc', 'poubelle', 'tonneau', 'caisse', 'cone', 'fleurs', 'buisson', 'caisse', 'tonneau'][R() * 9 | 0], ry = R() * 6.283;
     if (!onLand(x, z) || inLake(x, z, 2)) continue; var g = disguiseModel(ty), y = hgt(x, z); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g);
     PROPOBJ.push({ i: i++, k: ty, x: x, y: y, z: z, g: g, r: ty === 'buisson' ? .85 : ty === 'banc' ? .9 : .6, alive: true }); } }); }
 function propRay(ox, oy, oz, dx, dy, dz, T) { var best = null; PROPOBJ.forEach(function (o) { if (!o.alive) return; var cx = o.x - ox, cy = o.y + .5 - oy, cz = o.z - oz, tc = cx * dx + cy * dy + cz * dz; if (tc < 0 || tc > T) return;
@@ -1463,25 +1470,29 @@ function rUI() { var w = $('wroom'); if (!w) { w = document.createElement('div')
     document.body.appendChild(w); $('wrGo').addEventListener('click', rLaunch); $('wrQuit').addEventListener('click', toMenu);
     var h = document.createElement('div'); h.id = 'rHud'; document.body.appendChild(h); var bl = document.createElement('div'); bl.id = 'rBlind'; bl.hidden = true; document.body.appendChild(bl); }
   return w; }
-function rLaunch() { var ids = rPlayers(); if (PROPM && ids.length < 3) { var miss = 3 - ids.length, t = '❌ Impossible de lancer : il manque ' + miss + ' joueur' + (miss > 1 ? 's' : '') + '. Il faut 3 joueurs minimum : 1 qui cherche, 2 qui se cachent.'; $('wrMsg').textContent = t; $('wrMsg').className = 'bad'; toast(t); return; }
-  var m = { t: 'go', by: NETID, seek: ids[Math.floor(Math.random() * ids.length)], ids: ids }; netPub(m); rStart(m); }
+function rNeed() { return TPL === 'prop' ? 3 : Math.max(1, (PUB && PUB.min) || 1); }
+function rLaunch() { var ids = rPlayers(), need = rNeed(); if (ids.length < need) { var miss = need - ids.length, t = '❌ Impossible de lancer : il manque ' + miss + ' joueur' + (miss > 1 ? 's' : '') + '. ' + (TPL === 'prop' ? 'Il faut 3 joueurs minimum : 1 qui cherche, 2 qui se cachent.' : 'Il faut ' + need + ' joueurs minimum.'); $('wrMsg').textContent = t; $('wrMsg').className = 'bad'; toast(t); return; }
+  var m = { t: 'go', by: NETID, seek: ids[Math.floor(Math.random() * ids.length)], ids: ids, tp: TPL }; netPub(m); rStart(m); }
 function rStart(m) { if (ROUND && ROUND.by < m.by && performance.now() - ROUND.st < 4000) return;   // deux lancements en même temps : on garde le plus petit identifiant
-  if (m.ids.indexOf(NETID) < 0) return; ROUND = { by: m.by, seek: m.seek, ids: m.ids, st: performance.now() - (m.el || 0) * 1000, ph: PROPM ? 'hide' : 'play', dead: {} }; $('wroom').hidden = true; unProp(true);
-  if (!PROPM) { if (SV) SV.respawn(); toast('🚀 C\'EST PARTI !'); return; }
+  if (m.ids.indexOf(NETID) < 0) return; ROUND = { by: m.by, seek: m.seek, ids: m.ids, st: performance.now() - (m.el || 0) * 1000, ph: TPL === 'prop' ? 'hide' : 'play', dead: {} }; $('wroom').hidden = true; unProp(true); me.fly = false;
+  if (TPL === 'lave') { if (SV) SV.respawn(); me.hp = 100; me.sh = 0; me.inv = [null, null, null]; me.slot = 0; hbKey = ''; toast('🌋 LE SOL EST DE LA LAVE ! Elle monte dans 15 s : construis vers le haut, grimpe, survis !'); return; }
+  if (TPL === 'bf' && !BF) { if (SV) SV.respawn(); var kit = (PUB && PUB.kit && PUB.kit.length ? PUB.kit : ['fusil', 'pompeS', 'smg']).slice(0, 3); me.inv = [0, 1, 2].map(function (i) { return kit[i] && WEAPONS[kit[i]] ? newSlot(kit[i]) : null; }); me.slot = 0; me.hp = 100; me.sh = 100; me.heals.shield = 2; hbKey = ''; toast('⚔️ C\'EST PARTI · 200 PV'); return; }
+  if (TPL !== 'prop') { if (SV) SV.respawn(); toast('🚀 C\'EST PARTI !'); return; }
   me.hp = 100; me.sh = 0; me.heals = { mini: 0, shield: 0, heal: 0, bulle: 0 };
   if (m.seek === NETID) { me.inv = [newSlot('pompe'), null, null]; me.inv[0].res = 999; toast('🔦 TU ES LE CHERCHEUR · tu arrives dans 60 s… trouve les objets qui bougent !'); }
-  else { me.inv = [newSlot('laser'), null, null]; var t0 = TOWNS[Math.floor(Math.random() * TOWNS.length)], a = Math.random() * 6.283; me.x = t0[1] + Math.cos(a) * 8; me.z = t0[2] + Math.sin(a) * 8; me.y = me.gy = hgt(me.x, me.z);
+  else { me.inv = [newSlot('laser'), null, null]; var t0 = PROPM ? TOWNS[Math.floor(Math.random() * TOWNS.length)] : TOWNS[0], a = Math.random() * 6.283; me.x = t0[1] + Math.cos(a) * 8; me.z = t0[2] + Math.sin(a) * 8; me.y = me.gy = hgt(me.x, me.z);
     toast('🎭 CACHE-TOI ! Vise un objet avec le laser pour te transformer · ' + rName(m.seek).replace(' (toi)', '') + ' te cherche dans 60 s'); }
   me.slot = 0; hbKey = ''; }
 function rEnd(txt) { if (!ROUND) return; ROUND.ph = 'end'; ROUND.endT = performance.now(); toast(txt); $('rHud').innerHTML = '<b class="big">' + txt + '</b>'; tone('triangle', 520, 1040, .4, .1); }
 function rCage() { me.x = ISL + 45; me.z = ISL + 45; me.y = me.gy = 140; me.vx = me.vz = me.vy = 0; }
-function roundTick(dt) { if (!CREA) return; rUI(); var w = $('wroom'), hud = $('rHud'), bl = $('rBlind'), now = performance.now();
+function roundTick(dt) { if (!CREA) return; rUI(); flyBtn(); if (me.fly && !FLYOK()) me.fly = false; var w = $('wroom'), hud = $('rHud'), bl = $('rBlind'), now = performance.now();
   if (state !== 'play') { w.hidden = true; hud.hidden = true; bl.hidden = true; return; }
+  if (LAVA && (!ROUND || TPL !== 'lave')) LAVA.visible = false; pubApply();
   if (!ROUND) { bl.hidden = true; hud.hidden = true; w.hidden = false; if (now - RLAST > 400) { RLAST = now; var ids = rPlayers();
-      $('wrMap').textContent = (PROPM ? 'PROP HUNT' : BF ? 'MAP 1V1' : 'MON MONDE') + ' · ' + (netCode() ? 'code ' + netCode() : 'salon public');
+      $('wrMap').textContent = (PUB ? '🌐 ' + PUB.name.toUpperCase() + ' · par ' + PUB.by : TPL === 'prop' ? 'PROP HUNT' : TPL === 'lave' ? 'SOL EN LAVE · ✔ WALD GAME' : BF ? 'MAP 1V1' : 'MON MONDE') + ' · ' + (netCode() ? 'code ' + netCode() : 'salon public');
       $('wrL').innerHTML = ids.map(function (id) { return '<span>' + (id === NETID ? '⭐ ' : '👤 ') + rName(id) + '</span>'; }).join('');
-      if ($('wrMsg').className !== 'bad' || now - RSEEN < 0) $('wrMsg').textContent = now - RSEEN < 5000 ? '⏳ Une partie est en cours : tu joueras à la prochaine.' : PROPM ? ids.length + '/3 joueurs minimum · 1 chercheur tiré au hasard, les autres se cachent' : BF ? 'Tout le monde réapparaît dans l\'arène avec 200 PV' : 'Construisez et jouez ensemble'; } return; }
-  w.hidden = true; if (!PROPM) { hud.hidden = true; return; }
+      if ($('wrMsg').className !== 'bad' || now - RSEEN < 0) $('wrMsg').textContent = now - RSEEN < 5000 ? '⏳ Une partie est en cours : tu joueras à la prochaine.' : TPL === 'prop' ? ids.length + '/3 joueurs minimum · 1 chercheur tiré au hasard, les autres se cachent' : TPL === 'lave' ? 'La lave monte : le dernier en vie gagne (seul : survis jusqu\'au bout)' : TPL === 'bf' ? 'Tout le monde réapparaît avec 200 PV' : (FLYOK() ? '✈️ Double saut pour voler · ' : '') + 'Construisez et jouez ensemble'; } return; }
+  w.hidden = true; if (TPL === 'lave') { lavaTick(dt); return; } if (TPL !== 'prop') { hud.hidden = true; return; }
   var el = (now - ROUND.st) / 1000, iSeek = ROUND.seek === NETID, alive = ROUND.ids.filter(function (id) { return id !== ROUND.seek && !ROUND.dead[id] && (id === NETID || NETP[id]); });
   if (ROUND.by === NETID && now - RSPUB > 3000) { RSPUB = now; netPub({ t: 'rs', by: ROUND.by, seek: ROUND.seek, ids: ROUND.ids, el: +el.toFixed(1) }); }
   hud.hidden = false;
@@ -1499,10 +1510,60 @@ function roundTick(dt) { if (!CREA) return; rUI(); var w = $('wroom'), hud = $('
   if (!alive.length) rEnd('🔦 ' + rName(ROUND.seek).toUpperCase() + ' A TROUVÉ TOUT LE MONDE !'); else if (hl <= 0) rEnd('🎭 LES OBJETS GAGNENT ! ' + alive.length + ' joueur' + (alive.length > 1 ? 's' : '') + ' jamais trouvé' + (alive.length > 1 ? 's' : '')); }
 function rMsg(m) { if (m.t === 'go') { rStart(m); return true; } if (m.t === 'x') { propBreak(m.i, true); return true; }
   if (m.t === 'rs') { RSEEN = performance.now(); return true; } return false; }
+/* ===== SOL EN LAVE (mode créé par Wald Game) : la lave monte, on construit vers le haut, le dernier en vie gagne ===== */
+function lavaMesh() { if (LAVA) return LAVA; var g = new THREE.PlaneGeometry(HALF * 2 + 400, HALF * 2 + 400, 1, 1); g.rotateX(-Math.PI / 2);
+  var mt = new THREE.ShaderMaterial({ uniforms: { uT: { value: 0 } }, vertexShader: 'varying vec2 vP;void main(){vec4 w=modelMatrix*vec4(position,1.);vP=w.xz;gl_Position=projectionMatrix*viewMatrix*w;}',
+    fragmentShader: 'uniform float uT;varying vec2 vP;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}' +
+      'void main(){vec2 p=vP*.08;float a=n(p+vec2(uT*.15,uT*.08))*.6+n(p*2.3-vec2(uT*.2,0.))*.4;float c=smoothstep(.35,.75,a);vec3 col=mix(vec3(.55,.05,.0),vec3(1.,.45,.05),c);col=mix(col,vec3(1.,.9,.4),smoothstep(.78,.95,a));gl_FragColor=vec4(col*1.6,1.);}' });
+  mt.userData.noBatch = true; LAVA = new THREE.Mesh(g, mt); LAVA.userData.dyn = true; LAVA.visible = false; LAVA.frustumCulled = false; scene.add(LAVA); return LAVA; }
+function lavaTick(dt) { var hud = $('rHud'), bl = $('rBlind'), now = performance.now(), el = (now - ROUND.st) / 1000, T = (PUB && PUB.time ? PUB.time * 60 : 300), sp = (PUB && PUB.speed) || .22;
+  var L = lavaMesh(), y = -.6 + Math.max(0, el - 15) * sp; L.visible = true; L.position.y = y; L.material.uniforms.uT.value = now / 1000; hud.hidden = false;
+  if (ROUND.by === NETID && now - RSPUB > 3000) { RSPUB = now; netPub({ t: 'rs', by: ROUND.by, seek: ROUND.seek, ids: ROUND.ids, el: +el.toFixed(1) }); }
+  if (ROUND.ph === 'end') { if (now - ROUND.endT > 6000) { ROUND = null; L.visible = false; bl.hidden = true; if (SV) SV.respawn(); $('wrMsg').className = ''; } return; }
+  var dead = ROUND.dead[NETID], alive = ROUND.ids.filter(function (id) { return !ROUND.dead[id] && (id === NETID || NETP[id]); });
+  if (!dead && me.y < y + .15) { me.hp -= 35 * dt; me.sh = 0; if (Math.random() < .4) burst(me.x, y + .2, me.z, 3, ['#ff6a1a', '#ffd23d', '#3a1a10'], 3, .15, .5); if (me.hp <= 0) { ROUND.dead[NETID] = 1; dead = 1; me.hp = 100; netPub({ t: 'k', by: '' }); toast('🔥 TU AS BRÛLÉ !'); tone('sawtooth', 300, 60, .6, .12); } }
+  if (dead) { rCage(); bl.hidden = false; bl.innerHTML = '<b>🔥 TU AS BRÛLÉ</b><span>Regarde qui va gagner…</span>'; } else bl.hidden = true;
+  var left = Math.max(0, Math.ceil(T - el)), mm = Math.floor(left / 60), ss = ('0' + left % 60).slice(-2);
+  hud.innerHTML = '🌋 ' + (el < 15 ? 'La lave monte dans <b>' + Math.ceil(15 - el) + ' s</b>' : 'Lave à <b>' + Math.max(0, y).toFixed(1) + ' m</b>') + ' · ⏱ <b>' + mm + ':' + ss + '</b> · ' + alive.length + ' en vie';
+  if (ROUND.ids.length >= 2 && alive.length <= 1) rEnd(alive.length ? '🏆 ' + rName(alive[0]).replace(' (toi)', '').toUpperCase() + ' GAGNE LE SOL EN LAVE !' : '🔥 TOUT LE MONDE A BRÛLÉ !');
+  else if (ROUND.ids.length < 2 && dead) rEnd('🔥 PERDU · tu as tenu ' + Math.floor(el) + ' s');
+  else if (left <= 0) rEnd('🏆 ' + (alive.length > 1 ? alive.length + ' SURVIVANTS !' : 'TU AS SURVÉCU À LA LAVE !')); }
+/* ===== VOLER en Créatif (double saut), quand on n'est pas dans une partie lancée ===== */
+function flyBtn() { var b = $('bFly'); if (!b) return; b.hidden = !(isTouch && state === 'play' && FLYOK()); b.classList.toggle('on', !!me.fly); }
+function FLYOK() { return CREA && !(PUB && PUB.fly === false) && (!ROUND || TPL === 'libre'); }
+function flyJump() { if (!FLYOK()) { me.fly = false; return false; } var t = performance.now(); if (t - LASTJ < 350) { me.fly = !me.fly; LASTJ = 0; toast(me.fly ? '✈️ VOL ACTIVÉ · saut = monter · accroupi = descendre · double saut = atterrir' : '🛬 VOL DÉSACTIVÉ'); return true; } LASTJ = t; return me.fly; }
+/* ===== PUBLIER LE JEU (Créatif) : nom, type de partie, réglages + les constructions → maps publiques de tous les joueurs ===== */
+function pubKey() { var c = ''; for (var i = 0; i < 6; i++) c += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0]; return c; }
+function pubOpen() { var d = $('pubM'); if (!d) { d = document.createElement('div'); d.id = 'pubM'; d.className = 'modal'; document.body.appendChild(d); }
+  var K = ['fusil', 'pompeS', 'pompe', 'smg', 'sniper', 'scar', 'pistolet', 'roquette', 'laser', 'patate'];
+  d.innerHTML = '<div class="pubc"><h2>📤 PUBLIER LE JEU</h2><p class="sm">Tes constructions + le type de partie deviennent un jeu que tout le monde peut lancer dans « Maps publiques ».</p>' +
+    '<label>Nom du jeu</label><input id="pbN" maxlength="24" placeholder="Ex : La Tour Infernale">' +
+    '<label>Type de partie</label><div class="pbT">' + [['libre', '🎨 Libre', 'Construire, explorer'], ['bf', '⚔️ Build fight', 'Combat, 200 PV'], ['prop', '🎭 Prop Hunt', '1 chercheur, objets'], ['lave', '🌋 Sol en lave', 'La lave monte']].map(function (q, i) { return '<button type="button" data-tp="' + q[0] + '"' + (i ? '' : ' class="on"') + '><b>' + q[1] + '</b><small>' + q[2] + '</small></button>'; }).join('') + '</div>' +
+    '<div class="pbR"><div><label>Joueurs minimum</label><input id="pbMin" type="number" min="1" max="12" value="1"></div><div><label>Durée (min)</label><input id="pbTime" type="number" min="1" max="20" value="5"></div><div><label>Voler</label><select id="pbFly"><option value="1">Autorisé</option><option value="0">Interdit</option></select></div></div>' +
+    '<label>Armes de départ (build fight, 3 max)</label><div class="pbK">' + K.map(function (k) { return '<label><input type="checkbox" value="' + k + '"' + (['fusil', 'pompeS', 'smg'].indexOf(k) >= 0 ? ' checked' : '') + '>' + WEAPONS[k].name + '</label>'; }).join('') + '</div>' +
+    '<div class="pbB"><button type="button" class="ghost" id="pbTest">🎮 Tester ici</button><button type="button" class="go" id="pbGo">📤 PUBLIER</button><button type="button" class="ghost" id="pbX">Fermer</button></div><p class="sm" id="pbS"></p></div>';
+  d.hidden = false; var tp = 'libre';
+  d.querySelectorAll('[data-tp]').forEach(function (b) { b.onclick = function () { tp = b.dataset.tp; d.querySelectorAll('[data-tp]').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+  function form() { var kit = Array.from(d.querySelectorAll('.pbK input:checked')).map(function (x) { return x.value; }).slice(0, 3); return { name: ($('pbN').value.trim() || 'Map de ' + netName()).slice(0, 24), by: netName(), tpl: tp, min: Math.max(1, Math.min(12, +$('pbMin').value || 1)), time: Math.max(1, Math.min(20, +$('pbTime').value || 5)), fly: $('pbFly').value === '1', kit: kit, t: Date.now() }; }
+  $('pbX').onclick = function () { d.hidden = true; };
+  $('pbTest').onclick = function () { var f = form(); PUB = f; TPL = f.tpl; ROUND = null; PROPOBJ.forEach(function (o) { if (o.alive) scene.remove(o.g); }); PROPOBJ = []; propObjs(); d.hidden = true; pause(false); toast('🎮 MODE « ' + f.name.toUpperCase() + ' » ACTIVÉ ICI · lance la partie depuis la salle d\'attente'); };
+  $('pbGo').onclick = function () { var f = form(), pcs = SV && SV.myPieces ? SV.myPieces() : []; if (!pcs.length && f.tpl === 'libre') { $('pbS').textContent = '⚠️ Construis quelque chose avant de publier.'; return; }
+    if (!window.NET || !NET.store) { $('pbS').textContent = '⚠️ Pas de connexion.'; return; } var key = pubKey(); f.k = key; f.n = pcs.length; $('pbS').textContent = '⏳ Publication…';
+    NET.store('map/' + key, Object.assign({ pieces: pcs }, f), function (ok) { if (!ok) { $('pbS').textContent = '❌ Échec, vérifie ta connexion et réessaie.'; return; }
+      NET.store('idx/' + key, f, function (ok2) { $('pbS').innerHTML = ok2 ? '✅ PUBLIÉ ! Ton jeu « ' + f.name + ' » est dans <b>Maps publiques</b> · code <b>' + key + '</b>' : '❌ Échec, réessaie.'; if (ok2) toast('📤 JEU PUBLIÉ · code ' + key); }); }); }; }
+function pubList() { var box = $('commL'); if (!box || !window.NET || !NET.list) return; box.innerHTML = '<small class="cl">⏳ Chargement des jeux de la communauté…</small>';
+  NET.list('idx/', function (L) { L = L.filter(function (q) { return q && q.k && q.name; }).sort(function (a, b) { return (b.t || 0) - (a.t || 0); }).slice(0, 30);
+    box.innerHTML = L.length ? L.map(function (q) { var ic = { libre: '🎨', bf: '⚔️', prop: '🎭', lave: '🌋' }[q.tpl] || '🎨'; return '<button type="button" class="pmap cm" data-pk="' + q.k + '"><span class="pthumb">' + ic + '</span><div><b>' + String(q.name).replace(/</g, '') + '</b><small class="ver">par ' + String(q.by || '?').replace(/</g, '') + ' · code ' + q.k + '</small><small>' + ({ libre: 'Libre', bf: 'Build fight', prop: 'Prop Hunt', lave: 'Sol en lave' }[q.tpl] || 'Libre') + ' · ' + (q.min || 1) + ' joueur' + ((q.min || 1) > 1 ? 's' : '') + ' min.</small></div></button>'; }).join('') : '<small class="cl">Pas encore de jeu publié : crée le tien dans Mon monde, puis Échap → Publier le jeu.</small>';
+    box.querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { try { localStorage.setItem('wr_pubLoad', b.dataset.pk); } catch (e) {} if (MODE === 'creatif') location.reload(); else pickMode('creatif', b); }; }); }); }
+function pubApply() { if (PUBDONE || !PUBKEY || state !== 'play' || !PUB || !PUB.pieces) return; PUBDONE = true; TPL = PUB.tpl || 'libre';
+  PUB.pieces.forEach(function (a, k) { setTimeout(function () { if (SV && SV.netPlace) SV.netPlace(a); }, k * 8); }); propObjs(); toast('🌐 ' + PUB.name.toUpperCase() + ' · par ' + PUB.by + ' · lance la partie depuis la salle d\'attente');
+  if (!NETON) { NETTRY = true; setTimeout(netGo, 400); } }
+(function () { var k = ''; try { k = localStorage.getItem('wr_pubLoad') || ''; } catch (e) {} if (MODE !== 'creatif' || !k) return; PUBKEY = k; NETTRY = true;   // on attend le jeu publié avant d'entrer dans son salon
+  var tries = 0; (function get() { if (!window.NET || !NET.fetch) return; NET.fetch('map/' + k, function (o) { if (o && o.pieces) { PUB = o; TPL = o.tpl || 'libre'; } else if (++tries < 3) setTimeout(get, 1500); else { toast('❌ Jeu publié introuvable'); NETTRY = false; } }); })(); })();
 /* ===== JEU ENTRE POTES (maps du Créatif) : relais MQTT public via net.js. Salon = map + code (sans code : salon public de la map) ===== */
 var NETTRY = false, NETID = (Math.random().toString(36).slice(2, 8)), NETSHOT = null, NETP = {}, NETT = 0, NETON = false, NETSEEN = {};
 function netName() { var n = ''; try { n = localStorage.getItem('wr_name') || ''; } catch (e) {} return (n || 'Joueur' + NETID.slice(0, 3).toUpperCase()).slice(0, 16); }
-function netCode() { try { return (localStorage.getItem('wr_room') || '').toUpperCase(); } catch (e) { return ''; } }
+function netCode() { if (PUBKEY) return 'P' + PUBKEY; try { return (localStorage.getItem('wr_room') || '').toUpperCase(); } catch (e) { return ''; } }
 function netPub(m) { if (NETON && window.NET) NET.pub(m); }
 function netGo(k) { if (!CREA || !window.NET || NETON) return; if (state !== 'play' && state !== 'pause') { if ((k || 0) < 40) setTimeout(function () { netGo((k || 0) + 1); }, 500); return; } var code = netCode(); NETON = true; NETSEEN = {}; $('netB').hidden = false; $('netB').textContent = '🟡 connexion… · ' + (code ? 'code ' + code : 'salon public');
   NET.join(MODE + '-' + (code || 'public'), NETID, netMsg, function (on) { $('netB').hidden = false; netBadge(on); if (on) toast('🌐 EN LIGNE · ' + (code ? 'salon ' + code : 'salon public de la map') + ' · tes potes te rejoignent ici'); });
@@ -1523,9 +1584,9 @@ function netMsg(m) { if (!m || !m.t) return; if (rMsg(m)) return;
     if (m.dz && ANIM.D[m.dz]) { if (p.dz !== m.dz || !(p.danceT > 0)) { p.dz = m.dz; p.danceT0 = performance.now() / 1000 - (m.dd || 0); } p.danceT = 30; } else p.danceT = 0; return; }
   var q = NETP[m.id];
   if (m.t === 'f') { if (WEAPONS[m.k] && WEAPONS[m.k].boom) shot3d(m.k, m.a[0], m.a[1], m.a[2], m.b[0], m.b[1], m.b[2], true); else tracer(m.a[0], m.a[1], m.a[2], m.b[0], m.b[1], m.b[2], m.k === 'laser' ? '#ff2bd6' : '#fff6c2'); SFX.shot(m.k, Math.max(.05, 1 - dist(m.a[0], m.a[2], me.x, me.z) / 160) * .8); return; }
-  if (m.t === 'h' && m.to === NETID && ROUND && PROPM && ROUND.ph === 'hunt') { if (ROUND.dead[NETID] || ROUND.seek === NETID) return; ROUND.dead[NETID] = 1; unProp(true); netPub({ t: 'k', by: m.id }); toast('💥 ' + (q ? q.name : 'Le chercheur') + ' T\'A TROUVÉ !'); burst(me.x, me.y + 1, me.z, 30, ['#ff2bd6', '#ffffff'], 6, .2, .8); return; }
+  if (m.t === 'h' && m.to === NETID && ROUND && TPL === 'prop' && ROUND.ph === 'hunt') { if (ROUND.dead[NETID] || ROUND.seek === NETID) return; ROUND.dead[NETID] = 1; unProp(true); netPub({ t: 'k', by: m.id }); toast('💥 ' + (q ? q.name : 'Le chercheur') + ' T\'A TROUVÉ !'); burst(me.x, me.y + 1, me.z, 30, ['#ff2bd6', '#ffffff'], 6, .2, .8); return; }
   if (m.t === 'h' && m.to === NETID && me.alive) { var lethal = me.hp + me.sh <= m.d; hurt(me, m.d, q || null); if (lethal) { netPub({ t: 'k', by: m.id }); feed((q ? q.name : 'Un pote') + ' t\'a éliminé'); } return; }
-  if (m.t === 'k' && ROUND && PROPM) { ROUND.dead[m.id] = 1; feed((q ? q.name : '?') + ' a été trouvé !'); return; }
+  if (m.t === 'k' && ROUND && (TPL === 'prop' || TPL === 'lave')) { ROUND.dead[m.id] = 1; feed((q ? q.name : '?') + (TPL === 'lave' ? ' a brûlé dans la lave !' : ' a été trouvé !')); return; }
   if (m.t === 'k') { if (m.by === NETID) { me.kills++; toast('💀 TU AS ÉLIMINÉ ' + (q ? q.name : 'TON POTE').toUpperCase()); } else feed((NETP[m.by] ? NETP[m.by].name : '?') + ' a éliminé ' + (q ? q.name : '?')); return; }
   if (m.t === 'w' && q) { tone('sine', 1500, 2500, .16, .1); tone('sine', 2500, 1700, .28, .1, .2); burst(q.x, q.y + 1.6, q.z, 8, ['#ffffff', '#ff9ae8'], 2, .15, .9); return; }
   if (!SV) return; if (m.t === 'b') SV.netPlace(m.p); else if (m.t === 'r') SV.netRemove(m.key); else if (m.t === 'e') SV.netEdit(m.key, m.mask); }
@@ -1974,6 +2035,7 @@ function toggleMap() { var B = $('bigMap'); if (B.hidden && state !== 'play') re
 $('mini').addEventListener('click', function (e) { e.stopPropagation(); toggleMap(); }); $('bigMap').addEventListener('click', function () { $('bigMap').hidden = true; });
 
 tap('bCrouch', function () { toggleCrouch(); }); tap('bDance', function () { doDance(); });
+tap('bFly', function () { if (!FLYOK()) return; me.fly = !me.fly; toast(me.fly ? '✈️ VOL · SAUTER = monter · ACCROUPI = descendre' : '🛬 VOL DÉSACTIVÉ'); });
 tap('bJump', function () { jumpPress = true; keys.Space = true; }, function () { keys.Space = false; }); tap('bAct', function () { actPress = true; }); tap('bRel', function () { if (me.veh) nitroPress = true; else relPress = true; });
 [0, 1, 2].forEach(function (i) { $('hb' + i).addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); slotPress = i; }); });
 function healCycle() { var av = HORDER.filter(function (k) { return me.heals[k]; }); if (!av.length) return; me.healSel = av[(av.indexOf(me.healSel) + 1) % av.length]; hbKey = ''; SFX.pick(); toast(HEAL[me.healSel].name + ' · ' + me.heals[me.healSel]); }
@@ -2091,18 +2153,18 @@ var camKick = 0;
 function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
   var w0 = cur(p); if (!w0 || p.fireCd > 0 || p.veh || p.mode !== 'ground' || w0.rlT > 0) return false;
   if (w0.mag <= 0) { reload(p); return false; }
-  if (PROPM && p === me && w0.k === 'laser') { var hp0 = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), T0 = (hp0.t || 30) + tMin;   // PROP HUNT : le laser transforme en objet
+  if (TPL === 'prop' && p === me && w0.k === 'laser') { var hp0 = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), T0 = (hp0.t || 30) + tMin;   // PROP HUNT : le laser transforme en objet
     tracer(p.x, p.y + 1.4, p.z, ox + dx * T0, oy + dy * T0, oz + dz * T0, '#ff2bd6'); if (ROUND && ROUND.ph !== 'end' && ROUND.dead[NETID]) { p.fireCd = .6; return true; } becomeProp(nearPropType(ox + dx * T0, oz + dz * T0) || pickDisguise(ox + dx * T0, oz + dz * T0)); p.fireCd = .6; return true; }
   var W2 = WEAPONS[w0.k], n = W2.pellets || 1, hitAny = false, ca = Math.cos(p.a), sa = Math.sin(p.a), mx = p.x + ca * .9 - sa * .25, mz = p.z + sa * .9 + ca * .25, my = p.y + 1.4;
   for (var i = 0; i < n; i++) {
     var sp = p.bot ? W2.spread : (w0.k === 'sniper' ? (adsK > .85 ? 0 : .06) : W2.spread * (1.8 - adsK * 1.35)) * (Math.hypot(p.vx, p.vz) > 1 ? 1.6 : 1) * (p.y > (p.gy || 0) + .1 ? 2 : 1), ex = dx + (Math.random() - .5) * sp * 2, ey = dy + (Math.random() - .5) * sp * 2, ez = dz + (Math.random() - .5) * sp * 2, l = Math.hypot(ex, ey, ez); ex /= l; ey /= l; ez /= l;
     var h = castRay(ox + ex * tMin, oy + ey * tMin, oz + ez * tMin, ex, ey, ez, W2.range, p, p === me && isTouch ? .1 : 0), T = h.t + tMin;
-    if (PROPM && PROPOBJ.length) { var pr0 = propRay(ox, oy, oz, ex, ey, ez, T); if (pr0) { if (p === me) { propBreak(pr0.o.i); if (ROUND && ROUND.ph === 'hunt' && ROUND.seek === NETID && i === 0) { me.hp = Math.max(1, me.hp - 5); dmgNum(me.x, me.y + 2, me.z, 5, false, false); } } T = pr0.t; h = { t: T - tMin }; } }
+    if (PROPOBJ.length) { var pr0 = propRay(ox, oy, oz, ex, ey, ez, T); if (pr0) { if (p === me) { propBreak(pr0.o.i); if (ROUND && ROUND.ph === 'hunt' && ROUND.seek === NETID && i === 0) { me.hp = Math.max(1, me.hp - 5); dmgNum(me.x, me.y + 2, me.z, 5, false, false); } } T = pr0.t; h = { t: T - tMin }; } }
     var hx = ox + ex * T, hy = oy + ey * T, hz = oz + ez * T;
     if (i < 3 && !W2.boom && (p === me || dist(p.x, p.z, me.x, me.z) < 150)) tracer(mx, my, mz, hx, hy, hz, w0.k === 'laser' ? '#ff2bd6' : w0.k === 'patate' ? '#c8a060' : W2.rar >= 4 ? '#ffd27a' : '#fff6c2');
     var dmg = W2.dmg * (W2.pellets ? (T < 5 ? 1.5 : Math.max(.2, 1.5 - (T - 5) / (W2.range - 5) * 1.3)) : 1);
     if (i === 0) { NETSHOT = [hx, hy, hz]; }
-    if (h.kind === 'pl') { var dd = dmg * (h.head ? W2.hs || 1.6 : 1), shd = h.o.sh > 0; if (h.o.net) { if (p === me) netPub({ t: 'h', to: h.o.id, d: ROUND && PROPM ? 9999 : Math.round(dd), hd: h.head ? 1 : 0 }); } else hurt(h.o, dd, p); burst(hx, hy, hz, 3, shd ? '#6fd0ff' : '#ff4d6d', 3, .12, .4); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, dd, shd, h.head); } }
+    if (h.kind === 'pl') { var dd = dmg * (h.head ? W2.hs || 1.6 : 1), shd = h.o.sh > 0; if (h.o.net) { if (p === me) netPub({ t: 'h', to: h.o.id, d: ROUND && TPL === 'prop' ? 9999 : Math.round(dd), hd: h.head ? 1 : 0 }); } else hurt(h.o, dd, p); burst(hx, hy, hz, 3, shd ? '#6fd0ff' : '#ff4d6d', 3, .12, .4); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, dd, shd, h.head); } }
     else if (h.kind === 'bubble') bubbleHit(h.o, hx, hy, hz);
     else if (h.kind === 'zomb') { var zd = dmg * (h.head ? W2.hs || 1.8 : 1); ZOMB.hurt(h.o, zd, p); burst(hx, hy, hz, 4, ['#7aff4a', '#3a8a2a', '#1a3a12'], 3, .14, .45); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, zd, false, h.head); } }
     else if (h.kind === 'wall') { hitWall(h.o, W2.wall, p); burst(hx, hy, hz, 2, MATS[h.o.m].col, 3, .14, .5); }
@@ -2264,6 +2326,7 @@ function update(dt) {
         if (p.slideT > 0) {   // GLISSADE : on garde l'élan puis on ralentit doucement (s'accroupir en sprintant)
           p.slideT -= dt; var dk = Math.exp(-dt * 1.15); p.vx *= dk; p.vz *= dk; p.x += p.vx * dt; p.z += p.vz * dt; if (Math.hypot(p.vx, p.vz) < 3.2 || p.slideT <= 0) { p.slideT = 0; } }
         else walk(p, mvx, mvz, dt, (p.useT > 0 ? .45 : ads ? .55 : spr ? 1.62 : 1) * (p.crouch ? .5 : 1)); p.a = camA; if (ads && (!cur(p) || cur(p).rlT > 0)) adsSet(false);
+        if (jumpPress && p === me && CREA && flyJump()) jumpPress = false;
         if (jumpPress && p.y <= p.gy + .05 && climbUp(p)) jumpPress = false;   // grimper sur un mur / un rebord devant soi
         if (jumpPress && p.y <= p.gy + .05) { p.vy = 8; if (p.crouch) { p.crouch = false; $('bCrouch').classList.remove('act'); } p.danceT = 0; }
         var tool = SV && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt);
@@ -2275,7 +2338,7 @@ function update(dt) {
       if (actPress) { if (p.veh) leave(p); else { var nv = nearVeh(p), sw = nearSwap(p); if (nv) enter(p, nv); else if (sw) { var old = p.inv[p.slot]; p.inv[p.slot] = sw.slot; removeItem(sw); if (old) dropItem(p.x + 1.4, p.z, old.k, old); SFX.pick(); toast(WEAPONS[sw.t].name.toUpperCase()); } } }
     }
     if (p.veh) { p.x = p.veh.x; p.z = p.veh.z; p.y = p.gy = p.veh.y; p.vx = p.veh.vx; p.vz = p.veh.vz; }
-    else { if (p.climbT > 0) { p.climbT -= dt; p.x += p.climbFx * 2.6 * dt; p.z += p.climbFz * 2.6 * dt; } pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y)); p.vy -= 25 * dt; p.y += p.vy * dt; if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } }
+    else { if (p.climbT > 0) { p.climbT -= dt; p.x += p.climbFx * 2.6 * dt; p.z += p.climbFz * 2.6 * dt; } pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y)); if (p === me && p.fly) { var fu = (kd('sauter') || keys.Space ? 1 : 0) - (p.crouch || kd('accroupi') ? 1 : 0); p.vy = fu * 11; p.y = Math.min(400, p.y + p.vy * dt); if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } } else { p.vy -= 25 * dt; p.y += p.vy * dt; if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } } }
   });
   actPress = jumpPress = nitroPress = false;
   vehicles.forEach(function (v) { if (!v.alive) return; if (!v.driver) { var k = Math.exp(-2 * dt); v.vx *= k; v.vz *= k; } v.x += v.vx * dt; v.z += v.vz * dt; if (Math.abs(v.vx) + Math.abs(v.vz) > .05) pushCircle(v, v.r); v.y = hgt(v.x, v.z); if (v.driver) { v.driver.x = v.x; v.driver.z = v.z; }
@@ -2437,7 +2500,7 @@ function hud() { if (me && me.stam != null) { var sb = $('stamB'); sb.classList.
   var cw = cur(me); setT('wname', me.veh || me.mode !== 'ground' ? '' : SV && SV.tool() ? SV.toolName() : cw ? WEAPONS[cw.k].name + (cw.rlT > 0 ? ' · recharge…' : ' · ' + cw.mag + ' / ' + cw.res) : SURV ? 'Pioche ⛏ : casse des arbres et des pierres' : 'Pas d\'arme : ramasse-en une !');
   $('wname').style.color = cw ? RAR[WEAPONS[cw.k].rar] : '#fff';
   var P = storm.plan[Math.min(storm.phase, storm.plan.length - 1)], left = Math.max(0, Math.ceil((storm.mode === 'wait' ? P[0] : P[1]) - storm.t)), out = me.mode === 'ground' && dist(me.x, me.z, storm.x, storm.z) > storm.r;
-  if (PROPM) setT('storm', me.prop ? '🎭 TU ES DÉGUISÉ · ' + KNAME('siffler') + ' pour siffler' : '🎭 PROP HUNT · vise un objet avec le laser pour te transformer'); else if (SURV) setT('storm', BF ? '⚔️ MAP 1V1 · zone build fight' : CREA ? '🎨 CRÉATIF · construis ce que tu veux' : window.SURVIE ? SURVIE.hudLine() : MAPNAME); else setT('storm', me.mode === 'bus' ? 'Saute du bus quand tu veux !' : (out ? '⚠ HORS ZONE · ' : '') + (storm.mode === 'wait' ? 'Tempête dans ' : 'La tempête avance · ') + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'));
+  if (TPL === 'prop') setT('storm', me.prop ? '🎭 TU ES DÉGUISÉ · ' + KNAME('siffler') + ' pour siffler' : '🎭 PROP HUNT · vise un objet avec le laser pour te transformer'); else if (SURV) setT('storm', BF ? '⚔️ MAP 1V1 · zone build fight' : CREA ? '🎨 CRÉATIF · construis ce que tu veux' : window.SURVIE ? SURVIE.hudLine() : MAPNAME); else setT('storm', me.mode === 'bus' ? 'Saute du bus quand tu veux !' : (out ? '⚠ HORS ZONE · ' : '') + (storm.mode === 'wait' ? 'Tempête dans ' : 'La tempête avance · ') + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'));
   $('storm').classList.toggle('out', out); $('vign').classList.toggle('on', out);
   var nv = me.mode === 'ground' && !me.veh ? nearVeh(me) : null, sw = me.mode === 'ground' && !me.veh && !nv ? nearSwap(me) : null;
   var act = me.mode === 'bus' ? 'SAUTER' : me.veh ? 'SORTIR' : nv ? 'MONTER' : sw ? 'PRENDRE' : '';
@@ -2569,11 +2632,11 @@ function endGame(win, killer) {
     settle(win); $('eP').textContent = '#' + place; $('eK').textContent = me.kills; $('end').hidden = false; if (win) voice('wald_off', 1);
   }, win ? 700 : 1300);
 }
-function toMenu() { netStop(); if (SURV && SV && state === 'play') SV.save(); WIN = false; document.body.classList.remove('won'); $('victory').hidden = true; $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); music(true); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
+function toMenu() { netStop(); try { localStorage.removeItem('wr_pubLoad'); } catch (e) {} if (SURV && SV && state === 'play') SV.save(); WIN = false; document.body.classList.remove('won'); $('victory').hidden = true; $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); music(true); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
 function pause(on) { if (on && state === 'play') { state = 'pause'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('pause').hidden = false; } else if (!on && state === 'pause') { state = 'play'; tPrev = performance.now(); $('pause').hidden = true; if (!isTouch && cv.requestPointerLock) cv.requestPointerLock(); } }
 $('play').addEventListener('click', start); $('vAgain').addEventListener('click', function () { $('victory').hidden = true; music(false); start(); }); $('vMenu').addEventListener('click', toMenu);
 $('vDance').addEventListener('click', function () { var l = myDances(); if (!l.length) return; if (me.danceT > 0) { ST.dz = l[(l.indexOf(curDance()) + 1) % l.length]; saveST(); } startDance(me, 60); me.dz = curDance(); toast('💃 ' + DANCES[me.dz].name); }); $('again').addEventListener('click', start); $('toMenu').addEventListener('click', toMenu);
-$('quit').addEventListener('click', toMenu); if (CREA) $('quit').textContent = '🚪 Quitter la partie'; $('resume').addEventListener('click', function () { pause(false); });
+$('quit').addEventListener('click', toMenu); if (CREA) $('quit').textContent = '🚪 Quitter la partie'; if (MODE === 'creatif') { $('pPub').hidden = false; $('pPub').addEventListener('click', pubOpen); } $('resume').addEventListener('click', function () { pause(false); });
 document.addEventListener('visibilitychange', function () { if (document.hidden) { pause(true); music(false); } else if (state === 'menu') music(true); else if (state === 'play' && me.mode === 'bus') music(true, 'bus'); });
 ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { if (state === 'menu') { initAudio(); if (!musOn || MUSMODE !== 'lobby') music(true); } }, true); });
 function tab(t) { document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); }); document.querySelectorAll('.pane').forEach(function (p) { p.classList.toggle('on', p.dataset.p === t); }); }
@@ -2696,7 +2759,7 @@ $('modeT').textContent = (BF || PROPM ? 'Créatif · Map publique' : CREA ? 'Cr�
 if (SURV && !CREA && SV && SV.hasSave()) (function () { var d = document.createElement('div'); d.className = 'savebox'; d.innerHTML = '💾 Monde sauvegardé sur ce téléphone · <button type="button" id="newWorld">🗑 Nouveau monde</button>'; $('subCR').after(d);
   $('newWorld').addEventListener('click', function () { if (!confirm('Effacer ta sauvegarde et recommencer un nouveau monde ?')) return; SV.wipe(); d.remove(); toast('NOUVEAU MONDE'); }); })(); if (BF) $('mapName').textContent = 'MAP 1V1'; $('mapSub').textContent = PROPM ? '✔ Wald Royal Creator · cache-cache : transforme-toi en objet' : BF ? '✔ Créateur Wald Royal · 200 PV · build fight' : CREA ? 'Mon monde · constructions illimitées · armurerie infinie' : SURV ? 'Seul contre les zombies · construis ta base' : 'Solo · 30 joueurs · ' + TOWNS.length + ' villes' + (ZB ? ' · sans constructions' : '');
 var MGRP = MODE === 'br' || MODE === 'zb' ? 'br' : MODE === 'survie' ? 'survie' : 'creatif';   // menu JOUER : Battle Royale (constru / zéro constru) · Créatif (mon monde / maps publiques) · Survie
-function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'prop' ? 'propane' : nm === 'survie' || nm === 'creatif' || nm === 'bf' ? 'survie' : brMap();
+function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'prop' || nm === 'lave' ? 'propane' : nm === 'survie' || nm === 'creatif' || nm === 'bf' ? 'survie' : brMap();
   if (nmap === MAP && !SURV) { try { localStorage.setItem('wr_mode', nm); } catch (e) {} location.reload(); return; } if (el) el.classList.add('load'); goMap(nmap, nm); }
 function mgrpDraw() { if (IOSW) { var sb0 = document.querySelector('#mgrp [data-g=survie]'); if (sb0) sb0.remove(); }
 document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
@@ -2715,6 +2778,8 @@ document.querySelectorAll('#segRk [data-rk]').forEach(function (b) { b.addEventL
   g.strokeStyle = 'rgba(255,43,214,.55)'; g.lineWidth = 2; for (var i = -6; i <= 6; i++) { g.beginPath(); g.moveTo(W / 2 + i * 14, H2 * .62); g.lineTo(W / 2 + i * 60, H2); g.stroke(); } for (var j = 0; j < 5; j++) { var yy = H2 * .62 + Math.pow(j / 4, 1.6) * H2 * .38; g.beginPath(); g.moveTo(0, yy); g.lineTo(W, yy); g.stroke(); }
   g.fillStyle = 'rgba(200,16,28,.85)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * .42, 0); g.lineTo(W * .3, H2 * .62); g.lineTo(0, H2 * .62); g.fill(); bolt(g, W * .12, 18, 1.1, '#ffd23d'); bolt(g, W * .82, 22, .9, '#3dd6ff');
   chrome(g, '1V1', W / 2, H2 * .4, 76); g.font = '900 20px Inter, system-ui'; g.fillStyle = '#ffd23d'; g.shadowColor = '#ffd23d'; g.shadowBlur = 10; g.fillText('BUILD FIGHT', W / 2, H2 * .78); g.shadowBlur = 0;
+  var c3 = $('th3'); if (c3) { var g3 = c3.getContext('2d'), lg = g3.createLinearGradient(0, 0, 0, H2); lg.addColorStop(0, '#2a0838'); lg.addColorStop(.55, '#ff6a1a'); lg.addColorStop(1, '#ffd23d'); g3.fillStyle = lg; g3.fillRect(0, 0, W, H2);
+    g3.fillStyle = '#1a0a14'; [[30, 60, 40, 70], [90, 40, 44, 90], [160, 70, 36, 60]].forEach(function (r) { g3.fillRect(r[0], r[1], r[2], r[3]); }); g3.fillStyle = 'rgba(255,220,80,.9)'; for (var lv = 0; lv < 30; lv++) { g3.beginPath(); g3.arc(Math.random() * W, H2 * .78 + Math.random() * H2 * .22, 3 + Math.random() * 6, 0, 6.283); g3.fill(); } chrome(g3, 'LAVE', W / 2, H2 * .4, 58); }
   var c2 = $('th2'), q = c2.getContext('2d'), b2 = q.createLinearGradient(0, 0, 0, H2); b2.addColorStop(0, '#ff7a1a'); b2.addColorStop(.5, '#b44dff'); b2.addColorStop(1, '#1a0630'); q.fillStyle = b2; q.fillRect(0, 0, W, H2);
   q.fillStyle = '#2a1238'; [[20, 90, 30, 70], [56, 70, 26, 90], [150, 80, 34, 80], [188, 60, 30, 100]].forEach(function (r) { q.fillRect(r[0], r[1], r[2], r[3]); }); q.fillStyle = '#ffd23d'; for (var k = 0; k < 18; k++) q.fillRect(24 + (k * 37) % 190, 70 + (k * 23) % 60, 5, 6);
   q.fillStyle = '#c8302a'; q.beginPath(); q.ellipse(W / 2, H2 * .62, 30, 34, 0, 0, 6.283); q.fill(); q.fillStyle = '#3a3a3a'; q.fillRect(W / 2 - 30, H2 * .5, 60, 6); q.fillRect(W / 2 - 30, H2 * .7, 60, 6);
@@ -2738,7 +2803,8 @@ document.querySelectorAll('#segRk [data-rk]').forEach(function (b) { b.addEventL
     else $('fbS').textContent = '✅ Merci ! Ton commentaire est enregistré.'; $('fbT').value = ''; }); })();
 tap('bSprint', function () { SPRT = !SPRT; $('bSprint').classList.toggle('on', SPRT); });
 tap('bWhis', whistle); tap('bUnprop', function () { unProp(); });
-$('pubBtn').addEventListener('click', function () { toast('BIENTÔT : AVEC LE MULTIJOUEUR, TES MAPS POURRONT ÊTRE PUBLIQUES'); });
+$('pubBtn').addEventListener('click', function () { toast('🎨 Va dans MON MONDE, construis ton jeu, puis Échap → 📤 Publier le jeu'); if (MODE !== 'creatif') pickMode('creatif', $('pubBtn')); });
+setTimeout(pubList, 1200); document.querySelectorAll('#mgrp [data-g=creatif]').forEach(function (b) { b.addEventListener('click', function () { setTimeout(pubList, 100); }); });
 mgrpDraw();
 // rotation des cartes du Battle Royale : toutes les 10 minutes ; au menu, la nouvelle carte se charge toute seule
 setInterval(function () { if (SURV || PROPM) { $('rotT').textContent = ''; return; } var CURM = MODE; var left = ROT - Date.now() % ROT, sec = Math.ceil(left / 1000);
