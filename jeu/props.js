@@ -46,7 +46,8 @@
     (ctx.BUSHES || []).forEach(function (b) { put(r() < .7 ? pick(QCF) : pick(QR), b.x, b.z, .55 + b.s * .45, b.a, null, .05); });   // désert : petits cactus en fleurs et cailloux
     function rand(m) { for (var k = 0; k < 40; k++) { var a = r() * 6.283, d = 25 + r() * (R - 30), x = Math.cos(a) * d, z = Math.sin(a) * d; if (free(x, z, m)) return [x, z]; } return null; }
     // 1) gros rochers et aiguilles rocheuses, plus nombreux sur les pentes et en montagne
-    for (var n = 0; n < (DES ? 110 : 85); n++) { var p = rand(8); if (!p) continue; if (slope(p[0], p[1]) < (DES ? .8 : 1.6) && r() < .6) continue;
+    var SK = ctx.SURV ? 3.2 : 1;   // survie : monde 4x plus grand
+    for (var n = 0; n < (DES ? 110 : 85) * (ctx.SURV ? .8 : 1); n++) { var p = rand(8);   // survie : peu de gros rochers de décor (les rochers à casser sont dans survie.js) if (!p) continue; if (slope(p[0], p[1]) < (DES ? .8 : 1.6) && r() < .6) continue;
       var big = r() < .45, h = big ? 4 + r() * 6 : 2.2 + r() * 2.5, nm = big ? pick(['rock_tallA', 'rock_tallB', 'rock_tallC', 'rock_tallD', 'rock_tallE', 'rock_tallF', 'rock_tallG', 'rock_tallH']) : pick(['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeD', 'rock_largeE', 'rock_largeF']);
       var it = put(nm, p[0], p[1], h, r() * 6.283, RT, .12); if (it) ctx.PEBS.push({ x: p[0], z: p[1], y: it.y, r: Math.max(TPL[it.n].s.x, TPL[it.n].s.z) * it.s * .38, h: h * .9 });
       for (var k = 0; k < 3; k++) { var x2 = p[0] + (r() - .5) * 9, z2 = p[1] + (r() - .5) * 9; if (free(x2, z2, 4)) put(pick(['stone_smallA', 'stone_smallB', 'stone_smallC', 'stone_smallFlatA', 'stone_largeA', 'stone_largeB']), x2, z2, .4 + r() * .8, r() * 6.283, ST); } }
@@ -59,7 +60,7 @@
         else if (q < .8) put(pick(['mushroom_redGroup', 'mushroom_tanGroup', 'mushroom_red', 'mushroom_tan', 'mushroom_redTall', 'mushroom_tanTall']), x, z, .45 + r() * .5, r() * 6.283);
         else put(pick(['plant_bushDetailed', 'plant_bushLarge', 'plant_bush']), x, z, 1 + r() * .6, r() * 6.283); });
       // 3) prés fleuris
-      for (n = 0; n < 70; n++) { p = rand(5); if (!p || nearTree(p[0], p[1], 5) || slope(p[0], p[1]) > 2) continue; var fl = pick([['flower_purpleA', 'flower_purpleC'], ['flower_redA', 'flower_redC'], ['flower_yellowA', 'flower_yellowC']]);
+      for (n = 0; n < 70 * SK; n++) { p = rand(5); if (!p || nearTree(p[0], p[1], 5) || slope(p[0], p[1]) > 2) continue; var fl = pick([['flower_purpleA', 'flower_purpleC'], ['flower_redA', 'flower_redC'], ['flower_yellowA', 'flower_yellowC']]);
         for (k = 0; k < 9; k++) { x2 = p[0] + (r() - .5) * 7; z2 = p[1] + (r() - .5) * 7; if (free(x2, z2, 2)) put(pick(fl), x2, z2, .45 + r() * .35, r() * 6.283); } }
       // 4) le lac : nénuphars, canoës, petit camping avec feu de camp
       if (ctx.LAKE) { var Lk = ctx.LAKE, LR = function (a) { return Lk[2] * (ctx.lakeK ? ctx.lakeK(a) : 1); };   // le bord du lac n'est pas un cercle
@@ -68,15 +69,15 @@
         var ca = 2.4, cx = Lk[0] + Math.cos(ca) * (LR(ca) + 14), cz = Lk[1] + Math.sin(ca) * (LR(ca) + 14);
         if (free(cx, cz, 3)) { put('campfire_stones', cx, cz, .5, 0); put('tent_detailedOpen', cx + 4, cz - 3, 2.4, -.8); put('tent_smallOpen', cx - 4.5, cz - 2.5, 1.8, .9); put('log', cx, cz + 2.6, .5, 0); put('log', cx + 2.6, cz + .4, .5, 1.57); ctx.FIRES && ctx.FIRES.push([cx, ctx.hgt(cx, cz), cz]); } }
       // 4b) forêt sombre : rochers moussus, troncs couchés, souches, champignons, cercle de pierres, lucioles
-      if (ctx.DARKF) { var DF = ctx.DARKF;
-        for (n = 0; n < 160; n++) { var a6 = r() * 6.283, d6 = Math.sqrt(r()) * DF[2], x8 = DF[0] + Math.cos(a6) * d6, z8 = DF[1] + Math.sin(a6) * d6; if (!free(x8, z8, 2.5)) continue; var q2 = r();
+      (ctx.DARKFS || (ctx.DARKF ? [ctx.DARKF] : [])).forEach(function (DF, zi) {
+        for (n = 0; n < Math.round(160 * Math.max(1, Math.pow(DF[2] / 95, 2) * .6)); n++) { var a6 = r() * 6.283, d6 = Math.sqrt(r()) * DF[2], x8 = DF[0] + Math.cos(a6) * d6, z8 = DF[1] + Math.sin(a6) * d6; if (!free(x8, z8, 2.5)) continue; var q2 = r();
           if (q2 < .2) { var it3 = put(pick(['rock_largeA', 'rock_largeB', 'rock_largeC', 'rock_largeE']), x8, z8, 1.8 + r() * 2.2, r() * 6.283, '#9c947c', .1); if (it3) ctx.PEBS.push({ x: x8, z: z8, y: it3.y, r: 1.1, h: 2.5 }); }
           else if (q2 < .36) put('log_large', x8, z8, .8, r() * 6.283, '#8a8a70');
           else if (q2 < .5) put(pick(['stump_old', 'stump_oldTall']), x8, z8, .9 + r() * .6, r() * 6.283, '#9c947c');
           else if (q2 < .82) put(pick(['mushroom_redGroup', 'mushroom_redTall', 'mushroom_tanGroup', 'mushroom_red']), x8, z8, .5 + r() * .7, r() * 6.283);
           else put(pick(['plant_bushDetailed', 'plant_bushLarge']), x8, z8, 1 + r() * .7, r() * 6.283, '#76883a'); }
         var cx2 = DF[0] + 12, cz2 = DF[1] - 8; if (free(cx2, cz2, 4)) { for (k = 0; k < 9; k++) { var a7 = k / 9 * 6.283, x9 = cx2 + Math.cos(a7) * 6, z9 = cz2 + Math.sin(a7) * 6; put(k % 4 === 3 ? 'statue_columnDamaged' : 'stone_tallA', x9, z9, k % 4 === 3 ? 1.8 : 2.6 + r(), a7, '#8a9a8a'); ctx.PEBS.push({ x: x9, z: z9, y: ctx.hgt(x9, z9), r: .6, h: 2.4 }); } put('statue_ring', cx2, cz2, 1.2, 0, '#9aa89a'); }
-        FLY.at = DF; }
+        if (!zi) FLY.at = DF; });
       // 5) ruines sur une colline (colonnes en cercle autour d'un obélisque)
       var best = null; for (n = 0; n < 200; n++) { p = rand(14); if (!p) continue; var hh = ctx.hgt(p[0], p[1]); if (slope(p[0], p[1]) < 2.2 && (!best || hh > best[2])) best = [p[0], p[1], hh]; }
       if (best) { put('statue_obelisk', best[0], best[1], 6.5, .3); for (k = 0; k < 7; k++) { var a3 = k / 7 * 6.283, x4 = best[0] + Math.cos(a3) * 7, z4 = best[1] + Math.sin(a3) * 7; put(k % 3 === 2 ? 'statue_columnDamaged' : 'statue_column', x4, z4, k % 3 === 2 ? 2.2 : 4.2, a3); ctx.PEBS.push({ x: x4, z: z4, y: ctx.hgt(x4, z4), r: .7, h: 4 }); }

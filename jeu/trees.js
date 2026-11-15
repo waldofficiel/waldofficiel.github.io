@@ -98,18 +98,18 @@
         ' vec2 dd = ip.xz - uCam.xz; if (dot(dd, dd) < uR * uR) transformed = vec3(0.);'); };
     m.customProgramCacheKey = function () { return 'treeFar'; };
     var im = newIM(geo, m, mine.length), o = new T.Object3D(), c = new T.Color();
-    mine.forEach(function (t, k) { o.position.set(t.x, t.y + .05, t.z); o.rotation.set(0, 0, 0); o.scale.setScalar(t.d3.sc); o.updateMatrix(); im.setMatrixAt(k, o.matrix); c.setRGB(t.d3.col[0], t.d3.col[1], t.d3.col[2]); im.setColorAt(k, c); });
+    mine.forEach(function (t, k) { t.d3.far = [im, k]; o.position.set(t.x, t.y + .05, t.z); o.rotation.set(0, 0, 0); o.scale.setScalar(t.d3.sc); o.updateMatrix(); im.setMatrixAt(k, o.matrix); c.setRGB(t.d3.col[0], t.d3.col[1], t.d3.col[2]); im.setColorAt(k, c); });
     im.castShadow = false; im.userData.dyn = false; im.userData.rt = imp.rt; C.scene.add(im); if (window.OPT) OPT.chunk(im, 200); return im;
   }
   function fill(cx, cz, R, N) {   // les N arbres les plus proches (dans le rayon R) passent en détaillé ; le rayon s'adapte si la forêt est dense
     SETS.forEach(function (s) { s.n = 0; });
     var list = C.trees || [], R2 = R * R, cand = [];
-    for (var i = 0; i < list.length; i++) { var t = list[i], dx = t.x - cx, dz = t.z - cz, d2 = dx * dx + dz * dz; if (d2 < R2) cand.push([d2, t]); }
+    for (var i = 0; i < list.length; i++) { var t = list[i], dx = t.x - cx, dz = t.z - cz, d2 = dx * dx + dz * dz; if (d2 < R2 && !t.cut) cand.push([d2, t]); }
     cand.sort(function (a, b) { return a[0] - b[0]; });
     var r = R; if (cand.length > N) { r = Math.sqrt(cand[N][0]) - .01; cand.length = N; }
     for (i = 0; i < cand.length; i++) { var t2 = cand[i][1], d = t2.d3;
       for (var k = 0; k < SETS.length; k++) { var s = SETS[k]; if (s.sp !== d.sp || s.mi !== d.mi) continue;
-        O3.position.set(t2.x, t2.y + .05, t2.z); O3.rotation.set(0, d.rot, 0); O3.scale.setScalar(d.sc); O3.updateMatrix(); COL.setRGB(d.col[0], d.col[1], d.col[2]);
+        O3.position.set(t2.x, t2.y + .05, t2.z); O3.rotation.set(t2.shk || 0, d.rot, (t2.shk || 0) * .6); O3.scale.setScalar(d.sc); O3.updateMatrix(); COL.setRGB(d.col[0], d.col[1], d.col[2]);
         s.ims.forEach(function (im) { im.setMatrixAt(s.n, O3.matrix); im.setColorAt(s.n, COL); }); s.n++; break; } }
     SETS.forEach(function (s) { s.ims.forEach(function (im) { im.count = s.n; im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; }); });
     U.uCam.value.set(cx, 0, cz); U.uR.value = r; return r;
@@ -169,6 +169,11 @@
       mats.forEach(function (m, i) { var k = i % FLOWERS.length, ims = FLOWERS[k]; if (n[k] >= ims[0].instanceMatrix.count) return; ims.forEach(function (im) { im.setMatrixAt(n[k], m); }); n[k]++; });
       FLOWERS.forEach(function (ims, k) { ims.forEach(function (im) { im.count = n[k]; im.instanceMatrix.needsUpdate = true; }); }); return true; },
     flowerVis: function (v) { FLOWERS.forEach(function (ims) { ims.forEach(function (im) { im.visible = v; }); }); },
-    rocks: function () { return ROCKS; }
+    rocks: function () { return ROCKS; },
+    // survie : un arbre abattu disparaît (détaillé et imposteur lointain) ; repousse() le remet
+    cut: function (t, on) { t.cut = !on; last.x = 1e9; var f = t.d3 && t.d3.far; if (!f) return; var im = f[0], k = f[1], q = im.userData.cmap && im.userData.cmap[k], Z = new T.Matrix4().makeScale(0, 0, 0);
+      if (on) { O3.position.set(t.x, t.y + .05, t.z); O3.rotation.set(0, 0, 0); O3.scale.setScalar(t.d3.sc); O3.updateMatrix(); Z = O3.matrix; }
+      if (q) { q[0].setMatrixAt(q[1], Z); q[0].instanceMatrix.needsUpdate = true; } else { im.setMatrixAt(k, Z); im.instanceMatrix.needsUpdate = true; } },
+    shake: function (t, a) { t.shk = a; last.x = 1e9; }
   };
 })();

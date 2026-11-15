@@ -43,6 +43,7 @@
   }
   window.LOOT3D = {
     ready: function () { return READY; }, onReady: null,
+    bake: function (THREE, scene, d) { T = T || THREE; return bake(scene, d); },   // utilisé aussi par survie.js (rochers, minerai, souches)
     load: function (THREE) { T = THREE; if (!T.GLTFLoader) return; var keys = Object.keys(DEFS), left = keys.length, L = new T.GLTFLoader();
       keys.forEach(function (k) { L.load('models/loot/' + DEFS[k].f + '.glb', function (g) { try { TPL[k] = bake(g.scene, DEFS[k]); } catch (e) { console.error('LOOT3D', k, e); } if (--left === 0) done(); }, null, function () { if (--left === 0) done(); }); });
       function done() { READY = true; if (window.LOOT3D.onReady) window.LOOT3D.onReady(); } },

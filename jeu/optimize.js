@@ -12,7 +12,7 @@
     for (var i = 0; i < im.count; i++) { im.getMatrixAt(i, m); m.decompose(p, q, sc); if (sc.x === 0 && sc.y === 0) continue; var key = Math.floor(p.x / cell) + ',' + Math.floor(p.z / cell); (cells[key] = cells[key] || []).push(i); }
     var col = new THREE.Color();
     Object.keys(cells).forEach(function (key) { var L = cells[key], sub = new THREE.InstancedMesh(sharedGeo(g), im.material, L.length), mn = new THREE.Vector3(1e9, 1e9, 1e9), mx = new THREE.Vector3(-1e9, -1e9, -1e9), rMax = 0;
-      L.forEach(function (i, k) { im.getMatrixAt(i, m); sub.setMatrixAt(k, m); m.decompose(p, q, sc); var c = gc.clone().applyMatrix4(m); mn.min(c); mx.max(c); rMax = Math.max(rMax, gr * Math.max(sc.x, sc.y, sc.z)); if (im.instanceColor) { im.getColorAt(i, col); sub.setColorAt(k, col); } });
+      L.forEach(function (i, k) { (im.userData.cmap = im.userData.cmap || {})[i] = [sub, k]; im.getMatrixAt(i, m); sub.setMatrixAt(k, m); m.decompose(p, q, sc); var c = gc.clone().applyMatrix4(m); mn.min(c); mx.max(c); rMax = Math.max(rMax, gr * Math.max(sc.x, sc.y, sc.z)); if (im.instanceColor) { im.getColorAt(i, col); sub.setColorAt(k, col); } });
       sub.geometry.boundingSphere = new THREE.Sphere(mn.clone().add(mx).multiplyScalar(.5), mn.distanceTo(mx) / 2 + rMax);
       sub.castShadow = im.castShadow; sub.receiveShadow = im.receiveShadow; sub.frustumCulled = true; sub.userData.st = 1; im.add(sub); });
     EMPTY = EMPTY || new THREE.BufferGeometry(); im.geometry = EMPTY;   // le parent ne dessine plus rien (0 sommet) mais garde sa visibilité pour ses paquets
