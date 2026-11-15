@@ -375,7 +375,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## Compte obligatoire, Survie/PROPANE verrouillés, accueil carrousel (cache v52)
 - Launcher : écran `#auth` obligatoire (créer un compte : pseudo + e-mail + mot de passe 8 car. ; ou se connecter). Compte gardé sur l'appareil (`wg_acc` : mot de passe salé + SHA-256, `wg_sess`) : pas encore de serveur. Page Mon compte : e-mail, Se déconnecter, **Code créateur** (seule l'empreinte SHA-256 de `'wg-createur|'+code` est dans le code ; le code a été donné à l'utilisateur dans la discussion, ne jamais l'écrire dans le dépôt) → `wr_creator=1`, `wr_survie_ok=1` (passent au jeu par le profil).
-- Jeu : `CREATOR` / `SURVOK` (index.html) : Survie et PROPANE (prop hunt) grisés 🔒 et non lançables sauf créateur (`?mode=survie` → br, `prop` → creatif).
+- Jeu : `CREATOR` / `SURVOK` (index.html) : Survie grisée 🔒 et non lançable sauf créateur (`?mode=survie` → br). Tout le Créatif (Mon monde, MAP 1V1, PROPANE prop hunt) est GRATUIT.
 - Accueil du launcher : carrousel ‹ › (pub Wald Royal + Survie, Battle Royale, Mode histoire) avec boutons Cinématique / Accès boutique, rangée « 🎬 Cinématiques », bouton ACCÈS BOUTIQUE. Boutique : « Tous les jeux » (Wald Royal gratuit, Wald Royal + Survie 5,99 € grisé, PROPANE bientôt, prochain jeu ???).
 
 ## À REVOIR (rappeler à l'utilisateur)

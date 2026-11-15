@@ -484,9 +484,9 @@ var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) 
 try { var mo = (location.search.match(/[?&]mode=(\w+)/) || [])[1]; if (MODES[mo]) MODE = mo; } catch (e) {}
 var IOSW = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);   // Wald Royal iOS (web) : pas de Survie (payant, PC + Android)
 if (IOSW && MODE === 'survie') MODE = 'br';
-/* Survie (Wald Royal + Survie, 5,99 €) et PROPANE (prop hunt) pas encore jouables, sauf compte créateur (code saisi dans Wald Game) */
+/* Survie (Wald Royal + Survie, 5,99 €) pas encore jouable, sauf compte créateur (code saisi dans Wald Game). Tout le Créatif est gratuit. */
 var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_creator') === '1'; SURVOK = CREATOR || localStorage.getItem('wr_survie_ok') === '1'; } catch (e) {}
-if (MODE === 'survie' && !SURVOK) MODE = 'br'; if (MODE === 'prop' && !CREATOR) MODE = 'creatif';
+if (MODE === 'survie' && !SURVOK) MODE = 'br';
 var MAP = MODE === 'prop' ? 'propane' : MODE === 'survie' || MODE === 'creatif' || MODE === 'bf' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
 var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', CREA = MODE === 'creatif' || MODE === 'bf' || MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB, MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM ? 1 : 30, ISL = SURV ? 1720 : PROPM ? 240 : 420, HALF = SURV ? 2000 : PROPM ? 300 : 500;   // PROPANE : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
@@ -2638,9 +2638,9 @@ function mgrpDraw() { if (IOSW) { var sb0 = document.querySelector('#mgrp [data-
 document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
   document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === MODE); }); }
 (function () { var sb = document.querySelector('#mgrp [data-g=survie]'); if (sb && !SURVOK) { sb.classList.add('lock'); sb.innerHTML = '🔒<b>SURVIE</b><small>5,99 € · bientôt</small>'; }
-  var pb = document.querySelector('#subCR [data-mode=prop]'); if (pb && !CREATOR) { pb.classList.add('lock'); var bb = pb.querySelector('b'); if (bb) bb.textContent = '🔒 PROPANE · PROP HUNT'; var vv = pb.querySelector('small.ver'); if (vv) vv.textContent = 'Bientôt disponible'; } })();
+})();
 document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.addEventListener('click', function () { if (b.dataset.g === 'survie' && !SURVOK) { toast('🔒 La Survie arrive bientôt dans l\'édition « Wald Royal + Survie » (5,99 €) sur Wald Game'); return; } MGRP = b.dataset.g; mgrpDraw(); if (MGRP === 'survie') pickMode('survie', b); else if (MGRP === 'br' && MODE !== 'br' && MODE !== 'zb') pickMode('br', b); }); });
-document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.addEventListener('click', function () { if (b.dataset.mode === 'prop' && !CREATOR) { toast('🔒 PROPANE (prop hunt) arrive bientôt'); return; } pickMode(b.dataset.mode, b); }); });
+document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.addEventListener('click', function () { pickMode(b.dataset.mode, b); }); });
 function rkDraw() { document.querySelectorAll('#segRk [data-rk]').forEach(function (b) { b.classList.toggle('on', (b.dataset.rk === '1') === RANKED); }); }
 document.querySelectorAll('#segRk [data-rk]').forEach(function (b) { b.addEventListener('click', function () { RANKED = b.dataset.rk === '1'; try { localStorage.setItem('wr_ranked', RANKED ? '1' : '0'); } catch (e) {} rkDraw(); showStats(); }); }); rkDraw();
 (function thumbs() {   // miniatures des maps publiques dessinées (néon, chrome)

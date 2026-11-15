@@ -133,7 +133,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <div class="games">
         <div class="gm"><img src="../wald-royal/img/capitale.jpg" alt=""><div><em>JEU · GRATUIT</em><b>Wald Royal</b><small>Battle Royale avec ou sans constructions, Partie rapide, Classé, Créatif et MAP 1V1.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
         <div class="gm"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><em>ÉDITION · 5,99 €</em><b>Wald Royal + Survie</b><small>Tout Wald Royal + le mode Survie : monde de 4 km, 32 créatures, mode histoire.</small><button class="btn2 off" type="button" data-buy>🔒 BIENTÔT · 5,99 €</button></div></div>
-        <div class="gm"><img src="../wald-royal/img/creatif.jpg" alt=""><div><em>MAP · BIENTÔT</em><b>PROPANE · Prop Hunt</b><small>Cache-cache en objets avec le lanceur laser, sifflets et pièges.</small><button class="btn2 off" type="button" disabled>🔒 BIENTÔT</button></div></div>
+        <div class="gm"><img src="../wald-royal/img/creatif.jpg" alt=""><div><em>CRÉATIF · GRATUIT</em><b>Créatif · MAP 1V1 · PROPANE</b><small>Mon monde, build fight entre potes et Prop Hunt (cache-cache en objets). Tout le Créatif est gratuit.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
         <div class="gm soon"><img src="../wald-royal/img/lobby.jpg" alt=""><div><em>PROCHAIN JEU</em><b>??? · Wald Off Games</b><small>Le prochain jeu de Wald Off. Reste connecté…</small><button class="btn2 off" type="button" disabled>🔒 À VENIR</button></div></div>
       </div>
       <h3>Wald Royal + Survie</h3>
@@ -345,7 +345,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       hx(a.salt + '|' + $('lPw').value).then(function (h) { if (h !== a.h) er.textContent = 'Mot de passe incorrect.'; else authOk(a); }); } };
   $('logout').onclick = function () { setLS('wg_sess', '0'); authShow(); };
   $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
-    hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie et PROPANE débloqués.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };
+    hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie débloquée.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };
   if (CREA) $('crS').textContent = '✔ Compte créateur actif.';
   (function () { var a = acc(); if (!a || LSg('wg_sess') !== '1') authShow(); else authOk(a); })();
   try { if (!localStorage.getItem('wg_adSurv1')) { var adT = setInterval(function () { if (!$('auth').hidden) return; clearInterval(adT); localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { play(4); }, 800); }, 500); } } catch (e) {}
