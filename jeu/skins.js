@@ -108,10 +108,34 @@
     TUBE(par, pts, th, mt);
   }
   function laces(l, x0, mt) { for (var i = 0; i < 3; i++) S(l, .012, .008, .055, x0 + i * .04, -.8 - i * .022, 0, mt, 0, 0, .5); }
+  /* tissu (coton tissé) et cuir usé : textures peintes pour des vêtements moins « plastique » */
+  function fabric(col) { return { map: tex('fab' + col, 128, 128, function (g, w, h) { g.fillStyle = col; g.fillRect(0, 0, w, h);
+    for (var y = 0; y < h; y += 2) { g.fillStyle = 'rgba(0,0,0,' + (y % 4 ? .07 : .03) + ')'; g.fillRect(0, y, w, 1); } for (var x = 0; x < w; x += 2) { g.fillStyle = 'rgba(255,255,255,' + (x % 4 ? .05 : .02) + ')'; g.fillRect(x, 0, 1, h); }
+    for (var n = 0; n < 500; n++) { g.fillStyle = 'rgba(' + (Math.random() < .5 ? '0,0,0' : '255,255,255') + ',' + Math.random() * .07 + ')'; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1); } }, 3, 3) }; }
+  function leatherTex() { return { map: tex('leather', 256, 128, function (g, w, h) { var gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#4a2e18'); gr.addColorStop(.5, '#7a4e2a'); gr.addColorStop(1, '#4a2e18'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (var n = 0; n < 1600; n++) { g.fillStyle = 'rgba(' + (Math.random() < .55 ? '20,10,4' : '200,150,100') + ',' + Math.random() * .16 + ')'; g.beginPath(); g.arc(Math.random() * w, Math.random() * h, .5 + Math.random() * 1.6, 0, 6.283); g.fill(); }
+    g.strokeStyle = 'rgba(30,16,6,.55)'; g.lineWidth = 1.2; for (var k = 0; k < 14; k++) { g.beginPath(); var x0 = Math.random() * w, y0 = Math.random() * h; g.moveTo(x0, y0); g.lineTo(x0 + (Math.random() - .5) * 40, y0 + (Math.random() - .5) * 18); g.stroke(); }   // rayures
+    g.strokeStyle = '#e8c890'; g.lineWidth = 2; g.setLineDash([6, 5]); [10, h - 10].forEach(function (y) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }); g.setLineDash([]); }) }; }   // coutures
+  /* PROTECTIONS DE COMBAT À L'ANCIENNE (tous les persos) : jambières en cuir avec arête en fer et genouillère, brassards cloutés, épaulière en plaques sur l'épaule gauche */
+  function gear(R, k) {
+    var lea = M('#fff', Object.assign(leatherTex(), { side: T3.DoubleSide, shininess: 22 })), iron = M('#6e7682', { shininess: 70, specular: '#aab4c4' }), dk = M('#24160c'), brass = M('#c8963a', { shininess: 80, specular: '#fff0c0' });
+    [R.lL, R.lR].forEach(function (l) {
+      var gv = new T3.Mesh(new T3.CylinderGeometry(.104 * k, .088 * k, .31, 18, 1, true, Math.PI / 2 - 1.35, 2.7), lea); place(gv, l, 0, -.61, 0);   // jambière
+      S(l, .016 * k, .15, .022 * k, .1 * k, -.6, 0, iron);   // arête en fer
+      [-.5, -.72].forEach(function (y, i) { var st = new T3.Mesh(new T3.TorusGeometry((.1 - i * .012) * k, .011, 6, 20), dk); place(st, l, 0, y, 0, Math.PI / 2); S(l, .016, .02, .02 * k, (.104 - i * .012) * k, y, 0, brass); });   // lanières + boucles
+      S(l, .046 * k, .062, .074 * k, .082 * k, -.42, 0, iron); S(l, .02, .02, .02, .135 * k, -.42, 0, brass);   // genouillère + rivet
+    });
+    [R.aL, R.aR].forEach(function (a) {
+      C(a, .074 * k, .066 * k, .17, 0, -.42, 0, lea); [-.34, -.5].forEach(function (y) { var b = new T3.Mesh(new T3.TorusGeometry(.073 * k, .009, 6, 18), iron); place(b, a, 0, y, 0, Math.PI / 2); });   // brassard
+      [-.38, -.42, -.46].forEach(function (y) { S(a, .014, .014, .014, .072 * k, y, 0, brass); });   // clous
+    });
+    var aL = R.aL; shell(aL, .155 * k, .11, .155 * k, 0, .0, 0, iron, 0, 6.283, 0, 1.15); shell(aL, .135 * k, .1, .135 * k, 0, -.07, 0, lea, 0, 6.283, 0, 1.25);   // épaulière : plaque de fer + cuir dessous
+    [0, 1.57, 3.14, 4.71].forEach(function (a2) { S(aL, .016, .016, .016, Math.cos(a2) * .12 * k, .06, Math.sin(a2) * .12 * k, brass); });
+  }
   var B = {};
   /* ---------- WALD OFF : bob, lunettes noires, bouc, t-shirt rouge, grosse chaîne, short à carreaux, baskets ---------- */
   B.wald = function (R) {
-    var skin = M('#dc9a72'), red = M('#c8101c'), white = M('#f4f4f4'), navy = M('#1a2030'), hat = M('#0e121b'), cream = M('#efe8d8'), sole = M('#1c1c22'), beard = M('#5a3a26'), lip = M('#9a4a3a'),
+    var skin = M('#dc9a72'), red = M('#fff', fabric('#c8101c')), white = M('#f4f4f4'), navy = M('#1a2030'), hat = M('#0e121b'), cream = M('#efe8d8'), sole = M('#1c1c22'), beard = M('#5a3a26'), lip = M('#9a4a3a'),
       lens = M('#0c0d12', { shininess: 120, specular: '#8fa0ff' }), gold = M('#ffc22a', { shininess: 110, specular: '#fff3b0', emissive: '#3a2400' }), chk = M('#fff', checks()), pip = M('#e0303a'), socks = M('#f2f2f2');
     [R.lL, R.lR].forEach(function (l) { leg(l, chk, skin, { hem: navy, hemY: -.36, pipe: pip }); seg(l, .09, .085, -.22, -.36, chk); C(l, .08, .078, .1, 0, -.78, 0, socks); shoe(l, cream, sole, red); S(l, .06, .035, .106, .17, -.87, 0, navy); });
     lathe(R.body, [[0, .86], [.2, .87], [.245, .94], [.25, 1.02], [.0, 1.03]], chk); TO(R.body, .245, .018, 0, 0, 1.0, 0, navy, Math.PI / 2, 0, 0).scale.set(.74, 1, 1);
@@ -164,7 +188,7 @@
   };
   /* ---------- LÉA : cheveux bouclés, chemise blanche nouée, jupe en jean, boots noires ---------- */
   B.lea = function (R) {
-    var skin = M('#eeb08a'), hair = M('#5a3424', { shininess: 40 }), wh = M('#f3efe8'), den = M('#fff', denim('#6d8fc4')), boot = M('#18181c', { shininess: 60 }), sole = M('#2a2a2e'), eyeW = M('#fff', { shininess: 90 }), iris = M('#5a3420'), dark = M('#111'), lip = M('#c4505c'), blush = M('#f39a9a'), gold = M('#ffc22a', { shininess: 110, specular: '#fff3b0', emissive: '#3a2400' });
+    var skin = M('#eeb08a'), hair = M('#5a3424', { shininess: 40 }), wh = M('#fff', fabric('#f3efe8')), den = M('#fff', denim('#6d8fc4')), boot = M('#18181c', { shininess: 60 }), sole = M('#2a2a2e'), eyeW = M('#fff', { shininess: 90 }), iris = M('#5a3420'), dark = M('#111'), lip = M('#c4505c'), blush = M('#f39a9a'), gold = M('#ffc22a', { shininess: 110, specular: '#fff3b0', emissive: '#3a2400' });
     R.lL.position.z = -.11; R.lR.position.z = .11; R.aL.position.set(0, 1.46, -.29); R.aR.position.set(0, 1.46, .29);
     [R.lL, R.lR].forEach(function (l) { leg(l, skin, skin); S(l, .085, .085, .085, 0, -.42, 0, skin); shoe(l, boot, sole, null, 1); });
     lathe(R.body, [[0, .68], [.29, .7], [.27, .8], [.24, .92], [.22, 1.02], [0, 1.04]], den);
@@ -190,7 +214,7 @@
   };
   /* ---------- STAN : chauve, deux cheveux, yeux fatigués, gilet rayé, chemise bleue, jean, boots marron ---------- */
   B.stan = function (R) {
-    var skin = M('#efb894'), shirt = M('#bfd2ee'), jean = M('#fff', denim('#8ea5d6')), boot = M('#6b4428', { shininess: 30 }), sole = M('#3a2a1e'), pin = M('#fff', Object.assign(pinstripe(), { side: T3.DoubleSide })), eyeW = M('#fbfbf6', { shininess: 90 }), dark = M('#2a2a2e'), bag = M('#e0a080'), hairM = M('#2e241e'), lip = M('#9a5040'), stub = M('#d4a084');
+    var skin = M('#efb894'), shirt = M('#fff', fabric('#bfd2ee')), jean = M('#fff', denim('#8ea5d6')), boot = M('#6b4428', { shininess: 30 }), sole = M('#3a2a1e'), pin = M('#fff', Object.assign(pinstripe(), { side: T3.DoubleSide })), eyeW = M('#fbfbf6', { shininess: 90 }), dark = M('#2a2a2e'), bag = M('#e0a080'), hairM = M('#2e241e'), lip = M('#9a5040'), stub = M('#d4a084');
     R.aL.position.set(0, 1.47, -.31); R.aR.position.set(0, 1.47, .31);
     [R.lL, R.lR].forEach(function (l) { leg(l, jean, jean); S(l, .1, .1, .1, 0, -.42, 0, jean); shoe(l, boot, sole, null, 1); TO(l, .1, .02, 0, 0, -.66, 0, sole, Math.PI / 2); });
     lathe(R.body, [[0, .88], [.23, .9], [.27, .98], [.3, 1.08], [.315, 1.2], [.3, 1.32], [.29, 1.42], [.28, 1.5], [.21, 1.57], [.11, 1.61], [0, 1.62]], shirt, .8, 1);
@@ -214,7 +238,7 @@
 
   /* ---------- BOTS : même corps sculpté que les skins, tenues variées selon o.v ---------- */
   B.npc = function (R, o) {
-    o = o || {}; var v = o.v || 0, skin = M(o.skin || '#e0ac85'), shirt = M(o.shirt || '#3dd6ff'), pants = M(o.pants || '#2b3a67'), sole = M('#1c1c22'), white = M('#f2f2f2'), dark = M('#151515');
+    o = o || {}; var v = o.v || 0, skin = M(o.skin || '#e0ac85'), shirt = M('#fff', fabric(o.shirt || '#3dd6ff')), pants = M('#fff', fabric(o.pants || '#2b3a67')), sole = M('#1c1c22'), white = M('#f2f2f2'), dark = M('#151515');
     var HC = ['#1c1410', '#4a2e1a', '#8a5a2a', '#d8b060', '#2a2a30', '#b8483a'], hc = HC[v % HC.length], hairM = M('#fff', hairTex('hairN' + hc, hc, '#0a0806', '#7a6a5a')), hoodie = v % 3 === 2, shorts = v % 4 === 1, hat = ['cap', 'beanie', 'none', 'bob', 'none', 'cap'][v % 6];
     [R.lL, R.lR].forEach(function (l) { leg(l, pants, shorts ? skin : pants, shorts ? { hem: pants, hemY: -.34 } : null); if (shorts) seg(l, .1, .09, -.2, -.34, pants); shoe(l, M(o.shoes || '#eeeeee'), sole, shirt); laces(l, .05, white); });
     lathe(R.body, [[0, .86], [.2, .87], [.245, .94], [.25, 1.02], [0, 1.03]], pants); TO(R.body, .245, .016, 0, 0, 1.0, 0, dark, Math.PI / 2, 0, 0).scale.set(.74, 1, 1);
@@ -251,7 +275,7 @@
   };
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];
   window.buildSkin = function (THREE, id, opts) {
-    init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts);
+    init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts); if (id !== 'zombie') gear(R, id === 'flubb' ? .55 : 1);
     R.cols = cols; return skinify(R);
   };
   /* ---------- SQUELETTE COMMUN : tous les persos passent par ici ----------

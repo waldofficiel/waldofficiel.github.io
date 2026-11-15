@@ -294,6 +294,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Android** (`MainActivity.java`) et **PC** (`app/desktop/main.js`) : à chaque lancement, écran « Recherche de mises à jour… », lecture de `https://waldofficiel.github.io/jeu/version.json`. Si le numéro diffère : téléchargement des seuls fichiers modifiés (les autres sont recopiés) dans `files/game` (Android, servi par `InternalStoragePathHandler` sur `/game/`) ou `userData/game` (PC, servi par `app://jeu/`), barre de progression, puis lancement. Sans internet : dernière version téléchargée, sinon celle de l'installeur. Même origine qu'avant → sauvegardes gardées.
 - Donc **chaque push = nouvelle version** chez tout le monde au prochain lancement, sans réinstaller. Réinstaller seulement si on change `app/**` (coque Android/PC). Le numéro s'affiche au salon (`#ver`).
 
+## Menu JOUER, Créatif + maps publiques, 1v1 entre potes, tenues de combat (cache v35)
+- Menu JOUER (`#mgrp`) : **BATTLE ROYALE** (sous-choix `#subBR` Construction `br` / Zéro Construction `zb`), **CRÉATIF** (`#subCR` : MON MONDE `creatif` + MAPS PUBLIQUES), **SURVIE**. `pickMode(mode)`, `MGRP`. Bouton « Rendre ma map publique » = bientôt (il faudra le multijoueur / un serveur).
+- Map publique n°1 **1V1 ENTRE POTES** (mode `bf`, `BF`, aussi `CREA`) par « ✔ Créateur Wald Royal » : sur la carte survie, **Arène Build Fight** (`TOWNS` kind `arena` à (-60,-60), `ARENA`) = dalle plate 50 m calée sur la grille 5 m, bord néon, pylônes, enseigne (city.js). Pas de maisons, loot, zombies ni herbe dedans. Départ et réapparition dans l'arène avec 100 vie + 100 bouclier, AR + pompe spécialisé + PM, 2 shields (`bfKit` dans survie.js), armurerie au bord.
+- Tous les persos (sauf zombies) ont des **protections de combat à l'ancienne** (`gear()` dans skins.js : jambières en cuir avec arête en fer et genouillère, brassards cloutés, épaulière gauche) et des vêtements en **tissu texturé** (`fabric()`), cuir `leatherTex()`.
+- Site : section `#modes` sur `wald-royal/`, nouvelles captures (creatif, buildfight, construction, lobby, syncdance, parametres), bandeau de l'accueil mis à jour.
+
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.

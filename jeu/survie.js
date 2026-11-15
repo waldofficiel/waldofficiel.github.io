@@ -398,7 +398,7 @@
 
   /* ---------------- CRÉATIF : armurerie au point de départ, les armes réapparaissent à l'infini ---------------- */
   var ARM = null;
-  function armory() { var T0 = C.TOWNS[0], cx = T0[1] + 10, cz = T0[2] - 8, K = ['pompe', 'pompeS', 'smg', 'fusil', 'sniper', 'shield', 'shield', 'heal']; ARM = [];
+  function armory() { var T0 = C.BF && C.ARENA ? C.ARENA : C.TOWNS[0], cx = T0[1] + (C.BF ? 0 : 10), cz = T0[2] + (C.BF ? 31 : -8), K = ['pompe', 'pompeS', 'smg', 'fusil', 'sniper', 'shield', 'shield', 'heal']; ARM = [];
     var g = new T.Group(), dark = new T.MeshLambertMaterial({ color: '#241a34' }), neon = new T.MeshBasicMaterial({ color: '#ff2bd6' }), gold = new T.MeshPhongMaterial({ color: '#ffd23d', shininess: 80 });
     var base = new T.Mesh(new T.BoxGeometry(18, .3, 7), dark); base.position.set(cx, C.hgt(cx, cz) + .15, cz); g.add(base);
     K.forEach(function (k, i) { var x = cx - 7.7 + i * 2.2, z = cz, y = C.hgt(x, z); var pd = new T.Mesh(new T.CylinderGeometry(.55, .65, .9, 12), dark); pd.position.set(x, y + .45, z); g.add(pd); var rg = new T.Mesh(new T.TorusGeometry(.6, .05, 6, 20), k === 'sniper' ? gold : neon); rg.rotation.x = Math.PI / 2; rg.position.set(x, y + .9, z); g.add(rg); ARM.push({ k: k, x: x, z: z + 1.6, it: null, t: 0 }); });
@@ -459,6 +459,8 @@
       '</div><button type="button" id="sIntroGo">C\'EST PARTI</button><div class="bar"><i></i></div></div>';
     d.hidden = false; var close = function () { d.hidden = true; }; d.querySelector('#sIntroGo').addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); close(); }); setTimeout(close, C.SURV ? 15000 : 10000); }
 
+  function bfKit() {   // 1v1 entre potes : 100 vie + 100 bouclier (200 PV), AR, pompe spécialisé, PM, 2 shields
+    var P = me(); P.hp = 100; P.sh = 100; P.inv = [C.newSlot('fusil'), C.newSlot('pompeS'), C.newSlot('smg')]; P.slot = 1; P.heals.shield = 2; P.heals.mini = 0; P.heals.heal = 0; if (C.hudRefresh) C.hudRefresh(); }
   function KN(a) { try { return window.keyName(window.BIND[a]); } catch (e) { return a; } }
   window.SURVIE = {
     init: function (THREE, ctx) { T = THREE; C = ctx; ZERO = new T.Matrix4().makeScale(0, 0, 0); GEO.esc = rampGeo(); GEO.toit = roofGeo(); C.groundAt = groundAt;
@@ -471,7 +473,7 @@
       if (!GL || !L || !L.bake) { left = 1; done(); return; }
       NDEF.forEach(function (d, i) { GL.load('models/survie/' + d.f + '.glb', function (g) { try { tpl[i] = L.bake(T, g.scene, d); } catch (e) { console.error(e); } done(); }, null, done); });
       GL.load('models/nature/q_TreeStump.glb', function (g) { try { stp = L.bake(T, g.scene, { size: 1.3, col: {} }); } catch (e) { console.error(e); } done(); }, null, done); },
-    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; me().heals.shield = 2; }   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
+    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; me().heals.shield = 2; if (C.BF) { BAG[1] = BAG[2] = BAG[3] = null; bfKit(); } }   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
       if (el.tools) el.tools.hidden = false;
       NODES.forEach(function (n) { if (n.dead) { n.dead = false; if (C.PCOL.indexOf(n.col) < 0) C.PCOL.push(n.col); } n.hp = n.max; n.shk = 0; nodeSet(n); });
       STUMPL.forEach(function (t) { regrow(t); }); STUMPL = []; C.TREES.forEach(function (t) { t.hp = null; t.gone = false; t.shp = null; });
@@ -481,6 +483,7 @@
         if (window.ZOMB && ZOMB.on) ZOMB.reset(d ? d.zdead : []); showBed(); }
       stumpsRefresh(); hudRes(); hudBuild(); setTimeout(function () { if (C.state() === 'play') intro(); }, 60); saveT = 0; },
     respawn: function () { var P = me(); P.hp = 100; P.sh = 0; P.vx = P.vz = P.vy = 0; if (P.veh) return false;
+      if (C.CREA) { var A = C.BF && C.ARENA ? C.ARENA : C.TOWNS[0]; P.x = A[1] + 3 + (Math.random() - .5) * 8; P.z = A[2] + (C.BF ? 0 : 6); P.y = P.gy = C.hgt(P.x, P.z); if (C.BF) bfKit(); C.toast(C.BF ? '⚔️ C\'EST REPARTI · 200 PV' : '🎨 RÉAPPARITION'); return true; }
       if (BED) { P.x = BED.x + Math.cos(BED.a + 1.57) * 1.4; P.z = BED.z + Math.sin(BED.a + 1.57) * 1.4; C.toast('🛏 TU TE RÉVEILLES DANS TON LIT'); }
       else { var T0 = C.TOWNS[0]; P.x = T0[1] + 3; P.z = T0[2] + 6; ['bois', 'pierre', 'metal'].forEach(function (k) { RES[k] = Math.floor(RES[k] / 2); }); hudRes(); C.toast('☠ TU ES MORT · PAS DE LIT : RETOUR AU CAMP (MOITIÉ DES MATÉRIAUX PERDUE)'); }
       P.y = P.gy = Math.max(C.hgt(P.x, P.z), groundAt(P.x, P.z, (BED ? BED.y : 0) + 1)); C.noise(.8, .2, 300); save(); return true; },

@@ -348,6 +348,20 @@
         var bars = ctx.HOUSES.filter(function (h) { return h.beach && h.flat; }); ['BAR DES VAGUES', 'LE COQUILLAGE', 'CHEZ MAMIE PLAGE'].forEach(function (nm, i) { var h = bars[i]; if (!h) return; var sg = new T.Mesh(new T.PlaneGeometry(5, 1.25), new T.MeshBasicMaterial({ map: neonTex(nm, ['#3affd0', '#ff4ad8', '#ffd23d'][i], 1024, 'Lobster'), color: '#7a7a7a' }));
           sg.position.set(h.x + sx * (h.hz + .2), (h.y0 || hgt(h.x, h.z)) + 3.6, h.z + sz * (h.hz + .2)); sg.rotation.y = Math.PI / 4; sg.rotation.z = (i - 1) * .12; S.add(sg); });   // enseignes éteintes et de travers
       }
+      if (kind === 'arena') {   // ZONE BUILD FIGHT : dalle plate de 50 m calée sur la grille de construction (cases de 5 m), bord néon, pylônes, enseigne
+        var ay = hgt(t[1], t[2]), HA = 25, ac = document.createElement('canvas'); ac.width = ac.height = 256; var ag = ac.getContext('2d');
+        ag.fillStyle = '#2a2436'; ag.fillRect(0, 0, 256, 256); for (var an = 0; an < 900; an++) { ag.fillStyle = 'rgba(' + (Math.random() < .5 ? '0,0,0' : '255,255,255') + ',' + Math.random() * .06 + ')'; ag.fillRect(Math.random() * 256, Math.random() * 256, 2 + Math.random() * 5, 2 + Math.random() * 5); }
+        ag.strokeStyle = 'rgba(255,43,214,.55)'; ag.lineWidth = 4; ag.strokeRect(2.5, 2.5, 251, 251); ag.strokeStyle = 'rgba(255,255,255,.08)'; ag.lineWidth = 2; ag.strokeRect(20, 20, 216, 216);
+        var at = new T.CanvasTexture(ac); at.encoding = T.sRGBEncoding; at.wrapS = at.wrapT = T.RepeatWrapping; at.repeat.set(HA * 2 / 5, HA * 2 / 5); at.anisotropy = 8;
+        var fl0 = new T.Mesh(new T.BoxGeometry(HA * 2, .5, HA * 2), [M('#2a2436'), M('#2a2436'), new T.MeshLambertMaterial({ map: at }), M('#2a2436'), M('#2a2436'), M('#2a2436')]); fl0.position.set(t[1], ay - .2, t[2]); fl0.receiveShadow = true; S.add(fl0);
+        var neon = new T.MeshBasicMaterial({ color: '#ff2bd6' }), cyan = new T.MeshBasicMaterial({ color: '#3dd6ff' }), dk = M('#17121f');
+        [[0, -HA, HA * 2, .12], [0, HA, HA * 2, .12], [-HA, 0, .12, HA * 2], [HA, 0, .12, HA * 2]].forEach(function (q) { var e = new T.Mesh(GB, neon); e.scale.set(q[2] + .1, .1, q[3] + .1); e.position.set(t[1] + q[0], ay + .07, t[2] + q[1]); S.add(e); });
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (q, i) { var px4 = t[1] + q[0] * (HA + .8), pz4 = t[2] + q[1] * (HA + .8), py = new T.Mesh(GB, dk); py.scale.set(.8, 7, .8); py.position.set(px4, ay + 3.5, pz4); S.add(py);
+          [1.5, 3.5, 5.5].forEach(function (h) { var r2 = new T.Mesh(GB, i % 2 ? cyan : neon); r2.scale.set(.9, .14, .9); r2.position.set(px4, ay + h, pz4); S.add(r2); }); col(px4, pz4, .5, .5, 7);
+          var lt = new T.PointLight(i % 2 ? '#3dd6ff' : '#ff2bd6', 1.2, 26, 2); lt.position.set(px4, ay + 6.5, pz4); S.add(lt); });
+        var sg2 = new T.Mesh(new T.PlaneGeometry(14, 2.6), new T.MeshBasicMaterial({ map: neonTex('BUILD FIGHT · 1V1', '#ff2bd6', 1024, 'Monoton'), transparent: true })), sp1 = new T.Mesh(GB, dk), sp2 = new T.Mesh(GB, dk);
+        sg2.position.set(t[1], ay + 7.6, t[2] - HA - 1.2); S.add(sg2); [-6.4, 6.4].forEach(function (dx) { var sp = new T.Mesh(GB, dk); sp.scale.set(.35, 7.6, .35); sp.position.set(t[1] + dx, ay + 3.8, t[2] - HA - 1.3); S.add(sp); });
+      }
       if (kind === 'chalet') {   // tentes, feu de camp, tas de bois, tables de pique-nique
         [[22, -10, .4], [-22, -12, -.5], [8, 30, 2.6]].forEach(function (q, i) { TENT.add(t[1] + q[0], hgt(t[1] + q[0], t[2] + q[1]), t[2] + q[1], q[2], 1, ['#e85a2a', '#2a8ae8', '#e8c22a'][i]); col(t[1] + q[0], t[2] + q[1], 1.2, 1.2, 1.6); });
         var fx2 = t[1] + 2, fz2 = t[2] + 6, fy = hgt(fx2, fz2); FIRE.add(fx2, fy, fz2, 0); var fl = new T.PointLight('#ff9a3a', 1.6, 12, 2); fl.position.set(fx2, fy + 1.2, fz2); S.add(fl); FX.fires.push({ l: fl, m: null });

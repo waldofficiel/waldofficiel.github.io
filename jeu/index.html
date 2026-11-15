@@ -155,6 +155,12 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .mapinfo b{font:900 20px var(--display);color:var(--sun)}.mapinfo span{font-size:13px;color:var(--mute)}
 .pill{justify-self:start;font:800 11px var(--body)!important;color:#fff!important;background:rgba(155,77,255,.55);border-radius:999px;padding:2px 9px;margin-top:3px}
 #lobby .go{width:100%;font-size:28px;padding:14px}
+.mgrp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.mgrp button{display:grid;justify-items:center;gap:2px;font-size:20px;color:#fff;background:rgba(11,4,24,.75);border:2px solid rgba(255,255,255,.14);border-radius:14px;padding:8px 4px;cursor:pointer}.mgrp button b{font:900 11px var(--body);letter-spacing:.06em}.mgrp button.on{border-color:#ff2bd6;background:linear-gradient(160deg,rgba(255,43,214,.32),rgba(122,47,255,.25));box-shadow:0 0 16px rgba(255,43,214,.35)}
+.msub{display:grid;gap:6px}.msub h4{margin:4px 0 0;font:900 11px var(--body);letter-spacing:.14em;color:var(--cyan)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(11,4,24,.7);border-radius:12px;padding:4px}.seg2 button{font:900 11px var(--body);color:var(--mute);background:none;border:0;border-radius:9px;padding:8px 4px;cursor:pointer}.seg2 button.on{color:#fff;background:linear-gradient(135deg,#ff2bd6,#7a2fff)}
+.world,.pmap{display:flex;align-items:center;gap:10px;text-align:left;color:#fff;background:rgba(11,4,24,.78);border:2px solid rgba(255,255,255,.14);border-radius:14px;padding:8px 10px;cursor:pointer;position:relative}.world span{font-size:26px}.world b,.pmap b{display:block;font:900 13px var(--body)}.world small,.pmap small{display:block;font-size:11px;color:var(--mute)}.pmap small.ver{color:#3dd6ff;font-weight:900}
+.world.on,.pmap.on{border-color:#ff2bd6;box-shadow:0 0 16px rgba(255,43,214,.35)}.pthumb{flex:none;width:56px;height:46px;border-radius:10px;display:grid;place-items:center;font-size:18px;background:linear-gradient(135deg,#2a2436,#5a1a6a);border:1px solid rgba(255,43,214,.6)}.pthumb b{font-size:10px!important;color:#ff9ae8}
+.load{opacity:.55;pointer-events:none}.n1{position:absolute;top:-7px;right:8px;font:900 10px var(--body);font-style:normal;background:#ffd23d;color:#2a1a00;border-radius:6px;padding:2px 6px}.pub{font:800 11px var(--body);color:var(--mute);background:none;border:1px dashed rgba(255,255,255,.25);border-radius:10px;padding:7px;cursor:pointer}
 .maps{display:grid;grid-template-columns:1fr 1fr;gap:6px}.maps button{font:800 13px var(--body);color:#fff;background:rgba(11,4,24,.75);border:2px solid rgba(255,255,255,.15);border-radius:12px;padding:8px 6px;cursor:pointer}.maps button.on{border-color:#ff2bd6;background:linear-gradient(135deg,rgba(255,43,214,.35),rgba(155,77,255,.35));box-shadow:0 0 14px rgba(255,43,214,.5)}
 .savebox{font:800 11px var(--body);color:#7aff9a;margin:6px 2px 0}.savebox button{font:800 11px var(--body);color:#fff;background:rgba(255,58,90,.25);border:1px solid rgba(255,58,90,.6);border-radius:8px;padding:3px 8px;margin-left:4px;cursor:pointer}
 .rot{font:800 11px var(--body)!important;color:#ffd23d!important;letter-spacing:.04em}
@@ -323,9 +329,15 @@ body:not(.touch) #bCrouch{display:none}
         <div class="mapcard"><canvas id="mapPrev" width="200" height="200"></canvas>
           <div class="mapinfo"><small id="modeT">Battle Royale · Carte</small><b id="mapName">LOS CAMPAGNES</b><span id="mapSub">Solo · 30 joueurs · 5 villes</span><span class="rot" id="rotT"></span><span class="pill" id="pill"></span></div></div>
         <button class="go" id="play" type="button">JOUER</button>
-        <div class="maps" id="maps"><button type="button" data-mode="br">⚔️ Battle Royale</button><button type="button" data-mode="zb">🛡️ Zéro Construction</button><button type="button" data-mode="survie">🧟 Survie</button><button type="button" data-mode="creatif">🎨 Créatif</button></div>
-        <div class="soon"><span>Bientôt : d'autres modes</span></div>
-      </section>
+        <div class="mgrp" id="mgrp"><button type="button" data-g="br">⚔️<b>BATTLE ROYALE</b></button><button type="button" data-g="creatif">🎨<b>CRÉATIF</b></button><button type="button" data-g="survie">🧟<b>SURVIE</b></button></div>
+        <div class="msub" id="subBR"><div class="seg2"><button type="button" data-mode="br">🧱 CONSTRUCTION</button><button type="button" data-mode="zb">🛡️ ZÉRO CONSTRUCTION</button></div></div>
+        <div class="msub" id="subCR" hidden>
+          <button type="button" class="world" data-mode="creatif"><span>🌍</span><div><b>MON MONDE</b><small>Fais ce que tu veux · constructions illimitées · armurerie infinie</small></div></button>
+          <h4>MAPS PUBLIQUES</h4>
+          <button type="button" class="pmap" data-mode="bf"><i class="n1">N°1</i><div class="pthumb">⚔️<b>1V1</b></div><div><b>1V1 ENTRE POTES</b><small class="ver">✔ Créateur Wald Royal</small><small>Zone de build fight plate · 200 PV · pompes, AR, PM, shields</small></div></button>
+          <button type="button" class="pub" id="pubBtn">📤 Rendre ma map publique</button>
+        </div>
+              </section>
       <section class="pane" data-p="rangs">
         <h3>Partie classée</h3>
         <p class="note">Chaque partie coûte des trophées à l'entrée (gratuit en Bronze). Tu en gagnes selon ta place, +1 par élimination. Plus tu montes, plus l'entrée coûte cher : en Légende il faut faire top 2 ou 3 pour ne pas perdre.</p>
@@ -426,11 +438,11 @@ var isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window
 var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE', survie: 'TERRES SAUVAGES' }, BRMAPS = ['campagne', 'desert'], ROT = 600000;
 function brMap(t) { return BRMAPS[Math.floor((t || Date.now()) / ROT) % BRMAPS.length]; }
 /* 4 modes : br (Battle Royale avec constructions), zb (Zéro Construction : pas de constructions, bulle bouclier), survie (zombies), creatif (terrain de jeu : constructions illimitées, armurerie) */
-var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF' };
+var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: '1V1 ENTRE POTES' };   // bf = map publique n°1 du mode créatif
 var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) MODE = mm; } catch (e) {}
 try { var mo = (location.search.match(/[?&]mode=(\w+)/) || [])[1]; if (MODES[mo]) MODE = mo; } catch (e) {}
-var MAP = MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif') MODE = 'survie'; if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
-var DES = MAP === 'desert', SURV = MAP === 'survie', CREA = MODE === 'creatif', ZB = MODE === 'zb', BUILD = !ZB, MAPNAME = MAPS[MAP];
+var MAP = MODE === 'survie' || MODE === 'creatif' || MODE === 'bf' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
+var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', CREA = MODE === 'creatif' || MODE === 'bf', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB, MAPNAME = MAPS[MAP];
 var NPL = SURV ? 1 : 30, ISL = SURV ? 1720 : 420, HALF = SURV ? 2000 : 500;   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
@@ -743,7 +755,7 @@ function dynRes(dt) {   // si on passe sous ~45 i/s pendant 2 s, on baisse un pe
 }
 function gfxAniso(q) {   // ULTRA : filtrage anisotrope max sur toutes les textures (fini les traits et le scintillement des murs et du sol vus de biais)
   var a = q === 3 ? Math.min(16, R3.capabilities.getMaxAnisotropy()) : 4; if (gfxAniso.a === a) return; gfxAniso.a = a;
-  [scene, typeof lscene !== 'undefined' ? lscene : null].forEach(function (sc) { if (sc) sc.traverse(function (o) { if (!o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { ['map', 'normalMap', 'roughnessMap', 'bumpMap'].forEach(function (k) { var t = m[k]; if (t && t.anisotropy !== a && !t.isRenderTargetTexture) { t.anisotropy = a; t.needsUpdate = true; } }); }); }); }); }
+  [scene, typeof lscene !== 'undefined' ? lscene : null].forEach(function (sc) { if (sc) sc.traverse(function (o) { if (!o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(function (m) { ['map', 'normalMap', 'roughnessMap', 'bumpMap'].forEach(function (k) { var t = m[k]; if (t && t.anisotropy !== a && !t.isRenderTargetTexture && !t.isDepthTexture && t.image && (t.image.data || t.image.width > 0) && t.image.complete !== false) { t.anisotropy = a; t.needsUpdate = true; } }); }); }); }); }
 function resize() {
   var q = SET.gfx, d = devicePixelRatio || 1, pr = (q === 0 ? Math.min(d, 1.25) * .8 : q === 1 ? Math.min(d, 1.6) : q === 3 ? Math.min(d * 1.5, 2.5) : Math.min(d, 2)) * DYN;   // ULTRA : suréchantillonnage ×1,5 = plus aucun bord en escalier
   R3.setPixelRatio(pr); R3.setSize(innerWidth, innerHeight, false);
@@ -843,9 +855,9 @@ var RND = mulberry(DES ? 11 : 7), NB = 180, shore = [];
 // villes placées en désordre (pas de croix symétrique) ; la 2e (ferme) est plus grande pour ses champs
 var TOWNS = SURV ? [['Camp du Départ', 140, 120, 44, 'chalet'], ['Refuge des Loups', -860, -500, 38, 'chalet'], ['Hameau du Lac', 760, 260, 40, 'chalet'], ['Ruines du Nord', -180, -1180, 40, 'chalet'], ['Cabane du Marais', -1000, 680, 38, 'chalet'],
     ['Avant-poste', 1120, -520, 38, 'chalet'], ['Village Brûlé', -420, 280, 46, 'chalet'], ['Ferme Abandonnée', 440, -330, 40, 'chalet'], ['Col des Brumes', -1240, -160, 34, 'chalet'], ['Oasis Sèche', 960, 620, 36, 'chalet'],
-    ['Plage des Naufragés', 1060, 1010, 56, 'plage'], ['Village du Sud', 120, 1060, 42, 'chalet']]
+    ['Plage des Naufragés', 1060, 1010, 56, 'plage'], ['Village du Sud', 120, 1060, 42, 'chalet'], ['Arène Build Fight', -60, -60, 34, 'arena']]
   : DES ? [['Mirage City', 120, 20, 88, 'centre'], ['Canyon Rouillé', -50, -310, 62, '2cv'], ['Oasis Chrome', 210, -210, 44, 'concess'], ['Puits Turbo', 40, 320, 40, 'garage'], ['Fort Cactus', -150, 280, 48, 'village'], ['Mine Rouge', 60, -150, 46, 'mine'], ['Motel Néon', 250, 170, 42, 'motel']]
-  : [['Turbo Towers', 40, -30, 58, 'centre'], ['Rusty Ranch', -255, -55, 62, '2cv'], ['Chrome Avenue', 175, -255, 44, 'concess'], ['Piston Docks', 300, 85, 40, 'garage'], ['Golden Hollow', -130, 255, 48, 'village'], ['Lodge des Pins', -60, -175, 44, 'chalet']];
+  : [['Turbo Towers', 40, -30, 58, 'centre'], ['Rusty Ranch', -255, -55, 62, '2cv'], ['Chrome Avenue', 175, -255, 44, 'concess'], ['Piston Docks', 300, 85, 40, 'garage'], ['Golden Hollow', -130, 255, 48, 'village'], ['Lodge des Pins', -60, -175, 44, 'chalet']]; if (SURV) ARENA = TOWNS[TOWNS.length - 1];   // zone build fight plate (map « 1v1 entre potes »)
 var ROADS = SURV ? [[0, 6], [0, 7], [0, 2], [6, 1], [1, 8], [1, 3], [6, 4], [4, 11], [0, 11], [2, 9], [9, 10], [7, 5], [11, 10]] : DES ? [[0, 2], [0, 3], [0, 5], [0, 6], [1, 5], [3, 4], [0, 4], [2, 6]] : [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], ['y', 0, .4, 5]];   // ['y', route, t, ville] : bifurcation propre depuis une route principale
 /* relief à la Fortnite : une vraie montagne (campagne) / de grands plateaux rocheux (désert) */
 var PEAKS = SURV ? [[-660, -1080, 420, 150, 0], [760, -1120, 340, 125, 0], [-1380, 80, 300, 110, 0], [-160, -720, 180, 55, 0], [380, -800, 160, 50, 0], [-700, -180, 130, 38, 0], [-560, 1180, 220, 75, 0], [-40, 420, 120, 24, 0], [900, -120, 140, 34, 0]] : DES ? [[-120, -120, 62, 24, 1], [170, 215, 55, 20, 1], [-70, 70, 42, 16, 1], [150, -300, 40, 18, 1]] : [[-10, -300, 95, 58, 0], [215, 175, 62, 30, 0], [-270, 120, 55, 22, 0]];
@@ -981,7 +993,7 @@ var FIELDS = [], MASK = document.createElement('canvas');
     g.lineCap = 'round'; g.lineJoin = 'round'; FARM.pp.forEach(function (pts) { poly(g, pts); g.strokeStyle = DES ? '#a87a46' : '#8f6c44'; g.lineWidth = 3.4; g.stroke(); g.strokeStyle = DES ? '#c49a62' : '#b08a5a'; g.lineWidth = 2.6; g.stroke();
       g.strokeStyle = 'rgba(90,60,30,.35)'; g.lineWidth = .3; [-.6, .6].forEach(function (o) { g.beginPath(); pts.forEach(function (p, i) { g.lineTo(p[0] + o, p[1]); }); g.stroke(); }); });   // chemins de terre avec ornières
     g.restore(); })();
-  if (SURV) TOWNS.forEach(function (t, ti) { campPatches(g, t, ti, ['rgba(120,96,62,', 'rgba(98,80,52,', 'rgba(140,118,80,', 'rgba(84,96,52,']); });   // survie : terre piétinée en taches, pas de disque
+  if (SURV) TOWNS.forEach(function (t, ti) { if (t[4] === 'arena') return; campPatches(g, t, ti, ['rgba(120,96,62,', 'rgba(98,80,52,', 'rgba(140,118,80,', 'rgba(84,96,52,']); });   // survie : terre piétinée en taches, pas de disque
   TOWNS.forEach(function (t) { if (t[4] === '2cv' || SURV) return; g.fillStyle = DES ? { centre: '#6c6f78', '2cv': '#b8774a', concess: '#c9b48e', garage: '#6a5a4e', village: '#c99a5e', mine: '#a2603e', motel: '#5c5c64' }[t[4]] : { centre: '#6c6f78', '2cv': '#a88a62', concess: '#9aa0aa', garage: '#55555e', village: '#b59a6a', chalet: '#8a7a52' }[t[4]]; townPath(g, t); g.fill();
     if (t[4] === 'centre') { g.fillStyle = '#9b9fa7'; townPath(g, t, -1); g.fill(); g.strokeStyle = 'rgba(90,95,105,.5)'; g.lineWidth = .25; for (var gx2 = -t[3]; gx2 < t[3]; gx2 += 2.5) { g.beginPath(); g.moveTo(t[1] + gx2, t[2] - t[3]); g.lineTo(t[1] + gx2, t[2] + t[3]); g.stroke(); g.beginPath(); g.moveTo(t[1] - t[3], t[2] + gx2); g.lineTo(t[1] + t[3], t[2] + gx2); g.stroke(); } g.fillStyle = '#4a4d55'; g.fillRect(t[1] - t[3], t[2] - 4, t[3] * 2, 8); g.fillRect(t[1] - 4, t[2] - t[3], 8, t[3] * 2); g.fillStyle = '#5aa04a'; g.beginPath(); g.arc(t[1], t[2], 6, 0, 6.283); g.fill(); }
     if (t[4] === 'concess') { g.strokeStyle = 'rgba(255,255,255,.2)'; g.lineWidth = .5; for (var x = -t[3]; x < t[3]; x += 8) { g.beginPath(); g.moveTo(t[1] + x, t[2] - t[3]); g.lineTo(t[1] + x, t[2] + t[3]); g.stroke(); } }
@@ -1006,7 +1018,7 @@ var FIELDS = [], MASK = document.createElement('canvas');
   m.globalCompositeOperation = 'lighter'; m.fillStyle = '#ff0000'; m.strokeStyle = '#ff0000';
   FIELDS.forEach(function (f) { m.save(); m.translate(f[0], f[1]); m.rotate(f[2]); m.fillRect(-27, -17, 54, 34); m.restore(); });
   m.lineCap = 'round'; m.lineJoin = 'round'; m.lineWidth = SURV ? 4.6 : 10; ROADP.forEach(function (pts) { poly(m, pts); m.stroke(); });
-  if (SURV) TOWNS.forEach(function (t, ti) { campPatches(m, t, ti, null); });
+  if (SURV) TOWNS.forEach(function (t, ti) { if (t[4] !== 'arena') campPatches(m, t, ti, null); });
   TOWNS.forEach(function (t) { if (t[4] === '2cv' || SURV) return; townPath(m, t, -2); m.fill(); });
   m.save(); m.translate(FARM.x, FARM.z); m.beginPath(); m.ellipse(2, -6, 34, 19, 0, 0, 6.283); m.fill(); FARM.fields.forEach(function (f) { m.fillRect(f[0] - f[2] / 2 - .8, f[1] - f[3] / 2 - .8, f[2] + 1.6, f[3] + 1.6); });
   m.lineWidth = 3.6; FARM.pp.forEach(function (pts) { poly(m, pts); m.stroke(); }); m.restore();
@@ -1132,7 +1144,7 @@ var CHEST0 = [], WMAT = {};
       var ax = -Math.SQRT1_2, az = Math.SQRT1_2, sx2 = Math.SQRT1_2, sz2 = Math.SQRT1_2, rc = mulberry(990);
       [[-34, -6, 'bois', 6, 5], [-22, 2, 'peint', 11, 8], [-6, -4, 'bois', 6, 5], [8, 4, 'peint', 12, 9], [24, -5, 'bois', 6, 6], [36, 3, 'peint', 10, 8], [-14, -22, 'bois', 7, 6], [16, -20, 'brique', 8, 7]].forEach(function (q, i) {
         var x = t[1] + ax * q[0] + sx2 * q[1], z = t[2] + az * q[0] + sz2 * q[1], hs = house(x, z, q[3], q[4], q[2], q[2] === 'peint' && i % 2 ? H : H, 's'); hs.beach = 1; hs.flat = q[2] === 'peint'; if (i === 1 || i === 3) CHEST0.push([x, z]); }); });
-    TOWNS.forEach(function (t, ti) { if (t[4] === 'plage') return; var rc = mulberry(300 + ti), nb = ti === 0 ? 5 : 4 + (rc() * 2 | 0), MT = ['bois', 'brique', 'beton', 'bois', 'ferme'];
+    TOWNS.forEach(function (t, ti) { if (t[4] === 'plage' || t[4] === 'arena') return; var rc = mulberry(300 + ti), nb = ti === 0 ? 5 : 4 + (rc() * 2 | 0), MT = ['bois', 'brique', 'beton', 'bois', 'ferme'];
       for (var b = 0; b < nb; b++) { var a = b / nb * 6.283 + rc() * .5, rr = t[3] * (.52 + rc() * .12), x = t[1] + Math.cos(a) * rr, z = t[2] + Math.sin(a) * rr, dx = t[1] - x, dz = t[2] - z;
         var door = Math.abs(dx) > Math.abs(dz) ? (dx > 0 ? 'e' : 'w') : (dz > 0 ? 's' : 'n'), mt = MT[(b + ti) % MT.length], tall = mt === 'beton' && rc() < .6;
         house(x, z, 7 + rc() * 4 | 0, 7 + rc() * 3 | 0, mt === 'ferme' ? 'bois' : mt, tall ? H * 2 : H, door); if (b === 1 || b === 3 && rc() < .5) CHEST0.push([x, z]); } });
@@ -1288,7 +1300,7 @@ var GFX = (function () {
     for (var gx = cx - R; gx <= cx + R; gx += step) for (var gz = cz - R; gz <= cz + R; gz += step) {
       var ix = Math.round(gx / step), iz = Math.round(gz / step), h1 = hash2(ix, iz), h2 = hash2(iz + 17, ix - 3);
       var x = gx + (h1 - .5) * step, z = gz + (h2 - .5) * step, dd = (x - cx) * (x - cx) + (z - cz) * (z - cz); if (dd > R * R) continue;
-      if (vnoise(x / 18, z / 18) < (DES ? .55 : .3) || (SURV && Math.random() < aridK(x, z) * 1.3) || !onLand(x, z) || (!SURV && inTown(x, z, 3) && !farmGrass(x, z)) || nearRoad(x, z, SURV ? 2.6 : 6.5)) continue;
+      if (vnoise(x / 18, z / 18) < (DES ? .55 : .3) || (SURV && Math.random() < aridK(x, z) * 1.3) || !onLand(x, z) || (!SURV && inTown(x, z, 3) && !farmGrass(x, z)) || (ARENA && Math.abs(x - ARENA[1]) < 27 && Math.abs(z - ARENA[2]) < 27) || nearRoad(x, z, SURV ? 2.6 : 6.5)) continue;
       var y = hgt(x, z); if (y < .4 || (SURV && y > 56)) continue;
       var sc = (.7 + h1 * .5) * (1 - .3 * dd / (R * R)) * Math.min(1, .45 + dd / 30); o.position.set(x, y - .03, z); o.rotation.set(0, h2 * 6.283, 0); o.scale.set(sc, sc * (.8 + h2 * .5), sc); o.updateMatrix(); grass.setMatrixAt(n++, o.matrix); if (n >= max) break;
     }
@@ -1315,7 +1327,7 @@ if (window.TREES3D) try { TREES3D.build(THREE, { scene: scene, renderer: R3, DES
   onReady: function () { var far = TREES3D.hasFar(); (GFX.treeIM || []).forEach(function (im) { im.castShadow = false; if (far) im.visible = false; im.children.forEach(function (c) { c.castShadow = false; }); }); } }); } catch (e) { console.error('TREES3D', e); }
 if (window.OPT) try { var OPTR = OPT.batch(scene.children.slice(OPT_N0)); console.log('OPT batch', JSON.stringify(OPTR)); } catch (e) { console.error('OPT', e); }
 /* mode survie (survie.js) : pioche, ressources (bois, pierre, métal) et constructions façon Fortnite */
-var SV = null; if (window.SURVIE) try { SURVIE.init(THREE, { SURV: SURV, CREA: CREA, BUILD: BUILD, DES: DES, scene: scene, hgt: hgt, TREES: TREES, WALLS: WALLS, MATS: MATS, WMAT: WMAT, BOX: BOX, worldMat: worldMat, TX: TX, PCOL: PROPCOL, TOWNS: TOWNS, LAKE: LAKE, PEAKS: PEAKS, DARKFS: DARKFS, darkIn: darkIn, onLand: onLand, inTown: inTown, nearRoad: nearRoad, ISLM: ISLM, HALF: HALF,
+var SV = null; if (window.SURVIE) try { SURVIE.init(THREE, { SURV: SURV, CREA: CREA, BF: BF, ARENA: ARENA, BUILD: BUILD, DES: DES, scene: scene, hgt: hgt, TREES: TREES, WALLS: WALLS, MATS: MATS, WMAT: WMAT, BOX: BOX, worldMat: worldMat, TX: TX, PCOL: PROPCOL, TOWNS: TOWNS, LAKE: LAKE, PEAKS: PEAKS, DARKFS: DARKFS, darkIn: darkIn, onLand: onLand, inTown: inTown, nearRoad: nearRoad, ISLM: ISLM, HALF: HALF,
   setWall: function (w, on) { setWall(w, on); }, hitWall: function (w, d, by) { hitWall(w, d, by); }, me: function () { return me; }, cam: function () { return cam; }, camA: function () { return camA; }, camP: function () { return camP; }, state: function () { return state; },
   toast: function (t) { toast(t); }, burst: function () { burst.apply(null, arguments); }, tone: function () { tone.apply(null, arguments); }, noise: function () { noise.apply(null, arguments); }, SFX: SFX, isTouch: isTouch, rayBox: rayBox, hurt: function (p, d) { hurt(p, d, null); },
   cars: function () { return CART; }, makeChar: makeChar, ANIM: window.ANIM, pushCircle: pushCircle, dropItem: dropItem, randWeapon: randWeapon, dmgNum: dmgNum, PEBS: PEBS, HOUSES: HOUSES, ROADP: ROADP, WEAPONS: WEAPONS, newSlot: newSlot, H: H,
@@ -1676,7 +1688,7 @@ function reset() { WIN = false; document.body.classList.remove('won'); $('victor
   resetWalls(); resetVeh();
   items.slice().forEach(removeItem); chests.forEach(function (c) { lootGroup.remove(c.m); }); chests = [];
   CHEST0.forEach(function (c) { var m = window.OPT ? OPT.mergeLocal(chestModel()) : chestModel(); m.position.set(c[0], hgt(c[0], c[1]), c[1]); lootGroup.add(m); chests.push({ x: c[0], z: c[1], m: m }); });
-  TOWNS.forEach(function (t) { for (var k = SURV ? 7 : 0; k < 10; k++) { var a = Math.random() * 6.283, r = Math.random() * t[3] * .85; dropItem(t[1] + Math.cos(a) * r, t[2] + Math.sin(a) * r, k < 5 || k === 7 ? randWeapon() : ['heal', 'shield', 'ammo', 'mini', 'shield'][k - 5]); } });
+  TOWNS.forEach(function (t) { if (t[4] === 'arena') return; for (var k = SURV ? 7 : 0; k < 10; k++) { var a = Math.random() * 6.283, r = Math.random() * t[3] * .85; dropItem(t[1] + Math.cos(a) * r, t[2] + Math.sin(a) * r, k < 5 || k === 7 ? randWeapon() : ['heal', 'shield', 'ammo', 'mini', 'shield'][k - 5]); } });
   for (var k = 0; k < (SURV ? 34 : 45); k++) { var a = Math.random() * 6.283, r = 30 + Math.random() * (ISLM - 50), x = Math.cos(a) * r, z = Math.sin(a) * r; if (onLand(x, z)) dropItem(x, z, Math.random() < .55 ? randWeapon() : ['heal', 'shield', 'mini', 'ammo', 'bulle'][Math.random() * 5 | 0]); }
   pl.forEach(function (p) { Object.assign(p, { x: 0, y: 110, z: 0, vx: 0, vy: 0, vz: 0, a: 0, hp: 100, sh: 0, alive: true, inv: [null, null, null], slot: 0, heals: { mini: 0, shield: 0, heal: 0, bulle: 0 }, healSel: 'mini', useT: 0, useK: null, fireCd: 0, recoil: 0, hurtT: 0, lastHit: null, lastHitT: 0, kills: 0, broken: 0, veh: null, mode: 'bus', jumpAt: 3 + Math.random() * 20, step: 0, hitCd: 0, stormT: 0,
     ai: { t: 0, tx: 0, tz: 0, ag: .2 + BOTLV * .5 + Math.random() * .35, acc: .08 + BOTLV * .38 + Math.random() * .08, wantCar: Math.random() < .3, land: null, strafe: 1 } }); p.model.root.visible = false; });
@@ -1685,7 +1697,7 @@ function reset() { WIN = false; document.body.classList.remove('won'); $('victor
   storm = { x: 0, z: 0, r: 620, phase: 0, t: 0, mode: 'wait', plan: [[55, 20, 300, 1], [25, 18, 190, 2], [20, 15, 110, 4], [15, 12, 55, 7], [10, 10, 24, 10], [8, 8, 8, 14], [6, 6, 0, 20]] };
   pickNext(); place = NPL; $('feed').innerHTML = ''; camA = ang; camP = -.55; hbKey = '';
   if (SURV) { storm = { x: 0, z: 0, r: 1e6, phase: 0, t: 0, mode: 'off', plan: [[1e12, 1, 1e6, 0]] }; storm.nx = storm.nz = 0; storm.nr = 1e6;   // survie : pas de tempête, pas de bus, on démarre au camp
-    var T0s = TOWNS[0]; Object.assign(me, { mode: 'ground', x: T0s[1] + 3, z: T0s[2] + 6 }); me.y = me.gy = hgt(me.x, me.z); me.model.root.visible = true; camA = -Math.PI / 2; camP = -.2;
+    var T0s = BF ? ARENA : TOWNS[0]; Object.assign(me, { mode: 'ground', x: T0s[1] + 3, z: T0s[2] + (BF ? 0 : 6) }); me.y = me.gy = hgt(me.x, me.z); me.model.root.visible = true; camA = -Math.PI / 2; camP = -.2;
     }
   if (SV) SV.reset();
 }
@@ -2196,7 +2208,7 @@ function hud() {
   var cw = cur(me); setT('wname', me.veh || me.mode !== 'ground' ? '' : SV && SV.tool() ? SV.toolName() : cw ? WEAPONS[cw.k].name + (cw.rlT > 0 ? ' · recharge…' : ' · ' + cw.mag + ' / ' + cw.res) : SURV ? 'Pioche ⛏ : casse des arbres et des pierres' : 'Pas d\'arme : ramasse-en une !');
   $('wname').style.color = cw ? RAR[WEAPONS[cw.k].rar] : '#fff';
   var P = storm.plan[Math.min(storm.phase, storm.plan.length - 1)], left = Math.max(0, Math.ceil((storm.mode === 'wait' ? P[0] : P[1]) - storm.t)), out = me.mode === 'ground' && dist(me.x, me.z, storm.x, storm.z) > storm.r;
-  if (SURV) setT('storm', CREA ? '🎨 CRÉATIF · construis ce que tu veux' : window.SURVIE ? SURVIE.hudLine() : MAPNAME); else setT('storm', me.mode === 'bus' ? 'Saute du bus quand tu veux !' : (out ? '⚠ HORS ZONE · ' : '') + (storm.mode === 'wait' ? 'Tempête dans ' : 'La tempête avance · ') + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'));
+  if (SURV) setT('storm', BF ? '⚔️ 1V1 ENTRE POTES · zone build fight' : CREA ? '🎨 CRÉATIF · construis ce que tu veux' : window.SURVIE ? SURVIE.hudLine() : MAPNAME); else setT('storm', me.mode === 'bus' ? 'Saute du bus quand tu veux !' : (out ? '⚠ HORS ZONE · ' : '') + (storm.mode === 'wait' ? 'Tempête dans ' : 'La tempête avance · ') + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'));
   $('storm').classList.toggle('out', out); $('vign').classList.toggle('on', out);
   var nv = me.mode === 'ground' && !me.veh ? nearVeh(me) : null, sw = me.mode === 'ground' && !me.veh && !nv ? nearSwap(me) : null;
   var act = me.mode === 'bus' ? 'SAUTER' : me.veh ? 'SORTIR' : nv ? 'MONTER' : sw ? 'PRENDRE' : '';
@@ -2433,11 +2445,18 @@ window.lockerRender = lockerRender;
 $('mapName').textContent = MAPNAME;
 function goMap(m, mode) { try { localStorage.setItem('wr_mode', mode); } catch (e) {} var bt = $('boot'); if (bt) { $('bootT').textContent = 'CHARGEMENT DE ' + MAPS[m] + '…'; bt.hidden = false; bt.classList.remove('off'); } music(false);
   setTimeout(function () { var q = new URLSearchParams(location.search); q.delete('map'); q.set('jouer', ''); location.search = '?' + q.toString().replace(/=(&|$)/g, '$1'); }, 60); }
-$('modeT').textContent = (CREA ? 'Créatif' : SURV ? 'Survie' : ZB ? 'Zéro Construction' : 'Battle Royale') + (SURV ? ' · Monde' : ' · Carte');
-if (SURV && !CREA && SV && SV.hasSave()) (function () { var d = document.createElement('div'); d.className = 'savebox'; d.innerHTML = '💾 Monde sauvegardé sur ce téléphone · <button type="button" id="newWorld">🗑 Nouveau monde</button>'; $('maps').after(d);
-  $('newWorld').addEventListener('click', function () { if (!confirm('Effacer ta sauvegarde et recommencer un nouveau monde ?')) return; SV.wipe(); d.remove(); toast('NOUVEAU MONDE'); }); })(); $('mapSub').textContent = CREA ? 'Constructions illimitées · armurerie infinie' : SURV ? 'Seul contre les zombies · construis ta base' : 'Solo · 30 joueurs · ' + TOWNS.length + ' villes' + (ZB ? ' · sans constructions' : '');
-document.querySelectorAll('#maps button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === MODE); b.addEventListener('click', function () { if (b.dataset.mode === MODE) return; var nm = b.dataset.mode, nmap = nm === 'survie' || nm === 'creatif' ? 'survie' : brMap();
-  if (nmap === MAP && !SURV) { try { localStorage.setItem('wr_mode', nm); } catch (e) {} location.reload(); return; } b.textContent = 'Chargement…'; goMap(nmap, nm); }); });
+$('modeT').textContent = (BF ? 'Créatif · Map publique' : CREA ? 'Créatif' : SURV ? 'Survie' : ZB ? 'Zéro Construction' : 'Battle Royale') + (BF ? '' : SURV ? ' · Monde' : ' · Carte');
+if (SURV && !CREA && SV && SV.hasSave()) (function () { var d = document.createElement('div'); d.className = 'savebox'; d.innerHTML = '💾 Monde sauvegardé sur ce téléphone · <button type="button" id="newWorld">🗑 Nouveau monde</button>'; $('subCR').after(d);
+  $('newWorld').addEventListener('click', function () { if (!confirm('Effacer ta sauvegarde et recommencer un nouveau monde ?')) return; SV.wipe(); d.remove(); toast('NOUVEAU MONDE'); }); })(); if (BF) $('mapName').textContent = '1V1 ENTRE POTES'; $('mapSub').textContent = BF ? '✔ Créateur Wald Royal · 200 PV · build fight' : CREA ? 'Mon monde · constructions illimitées · armurerie infinie' : SURV ? 'Seul contre les zombies · construis ta base' : 'Solo · 30 joueurs · ' + TOWNS.length + ' villes' + (ZB ? ' · sans constructions' : '');
+var MGRP = MODE === 'br' || MODE === 'zb' ? 'br' : MODE === 'survie' ? 'survie' : 'creatif';   // menu JOUER : Battle Royale (constru / zéro constru) · Créatif (mon monde / maps publiques) · Survie
+function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'survie' || nm === 'creatif' || nm === 'bf' ? 'survie' : brMap();
+  if (nmap === MAP && !SURV) { try { localStorage.setItem('wr_mode', nm); } catch (e) {} location.reload(); return; } if (el) el.classList.add('load'); goMap(nmap, nm); }
+function mgrpDraw() { document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
+  document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === MODE); }); }
+document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.addEventListener('click', function () { MGRP = b.dataset.g; mgrpDraw(); if (MGRP === 'survie') pickMode('survie', b); else if (MGRP === 'br' && MODE !== 'br' && MODE !== 'zb') pickMode('br', b); }); });
+document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.addEventListener('click', function () { pickMode(b.dataset.mode, b); }); });
+$('pubBtn').addEventListener('click', function () { toast('BIENTÔT : AVEC LE MULTIJOUEUR, TES MAPS POURRONT ÊTRE PUBLIQUES'); });
+mgrpDraw();
 // rotation des cartes du Battle Royale : toutes les 10 minutes ; au menu, la nouvelle carte se charge toute seule
 setInterval(function () { if (SURV) { $('rotT').textContent = ''; return; } var CURM = MODE; var left = ROT - Date.now() % ROT, sec = Math.ceil(left / 1000);
   $('rotT').textContent = '⏱ ' + MAPS[brMap(Date.now() + left + 1000)] + ' dans ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
