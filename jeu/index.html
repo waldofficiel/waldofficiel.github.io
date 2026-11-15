@@ -2247,7 +2247,7 @@ function aimPull(dt) {
     var tMin = cp.distanceTo(v2.set(me.x, me.y + 1.5, me.z)), h = castRay(cp.x + tx / l * tMin, cp.y + ty / l * tMin, cp.z + tz / l * tMin, tx / l, ty / l, tz / l, l, me, 0); if (isZ ? h.kind === 'zomb' && h.o === o : h.kind === 'pl' && h.o === o) { bestA = ang; best = { yaw: Math.atan2(tz, tx), pitch: Math.atan2(ty, Math.hypot(tx, tz)) }; } }
   for (var i = 1; i < pl.length; i++) { var o = pl[i]; if (o.alive && !o.veh && o.mode === 'ground' && Math.abs(o.x - me.x) < W2.range && Math.abs(o.z - me.z) < W2.range) test(o.x, o.y + 1.2, o.z, o, false); }
   if (window.ZOMB && ZOMB.on) ZOMB.list().forEach(function (z) { if (!z.dead && Math.abs(z.x - me.x) < 60 && Math.abs(z.z - me.z) < 60) test(z.x, z.y + 1.2, z.z, z, true); });
-  if (!best) return; var k = Math.min(1, dt * 1.5 * st * (adsK > .5 ? 1.3 : 1));   // aide à la visée (moitié moins forte qu'avant) camA += angD(best.yaw, camA) * k; camP += (best.pitch - camP) * k * .7; }
+  if (!best) return; var k = Math.min(1, dt * 1.5 * st * (adsK > .5 ? 1.3 : 1)); /* aide à la visée : moitié moins forte qu'avant */ camA += angD(best.yaw, camA) * k; camP += (best.pitch - camP) * k * .7; }
 function aimAssist(dt) {   // TIR AUTO : la caméra ne bouge jamais toute seule ; on tire seulement quand le viseur est sur un ennemi
   var w0 = cur(me); if (!AUTO || !w0 || me.veh || me.mode !== 'ground') { trigT = 0; return false; }
   var W2 = WEAPONS[w0.k], cp = cam.position, cd = cam.getWorldDirection(v1), tMin = cp.distanceTo(v2.set(me.x, me.y + 1.5, me.z));
@@ -2330,7 +2330,7 @@ function castRay(ox, oy, oz, dx, dy, dz, maxT, skip, fat) {
     if (disc < 0) continue; var sq = Math.sqrt(disc), t1 = -bq - sq, t2 = -bq + sq; t = t1 > .05 ? t1 : t2 > .05 ? t2 : 1e9; if (t < best.t) best = { t: t, kind: 'bubble', o: bb }; }
   if (window.ZOMB && ZOMB.on) { var zh = ZOMB.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (zh) best = zh; }   // zombies (mode survie)
   for (i = 0; i < vehicles.length; i++) { var v = vehicles[i]; if (!v.alive || (skip && skip.veh === v)) continue; t = rayBox(ox, oy, oz, dx, dy, dz, v.x - 1.9, v.y, v.z - 1.9, v.x + 1.9, v.y + 2, v.z + 1.9); if (t < best.t) best = { t: t, kind: 'veh', o: v }; }
-  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .48 }; }   // HITBOX COMMUNE à tous les skins (même boîte, même tête)
+  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .48 }; } /* HITBOX COMMUNE à tous les skins */
   return best;
 }
 var camKick = 0;
