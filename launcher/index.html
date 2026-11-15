@@ -79,12 +79,13 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     <section class="page" data-p="lib">
       <div class="top"><h1>Bibliothèque</h1></div>
       <div class="grid"><button class="card" id="libCard"><img src="../wald-royal/img/place.jpg" alt=""><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <button class="btn2" id="libUn" type="button" hidden style="margin-top:10px">🗑 Désinstaller Wald Royal</button>
       <h3>Vidéos</h3><div class="grid">
         <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal · accès anticipé</small></div></button>
         <button class="card" data-tv="1"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs, 1 bus volant, 0 pitié</small></div></button>
         <button class="card" data-tv="2"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie : l'histoire</b><small>La Brume Violette</small></div></button>
         <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, PROPANE, entre potes</small></div></button></div>
-      <p class="note" style="margin-top:14px">Wald Game ouvre toujours la dernière version du jeu : rien à réinstaller quand il y a une mise à jour.</p>
+      <p class="note" style="margin-top:14px">Wald Game met Wald Royal à jour tout seul : seuls les fichiers qui ont changé sont téléchargés.</p>
     </section>
     <section class="page" data-p="news"><div class="top"><h1>Nouveautés</h1></div><div class="news" id="news2"></div></section>
     <section class="page" data-p="acct">
@@ -118,8 +119,54 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('codeNew').onclick = function () { var c = ''; for (var i = 0; i < 4; i++) c += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0]; LS('wr_room', c); acct(); };
   acct();
   function net() { var on = navigator.onLine !== false; $('dot').classList.toggle('off', !on); $('net').textContent = on ? 'En ligne' : 'Hors ligne'; } net(); addEventListener('online', net); addEventListener('offline', net);
-  fetch('../jeu/version.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (j) { $('ver').innerHTML = 'Version <b>' + j.v + '</b> · à jour ✔'; $('verTop').textContent = 'v' + j.v; $('libVer').textContent = 'Version ' + j.v + ' · à jour'; }).catch(function () { $('ver').textContent = 'Hors ligne : dernière version gardée'; });
-  function launch(mode) { if (mode) LS('wr_mode', mode); $('play').disabled = true; $('play').textContent = 'LANCEMENT…'; $('bar').style.display = 'block'; var i = 0, t = setInterval(function () { i += 12; $('bar').firstChild.style.width = Math.min(100, i) + '%'; if (i >= 100) { clearInterval(t); location.href = '../jeu/index.html?jouer&from=launcher' + (mode ? '&mode=' + mode : ''); } }, 40); }
+  /* ---- WALD GAME (appli) : Wald Royal s'INSTALLE depuis le launcher, puis JOUER lance le jeu installé ---- */
+  var APP = !!(window.WG && typeof WG.installed === 'function'), LATEST = 0, SIZE = 0, BUSY = false, AFTER = null;
+  function inst() { try { return +WG.installed(); } catch (e) { return -1; } }
+  function prof(dir) {   // profil partagé avec le jeu installé (pseudo, skins, pièces, rang, sauvegardes…)
+    if (!APP) return;
+    try {
+      if (dir === 'in') { var p = WG.profile(); if (!p) return prof('out'); var o = JSON.parse(p); for (var k in o) localStorage.setItem(k, o[k]); }
+      else { var o2 = {}; for (var i = 0; i < localStorage.length; i++) { var kk = localStorage.key(i); if (/^wr/.test(kk)) o2[kk] = localStorage.getItem(kk); } WG.saveProfile(JSON.stringify(o2)); }
+    } catch (e) {}
+  }
+  function mo(b) { return (b / 1048576).toFixed(0) + ' Mo'; }
+  function ui() {
+    if (!APP) return;
+    var v = inst(), b = $('play'), un = $('libUn');
+    if (BUSY) { b.disabled = true; return; }
+    b.disabled = false; $('bar').style.display = 'none';
+    if (v < 0) { b.textContent = '⬇ INSTALLER'; $('ver').innerHTML = 'Wald Royal n\'est pas encore installé' + (SIZE ? ' · <b>' + mo(SIZE) + '</b>' : ''); $('libVer').textContent = 'Pas installé' + (SIZE ? ' · ' + mo(SIZE) : '') + ' · touche pour installer'; }
+    else if (LATEST && v !== LATEST) { b.textContent = '⟳ METTRE À JOUR'; $('ver').innerHTML = 'Mise à jour disponible : v' + v + ' → <b>v' + LATEST + '</b>'; $('libVer').textContent = 'Installé · mise à jour disponible'; }
+    else { b.textContent = '▶ JOUER'; $('ver').innerHTML = 'Wald Royal installé · version <b>' + v + '</b> ✔'; $('libVer').textContent = 'Installé · version ' + v + ' · à jour'; }
+    if (un) un.hidden = v < 0;
+  }
+  window.WGprog = function (p, m) { $('bar').style.display = 'block'; $('bar').firstChild.style.width = Math.max(2, p) + '%'; $('ver').innerHTML = (inst() < 0 ? 'Installation de Wald Royal… ' : 'Mise à jour… ') + '<b>' + p + ' %</b>' + (m ? ' · ' + m : ''); $('libVer').textContent = (inst() < 0 ? 'Installation… ' : 'Mise à jour… ') + p + ' %'; };
+  window.WGdone = function () { BUSY = false; ui(); if (AFTER !== null) { var m = AFTER; AFTER = null; go(m); } };
+  window.WGfail = function (m) { BUSY = false; AFTER = null; ui(); $('ver').innerHTML = '⚠ Échec du téléchargement (' + m + '). Vérifie ta connexion et réessaie.'; };
+  function install(then) { if (BUSY) return; BUSY = true; AFTER = then === undefined ? null : then; $('play').disabled = true; $('play').textContent = inst() < 0 ? 'INSTALLATION…' : 'MISE À JOUR…'; window.WGprog(0, ''); try { WG.install(); } catch (e) { window.WGfail('appli'); } }
+  function go(mode) {
+    if (mode) LS('wr_mode', mode);
+    $('play').disabled = true; $('play').textContent = 'LANCEMENT…';
+    if (APP) { prof('out'); WG.play(mode ? '&mode=' + mode : ''); return; }
+    $('bar').style.display = 'block'; var i = 0, t = setInterval(function () { i += 12; $('bar').firstChild.style.width = Math.min(100, i) + '%'; if (i >= 100) { clearInterval(t); location.href = '../jeu/index.html?jouer&from=launcher' + (mode ? '&mode=' + mode : ''); } }, 40);
+  }
+  function launch(mode) {
+    if (!APP) return go(mode);
+    var v = inst();
+    if (v < 0) return install(null);                       // 1re fois : on installe, puis le bouton devient JOUER
+    if (LATEST && v !== LATEST) return install(mode);      // mise à jour puis on lance
+    go(mode);
+  }
+  prof('in'); acct();
+  fetch('../jeu/version.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (j) {
+    LATEST = j.v; SIZE = 0; for (var k in (j.files || {})) SIZE += j.files[k][1];
+    $('verTop').textContent = 'v' + j.v;
+    if (APP) { ui(); var v = inst(); if (v >= 0 && v !== LATEST) install(null); }   // mise à jour automatique au lancement
+    else { $('ver').innerHTML = 'Version <b>' + j.v + '</b> · à jour ✔'; $('libVer').textContent = 'Version ' + j.v + ' · à jour'; }
+  }).catch(function () { $('ver').textContent = 'Hors ligne'; ui(); });
+  if (APP) { ui(); try { if (WG.busy()) { BUSY = true; ui(); } } catch (e) {} }
+  $('libCard').onclick = function (e) { if (APP) { e.stopImmediatePropagation(); launch(''); } };
+  var unT = 0; if ($('libUn')) $('libUn').onclick = function () { if (BUSY) return; var b = this; if (Date.now() - unT > 4000) { unT = Date.now(); b.textContent = '⚠ Touche encore pour désinstaller (progression gardée)'; setTimeout(function () { b.textContent = '🗑 Désinstaller Wald Royal'; }, 4000); return; } unT = 0; prof('out'); WG.uninstall(); b.textContent = '🗑 Désinstaller Wald Royal'; ui(); };
   $('play').onclick = function () { launch(''); };
   document.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { launch(b.dataset.go); }; });
 })();

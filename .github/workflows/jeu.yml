@@ -1,8 +1,8 @@
-name: Construire Wald Royal (Android + PC)
+name: Construire Wald Game (Android + PC)
 on:
   push:
     branches: [main]
-    paths: ['jeu/**', 'app/**', '.github/workflows/jeu.yml']
+    paths: ['app/**', '.github/workflows/jeu.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -25,11 +25,6 @@ jobs:
           echo "sdk.dir=$ANDROID_HOME" > app/android/local.properties
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '8.7' }
-      - name: Copier le jeu dans l'APK
-        run: |
-          mkdir -p app/android/app/src/main/assets
-          cp -r jeu/. app/android/app/src/main/assets/
-          rm -f app/android/app/src/main/assets/sw.js app/android/app/src/main/assets/perso.jpg app/android/app/src/main/assets/polo_drift.webp
       - name: Construire l'APK
         working-directory: app/android
         run: gradle assembleRelease --no-daemon
@@ -49,12 +44,6 @@ jobs:
         shell: bash
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Copier le jeu
-        shell: bash
-        run: |
-          mkdir -p app/desktop/game
-          cp -r jeu/. app/desktop/game/
-          rm -f app/desktop/game/sw.js app/desktop/game/perso.jpg app/desktop/game/polo_drift.webp
       - name: Construire l'installeur Windows
         working-directory: app/desktop
         run: |

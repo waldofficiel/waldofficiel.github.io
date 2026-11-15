@@ -352,5 +352,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## Site centré Wald Game (cache v46)
 - Page wald-royal/ et accueil présentent Wald Game (launcher) avec Wald Royal dedans. Icône img/waldgame.png. Manifest web du jeu chargé seulement hors Android/Windows (plus de proposition « Installer Wald Royal » sur Android/PC) ; iPhone garde la version web Wald Royal.
 
+## Wald Game = vrai launcher façon Epic, Wald Royal s'installe dedans (cache v48)
+- Les applis (`MainActivity.java`, `app/desktop/main.js` + `preload.js`) ne contiennent PLUS le jeu (APK/EXE légers). Avec internet : elles ouvrent `https://waldofficiel.github.io/launcher/?app=2`. Sans internet : jeu installé s'il existe, sinon message.
+- Pont JS `window.WG` (Android `addJavascriptInterface`, PC `contextBridge` + ipc limité à nos pages) : `installed()` (version ou -1), `busy()`, `install()` (télécharge `jeu/version.json` + fichiers changés dans files/game ou userData/game ; rappels `WGprog(p,msg)`, `WGdone(v)`, `WGfail(msg)`), `play(q)` (Android `https://appassets.androidplatform.net/game/index.html?jouer&from=launcher`, PC `app://jeu/...`), `launcher()`, `uninstall()`, `profile()` / `saveProfile(json)`.
+- Launcher : bouton ⬇ INSTALLER → barre de progression → ▶ JOUER ; mise à jour auto au lancement si version différente ; carte Bibliothèque = installer/jouer ; « Désinstaller » (double toucher). Dans un navigateur (pas d'appli), JOUER ouvre le jeu web comme avant.
+- Profil partagé : toutes les clés localStorage `wr*` passent par `profile.json` de l'appli (launcher importe au chargement, exporte avant JOUER ; le jeu installé importe au démarrage (script en tête) et exporte toutes les 15 s + en quittant, `window.WGsave`).
+- Le workflow d'applis ne se lance plus que sur `app/**` (le jeu se met à jour via le site, sans rebuild).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
