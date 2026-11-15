@@ -370,5 +370,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Images de pub : `wald-royal/img/crea_horde.jpg`, `crea_boss.jpg`, `crea_rares.jpg` (page de rendu `/home/claude/_t_crea.html`, hors dépôt).
 - Launcher : page **Boutique** (Wald Royal + Survie 5,99 €, bouton gris tant que `window.SURV_PAY_URL` est vide), pub `TR[4]` qui se lance seule la 1re fois (`wg_adSurv1`), bouton JOUER/INSTALLER avec flèche ▾ : « Wald Royal » (gratuit) / « Wald Royal + Survie · 5,99 € » (grisé). Survie toujours jouable pour l'instant (pas de blocage, pas de paiement).
 
+## Accès anticipé déplacé (cache v51)
+- Plus de badge accès anticipé au salon (`#eaB` caché) ni dans la bannière du launcher ; la mention est sur l'écran de chargement (`#boot .bea`). Pause : bouton « 💬 Laisser un commentaire » (`#pFb`).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
