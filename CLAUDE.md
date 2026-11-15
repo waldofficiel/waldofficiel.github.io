@@ -413,5 +413,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Appareils** (`DEV`, `devMesh`, `devBuild`, `devPlace`, `devDel`, `devOpen`) : Mon monde → Échap → 🧩 Appareils (plateforme, qui bouge, point de passage, bloc mortel, arrivée), posés devant soi ou sous ses pieds en volant. Publiés avec le jeu (`dev` = [k,x,y,z,s]) et rechargés par `pubApply` ; type de partie « 🏃 Parcours » dans Publier.
 - `WR.dev()`, `WR.obby(dt)` pour les tests.
 
+## Règles QUAND/ALORS, Gun Game, 2 skins, hitbox commune (cache v60)
+- **Règles** (façon appareils reliés Fortnite) : `RULES` [{q, qp, a, ap}], éditeur `rulesOpen` (Échap → ⚡ Règles ou depuis Appareils). Évènements : debut, touche (n° d'appareil, marcher dessus ou entrer dans une zone), chrono (s), score (points), mort. Actions : msg, tp, arme, soin, vitesse, saut (`SPDT/JMPT`), point (`RSCORE`), gagne (`ow` avec `w:1`), retour, cache/montre (`devShow`, message `dv`). Appareils numérotés (`d.id`, `DEVID`, étiquette `devLabel` dans Mon monde) ; nouveaux appareils : téléporteur `tp` (vers le suivant si pas de règle), bouton `btn`, zone `zn` (invisible). `devTick` : plateformes qui bougent, téléporteurs, blocs mortels, zones, règles. Publiés avec le jeu (`rules`, dev[5] = id).
+- **GUN GAME** (mode `gg`, map publique N°5, ✔ Wald Game, carte `propane`) : `GG` = 10 armes (pistolet → Fusil Doré), `ggUp` à chaque élimination (bots : `crBotDie` / `eliminate` ; réseau : `k` avec `by`, les bots envoient `bid` dans `h`), `ggSpawn` réapparition immédiate, 6 bots de complément, niveau des autres via `s.gl` (`GGTOP`).
+- Aide à la visée ÷2 (`aimPull` k = dt × 1,5). Hitbox commune à tous les skins (boîte 0,8 × 1,95 m, 1,35 accroupi, tête = 48 cm du haut).
+- Skins : `rico` Rico (600, survêtement violet à bandes, chaîne, lunettes) et `nova` Nova (1500, combinaison noire à lignes néon, couette rose, visière) ; tous les persos (sauf Flubb) ont une ceinture à boucle. Bras : coudes plus pliés en marchant/courant (anim.js).
+- Bus : un seul bouton SAUTER (le bouton d'action est caché dans le bus). Bouton « ACCROUPI » (la glissade reste : s'accroupir en sprintant).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

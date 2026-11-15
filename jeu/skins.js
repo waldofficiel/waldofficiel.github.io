@@ -131,6 +131,7 @@
     });
     var aL = R.aL; shell(aL, .155 * k, .11, .155 * k, 0, .0, 0, iron, 0, 6.283, 0, 1.15); shell(aL, .135 * k, .1, .135 * k, 0, -.07, 0, lea, 0, 6.283, 0, 1.25);   // épaulière : plaque de fer + cuir dessous
     [0, 1.57, 3.14, 4.71].forEach(function (a2) { S(aL, .016, .016, .016, Math.cos(a2) * .12 * k, .06, Math.sin(a2) * .12 * k, brass); });
+    if (k >= 1) { var bt = new T3.Mesh(new T3.TorusGeometry(.262, .026, 8, 32), lea); place(bt, R.body, 0, .93, 0, Math.PI / 2); S(R.body, .022, .05, .07, .262, .93, 0, brass); S(R.body, .01, .03, .045, .282, .93, 0, dk); }   // ceinture + boucle
   }
   var B = {};
   /* ---------- WALD OFF : bob, lunettes noires, bouc, t-shirt rouge, grosse chaîne, short à carreaux, baskets ---------- */
@@ -261,6 +262,22 @@
   };
   /* ---------- ZOMBIES (mode survie) : le corps des bots, peau verdâtre / bleutée / violette, yeux qui brillent, bouche ouverte, vêtements déchirés.
      o.zv : 0 rôdeur, 1 brute (épaisse), 2 coureur (maigre, pâle), 3 bizarre (grosse tête, yeux roses) ---------- */
+  /* ---------- RICO : survêtement violet à bandes, casquette à l'envers, grosse chaîne, lunettes, baskets blanches ---------- */
+  B.rico = function (R, o) { var cols = B.npc(R, { skin: '#b07a52', shirt: '#6a2ab8', pants: '#3a1468', shoes: '#f4f4f4', hat: 'cap', hatCol: '#151515', v: 2 }), wh = M('#ffffff'), gold = M('#ffd23d', { shininess: 120, specular: '#fff6c0', emissive: '#3a2600' }), dk = M('#111111', { shininess: 90 }), h = R.head;
+    [R.lL, R.lR].forEach(function (l, i) { S(l, .012, .36, .02, 0, -.35, (i ? 1 : -1) * .1, wh); });   // bandes du survêtement
+    [R.aL, R.aR].forEach(function (a, i) { S(a, .012, .2, .014, 0, -.18, (i ? 1 : -1) * .075, wh); });
+    var ch = new T3.Mesh(new T3.TorusGeometry(.2, .022, 8, 28, Math.PI * 1.15), gold); place(ch, R.body, .05, 1.48, 0, Math.PI / 2, 0, Math.PI * .43); S(R.body, .03, .07, .06, .24, 1.3, 0, gold);   // grosse chaîne + médaillon
+    eachSide(function (s2) { S(h, .03, .055, .085, .265, .2, s2 * .1, dk); }); S(h, .02, .015, .07, .27, .21, 0, dk);   // lunettes noires
+    S(h, .025, .025, .025, .02, .14, .29, gold); S(h, .025, .025, .025, .02, .14, -.29, gold);   // boucles d'oreilles
+    return cols; };
+  /* ---------- NOVA : pilote cyber, combinaison noire à lignes néon, cheveux roses, visière ---------- */
+  B.nova = function (R, o) { var cols = B.npc(R, { skin: '#f0c8a8', shirt: '#14141c', pants: '#14141c', shoes: '#1a1a24', hat: 'none', v: 4 }), neo = M('#3dd6ff', { emissive: '#3dd6ff', emissiveIntensity: .8 }), pk = M('#ff5ad8', { shininess: 40 }), vis = M('#7ae8ff', { transparent: true, opacity: .55, shininess: 160, emissive: '#1a6080' }), h = R.head;
+    [R.lL, R.lR].forEach(function (l) { S(l, .015, .38, .015, .1, -.38, 0, neo); S(l, .11, .02, .11, 0, -.8, 0, neo); });
+    [R.aL, R.aR].forEach(function (a) { S(a, .015, .22, .015, .07, -.2, 0, neo); });
+    S(R.body, .012, .3, .02, .275, 1.25, .08, neo); S(R.body, .012, .3, .02, .275, 1.25, -.08, neo); S(R.body, .2, .015, .015, .2, 1.05, 0, neo); var cr = new T3.Mesh(new T3.TorusGeometry(.07, .012, 6, 20), neo); place(cr, R.body, .285, 1.3, 0, 0, Math.PI / 2);   // lignes + cœur lumineux
+    shell(h, .29, .3, .29, -.02, .17, 0, pk, -1.9, 3.8, 0, 1.75); S(h, .12, .16, .12, -.14, .42, 0, pk); S(h, .08, .14, .08, -.22, .3, 0, pk);   // cheveux roses en couette
+    S(h, .05, .07, .27, .245, .22, 0, vis); S(h, .02, .02, .28, .25, .27, 0, neo);   // visière néon
+    return cols; };
   B.zombie = function (R, o) {
     o = o || {}; var zv = o.zv || 0, SK = o.SK || ['#8fb07a', '#7a9a6a', '#a8c0c8', '#b49ac8'][zv], SH = o.SH || ['#5a4a3a', '#3a3f48', '#6a5a4a', '#4a3a5a'][zv], PA = o.PA || ['#3a3a48', '#4a3a2a', '#2a3a4a', '#3a2a3a'][zv];
     var bare = o.horns || o.antlers || o.shroom || o.crystal || o.hood || o.crown || o.eyes3 || o.bones || o.wrap || o.hs || o.lava || o.fins;
@@ -292,7 +309,7 @@
     if (o.spikes) { var sp = M('#2a1030'); for (var k2 = 0; k2 < 5; k2++) C(R.body, .05, 0, .22, -.2, 1.25 + k2 * .09, 0, sp, 0, 0, Math.PI / 2 + .4); }   // hurleur : épines dans le dos
     return cols;
   };
-  window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];
+  window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan', 'rico', 'nova'];
   window.buildSkin = function (THREE, id, opts) {
     init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts); if (id !== 'zombie') gear(R, id === 'flubb' ? .55 : 1);
     R.cols = cols; return skinify(R);

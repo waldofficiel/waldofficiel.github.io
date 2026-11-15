@@ -23,8 +23,8 @@
     var s = S(step), s2 = S(step + PI);
     var o = P({ lt: s * .62 * amp, rt: s2 * .62 * amp,
       lk: (.08 + Math.max(0, S(step - 1.3)) * (run ? 1.25 : .95)) * amp, rk: (.08 + Math.max(0, S(step + 1.84)) * (run ? 1.25 : .95)) * amp,
-      la: -s * .55 * amp, ra: -s2 * .55 * amp, lb: .1, rb: .1, lw: .4, rw: .4,
-      le: (.25 + Math.max(0, -s) * (run ? 1.1 : .55)) * amp + .12, re: (.25 + Math.max(0, -s2) * (run ? 1.1 : .55)) * amp + .12,
+      la: -s * (run ? .8 : .6) * amp, ra: -s2 * (run ? .8 : .6) * amp, lb: .1, rb: .1, lw: .4, rw: .4,
+      le: (.45 + Math.max(0, -s) * (run ? 1.35 : .8) + Math.max(0, s) * .25) * amp + .18, re: (.45 + Math.max(0, -s2) * (run ? 1.35 : .8) + Math.max(0, s2) * .25) * amp + .18,   // coudes bien pliés qui battent avec le pas
       bp: (run ? .14 : .05) * amp, byw: s * .1 * amp, hy: -s * .06 * amp, by: -Math.abs(C(step)) * .03 * amp });
     return o;
   }
