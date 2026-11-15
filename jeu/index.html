@@ -181,14 +181,14 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .ladder{display:grid;gap:5px}.ladder div{display:flex;align-items:center;gap:10px;background:rgba(11,4,24,.75);border-radius:10px;padding:5px 10px;border:1px solid rgba(255,255,255,.12)}
 .ladder div.me{border-color:var(--sun)}.ladder .rk{width:34px;height:34px;font-size:11px}.ladder b{flex:1;font:900 13px var(--display)}.ladder small{color:var(--mute);font-size:11px}
 .locker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-@font-face{font-family:'WRvic';src:url(fonts/LuckiestGuy-Regular.ttf)}
+@font-face{font-family:'WRvic';src:url(fonts/LuckiestGuy-Regular.ttf)}@font-face{font-family:'WRtop';src:url(fonts/RussoOne-Regular.ttf)}
 #victory{position:fixed;inset:0;z-index:45;pointer-events:none;display:flex;flex-direction:column;align-items:center}
 #victory[hidden]{display:none}
-#victory .vt{margin-top:6vh;font:400 min(19vw,27vh)/1 'WRvic',var(--display);letter-spacing:.03em;padding:0 .08em;background:linear-gradient(180deg,#fffbe6 0%,#ffe27a 30%,#ffb21f 50%,#fff1a8 64%,#ffd23d 80%,#fff 100%);background-size:100% 220%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.035em #2a0838;filter:drop-shadow(0 0 .12em #ff2bd6) drop-shadow(0 .05em 0 #8a1ab8);animation:vpop .8s cubic-bezier(.2,1.7,.4,1) both,vshine 2.4s 1s ease-in-out infinite}
-#victory .vs{margin-top:.4em;font:400 clamp(15px,2.8vw,26px) 'WRvic',var(--display);color:#fff;letter-spacing:.12em;text-shadow:0 0 12px #ff2bd6,0 2px 0 #3a0a5a;animation:vfade .8s .6s both}
+#victory .vt{margin-top:6vh;font:400 min(19vw,27vh)/1 'WRtop',var(--display);letter-spacing:.01em;font-style:italic;transform:skewX(-8deg);padding:0 .08em;background:linear-gradient(180deg,#fffbe6 0%,#ffe27a 30%,#ffb21f 50%,#fff1a8 64%,#ffd23d 80%,#fff 100%);background-size:100% 220%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:.035em #2a0838;filter:drop-shadow(0 0 .12em #ff2bd6) drop-shadow(0 .05em 0 #8a1ab8);animation:vpop .8s cubic-bezier(.2,1.7,.4,1) both,vshine 2.4s 1s ease-in-out infinite}
+#victory .vs{margin-top:.4em;font:400 clamp(15px,2.8vw,26px) 'WRtop',var(--display);color:#fff;letter-spacing:.12em;text-shadow:0 0 12px #ff2bd6,0 2px 0 #3a0a5a;animation:vfade .8s .6s both}
 #victory .vb{position:absolute;top:58px;left:max(12px,env(safe-area-inset-left));display:flex;flex-direction:column;align-items:stretch;gap:8px;pointer-events:auto;animation:vfade .8s 1.4s both}#victory .vb button{padding:8px 16px;font-size:14px}
 body.won #hotbar,body.won #useBar,body.won #wname,body.won #bDance,body.won #storm,body.won #cross{display:none!important}
-@keyframes vpop{0%{transform:scale(3);opacity:0}60%{opacity:1}100%{transform:scale(1)}}
+@keyframes vpop{0%{transform:scale(3) skewX(-8deg);opacity:0}60%{opacity:1}100%{transform:scale(1) skewX(-8deg)}}
 @keyframes vshine{0%,100%{background-position:0 0}50%{background-position:0 100%}}
 @keyframes vfade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 #buyPop{position:fixed;inset:0;z-index:40;pointer-events:none}#buyPop[hidden]{display:none}

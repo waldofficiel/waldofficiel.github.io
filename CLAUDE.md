@@ -340,5 +340,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## Nom du launcher (cache v42)
 - Le launcher et les applis s'appellent « Wald Game » (le jeu reste Wald Royal). Fichiers de téléchargement inchangés : WaldRoyal.apk / WaldRoyal-Setup.exe.
 
+## Police du TOP 1 (cache v43)
+- Écran TOP 1 : police 'WRtop' (fonts/RussoOne), italique penchée, dégradé or + néon rose.
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
