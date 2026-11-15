@@ -327,5 +327,15 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Les applis ouvrent `/launcher/?app=1`. Les anciennes applis qui ouvrent `jeu/?jouer` sont redirigées vers le launcher (script en tête de jeu/index.html, si UA WaldRoyalApp/Electron et pas `from=launcher`). Bouton « ⬅ LAUNCHER » au salon du jeu.
 - Page wald-royal : la barre « INSTALLER LE LAUNCHER » télécharge directement l'APK (Android) ou l'EXE (Windows).
 
+## Accès anticipé, créatures, générateurs, sprint (cache v41)
+- Survie : `KIND` (zombies.js) = 8 espèces (rodeur, brute, coureur, bizarre, hurleur Rare, colosse Rare, spectre Épique nuit, roi Légendaire). `pickKind(night)`, POP 110, respawn infini 20-45 s à 60-260 m. `B.zombie` accepte SK/SH/PA/eye, moss, crown, spikes.
+- survie.js : `LORE`, 8 affiches `AFF` sur pierres dans les villes (`wr_affiches`), Livre des créatures `book()` / bouton 📖 / objet sac `{t:'livre'}` (`wr_bestiaire`, débloqué au 1er kill). Plus de compteur 0/160.
+- Générateurs d'armes (MAP 1V1 = ARENA z+32.5, Mon monde = TOWNS[0] z-22.5) : 13 dalles 5 m, pad bleu, pancarte, toutes armes + soins, respawn 1.5 s. `window.NOSPAWN(x,z)` : arène build fight vide (herbe/fleurs/props/mobilier).
+- ctx SURVIE : getters `WEAPONS/HEAL/HORDER` (définis après ctx).
+- Pause : bouton ⚙️ en haut à droite (tactile) → Paramètres (#setM), Commentaires (#fbM), Retour au salon. Badge « ACCÈS ANTICIPÉ ». Commentaires dans `localStorage.wr_fb` ; envoyés seulement si `window.FB_URL` (vide : attend l'accord de l'utilisateur pour un service mail).
+- Sprint : touche Maj (PC) / bouton ⚡ SPRINT (tél), endurance ~15 s (`p.stam`), Ctrl/ACCROUPI en sprint = glissade (slideT 1.6, décélère, endurance baisse moins vite).
+- Pompes : son synthé original `sgBoom` (pas le son Fortnite).
+- Launcher : Bibliothèque → vidéos animées (bande-annonce, BR, Survie histoire, Créatif) avec musique synthé, fin « accès anticipé ». `window.WRTV(i)`.
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

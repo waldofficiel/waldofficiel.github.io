@@ -5,22 +5,36 @@
    Modèles : le squelette commun des persos (skins.js, skin « zombie »), 16 modèles réutilisés pour les zombies les plus proches. */
 (function () {
   var T, C, Z = [], POOL = [], NPOOL = 16, built = 0, onKill = null, A;
+  /* CRÉATURES : 8 espèces de la Brume Violette, plus ou moins rares (w = poids d'apparition), certaines seulement la nuit.
+     Elles réapparaissent à l'infini loin du joueur (population POP). Chaque espèce a sa fiche dans le LIVRE DES CRÉATURES (survie.js). */
   var KIND = [
-    { name: 'Rôdeur', hp: 100, walk: 1.1, run: 3.5, dmg: 12, sc: 1 },
-    { name: 'Brute', hp: 280, walk: .9, run: 2.7, dmg: 26, sc: 1.32 },
-    { name: 'Coureur', hp: 70, walk: 1.4, run: 5.6, dmg: 9, sc: .93 },
-    { name: 'Bizarre', hp: 150, walk: 1, run: 3.9, dmg: 15, sc: 1.05 }];
+    { id: 'rodeur', name: 'Rôdeur', hp: 100, walk: 1.1, run: 3.5, dmg: 12, sc: 1, m: 0, w: 30, rar: 'Commun' },
+    { id: 'brute', name: 'Brute', hp: 280, walk: .9, run: 2.7, dmg: 26, sc: 1.32, m: 1, w: 12, rar: 'Peu commun' },
+    { id: 'coureur', name: 'Coureur', hp: 70, walk: 1.4, run: 5.6, dmg: 9, sc: .93, m: 2, w: 22, rar: 'Commun' },
+    { id: 'bizarre', name: 'Bizarre', hp: 150, walk: 1, run: 3.9, dmg: 15, sc: 1.05, m: 3, w: 12, rar: 'Peu commun' },
+    { id: 'hurleur', name: 'Hurleur', hp: 160, walk: 1.2, run: 4.6, dmg: 16, sc: 1.08, m: 3, w: 5, rar: 'Rare', o: { SK: '#d89ad0', SH: '#5a2a5a', eye: '#ff2bd6', spikes: 1 } },
+    { id: 'colosse', name: 'Colosse de mousse', hp: 650, walk: .7, run: 2.1, dmg: 38, sc: 1.75, m: 1, w: 3, rar: 'Rare', o: { SK: '#6a8a4a', SH: '#3a5a2a', PA: '#2a3a1a', eye: '#c8ff2a', moss: 1 } },
+    { id: 'spectre', name: 'Spectre des brumes', hp: 120, walk: 1.6, run: 6.4, dmg: 20, sc: 1, m: 2, w: 3, rar: 'Épique', night: 1, o: { SK: '#c8e0ff', SH: '#6a88c8', PA: '#3a4a7a', eye: '#3dd6ff' } },
+    { id: 'roi', name: 'Roi Violet', hp: 1200, walk: .9, run: 3.2, dmg: 45, sc: 1.55, m: 1, w: .6, rar: 'Légendaire', o: { SK: '#9a5ac8', SH: '#2a0a4a', PA: '#1a0630', eye: '#ffd23d', crown: 1 } }];
+  var POP = 110, RESP = [], NID = 0;
+  function pickKind(night) { var tot = 0, ws = KIND.map(function (k) { var w = k.night && !night ? 0 : k.w * (night && k.w < 6 ? 2 : 1); tot += w; return w; }), r = Math.random() * tot; for (var i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
   function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function gen() {
     var r = rng(9090), id = 0;
-    function add(x, z) { if (!C.onLand(x, z) || C.inLake(x, z, 3) || C.hgt(x, z) > 70) return false; var k = r() < .5 ? 0 : r() < .4 ? 2 : r() < .55 ? 3 : 1; Z.push({ id: id++, k: k, x: x, z: z, y: C.hgt(x, z), a: r() * 6.28, hp: KIND[k].hp, st: 'idle', t: r() * 4, wx: x, wz: z, hx: x, hz: z, step: 0, atk: 0, m: null, dead: false, dt0: 0, groan: r() * 8 }); return true; }
+    function add(x, z) { if (!C.onLand(x, z) || C.inLake(x, z, 3) || C.hgt(x, z) > 70) return false; var k = pickKind(false); Z.push({ id: id++, k: k, x: x, z: z, y: C.hgt(x, z), a: r() * 6.28, hp: KIND[k].hp, st: 'idle', t: r() * 4, wx: x, wz: z, hx: x, hz: z, step: 0, atk: 0, m: null, dead: false, dt0: 0, groan: r() * 8 }); return true; }
     C.TOWNS.forEach(function (t, ti) { if (t[4] === 'arena') return; for (var n = 0, k = 0; n < (ti === 0 ? 4 : 8) && k < 60; k++) { var a = r() * 6.283, d = 6 + r() * t[3] * 1.1; if (add(t[1] + Math.cos(a) * d, t[2] + Math.sin(a) * d)) n++; } });
     C.DARKFS.forEach(function (F) { for (var n = 0, k = 0; n < 9 && k < 60; k++) { var a = r() * 6.283, d = Math.sqrt(r()) * F[2] * .9; if (add(F[0] + Math.cos(a) * d, F[1] + Math.sin(a) * d)) n++; } });
     for (var n = 0, k = 0; n < 26 && k < 400; k++) { var a = r() * 6.283, d = 120 + r() * (C.ISLM - 140); if (add(Math.cos(a) * d, Math.sin(a) * d)) n++; }
     var T0 = C.TOWNS[0]; Z = Z.filter(function (z) { return Math.hypot(z.x - T0[1], z.z - T0[2]) > 30; });   // jamais collés au point de départ
-  }
-  function makeModel(i) { var k = i % 4, c = C.makeChar({ sk: 'zombie', zv: k, v: i * 3 + 1 }); c.root.visible = false; c.root.scale.setScalar(KIND[k].sc); C.scene.add(c.root); c.root.traverse(function (o) { o.frustumCulled = false; }); POOL.push({ k: k, c: c, z: null }); }
-  function grab(z) { for (var i = 0; i < POOL.length; i++) { var p = POOL[i]; if (!p.z && p.k === z.k) { p.z = z; z.m = p; p.c.root.visible = true; return; } } }
+    NID = id; }
+  function spawnOne(night) { var P = C.me(); for (var tries = 0; tries < 40; tries++) { var x, z, q = Math.random();   // réapparition loin du joueur (60 à 260 m), près des lieux ou au hasard
+      if (q < .5) { var t = C.TOWNS[Math.random() * C.TOWNS.length | 0]; if (t[4] === 'arena') continue; var a = Math.random() * 6.283, d = 8 + Math.random() * t[3] * 1.3; x = t[1] + Math.cos(a) * d; z = t[2] + Math.sin(a) * d; }
+      else { var a2 = Math.random() * 6.283, d2 = 60 + Math.random() * 200; x = P.x + Math.cos(a2) * d2; z = P.z + Math.sin(a2) * d2; }
+      var dp = Math.hypot(x - P.x, z - P.z); if (dp < 60 || !C.onLand(x, z) || C.inLake(x, z, 3) || C.hgt(x, z) > 70) continue;
+      var k = pickKind(night); Z.push({ id: NID++, k: k, x: x, z: z, y: C.hgt(x, z), a: Math.random() * 6.28, hp: KIND[k].hp, st: 'idle', t: Math.random() * 3, hx: x, hz: z, step: 0, groan: 3, atk: 0 }); return; } }
+  function makeModel(k) { var K = KIND[k], c = C.makeChar(Object.assign({ sk: 'zombie', zv: K.m, v: (POOL.length * 3 + 1) }, K.o || {})); c.root.visible = false; c.root.scale.setScalar(K.sc); C.scene.add(c.root); c.root.traverse(function (o) { o.frustumCulled = false; }); var e = { k: k, c: c, z: null }; POOL.push(e); return e; }
+  function grab(z) { for (var i = 0; i < POOL.length; i++) { var p = POOL[i]; if (!p.z && p.k === z.k) { p.z = z; z.m = p; p.c.root.visible = true; return; } }
+    if (built < 40 && POOL.filter(function (q) { return q.k === z.k; }).length < (KIND[z.k].w >= 10 ? 6 : 2)) { built++; var e = makeModel(z.k); e.z = z; z.m = e; e.c.root.visible = true; } }
   function release(z) { if (!z.m) return; z.m.c.root.visible = false; z.m.z = null; z.m = null; }
   function blockWall(z, dx, dz) {   // un mur juste devant (dans la direction de la marche) ?
     var best = null, bt = 1.3; for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (!w.alive || Math.abs(w.x - z.x) > 6 || Math.abs(w.z - z.z) > 6) continue;
@@ -28,7 +42,8 @@
   function die(z, by) {
     z.dead = true; z.st = 'dead'; z.dt0 = 0; C.burst(z.x, z.y + 1.2, z.z, 24, ['#7aff4a', '#3a8a2a', '#5a4a3a', '#1a3a12'], 7, .3, 1.2); C.tone('sawtooth', 160, 50, .5, .06); C.noise(.3, .12, 400);
     if (Math.random() < .35) C.dropItem(z.x + .8, z.z, Math.random() < .5 ? 'ammo' : ['mini', 'heal', 'shield'][Math.random() * 3 | 0]);
-    if (onKill) onKill(z);
+    RESP.push(20 + Math.random() * 25);   // une autre créature apparaîtra ailleurs
+    if (onKill) onKill(z, KIND[z.k]);
   }
   function pose(z, dt, now) {
     var c = z.m.c, k = KIND[z.k], sp = z.spd || 0, amp = Math.min(1, sp / 3), T2;
@@ -37,19 +52,21 @@
     var sw = Math.sin(now * 2 + z.id), at = z.atk > 0 ? Math.sin((1 - z.atk / 1.1) * Math.PI) : 0;
     T2.la = 1.25 + sw * .12 + at * .9; T2.ra = 1.35 - sw * .12 + at * 1.1; T2.lb = .18; T2.rb = .12; T2.le = .25 + at * .5; T2.re = .2 + at * .6; T2.lw = .2; T2.rw = .2;   // bras tendus en avant
     T2.bp = (T2.bp || 0) + .28 + at * .2; T2.hp = .25 + Math.sin(now * 1.3 + z.id) * .12; T2.hr = Math.sin(now * .9 + z.id * 2) * .3; T2.hy = Math.sin(now * .7 + z.id) * .2;   // dos voûté, tête qui ballotte
-    if (z.k === 2) { T2.hr += Math.sin(now * 9) * .1; } if (z.k === 3) { T2.hr = Math.sin(now * 3 + z.id) * .55; }
+    if (KIND[z.k].m === 2) { T2.hr += Math.sin(now * 9) * .1; } if (KIND[z.k].m === 3) { T2.hr = Math.sin(now * 3 + z.id) * .55; }
     A.apply(c, A.blend(c, T2, dt, 10), true);
   }
   window.ZOMB = {
     on: false,
-    init: function (THREE, ctx, kill) { T = THREE; C = ctx; A = C.ANIM; onKill = kill; gen(); this.on = true; },
+    init: function (THREE, ctx, kill) { T = THREE; C = ctx; A = C.ANIM; onKill = kill; gen(); this.on = true; }, kinds: function () { return KIND; },
     total: function () { return Z.length; }, left: function () { return Z.filter(function (z) { return !z.dead; }).length; },
     deadIds: function () { return Z.filter(function (z) { return z.dead; }).map(function (z) { return z.id; }); },
-    reset: function (dead) { var D = {}; (dead || []).forEach(function (i) { D[i] = 1; }); Z.forEach(function (z) { release(z); z.dead = !!D[z.id]; z.x = z.hx; z.z = z.hz; z.y = C.hgt(z.x, z.z); z.hp = KIND[z.k].hp; z.st = 'idle'; z.atk = 0; z.spd = 0; }); },
-    list: function () { return Z; }, prebuild: function () { while (built < NPOOL) makeModel(built++); },
+    reset: function (dead) { var D = {}; RESP = []; Z.forEach(function (z) { release(z); z.dead = !!D[z.id]; z.x = z.hx; z.z = z.hz; z.y = C.hgt(z.x, z.z); z.hp = KIND[z.k].hp; z.st = 'idle'; z.atk = 0; z.spd = 0; }); },
+    list: function () { return Z; }, prebuild: function () { for (var k = 0; k < 4; k++) { makeModel(k); built++; } },
     update: function (dt, night) {
       if (!this.on) return; var P = C.me(), now = performance.now() / 1000;
-      if (built < NPOOL) { makeModel(built++); return; }   // modèles construits un par image (pas de gel au chargement)
+      if (built < 8) { makeModel(built % 4); built++; return; }   // premiers modèles construits un par image (pas de gel au chargement)
+      for (var ri = RESP.length - 1; ri >= 0; ri--) { RESP[ri] -= dt; if (RESP[ri] <= 0) { RESP.splice(ri, 1); spawnOne(night); } }   // réapparition à l'infini
+      if (Math.random() < .002) { Z = Z.filter(function (q) { return !q.dead || q.m; }); var al = Z.filter(function (q) { return !q.dead; }).length; if (al + RESP.length < POP) RESP.push(5); }
       var sense = night ? 48 : 26, pAlive = P.alive && C.state() === 'play';
       for (var i = 0; i < Z.length; i++) { var z = Z[i], d = Math.hypot(z.x - P.x, z.z - P.z);
         if (z.dead) { if (z.m) { z.dt0 += dt; var c = z.m.c, f = Math.min(1, z.dt0 / .6); c.root.rotation.set(0, -z.a, -f * 1.45); c.root.position.y = z.y - Math.max(0, z.dt0 - 2.5) * .8; if (z.dt0 > 4) release(z); } continue; }

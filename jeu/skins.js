@@ -262,15 +262,18 @@
   /* ---------- ZOMBIES (mode survie) : le corps des bots, peau verdâtre / bleutée / violette, yeux qui brillent, bouche ouverte, vêtements déchirés.
      o.zv : 0 rôdeur, 1 brute (épaisse), 2 coureur (maigre, pâle), 3 bizarre (grosse tête, yeux roses) ---------- */
   B.zombie = function (R, o) {
-    o = o || {}; var zv = o.zv || 0, SK = ['#8fb07a', '#7a9a6a', '#a8c0c8', '#b49ac8'][zv], SH = ['#5a4a3a', '#3a3f48', '#6a5a4a', '#4a3a5a'][zv], PA = ['#3a3a48', '#4a3a2a', '#2a3a4a', '#3a2a3a'][zv];
+    o = o || {}; var zv = o.zv || 0, SK = o.SK || ['#8fb07a', '#7a9a6a', '#a8c0c8', '#b49ac8'][zv], SH = o.SH || ['#5a4a3a', '#3a3f48', '#6a5a4a', '#4a3a5a'][zv], PA = o.PA || ['#3a3a48', '#4a3a2a', '#2a3a4a', '#3a2a3a'][zv];
     var cols = B.npc(R, Object.assign({}, o, { skin: SK, shirt: SH, pants: PA, shoes: '#5a5048', hatCol: '#4a4a4a', v: o.v }));
-    var dark = M('#120c0a'), blood = M('#5a1a14'), eyeM = M(zv === 3 ? '#ff4ad8' : zv === 2 ? '#7af0ff' : '#e8ff4a', { emissive: zv === 3 ? '#ff2bd6' : zv === 2 ? '#2ad8ff' : '#c8ff2a', shininess: 80 }), tooth = M('#e8e0c0'), h = R.head;
+    var dark = M('#120c0a'), blood = M('#5a1a14'), eyeM = o.eye ? M(o.eye, { emissive: o.eye, shininess: 80 }) : M(zv === 3 ? '#ff4ad8' : zv === 2 ? '#7af0ff' : '#e8ff4a', { emissive: zv === 3 ? '#ff2bd6' : zv === 2 ? '#2ad8ff' : '#c8ff2a', shininess: 80 }), tooth = M('#e8e0c0'), h = R.head;
     eachSide(function (s2) { S(h, .046, .05, .046, .262, .168, s2 * .09, eyeM); });   // yeux qui brillent
     S(h, .05, .045, .1, .245, .015, 0, dark); for (var k = -2; k <= 2; k++) S(h, .012, .018, .012, .262, .04, k * .024, tooth);   // bouche ouverte, dents
     S(h, .07, .05, .02, .2, .22, .2, blood); S(h, .04, .06, .02, .15, .06, -.24, M(SK === '#8fb07a' ? '#6a8a5a' : '#8a7a9a'));   // plaies
     [[.26, 1.3, .12, .09], [.24, 1.15, -.15, .07], [-.24, 1.25, .1, .1], [.22, .95, .05, .06]].forEach(function (q) { S(R.body, .03, q[3], q[3] * 1.2, q[0], q[1], q[2], q[0] > 0 ? dark : blood); });   // trous et taches sur les habits
     if (zv === 1) { eachSide(function (s2) { S(R.body, .2, .17, .2, 0, 1.45, s2 * .26, M(SH)); }); S(R.body, .3, .2, .32, .06, 1.2, 0, M(SH)); }   // brute : épaules et ventre
     if (zv === 3) { h.scale.set(1.45, 1.55, 1.45); h.position.y += .08; }
+    if (o.moss) { var mm = M('#4f7a2a', { flatShading: true }); [[.05, 1.55, .25, .14], [-.05, 1.6, -.22, .16], [.12, 1.35, .18, .1], [-.1, 1.2, -.12, .12], [.0, 1.68, 0, .13]].forEach(function (q) { S(R.body, q[3], q[3] * .8, q[3], q[0], q[1], q[2], mm); }); S(h, .14, .1, .14, -.02, .3, 0, mm); }   // colosse : mousse et lichens
+    if (o.crown) { var gd = M('#ffd23d', { shininess: 120, emissive: '#5a3a00' }); TO(h, .2, .03, 0, 0, .36, 0, gd, Math.PI / 2); for (var cs = 0; cs < 6; cs++) { var ca = cs / 6 * Math.PI * 2; C(h, .028, 0, .14, Math.cos(ca) * .2, .45, Math.sin(ca) * .2, gd); } S(h, .035, .035, .035, .2, .36, 0, M('#ff2bd6', { emissive: '#ff2bd6' })); }   // roi violet : couronne
+    if (o.spikes) { var sp = M('#2a1030'); for (var k2 = 0; k2 < 5; k2++) C(R.body, .05, 0, .22, -.2, 1.25 + k2 * .09, 0, sp, 0, 0, Math.PI / 2 + .4); }   // hurleur : épines dans le dos
     return cols;
   };
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan'];

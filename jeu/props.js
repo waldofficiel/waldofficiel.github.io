@@ -30,7 +30,7 @@
       nm = sub(nm); var t = TPL[nm]; if (!t) return null; if (/^q_/.test(nm) && tint && !ctx.DES) tint = null;  var s = h / Math.max(.05, t.s.y), y = ctx.hgt(x, z) - (sink || 0) * h; var it = { n: nm, x: x, y: y, z: z, s: s, ry: ry, tint: tint }; ITEMS.push(it); return it; }
   // objets qu'on peut casser à la pioche (rochers → pierre, cactus → bois) : dessinés à part (instanciés) pour pouvoir disparaître
   function hv(it, k, col, hp) { if (it) { it.hv = k; it.col = col; it.hp = it.hp0 = hp; } return it; }
-  function free(x, z, m) { if (!ctx.onLand(x, z) || ctx.inTown(x, z, m) || ctx.nearRoad(x, z, m + 5)) return false;
+  function free(x, z, m) { if ((window.NOSPAWN && NOSPAWN(x, z)) || !ctx.onLand(x, z) || ctx.inTown(x, z, m) || ctx.nearRoad(x, z, m + 5)) return false;
     for (var i = 0; i < ctx.HOUSES.length; i++) { var h = ctx.HOUSES[i]; if (Math.abs(h.x - x) < h.hx + m && Math.abs(h.z - z) < h.hz + m) return false; }
     if (ctx.inField && ctx.inField(x, z, 3)) return false; return true; }
   function slope(x, z) { return Math.abs(ctx.hgt(x + 3, z) - ctx.hgt(x - 3, z)) + Math.abs(ctx.hgt(x, z + 3) - ctx.hgt(x, z - 3)); }

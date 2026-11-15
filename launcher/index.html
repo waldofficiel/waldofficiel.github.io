@@ -41,6 +41,9 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .box input{width:100%;font:700 15px Inter;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px 12px}
 .btn2{font:800 13px Inter;color:#fff;background:linear-gradient(135deg,var(--pink),var(--violet));border:0;border-radius:10px;padding:10px 16px;margin-top:12px}
 .avs{display:flex;gap:8px;flex-wrap:wrap}.avs button{width:44px;height:44px;border-radius:50%;border:2px solid transparent;font-size:20px;background:rgba(255,255,255,.06)}.avs button.on{border-color:var(--pink)}
+#tv{position:fixed;inset:0;z-index:50;background:#000}#tv[hidden]{display:none}#tvc{position:absolute;inset:0;width:100%;height:100%}
+.tvbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent)}
+.tvbar button{font:800 12px Inter;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 12px}.tvbar button.on{background:var(--pink);border-color:var(--pink)}#tvPlay{background:linear-gradient(180deg,#ffe36a,#ffb23d)!important;color:#1a0820!important;border:0!important}
 .note{font-size:12px;color:var(--mute);line-height:1.5}
 @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto}.brand{padding:0 6px}.brand small{display:none}nav{display:flex}nav button{padding:8px 10px;white-space:nowrap}nav button span.t{display:none}.acct{margin:0 0 0 auto;padding:4px 8px}.acct div{display:none}main{padding:14px}.hin h2{font-size:38px}.hero{min-height:280px}.top .search{display:none}}
 </style>
@@ -61,7 +64,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     <section class="page on" data-p="home">
       <div class="top"><h1>Accueil</h1><div class="search">🔍 Rechercher</div><span class="ver" id="verTop"></span></div>
       <div class="hero"><img class="bg" src="../wald-royal/img/capitale.jpg" alt="">
-        <div class="hin"><span class="tag">SAISON 1 · NOUVEAU</span><h2>WALD<br>ROYAL</h2>
+        <div class="hin"><span class="tag">SAISON 1 · ACCÈS ANTICIPÉ</span><h2>WALD<br>ROYAL</h2>
           <p>Battle Royale avec ou sans constructions, Créatif avec MAP 1V1 et PROPANE, Survie contre les zombies. Joue avec tes potes avec un code.</p>
           <div class="row"><button class="play" id="play">▶ JOUER</button><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
       <h3>Modes de jeu</h3>
@@ -75,7 +78,12 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
     <section class="page" data-p="lib">
       <div class="top"><h1>Bibliothèque</h1></div>
-      <div class="grid"><button class="card" data-go=""><img src="../wald-royal/img/place.jpg" alt=""><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <div class="grid"><button class="card" id="libCard"><img src="../wald-royal/img/place.jpg" alt=""><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <h3>Vidéos</h3><div class="grid">
+        <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal · accès anticipé</small></div></button>
+        <button class="card" data-tv="1"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs, 1 bus volant, 0 pitié</small></div></button>
+        <button class="card" data-tv="2"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie : l'histoire</b><small>La Brume Violette</small></div></button>
+        <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, PROPANE, entre potes</small></div></button></div>
       <p class="note" style="margin-top:14px">Le launcher ouvre toujours la dernière version du jeu : rien à réinstaller quand il y a une mise à jour.</p>
     </section>
     <section class="page" data-p="news"><div class="top"><h1>Nouveautés</h1></div><div class="news" id="news2"></div></section>
@@ -89,6 +97,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
   </main>
 </div>
+<div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">🧟 Survie</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); }, LS = function (k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
@@ -115,5 +124,58 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   document.querySelectorAll('[data-go]').forEach(function (b) { b.onclick = function () { launch(b.dataset.go); }; });
 })();
 </script>
-</body>
-</html>
+<script>
+/* ===== VIDÉOS D'ANIMATION (bande-annonce, BR, histoire de la Survie, Créatif) : dessinées en direct + musique générée ===== */
+(function () {
+  var $ = function (id) { return document.getElementById(id); }, cv = $('tvc'), g = cv.getContext('2d'), IM = {}, AC = null, OUT = null, run = null, raf = 0;
+  function img(n) { if (!IM[n]) { IM[n] = new Image(); IM[n].src = '../wald-royal/img/' + n; } return IM[n]; }
+  var END = ['', 'JEU EN ACCÈS ANTICIPÉ', 'Petit créateur, gros projet.', 'Laisse un commentaire pour améliorer le jeu : tous les commentaires sont enregistrés, lus et examinés.'];
+  var TR = [
+    { bpm: 128, mood: 'hype', sc: [['capitale.jpg', 'WALD OFF GAMES', 'présente', 3], ['lobby.jpg', 'WALD ROYAL', 'le battle royale de Wald Off', 3.4], ['construction.jpg', 'CONSTRUIS', 'murs, rampes, édition à la grille', 2.6], ['buildfight.jpg', 'AFFRONTE TES POTES', 'MAP 1V1 · en ligne avec un code', 2.6], ['foret.jpg', 'SURVIS', 'la Brume Violette a tout envahi', 2.6], ['creatif.jpg', 'CRÉE', 'Créatif · PROPANE · cache-cache', 2.6], ['place.jpg', 'WALD ROYAL'].concat([END[1] + ' · ' + END[2], 5.5])] },
+    { bpm: 132, mood: 'hype', sc: [['ville.jpg', '30 JOUEURS', 'un seul TOP 1', 2.6], ['planeur.jpg', 'SAUTE DU BUS', 'et plane où tu veux', 2.6], ['construction.jpg', 'CONSTRUIS · ÉDITE', 'comme dans les plus grands', 2.6], ['lawald.jpg', 'LA WALD', 'la voiture légendaire tombe du ciel', 2.6], ['desert.jpg', '2 CARTES', 'Los Campagnes · Sable Rouge', 2.4], ['top1.jpg', 'TOP 1', 'classé ou partie rapide', 3], ['place.jpg', 'BATTLE ROYALE', END[1], 4.5]] },
+    { bpm: 70, mood: 'dark', sc: [['collines.jpg', 'IL Y A TROIS ANS…', 'la Brume Violette est sortie de la terre', 4], ['village.jpg', 'LES VILLAGES SE SONT TUS', 'ceux qu\'elle touche ne dorment plus', 4], ['foret.jpg', '8 ESPÈCES', 'Rôdeurs, Brutes, Hurleurs… et des Spectres, la nuit', 4], ['lac.jpg', 'LES AFFICHES', 'cachées sur les pierres, elles racontent tout', 4], ['mer.jpg', 'LE LIVRE DES CRÉATURES', 'chaque créature tuée remplit une page', 4], ['collines.jpg', 'TROUVE LE ROI VIOLET', 'construis · survis · libère les Terres Sauvages', 4.5], ['foret.jpg', 'SURVIE', END[1], 4.5]] },
+    { bpm: 120, mood: 'fun', sc: [['creatif.jpg', 'MODE CRÉATIF', 'ton monde, tes règles', 2.8], ['buildfight.jpg', 'MAP 1V1', 'générateurs d\'armes · 200 PV · build fight', 3], ['capitale.jpg', 'PROPANE', 'deviens une poubelle… et siffle', 3], ['construction.jpg', 'CONSTRUCTIONS ILLIMITÉES', 'et tout est partagé avec tes potes', 3], ['village.jpg', 'ENTRE POTES', 'un code, et vous êtes ensemble', 3], ['place.jpg', 'CRÉATIF', END[1], 4.5]] }];
+  TR.forEach(function (t) { t.sc.forEach(function (q) { img(q[0]); }); });
+  function au() { if (AC) return; try { AC = new (window.AudioContext || window.webkitAudioContext)(); OUT = AC.createGain(); OUT.gain.value = .8; OUT.connect(AC.destination); } catch (e) {} }
+  function note(type, f, t, dur, vol, lp, f2) { var o = AC.createOscillator(), gn = AC.createGain(), last = o; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur * .7); gn.gain.setValueAtTime(.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + .01); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    if (lp) { var fl = AC.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; o.connect(fl); last = fl; } last.connect(gn); gn.connect(OUT); o.start(t); o.stop(t + dur + .05); }
+  var NB = null; function nz(t, dur, vol, f, type) { if (!NB) { NB = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); var d = NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } var s0 = AC.createBufferSource(), gn = AC.createGain(), fl = AC.createBiquadFilter(); fl.type = type || 'highpass'; fl.frequency.value = f; s0.buffer = NB; gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(.001, t + dur); s0.connect(fl); fl.connect(gn); gn.connect(OUT); s0.start(t, Math.random() * .5); s0.stop(t + dur); }
+  function mf(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  var PROG = { hype: [[45, 52, 57], [41, 48, 53], [43, 50, 55], [40, 47, 52]], dark: [[38, 45, 50], [34, 41, 46], [36, 43, 48], [33, 40, 45]], fun: [[48, 52, 55], [45, 48, 52], [41, 45, 48], [43, 47, 50]] };
+  function music(tr, t0, total) { var S = 60 / tr.bpm / 4, n = Math.ceil(total / S), P = PROG[tr.mood];
+    for (var k = 0; k < n; k++) { var t = t0 + k * S, st = k % 16, bar = Math.floor(k / 16), ch = P[bar % 4], fade = t - t0 > total - 2.5 ? .4 : 1;
+      if (tr.mood === 'dark') { if (st === 0) { ch.forEach(function (m, i) { note('sawtooth', mf(m), t, S * 16, .02 * fade, 700); note('sine', mf(m - 12), t, S * 16, .08 * fade); }); } if (st === 0 && bar % 2 === 0) { note('sine', 70, t, 1.2, .5 * fade, 0, 35); nz(t, .8, .1, 200, 'lowpass'); } if (st === 8 && bar % 2 === 1) note('sine', 90, t, .9, .35, 0, 45); if (st % 4 === 2) note('triangle', mf(ch[(st / 4 | 0) % 3] + 24), t, .8, .02); continue; }
+      if (st % 4 === 0) note('sine', 150, t, .3, .8 * fade, 0, 45); if (st === 4 || st === 12) { nz(t, .2, .3 * fade, 1500, 'bandpass'); } nz(t, st % 2 ? .03 : .06, .06 * fade, 8000);
+      if (st % 2 === 0) note('sawtooth', mf(ch[0] - 12 + (st % 8 === 6 ? 12 : 0)), t, S * 1.6, .1 * fade, 700);
+      var ar = ch[[0, 1, 2, 1][st % 4]] + (tr.mood === 'fun' ? 24 : 12); note('square', mf(ar), t, S * .9, .028 * fade, 3200);
+      if (st === 0) ch.forEach(function (m, i) { note('sawtooth', mf(m + 12) * (1 + (i - 1) * .004), t, S * 15, .012 * fade, 2400); }); } }
+  function impact(t) { note('sine', 110, t, .6, .7, 0, 30); nz(t, .5, .3, 900, 'lowpass'); nz(t + 0, 1.2, .05, 3000, 'bandpass'); }
+  function play(i) { stop(); au(); var tr = TR[i], total = 0; tr.sc.forEach(function (q) { total += q[3]; }); $('tv').hidden = false; document.querySelectorAll('.tvbar [data-tv]').forEach(function (b) { b.classList.toggle('on', +b.dataset.tv === i); });
+    var t0 = AC ? AC.currentTime + .15 : 0; if (AC) { AC.resume && AC.resume(); music(tr, t0, total + .5); var acc = 0; tr.sc.forEach(function (q) { impact(t0 + acc); acc += q[3]; }); }
+    var start = performance.now(), P = []; for (var k = 0; k < 70; k++) P.push([Math.random(), Math.random(), .2 + Math.random(), Math.random()]);
+    run = function (now) { var W = cv.width = cv.clientWidth * (devicePixelRatio > 1 ? 1.5 : 1), H = cv.height = cv.clientHeight * (devicePixelRatio > 1 ? 1.5 : 1), el = (now - start) / 1000, acc = 0, si = 0;
+      while (si < tr.sc.length - 1 && el > acc + tr.sc[si][3]) { acc += tr.sc[si][3]; si++; } var q = tr.sc[si], lt = el - acc, f = Math.min(1, lt / q[3]), im = img(q[0]);
+      g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+      if (im.complete && im.naturalWidth) { var zm = 1.08 + f * .14, iw = im.naturalWidth, ih = im.naturalHeight, sc = Math.max(W / iw, H / ih) * zm, dw = iw * sc, dh = ih * sc, px = (si % 2 ? -1 : 1) * f * W * .04; g.drawImage(im, (W - dw) / 2 + px, (H - dh) / 2, dw, dh); }
+      var vg = g.createRadialGradient(W / 2, H / 2, H * .2, W / 2, H / 2, W * .75); vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, tr.mood === 'dark' ? 'rgba(20,0,40,.85)' : 'rgba(11,4,24,.7)'); g.fillStyle = vg; g.fillRect(0, 0, W, H);
+      if (tr.mood === 'dark') { g.fillStyle = 'rgba(122,47,255,' + (.12 + .06 * Math.sin(el * 2)) + ')'; g.fillRect(0, 0, W, H); }
+      P.forEach(function (p) { var y = (p[1] - el * .03 * p[2]) % 1; if (y < 0) y += 1; g.fillStyle = tr.mood === 'dark' ? 'rgba(199,125,255,' + p[3] * .6 + ')' : 'rgba(255,' + (120 + p[3] * 120 | 0) + ',214,' + p[3] * .7 + ')'; g.beginPath(); g.arc(p[0] * W + Math.sin(el + p[3] * 9) * 20, y * H, 1.5 + p[2] * 2.5, 0, 6.283); g.fill(); });
+      var bh = H * .1; g.fillStyle = '#000'; g.fillRect(0, 0, W, bh); g.fillRect(0, H - bh, W, bh);
+      var ap = Math.min(1, lt / .45), out = Math.max(0, (lt - (q[3] - .35)) / .35), al = ap * (1 - out), big = Math.min(W, H) * (si === tr.sc.length - 1 ? .12 : .1);
+      g.save(); g.globalAlpha = al; g.textAlign = 'center'; g.textBaseline = 'middle'; var ty = H * .48 + (1 - ap) * 30; g.font = '900 ' + big + 'px Inter, system-ui, sans-serif'; g.shadowColor = tr.mood === 'dark' ? '#b05cff' : '#ff2bd6'; g.shadowBlur = 30;
+      var gr = g.createLinearGradient(0, ty - big / 2, 0, ty + big / 2); gr.addColorStop(0, '#ffffff'); gr.addColorStop(.5, '#ffd0f4'); gr.addColorStop(1, tr.mood === 'dark' ? '#b05cff' : '#ff2bd6'); g.fillStyle = gr; var sx = 1 + (1 - ap) * .25; g.translate(W / 2, ty); g.scale(sx, sx); g.fillText(q[1], 0, 0); g.restore();
+      g.save(); g.globalAlpha = al; g.textAlign = 'center'; g.font = '700 ' + big * .32 + 'px Inter, system-ui'; g.fillStyle = '#ffffff'; var nTyped = Math.floor(q[2].length * Math.min(1, lt / 1.1)); g.fillText(q[2].slice(0, nTyped), W / 2, H * .48 + big * .85); g.restore();
+      if (si === tr.sc.length - 1 && lt > 1) { g.save(); g.globalAlpha = Math.min(1, (lt - 1) / .6); g.textAlign = 'center'; g.font = '600 ' + big * .2 + 'px Inter, system-ui'; g.fillStyle = '#ffd23d'; wrap(END[3], W / 2, H * .48 + big * 1.45, W * .7, big * .28); g.restore(); }
+      if (lt < .12) { g.fillStyle = 'rgba(255,255,255,' + (1 - lt / .12) * .8 + ')'; g.fillRect(0, 0, W, H); for (var s2 = 0; s2 < 6; s2++) { var yy = Math.random() * H, hh = Math.random() * 30; g.drawImage(cv, 0, yy, W, hh, (Math.random() - .5) * 60, yy, W, hh); } }
+      g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '800 12px Inter'; g.textAlign = 'left'; g.fillText('WALD ROYAL · ACCÈS ANTICIPÉ', 16, bh / 2 + 4);
+      if (el < total + .3) raf = requestAnimationFrame(run); };
+    raf = requestAnimationFrame(run); }
+  function wrap(t, x, y, mw, lh) { var w = t.split(' '), line = ''; w.forEach(function (wd) { var tst = line ? line + ' ' + wd : wd; if (g.measureText(tst).width > mw) { g.fillText(line, x, y); y += lh; line = wd; } else line = tst; }); g.fillText(line, x, y); }
+  function stop() { cancelAnimationFrame(raf); if (AC) { try { OUT.disconnect(); } catch (e) {} OUT = AC.createGain(); OUT.gain.value = .8; OUT.connect(AC.destination); } }
+  document.querySelectorAll('[data-tv]').forEach(function (b) { b.addEventListener('click', function () { play(+b.dataset.tv); }); });
+  $('libCard').addEventListener('click', function () { play(0); });
+  $('tvX').addEventListener('click', function () { stop(); $('tv').hidden = true; });
+  $('tvPlay').addEventListener('click', function () { stop(); location.href = '../jeu/index.html?jouer&from=launcher'; });
+  window.WRTV = play;
+})();
+</script>

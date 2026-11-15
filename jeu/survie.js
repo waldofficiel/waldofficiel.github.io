@@ -39,7 +39,7 @@
     { k: 'metal', f: 'Resource_Gold_2', size: 2.3, col: { Stone: '#757886', Gold: '#dcecff' }, emis: { Gold: '#3470c0' } }];
   function genNodes() {
     var r = rng(4242), H = C.ISLM;
-    function ok(x, z, m) { if (!C.onLand(x, z) || C.inTown(x, z, 8) || C.nearRoad(x, z, 3.5)) return false; if (C.LAKE && Math.hypot(x - C.LAKE[0], z - C.LAKE[1]) < C.LAKE[2] * 1.45 + 4) return false;
+    function ok(x, z, m) { if ((window.NOSPAWN && NOSPAWN(x, z)) || !C.onLand(x, z) || C.inTown(x, z, 8) || C.nearRoad(x, z, 3.5)) return false; if (C.LAKE && Math.hypot(x - C.LAKE[0], z - C.LAKE[1]) < C.LAKE[2] * 1.45 + 4) return false;
       if (C.treeNear(x, z, m)) return false; var key = Math.floor(x / 12) + ',' + Math.floor(z / 12); for (var a2 = -1; a2 <= 1; a2++) for (var b2 = -1; b2 <= 1; b2++) { var L2 = NG[(Math.floor(x / 12) + a2) + ',' + (Math.floor(z / 12) + b2)]; if (L2 && L2.some(function (q) { return Math.abs(q.x - x) < 6 && Math.abs(q.z - z) < 6; })) return false; } return true; }
     var NG = {}, want = { pierre: 1500, metal: 420 }, got = { pierre: 0, metal: 0 };
     for (var n = 0; n < 220000 && (got.pierre < want.pierre || got.metal < want.metal); n++) {
@@ -184,6 +184,47 @@
     else { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.im.free.push(p.ii); }
     if (fx) { var c = C.MATS[MATW[p.m]].col; C.burst(p.x, p.L + 1.5, p.z, 16, [c, c, '#5a3a20'], 7, .5, 1.4); C.SFX.crack(); } }
   /* ÉDITER (façon Fortnite) : on vise un de ses murs → grille de 9 cases bleues ; on tire/clique sur les cases à enlever ; ÉDITER à nouveau = valider */
+  /* ===== HISTOIRE DE LA SURVIE : la Brume Violette, le LIVRE DES CRÉATURES et les AFFICHES à découvrir ===== */
+  var LORE = {
+    rodeur: "Les premiers touchés par la Brume Violette. Ils errent là où ils vivaient, comme s'ils cherchaient encore leur maison. Lents, mais jamais seuls.",
+    brute: "D'anciens bûcherons et mineurs. La Brume a gonflé leurs muscles. Ils cassent les murs pour t'attraper : construis en pierre ou en métal.",
+    coureur: "Rapides et maigres, ils sentent ta présence de loin. Un seul coureur en attire souvent d'autres. Ne cours pas en ligne droite.",
+    bizarre: "Leur tête a doublé de volume. Les savants du Camp pensaient qu'ils « entendent » la Brume. Ils sont plus malins que les autres.",
+    hurleur: "Rose et couvert d'épines, il hurle pour appeler la meute. On le trouve près des villages brûlés. Rare.",
+    colosse: "Un géant recouvert de mousse, né dans les forêts sombres. Très lent, mais un coup suffit à briser un mur en bois.",
+    spectre: "Il n'apparaît que la nuit, pâle et bleuté, glissant dans la brume. Plus rapide que tout. Allume un feu… ou fuis.",
+    roi: "On dit qu'il est la source de la Brume Violette. Une couronne d'or sur la tête. Personne ne l'a jamais vaincu… pour l'instant." };
+  var AFF = [   // affiches posées sur des pierres : un morceau de l'histoire + un indice sur une créature
+    ['Camp du Départ', 'JOURNAL DU CAMP · JOUR 1', "La Brume Violette est sortie de la terre au nord. Ceux qu'elle touche ne dorment plus. Si tu lis ceci : construis, pose ton lit, et note tout ce que tu croises dans le Livre des créatures.", 'rodeur'],
+    ['Village Brûlé', 'AVIS DE RECHERCHE', "Un HURLEUR rôde autour du village. Ses cris réveillent les autres. Il est rose, couvert d'épines. Récompense à qui le fera taire.", 'hurleur'],
+    ['Refuge des Loups', 'NOTE DU GARDE-FORESTIER', "Dans la forêt sombre, quelque chose de très grand bouge entre les sapins. La mousse pousse sur son dos. On l'appelle le COLOSSE.", 'colosse'],
+    ['Ruines du Nord', 'GRAVURE SUR LA PIERRE', "« Quand la lune est haute, les SPECTRES glissent dans la brume. Ils ne laissent pas de traces. »", 'spectre'],
+    ['Ferme Abandonnée', 'CARNET DU FERMIER', "Mes ouvriers sont devenus des BRUTES. Ils ont défoncé la grange à mains nues. Les murs en bois ne servent à rien.", 'brute'],
+    ['Plage des Naufragés', 'BOUTEILLE À LA MER', "Le bateau a coulé à cause des COUREURS : ils ont couru jusque dans l'eau pour nous attraper. Ne les sous-estime pas.", 'coureur'],
+    ['Col des Brumes', 'MESSAGE DES SAVANTS', "Les BIZARRES suivent la Brume comme une boussole. Suivez-les, et vous trouverez sa source…", 'bizarre'],
+    ['Avant-poste', 'DERNIÈRE PAGE', "La source a une couronne. Le ROI VIOLET ne sort que rarement. Celui qui le battra libérera les Terres Sauvages.", 'roi']];
+  var BESTI = {}, AFFD = {}, AFFM = [], BOOKON = false, NEARAFF = -1;
+  try { BESTI = JSON.parse(localStorage.getItem('wr_bestiaire') || '{}'); AFFD = JSON.parse(localStorage.getItem('wr_affiches') || '{}'); } catch (e) {}
+  function lsave() { try { localStorage.setItem('wr_bestiaire', JSON.stringify(BESTI)); localStorage.setItem('wr_affiches', JSON.stringify(AFFD)); } catch (e) {} }
+  function onKill(z, K) { if (!K) return; var first = !BESTI[K.id]; BESTI[K.id] = (BESTI[K.id] || 0) + 1; lsave();
+    if (first) { C.toast('📖 NOUVELLE CRÉATURE : ' + K.name.toUpperCase() + ' (' + K.rar + ') · sa fiche est dans ton Livre des créatures'); C.tone('triangle', 660, 1320, .35, .08); }
+    else C.toast('🧟 ' + K.name + ' éliminé · ' + BESTI[K.id] + ' au total'); }
+  function posters() { var kinds = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [];
+    AFF.forEach(function (a, i) { var t = C.TOWNS.filter(function (q) { return q[0] === a[0]; })[0]; if (!t) return; var x = t[1] + t[3] * .45, z = t[2] - t[3] * .2, y = C.hgt(x, z);
+      var g = new T.Group(), st = new T.Mesh(new T.BoxGeometry(1.6, 2.4, .5), new T.MeshLambertMaterial({ color: '#6a6a72' })); st.position.y = 1.1; st.rotation.z = .04; g.add(st);
+      var c = document.createElement('canvas'); c.width = 256; c.height = 320; var q = c.getContext('2d'); q.fillStyle = '#e8d8b0'; q.fillRect(0, 0, 256, 320); for (var n = 0; n < 500; n++) { q.fillStyle = 'rgba(90,60,20,' + Math.random() * .12 + ')'; q.fillRect(Math.random() * 256, Math.random() * 320, 3, 3); }
+      q.fillStyle = '#3a0a5a'; q.font = '900 22px sans-serif'; q.textAlign = 'center'; q.fillText(a[1].split(' · ')[0], 128, 40); q.fillStyle = '#7a2fff'; q.beginPath(); q.arc(128, 150, 70, 0, 6.283); q.fill(); q.fillStyle = '#e8ff4a'; q.beginPath(); q.arc(104, 140, 10, 0, 6.283); q.arc(152, 140, 10, 0, 6.283); q.fill();
+      q.fillStyle = '#2a0a3a'; q.fillRect(98, 180, 60, 10); q.fillStyle = '#3a0a5a'; q.font = '900 26px sans-serif'; var kk = kinds.filter(function (k) { return k.id === a[3]; })[0]; q.fillText((kk ? kk.name : '?').toUpperCase(), 128, 268); q.font = '700 14px sans-serif'; q.fillText('LIS-MOI', 128, 298);
+      var tx = new T.CanvasTexture(c); tx.encoding = T.sRGBEncoding; var pm = new T.Mesh(new T.PlaneGeometry(1.2, 1.5), new T.MeshBasicMaterial({ map: tx })); pm.position.set(0, 1.35, .26); g.add(pm); var pm2 = pm.clone(); pm2.rotation.y = Math.PI; pm2.position.z = -.26; g.add(pm2);
+      var gl = new T.PointLight('#c77dff', .8, 6, 2); gl.position.set(0, 2.6, .8); g.add(gl); g.position.set(x, y, z); g.rotation.y = Math.atan2(t[1] - x, t[2] - z); g.userData.dyn = true; C.scene.add(g); AFFM.push({ i: i, x: x, z: z }); }); }
+  function affTick() { var P = me(), near = -1; AFFM.forEach(function (m) { if (Math.hypot(P.x - m.x, P.z - m.z) < 3.2) near = m.i; });
+    if (near !== NEARAFF) { NEARAFF = near; var el = document.getElementById('sAff'); if (near < 0) { if (el) el.hidden = true; return; } var a = AFF[near], first = !AFFD[near]; AFFD[near] = 1; lsave();
+      if (!el) { el = document.createElement('div'); el.id = 'sAff'; document.body.appendChild(el); } el.hidden = false; el.innerHTML = '<small>' + (first ? '📜 AFFICHE DÉCOUVERTE · ' : '📜 ') + a[0].toUpperCase() + '</small><b>' + a[1] + '</b><p>' + a[2] + '</p><i>Indice ajouté au Livre des créatures</i>'; if (first) C.tone('sine', 520, 1040, .3, .06); } }
+  function book(on) { var d = document.getElementById('sBook'); if (!d) { d = document.createElement('div'); d.id = 'sBook'; document.body.appendChild(d); d.addEventListener('pointerdown', function (e) { if (e.target === d || e.target.classList.contains('x')) { e.preventDefault(); book(false); } }); }
+    BOOKON = on; d.hidden = !on; if (!on) return; if (document.pointerLockElement) document.exitPointerLock(); var kinds = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], known = kinds.filter(function (k) { return BESTI[k.id]; }).length, RC = { 'Commun': '#b9bcc4', 'Peu commun': '#4dd65a', 'Rare': '#3d9bff', 'Épique': '#b05cff', 'Légendaire': '#ffb52e' };
+    d.innerHTML = '<div class="bk"><button type="button" class="x">✕</button><h2>📖 LIVRE DES CRÉATURES</h2><p class="sub">La Brume Violette · ' + known + '/' + kinds.length + ' espèces découvertes · ' + Object.keys(AFFD).length + '/' + AFF.length + ' affiches</p><div class="pg">' +
+      kinds.map(function (k) { var n = BESTI[k.id] || 0, hint = AFF.filter(function (a, i) { return a[3] === k.id && AFFD[i]; })[0];
+        return '<div class="ent' + (n ? '' : ' lock') + '" style="--r:' + RC[k.rar] + '"><div class="ic">' + (n ? '🧟' : '❔') + '</div><div><b>' + (n ? k.name : '???') + '</b><small>' + k.rar + (k.night ? ' · la nuit' : '') + (n ? ' · ' + n + ' tué' + (n > 1 ? 's' : '') + ' · ' + k.hp + ' PV' : '') + '</small><p>' + (n ? LORE[k.id] : hint ? '🔎 Indice : ' + hint[2] : 'Tue cette créature pour découvrir sa fiche. Les affiches cachées dans les lieux donnent des indices.') + '</p></div></div>'; }).join('') + '</div></div>'; }
   /* JEU EN LIGNE : chaque pièce posée / cassée / éditée est envoyée aux potes (HOOK branché par index.html) */
   var HOOK = null;
   function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, p.mask ? p.mask.map(Number).join('') : '']; }
@@ -282,7 +323,7 @@
     for (var q = 0, tries = 0; q < n && tries < 3000; tries++) { var x, z;
       if (C.ROADP.length && r() < .75) { var rd = C.ROADP[r() * C.ROADP.length | 0], pt = rd[r() * rd.length | 0], a0 = r() * 6.283, off = 6 + r() * 7; x = pt[0] + Math.cos(a0) * off; z = pt[1] + Math.sin(a0) * off; }
       else { var a1 = r() * 6.283, d1 = 40 + r() * (C.ISLM - 60); x = Math.cos(a1) * d1; z = Math.sin(a1) * d1; }
-      if (!C.onLand(x, z) || C.nearRoad(x, z, 3.5) || C.inLake(x, z, 4) || C.hgt(x, z) > 60) continue;
+      if ((window.NOSPAWN && NOSPAWN(x, z)) || !C.onLand(x, z) || C.nearRoad(x, z, 3.5) || C.inLake(x, z, 4) || C.hgt(x, z) > 60) continue;
       if (C.HOUSES.some(function (h) { return Math.abs(h.x - x) < h.hx + 4 && Math.abs(h.z - z) < h.hz + 4; })) continue;
       if (C.TREES.some(function (t) { return Math.abs(t.x - x) < 3.2 && Math.abs(t.z - z) < 3.2; }) || WRECKS.some(function (w) { return Math.abs(w.x - x) < 9 && Math.abs(w.z - z) < 9; })) continue;
       var k = ks[r() * ks.length | 0], T3 = CA[k], g = new T.Group(), bm = new T.Mesh(T3.body, mats[k]); bm.castShadow = true; bm.receiveShadow = true; g.add(bm);
@@ -312,6 +353,10 @@
     'body.touch #sBuild{bottom:calc(18px + env(safe-area-inset-bottom,0px))}',
     '#sBuild button{width:60px;height:58px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}#sBuild button small{font:900 9px var(--body);letter-spacing:.04em}',
     '#sBuild button.on{border-color:#3ab0ff;background:rgba(58,176,255,.3);box-shadow:0 0 12px #3ab0ff;transform:translateY(-4px)}#sBuild .mat{border-color:#ffd23d;margin-left:6px}',
+    '#sAff{position:fixed;z-index:9;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(440px,86vw);background:linear-gradient(180deg,#f2e2b8,#d8c08a);color:#2a1206;border-radius:14px;padding:12px 16px;box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 0 3px #7a2fff;font-family:Georgia,serif}#sAff small{display:block;font:900 10px var(--body);letter-spacing:.12em;color:#7a2fff}#sAff b{display:block;font-size:17px;margin:2px 0 4px}#sAff p{margin:0 0 6px;font-size:14px;line-height:1.35}#sAff i{font-size:11px;color:#6a4a20}#sAff[hidden]{display:none}',
+    '#sBook{position:fixed;inset:0;z-index:30;background:rgba(11,4,24,.72);display:grid;place-items:center}#sBook[hidden]{display:none}#sBook .bk{position:relative;width:min(760px,94vw);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#2a0a3a,#140a24);border:2px solid #b05cff;border-radius:18px;padding:16px 18px;box-shadow:0 0 40px rgba(176,92,255,.4)}#sBook h2{margin:0;font:900 22px var(--body);color:#ffd23d}#sBook .sub{margin:2px 0 12px;color:#c9b8e8;font-size:12px}#sBook .x{position:absolute;right:10px;top:8px;background:none;border:0;color:#fff;font-size:22px;cursor:pointer}',
+    '#sBook .pg{display:grid;grid-template-columns:1fr 1fr;gap:8px}#sBook .ent{display:flex;gap:10px;background:rgba(255,255,255,.05);border-left:4px solid var(--r);border-radius:10px;padding:8px}#sBook .ent .ic{font-size:30px}#sBook .ent b{display:block;color:#fff;font-size:14px}#sBook .ent small{color:var(--r);font-weight:800;font-size:11px}#sBook .ent p{margin:4px 0 0;color:#ddd;font-size:12px;line-height:1.35}#sBook .lock{opacity:.75}#sBook .lock .ic{filter:grayscale(1)}@media (max-width:640px){#sBook .pg{grid-template-columns:1fr}}',
+    '#sBookB{position:fixed;z-index:8;left:12px;top:calc(122px + env(safe-area-inset-top,0px));font:900 11px var(--body);color:#fff;background:rgba(58,10,90,.8);border:2px solid #b05cff;border-radius:12px;padding:6px 10px;cursor:pointer}',
     '#sEdit{position:fixed;z-index:8;right:calc(232px + env(safe-area-inset-right,0px));bottom:calc(372px + env(safe-area-inset-bottom,0px));width:64px;height:64px;border-radius:50%;display:grid;place-items:center;align-content:center;font-size:22px;color:#fff;background:rgba(11,4,24,.55);border:3px solid #3ab0ff;box-shadow:0 0 14px rgba(58,176,255,.6);cursor:pointer}#sEdit small{font:900 9px var(--body);color:#bfe8ff}body:not(.touch) #sEdit{display:none}body.won #sEdit{display:none}',
     '#sBuild .mat i{font-style:normal;font:900 10px var(--body);color:#ffd23d}',
     '.sPop{position:fixed;z-index:9;top:44%;font:900 18px var(--display,var(--body));color:#fff;text-shadow:0 2px 6px #000,0 0 10px rgba(255,210,61,.8);pointer-events:none;animation:sPop .9s ease-out forwards}',
@@ -398,10 +443,11 @@
   function bagInit() { BAG = []; for (var i = 0; i < NB; i++) BAG.push(null); }
   function bagAdd(it) { if (it.t === 'soin') { for (var i = 0; i < NB; i++) if (BAG[i] && BAG[i].t === 'soin' && BAG[i].k === it.k && BAG[i].n < 10) { BAG[i].n += it.n || 1; bagDraw(); return true; } }
     for (i = 0; i < NB; i++) if (!BAG[i]) { BAG[i] = it; bagDraw(); return true; } C.toast('SAC PLEIN'); return false; }
-  function itName(it) { return !it ? '' : it.t === 'arme' ? C.WEAPONS[it.k].name : it.t === 'soin' ? C.HEAL[it.k].name + ' ×' + it.n : it.t === 'lit' ? 'Lit (point de réapparition)' : it.t === 'coffre' ? 'Coffre de rangement' : ''; }
+  function itName(it) { return !it ? '' : it.t === 'arme' ? C.WEAPONS[it.k].name : it.t === 'soin' ? C.HEAL[it.k].name + ' ×' + it.n : it.t === 'lit' ? 'Lit (point de réapparition)' : it.t === 'coffre' ? 'Coffre de rangement' : it.t === 'livre' ? 'Livre des créatures' : ''; }
   function drawIt(cv, it) { var g = cv.getContext('2d'), w = cv.width, h = cv.height; g.clearRect(0, 0, w, h); if (!it) return;
     if (it.t === 'arme') C.icon(g, it.k, w, h); else if (it.t === 'soin') { C.healIcon(g, it.k, w, h); g.fillStyle = '#fff'; g.font = '900 13px sans-serif'; g.textAlign = 'right'; g.fillText('×' + it.n, w - 3, h - 3); }
-    else { g.save(); g.translate(w / 2, h / 2); if (it.t === 'lit') { g.fillStyle = '#5a3a20'; g.fillRect(-22, -2, 44, 12); g.fillStyle = '#f0ecf6'; g.fillRect(-20, -8, 40, 10); g.fillStyle = '#c43a6a'; g.fillRect(-20, -8, 26, 10); g.fillStyle = '#fff'; g.fillRect(8, -12, 11, 7); }
+    else { g.save(); g.translate(w / 2, h / 2); if (it.t === 'livre') { g.fillStyle = '#3a0a5a'; g.fillRect(-16, -16, 32, 30); g.fillStyle = '#ff2bd6'; g.fillRect(-16, -16, 5, 30); g.strokeStyle = '#ffd23d'; g.lineWidth = 2; g.strokeRect(-9, -11, 20, 20); g.fillStyle = '#ffd23d'; g.font = '900 15px sans-serif'; g.textAlign = 'center'; g.fillText('?', 1, 5); }
+      else if (it.t === 'lit') { g.fillStyle = '#5a3a20'; g.fillRect(-22, -2, 44, 12); g.fillStyle = '#f0ecf6'; g.fillRect(-20, -8, 40, 10); g.fillStyle = '#c43a6a'; g.fillRect(-20, -8, 26, 10); g.fillStyle = '#fff'; g.fillRect(8, -12, 11, 7); }
       else { g.fillStyle = '#8a5a2e'; g.fillRect(-18, -8, 36, 20); g.fillStyle = '#a8743c'; g.fillRect(-18, -14, 36, 8); g.fillStyle = '#ffd23d'; g.fillRect(-18, -7, 36, 3); g.fillRect(-3, -6, 6, 7); g.strokeStyle = '#3a2410'; g.lineWidth = 2; g.strokeRect(-18, -14, 36, 26); } g.restore(); } }
   function slotHTML(src, i, it) { return '<button type="button" class="bs' + (BSEL && BSEL[0] === src && BSEL[1] === i ? ' sel' : '') + '" data-s="' + src + '" data-i="' + i + '"><canvas width="64" height="44"></canvas></button>'; }
   function hotItem(i) { var P = me(); if (i < 3) { var w = P.inv[i]; return w ? { t: 'arme', k: w.k, mag: w.mag, res: w.res } : null; } var k = P.healSel && P.heals[P.healSel] ? P.healSel : C.HORDER.filter(function (q) { return P.heals[q]; })[0]; return k ? { t: 'soin', k: k, n: P.heals[k] } : null; }
@@ -419,11 +465,12 @@
     var h = '<div class="box"><div class="hd"><b>' + (OPENC ? '📦 COFFRE' : '🎒 SAC') + '</b><span>' + (sel ? itName(sel) : 'Touche un objet, puis une case pour le déplacer') + '</span><button type="button" class="x">✕</button></div>';
     if (OPENC) { h += '<div class="gr">'; for (var i = 0; i < NB; i++) h += slotHTML('ch', i); h += '</div><div class="sep">🎒 TON SAC</div>'; }
     h += '<div class="gr">'; for (i = 0; i < NB; i++) h += slotHTML('bag', i); h += '</div><div class="sep">BARRE</div><div class="gr hot">'; for (i = 0; i < 4; i++) h += slotHTML('hot', i); h += '</div>';
-    h += '<div class="ac">' + (sel && (sel.t === 'lit' || sel.t === 'coffre') && BSEL[0] === 'bag' ? '<button type="button" class="pose">POSER</button>' : '') + (sel && (sel.t === 'arme' || sel.t === 'soin') ? '<button type="button" class="drop">JETER</button>' : '') + '</div></div>';
+    h += '<div class="ac">' + (sel && (sel.t === 'lit' || sel.t === 'coffre') && BSEL[0] === 'bag' ? '<button type="button" class="pose">POSER</button>' : '') + (sel && sel.t === 'livre' ? '<button type="button" class="read">📖 LIRE</button>' : '') + (sel && (sel.t === 'arme' || sel.t === 'soin') ? '<button type="button" class="drop">JETER</button>' : '') + '</div></div>';
     d.innerHTML = h;
     d.querySelectorAll('.bs').forEach(function (b) { var src = b.dataset.s, i = +b.dataset.i; drawIt(b.querySelector('canvas'), getS(src, i));
       b.addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); if (!BSEL) { if (getS(src, i)) BSEL = [src, i]; } else { if (!(BSEL[0] === src && BSEL[1] === i)) moveSlot(BSEL, [src, i]); BSEL = null; } C.tone('triangle', 700, 900, .04, .04); bagDraw(); }); });
     d.querySelector('.x').addEventListener('pointerdown', function (e) { e.preventDefault(); bag(false); });
+    var rd = d.querySelector('.read'); if (rd) rd.addEventListener('pointerdown', function (e) { e.preventDefault(); BSEL = null; bag(false); book(true); });
     var po = d.querySelector('.pose'); if (po) po.addEventListener('pointerdown', function (e) { e.preventDefault(); PLACEK = sel.t; PLACEI = BSEL[1]; BSEL = null; bag(false); setTool('place'); C.toast('VISE ET TIRE POUR POSER ' + (PLACEK === 'lit' ? 'LE LIT' : 'LE COFFRE')); });
     var dr = d.querySelector('.drop'); if (dr) dr.addEventListener('pointerdown', function (e) { e.preventDefault(); var P = me(), a = C.camA(), x = P.x + Math.cos(a) * 2.6, z = P.z + Math.sin(a) * 2.6;
       if (sel.t === 'arme') { var sl = C.newSlot(sel.k); sl.mag = sel.mag; sl.res = sel.res; C.dropItem(x, z, sel.k, sl); } else { for (var q = 0; q < sel.n; q++) C.dropItem(x + q * .5, z, sel.k); if (BSEL[0] === 'hot') P.heals[sel.k] = 0; }
@@ -443,15 +490,26 @@
 
   /* ---------------- CRÉATIF : armurerie au point de départ, les armes réapparaissent à l'infini ---------------- */
   var ARM = null;
-  function armory() { var T0 = C.BF && C.ARENA ? C.ARENA : C.TOWNS[0], cx = T0[1] + (C.BF ? 0 : 10), cz = T0[2] + (C.BF ? 31 : -8), K = ['pompe', 'pompeS', 'smg', 'fusil', 'sniper', 'shield', 'shield', 'heal']; ARM = [];
-    var g = new T.Group(), dark = new T.MeshLambertMaterial({ color: '#241a34' }), neon = new T.MeshBasicMaterial({ color: '#ff2bd6' }), gold = new T.MeshPhongMaterial({ color: '#ffd23d', shininess: 80 });
-    var base = new T.Mesh(new T.BoxGeometry(18, .3, 7), dark); base.position.set(cx, C.hgt(cx, cz) + .15, cz); g.add(base);
-    K.forEach(function (k, i) { var x = cx - 7.7 + i * 2.2, z = cz, y = C.hgt(x, z); var pd = new T.Mesh(new T.CylinderGeometry(.55, .65, .9, 12), dark); pd.position.set(x, y + .45, z); g.add(pd); var rg = new T.Mesh(new T.TorusGeometry(.6, .05, 6, 20), k === 'sniper' ? gold : neon); rg.rotation.x = Math.PI / 2; rg.position.set(x, y + .9, z); g.add(rg); ARM.push({ k: k, x: x, z: z + 1.6, it: null, t: 0 }); });
-    var cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; var c2 = cv.getContext('2d'); c2.fillStyle = '#0c0614'; c2.fillRect(0, 0, 512, 128); c2.strokeStyle = '#ff2bd6'; c2.lineWidth = 6; c2.shadowColor = '#ff2bd6'; c2.shadowBlur = 20; c2.strokeRect(8, 8, 496, 112); c2.font = '900 64px Arial Black, Arial'; c2.textAlign = 'center'; c2.fillStyle = '#fff'; c2.fillText('ARMURERIE', 256, 88);
-    var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; var sg = new T.Mesh(new T.PlaneGeometry(9, 2.25), new T.MeshBasicMaterial({ map: tx })); sg.position.set(cx, C.hgt(cx, cz) + 4.2, cz - 1.5); g.add(sg);
-    [-9, 9].forEach(function (dx) { var po = new T.Mesh(new T.BoxGeometry(.3, 4.5, .3), dark); po.position.set(cx + dx * .5, C.hgt(cx, cz) + 2.25, cz - 1.5); g.add(po); });
+  /* GÉNÉRATEURS D'ARMES (comme dans les modes créatifs des gros jeux) : une dalle de 5 m (comme un sol construit) avec un plot futuriste
+     bleu-violet au milieu ; l'arme ou la potion réapparaît dessus à l'infini ; une pancarte à côté dit ce que c'est. Toutes les armes + toutes les potions. */
+  function armory() { var BF = C.BF && C.ARENA, T0 = BF ? C.ARENA : C.TOWNS[0], K = ['pompeS', 'pompe', 'fusil', 'smg', 'scar', 'sniper', 'pistolet', 'roquette', 'laser', 'patate', 'mini', 'shield', 'heal'], n = K.length, ARM2 = [];
+    var cx0 = Math.round((T0[1] - n * CELL / 2) / CELL) * CELL, cz = Math.round((T0[2] + (BF ? 32.5 : -22.5)) / CELL) * CELL + CELL / 2; ARM = [];
+    var g = new T.Group(), slab = new T.MeshLambertMaterial({ color: '#3a3448' }), rim = new T.MeshBasicMaterial({ color: '#7a2fff' }), core = new T.MeshBasicMaterial({ color: '#3dd6ff', transparent: true, opacity: .85 }), dk = new T.MeshLambertMaterial({ color: '#1a1424' }), WN = C.WEAPONS, HN = C.HEAL;
+    K.forEach(function (k, i) { var x = cx0 + i * CELL + CELL / 2, z = cz, y = Math.max(C.hgt(x, z), C.hgt(x - 2, z - 2), C.hgt(x + 2, z + 2)) + .02;
+      var fl = new T.Mesh(new T.BoxGeometry(CELL - .1, .3, CELL - .1), slab); fl.position.set(x, y + .15, z); g.add(fl);   // dalle = un sol de construction
+      [[0, 2.45, CELL - .1, .08], [0, -2.45, CELL - .1, .08], [2.45, 0, .08, CELL - .1], [-2.45, 0, .08, CELL - .1]].forEach(function (q) { var e = new T.Mesh(new T.BoxGeometry(q[2], .06, q[3]), rim); e.position.set(x + q[0], y + .31, z + q[1]); g.add(e); });
+      var pad = new T.Mesh(new T.CylinderGeometry(1, 1.15, .22, 6), dk); pad.position.set(x, y + .41, z); g.add(pad);   // plot hexagonal
+      var ring = new T.Mesh(new T.TorusGeometry(.95, .07, 8, 6), rim); ring.rotation.x = Math.PI / 2; ring.position.set(x, y + .53, z); g.add(ring);
+      var glow = new T.Mesh(new T.CylinderGeometry(.82, .82, .04, 6), core); glow.position.set(x, y + .54, z); g.add(glow);
+      var beam = new T.Mesh(new T.CylinderGeometry(.5, .8, 2.2, 6, 1, true), new T.MeshBasicMaterial({ color: '#7ac8ff', transparent: true, opacity: .16, side: T.DoubleSide, depthWrite: false })); beam.position.set(x, y + 1.6, z); g.add(beam);
+      var cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; var c2 = cv.getContext('2d'), nm = WN[k] ? WN[k].name : HN[k] ? HN[k].name : k, rc = WN[k] ? ['#b9bcc4', '#4dd65a', '#3d9bff', '#b05cff', '#ffb52e'][WN[k].rar] : '#3dd6ff';
+      c2.fillStyle = '#0c0614'; c2.fillRect(0, 0, 256, 128); c2.strokeStyle = rc; c2.lineWidth = 6; c2.strokeRect(5, 5, 246, 118); c2.fillStyle = rc; c2.fillRect(5, 5, 246, 26); c2.fillStyle = '#0c0614'; c2.font = '900 18px Arial'; c2.textAlign = 'center'; c2.fillText(WN[k] ? 'GÉNÉRATEUR D\'ARMES' : 'GÉNÉRATEUR DE SOINS', 128, 25);
+      c2.fillStyle = '#fff'; var fs = nm.length > 14 ? 26 : 32; c2.font = '900 ' + fs + 'px Arial Black, Arial'; c2.fillText(nm.toUpperCase(), 128, 84); c2.font = '700 15px Arial'; c2.fillStyle = '#c9b8e8'; c2.fillText('RÉAPPARAÎT À L\'INFINI', 128, 112);
+      var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; var sg = new T.Mesh(new T.PlaneGeometry(2.2, 1.1), new T.MeshBasicMaterial({ map: tx, side: T.DoubleSide })); sg.position.set(x, y + 2.3, z + (BF ? 2.35 : -2.35)); sg.rotation.y = BF ? 0 : Math.PI; g.add(sg);
+      var po = new T.Mesh(new T.BoxGeometry(.12, 2.3, .12), dk); po.position.set(x, y + 1.15, z + (BF ? 2.4 : -2.4)); g.add(po);
+      ARM.push({ k: k, x: x, z: z, y: y + .6, it: null, t: 9, ring: ring, glow: glow }); });
     g.traverse(function (o) { o.userData.dyn = true; }); C.scene.add(g); }
-  function armoryTick(dt) { if (!ARM || !C.items) return; var L = C.items(); ARM.forEach(function (a) { if (a.it && L.indexOf(a.it) >= 0) return; a.t += dt; if (a.t < 1.5) return; a.t = 0; C.dropItem(a.x, a.z, a.k); a.it = L[L.length - 1]; }); }
+  function armoryTick(dt) { if (!ARM || !C.items) return; var L = C.items(), now = performance.now() / 1000; ARM.forEach(function (a) { a.ring.rotation.z = now * 1.5; a.glow.material.opacity = .6 + Math.sin(now * 4 + a.x) * .25; if (a.it && L.indexOf(a.it) >= 0) { a.it.m.position.y = a.y + .2 + Math.sin(now * 2 + a.x) * .12; a.it.m.rotation.y = now; return; } a.t += dt; if (a.t < 1.5) return; a.t = 0; C.dropItem(a.x, a.z, a.k); a.it = L[L.length - 1]; if (a.it) a.it.m.position.y = a.y; }); }
 
   /* ---------------- maisons à moitié détruites (la guerre contre les zombies) + gravats ---------------- */
   var RUINS = null;
@@ -482,7 +540,7 @@
       localStorage.setItem(SKEY, JSON.stringify(d)); var fd = C.fogData && C.fogData(); if (fd) localStorage.setItem(SKEY + '_fog', fd); if (el.saveI) { el.saveI.classList.remove('on'); void el.saveI.offsetWidth; el.saveI.classList.add('on'); } } catch (e) { console.warn('sauvegarde', e); } }
   function loadSave() { try { var d = JSON.parse(localStorage.getItem(SKEY) || 'null'); return d && d.v === 1 ? d : null; } catch (e) { return null; } }
   function applySave(d) { var P = me(); TIME = d.t || 0; RES = d.res || RES; BED = d.bed || null; showBed();
-    if (d.bag) { bagInit(); d.bag.forEach(function (it, i) { if (i < NB) BAG[i] = it; }); } (d.stor || []).forEach(function (q) { placeStor(q[0], q[1], q[2], q[3], q[4]); }); if (C.setDay && d.day) C.setDay(d.day);
+    if (d.bag) { bagInit(); d.bag.forEach(function (it, i) { if (i < NB) BAG[i] = it; }); } if (C.SURV && !C.CREA && !BAG.some(function (q) { return q && q.t === 'livre'; })) { var fi = BAG.indexOf(null); if (fi >= 0) BAG[fi] = { t: 'livre' }; } (d.stor || []).forEach(function (q) { placeStor(q[0], q[1], q[2], q[3], q[4]); }); if (C.setDay && d.day) C.setDay(d.day);
     if (d.p) { P.x = d.p.x; P.z = d.p.z; P.y = P.gy = Math.max(C.hgt(P.x, P.z), d.p.y || 0); P.hp = Math.max(30, d.p.hp || 100); P.sh = d.p.sh || 0; }
     if (d.inv) d.inv.forEach(function (w, i) { if (w && C.WEAPONS[w.k]) { var sl = C.newSlot(w.k); sl.mag = w.mag; sl.res = w.res; P.inv[i] = sl; } });
     if (d.heals) Object.keys(d.heals).forEach(function (k) { P.heals[k] = d.heals[k]; });
@@ -510,7 +568,7 @@
   window.SURVIE = {
     init: function (THREE, ctx) { T = THREE; C = ctx; ZERO = new T.Matrix4().makeScale(0, 0, 0); GEO.esc = rampGeo(); GEO.toit = roofGeo(); C.groundAt = groundAt;
       if (C.SURV) genNodes(); ui();
-      if (C.SURV && !C.CREA && window.ZOMB) ZOMB.init(T, C, function (z) { var n = ZOMB.left(); C.toast(n ? '🧟 ZOMBIE ÉLIMINÉ · ENCORE ' + n : '🏆 TOUS LES ZOMBIES SONT MORTS ! LE MONDE EST LIBRE'); });
+      if (C.SURV && !C.CREA && window.ZOMB) { ZOMB.init(T, C, onKill); posters(); var bb = document.createElement('button'); bb.type = 'button'; bb.id = 'sBookB'; bb.textContent = '📖 CRÉATURES'; document.body.appendChild(bb); press(bb, function () { book(!BOOKON); }); }
       if (C.SURV) { addEventListener('pagehide', save); document.addEventListener('visibilitychange', function () { if (document.hidden) save(); }); }
       if (C.SURV && T.GLTFLoader && window.LOOT3D) new T.GLTFLoader().load('models/bedSingle.glb', function (g) { try { BEDTPL = LOOT3D.bake(T, g.scene, { size: 2.3, col: {} }); showBed(); } catch (e) { console.error(e); } });
       var L = window.LOOT3D, GL = T.GLTFLoader ? new T.GLTFLoader() : null, left = NDEF.length + 1, tpl = [], stp = null;
@@ -518,7 +576,7 @@
       if (!GL || !L || !L.bake) { left = 1; done(); return; }
       NDEF.forEach(function (d, i) { GL.load('models/survie/' + d.f + '.glb', function (g) { try { tpl[i] = L.bake(T, g.scene, d); } catch (e) { console.error(e); } done(); }, null, done); });
       GL.load('models/nature/q_TreeStump.glb', function (g) { try { stp = L.bake(T, g.scene, { size: 1.3, col: {} }); } catch (e) { console.error(e); } done(); }, null, done); },
-    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; me().heals.shield = 2; if (C.BF) { BAG[1] = BAG[2] = BAG[3] = null; bfKit(); } if (C.PROPM) { var Pp = me(); Pp.inv = [C.newSlot('laser'), C.newSlot('pompe'), null]; Pp.slot = 0; } }   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
+    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.SURV && !C.CREA) BAG[1] = { t: 'livre' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; me().heals.shield = 2; if (C.BF) { BAG[1] = BAG[2] = BAG[3] = null; bfKit(); } if (C.PROPM) { var Pp = me(); Pp.inv = [C.newSlot('laser'), C.newSlot('pompe'), null]; Pp.slot = 0; } }   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
       if (el.tools) el.tools.hidden = false;
       NODES.forEach(function (n) { if (n.dead) { n.dead = false; if (C.PCOL.indexOf(n.col) < 0) C.PCOL.push(n.col); } n.hp = n.max; n.shk = 0; nodeSet(n); });
       STUMPL.forEach(function (t) { regrow(t); }); STUMPL = []; C.TREES.forEach(function (t) { t.hp = null; t.gone = false; t.shp = null; });
@@ -535,7 +593,7 @@
     nowPlaying: function (n) { if (!el.now) return; el.now.textContent = '🎵 ' + n; el.now.classList.add('on'); setTimeout(function () { el.now.classList.remove('on'); }, 5000); },
     bag: function (on) { bag(on); }, bagOpen: function () { return BAGON; }, bagAdd: bagAdd, act: act,
     save: save, hasSave: function () { return !!loadSave(); }, wipe: function () { try { localStorage.removeItem(SKEY); localStorage.removeItem(SKEY + '_fog'); } catch (e) {} },
-    update: function (dt) { TIME += dt; var P = me(); if (P && P.model && P === me()) attachPick(P.model);
+    update: function (dt) { TIME += dt; if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
       if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0);
       // arbres qui tremblent, rochers qui reviennent, arbres qui repoussent
       C.TREES.forEach(function (t) { if (t.shk > 0) { t.shk = Math.max(0, t.shk - dt); if (window.TREES3D && TREES3D.shake) TREES3D.shake(t, t.shk > 0 ? Math.sin(t.shk * 70) * t.shk * .5 : 0); } });
@@ -569,7 +627,7 @@
     tool: function () { return TOOL; }, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
     toolName: function () { if (TOOL === 'place') return 'Poser ' + (PLACEK === 'lit' ? 'le LIT 🛏' : 'le COFFRE 📦') + ' · tire pour poser'; return TOOL === 'pioche' ? 'Pioche ⛏ · arbres = bois, rochers = pierre, carcasses = métal' : PIECE === 'lit' ? 'Construire 🔨 · LIT (30 bois) = réapparition' : 'Construire 🔨 · ' + PNAME[PIECE] + ' en ' + NAME[MATK].toLowerCase() + ' (' + COST + ')'; },
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
-    hudLine: function () { var s = Math.floor(TIME), zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + ZOMB.left() + '/' + ZOMB.total() : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
+    hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
     res: function () { return RES; }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
