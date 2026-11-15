@@ -314,5 +314,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **PARTIE RAPIDE** (`RANKED`, `localStorage.wr_ranked`, `#segRk`) : non classé, pas de trophées ni d'entrée, bots faciles.
 - **Maps publiques** : n°1 **MAP 1V1** (mode `bf`), n°2 **PROPANE** (mode `prop`, carte `propane`, `PROPM`, ✔ Wald Royal Creator) : mini-île (HALF 300, ISL 240), 8 villes, petits sommets, pas de bus ni tempête, seul pour l'instant. **Cache-cache** : le lanceur laser transforme en objet (`pickDisguise`, `disguiseModel`, `becomeProp`, `unProp`), touche F / bouton 😗 = siffler (`whistle`), E / 🎭 = redevenir soi. Miniatures dessinées en canvas (`#th1`, `#th2`).
 
+- Rangs : emblèmes dessinés `emblem(i)` (blason métallique, gemme, chevrons, ailes dès Platine, couronne dès Maître, halo Néon, flammes Légende) ; exportés pour le site en `wald-royal/img/rk0..7.png`. Page du launcher : 10 armes, nouvelles cartes de fonctions. Cache v38.
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

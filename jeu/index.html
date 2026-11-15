@@ -145,7 +145,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .rankbox{display:flex;gap:10px;align-items:center;background:rgba(11,4,24,.8);border:2px solid var(--sun);border-radius:12px;padding:6px 14px 8px 8px;white-space:nowrap;pointer-events:auto}
 .rankbox b{font:900 15px var(--display)}.rankbox small{display:block;font:800 12px var(--body);color:var(--sun)}
 .rkbar{width:140px;height:6px;border-radius:3px;background:rgba(255,255,255,.15);overflow:hidden;margin-top:3px}.rkbar i{display:block;height:100%;background:linear-gradient(90deg,var(--pink),var(--sun))}
-.rk{width:38px;height:38px;display:grid;place-items:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);font:900 13px var(--display);color:#1a0733;flex:none}
+.rk{width:46px;height:46px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:grid;place-items:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);font:900 13px var(--display);color:#1a0733;flex:none}
 .panel{max-height:100%;overflow-y:auto;padding:4px}
 .pane{display:none;gap:10px}.pane.on{display:grid}
 .pane h3{margin:0;font:900 20px var(--display)}
@@ -169,7 +169,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .soon{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mute)}.soon span{background:rgba(255,255,255,.08);border-radius:999px;padding:3px 9px}
 .note{margin:0;color:var(--mute);font-size:13px;line-height:1.45}
 .ladder{display:grid;gap:5px}.ladder div{display:flex;align-items:center;gap:10px;background:rgba(11,4,24,.75);border-radius:10px;padding:5px 10px;border:1px solid rgba(255,255,255,.12)}
-.ladder div.me{border-color:var(--sun)}.ladder .rk{width:28px;height:28px;font-size:11px}.ladder b{flex:1;font:900 13px var(--display)}.ladder small{color:var(--mute);font-size:11px}
+.ladder div.me{border-color:var(--sun)}.ladder .rk{width:34px;height:34px;font-size:11px}.ladder b{flex:1;font:900 13px var(--display)}.ladder small{color:var(--mute);font-size:11px}
 .locker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 @font-face{font-family:'WRvic';src:url(fonts/LuckiestGuy-Regular.ttf)}
 #victory{position:fixed;inset:0;z-index:45;pointer-events:none;display:flex;flex-direction:column;align-items:center}
@@ -2341,7 +2341,25 @@ function rankIdx(t) { var i = 0; while (i + 1 < RANKS.length && t >= RANKS[i + 1
 function grpOf(i) { return GRP.indexOf(RANKS[i][0].split(' ')[0]); }
 function entryCost(t) { return [0, 4, 8, 12, 18, 24, 30, 40][grpOf(rankIdx(t))] + Math.max(0, Math.round((t - 5400) / 20)); }
 function placeGain(t, p) { return Math.round(placePts(p) * (1 + grpOf(rankIdx(t)) * .15)); }
-function badge(el, i) { var gi = grpOf(i); el.style.background = 'linear-gradient(160deg,#fff,' + GCOL[gi] + ' 45%,' + GCOL[gi] + ')'; el.textContent = RANKS[i][0].split(' ')[1] || GRP[gi][0]; }
+/* EMBLÈMES DE RANG dessinés : blason métallique biseauté, gemme au centre, chevrons du niveau (I, II, III),
+   ailes dès Platine, couronne dès Maître, halo néon, flammes dorées en Légende */
+var EMB = {};
+function emblem(i) { if (EMB[i]) return EMB[i]; var gi = grpOf(i), tier = ['I', 'II', 'III'].indexOf(RANKS[i][0].split(' ')[1] || 'I') + 1, S = 128, c = document.createElement('canvas'); c.width = c.height = S; var g = c.getContext('2d'), C0 = GCOL[gi], cx = S / 2;
+  var MET = [['#5a2e10', '#c98a4b', '#ffd2a0'], ['#5a6070', '#cfd6e0', '#ffffff'], ['#8a5a00', '#ffd23d', '#fff4b0'], ['#0a5a6a', '#5ce1e6', '#d8ffff'], ['#1a3aa0', '#7aa8ff', '#e0ecff'], ['#7a2a00', '#ff8a3d', '#ffe0b0'], ['#6a0020', '#ff3b5c', '#ffc0d0'], ['#3a0a6a', '#c77dff', '#f2d8ff']][gi];
+  function shieldPath(sc) { g.beginPath(); g.moveTo(cx, 14 * sc + (1 - sc) * cx); var k = function (x, y) { return [cx + (x - cx) * sc, cx + (y - cx) * sc]; }, a = k(104, 30), b = k(104, 70), d = k(cx, 118), e = k(24, 70), f = k(24, 30);
+    g.lineTo(a[0], a[1]); g.quadraticCurveTo(k(106, 96)[0], k(106, 96)[1], d[0], d[1]); g.quadraticCurveTo(k(22, 96)[0], k(22, 96)[1], f[0], f[1]); g.closePath(); }
+  if (gi >= 6) { g.save(); g.shadowColor = gi === 6 ? '#ff2bd6' : '#ffd23d'; g.shadowBlur = 22; shieldPath(.9); g.fillStyle = gi === 6 ? '#ff2bd6' : '#ffb02a'; g.fill(); g.restore(); }
+  if (gi === 7) { g.fillStyle = '#ffb02a'; for (var f = 0; f < 7; f++) { var fx = 26 + f * 12.6, fh = 20 + (f % 2 ? 10 : 18); g.beginPath(); g.moveTo(fx - 8, 40); g.quadraticCurveTo(fx - 6, 40 - fh * .6, fx, 40 - fh); g.quadraticCurveTo(fx + 6, 40 - fh * .6, fx + 8, 40); g.fill(); } }
+  if (gi >= 3) { [-1, 1].forEach(function (sd) { g.save(); g.translate(cx + sd * 34, 58); g.scale(sd, 1); for (var w = 0; w < 4; w++) { var gr0 = g.createLinearGradient(0, 0, 30, 0); gr0.addColorStop(0, MET[1]); gr0.addColorStop(1, MET[2]); g.fillStyle = gr0; g.strokeStyle = MET[0]; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(0, w * 9 - 14); g.quadraticCurveTo(22 - w * 3, w * 9 - 26, 34 - w * 5, w * 9 - 10 - w * 2); g.quadraticCurveTo(20, w * 9 - 6, 0, w * 9 - 2); g.closePath(); g.fill(); g.stroke(); } g.restore(); }); }
+  shieldPath(.8); var gr = g.createLinearGradient(0, 14, 0, 118); gr.addColorStop(0, MET[2]); gr.addColorStop(.35, MET[1]); gr.addColorStop(.62, MET[0]); gr.addColorStop(1, MET[1]); g.fillStyle = gr; g.fill(); g.lineWidth = 4; g.strokeStyle = MET[0]; g.stroke();
+  shieldPath(.62); var gr2 = g.createLinearGradient(0, 30, 0, 100); gr2.addColorStop(0, '#2a0838'); gr2.addColorStop(1, '#0b0418'); g.fillStyle = gr2; g.fill(); g.lineWidth = 2.5; g.strokeStyle = MET[2]; g.stroke();
+  g.save(); g.translate(cx, 58); g.rotate(Math.PI / 4); var gg = g.createLinearGradient(-14, -14, 14, 14); gg.addColorStop(0, '#ffffff'); gg.addColorStop(.4, C0); gg.addColorStop(1, MET[0]); g.fillStyle = gg; g.shadowColor = C0; g.shadowBlur = 14; g.fillRect(-13, -13, 26, 26); g.restore();
+  g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(cx - 6, 50); g.lineTo(cx, 44); g.lineTo(cx + 2, 52); g.closePath(); g.fill();
+  for (var t = 0; t < tier; t++) { var y = 82 + t * 9; g.beginPath(); g.moveTo(cx - 14, y); g.lineTo(cx, y + 6); g.lineTo(cx + 14, y); g.lineWidth = 4; g.strokeStyle = MET[2]; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); }
+  if (gi >= 5) { g.fillStyle = '#ffd23d'; g.strokeStyle = '#7a4a00'; g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 20, 22); g.lineTo(cx - 20, 6); g.lineTo(cx - 10, 14); g.lineTo(cx, 2); g.lineTo(cx + 10, 14); g.lineTo(cx + 20, 6); g.lineTo(cx + 20, 22); g.closePath(); g.fill(); g.stroke(); }
+  return (EMB[i] = c.toDataURL()); }
+function badge(el, i) { el.style.background = 'url(' + emblem(i) + ') center/contain no-repeat'; el.style.clipPath = 'none'; el.textContent = ''; el.title = RANKS[i][0]; }
 var lastCost = 0, tBefore = 0;
 function showStats() {
   $('stG').textContent = ST.g; $('stW').textContent = ST.w; $('stK').textContent = ST.k; $('stB').textContent = ST.b ? '#' + ST.b : '—'; var deaths = Math.max(0, ST.g - ST.w), kd = ST.k / Math.max(1, deaths); $('stKD').textContent = (Math.round(kd * 100) / 100).toString().replace('.', ',');
