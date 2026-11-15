@@ -239,7 +239,7 @@
   /* ---------- BOTS : même corps sculpté que les skins, tenues variées selon o.v ---------- */
   B.npc = function (R, o) {
     o = o || {}; var v = o.v || 0, skin = M(o.skin || '#e0ac85'), shirt = M('#fff', fabric(o.shirt || '#3dd6ff')), pants = M('#fff', fabric(o.pants || '#2b3a67')), sole = M('#1c1c22'), white = M('#f2f2f2'), dark = M('#151515');
-    var HC = ['#1c1410', '#4a2e1a', '#8a5a2a', '#d8b060', '#2a2a30', '#b8483a'], hc = HC[v % HC.length], hairM = M('#fff', hairTex('hairN' + hc, hc, '#0a0806', '#7a6a5a')), hoodie = v % 3 === 2, shorts = v % 4 === 1, hat = ['cap', 'beanie', 'none', 'bob', 'none', 'cap'][v % 6];
+    var HC = ['#1c1410', '#4a2e1a', '#8a5a2a', '#d8b060', '#2a2a30', '#b8483a'], hc = HC[v % HC.length], hairM = M('#fff', hairTex('hairN' + hc, hc, '#0a0806', '#7a6a5a')), hoodie = v % 3 === 2, shorts = v % 4 === 1, hat = o.hat || ['cap', 'beanie', 'none', 'bob', 'none', 'cap'][v % 6];
     [R.lL, R.lR].forEach(function (l) { leg(l, pants, shorts ? skin : pants, shorts ? { hem: pants, hemY: -.34 } : null); if (shorts) seg(l, .1, .09, -.2, -.34, pants); shoe(l, M(o.shoes || '#eeeeee'), sole, shirt); laces(l, .05, white); });
     lathe(R.body, [[0, .86], [.2, .87], [.245, .94], [.25, 1.02], [0, 1.03]], pants); TO(R.body, .245, .016, 0, 0, 1.0, 0, dark, Math.PI / 2, 0, 0).scale.set(.74, 1, 1);
     lathe(R.body, [[0, .98], [.24, .99], [.25, 1.1], [.26, 1.24], [.285, 1.36], [.31, 1.45], [.3, 1.51], [.24, 1.57], [.13, 1.61], [0, 1.62]], shirt);
@@ -263,7 +263,8 @@
      o.zv : 0 rôdeur, 1 brute (épaisse), 2 coureur (maigre, pâle), 3 bizarre (grosse tête, yeux roses) ---------- */
   B.zombie = function (R, o) {
     o = o || {}; var zv = o.zv || 0, SK = o.SK || ['#8fb07a', '#7a9a6a', '#a8c0c8', '#b49ac8'][zv], SH = o.SH || ['#5a4a3a', '#3a3f48', '#6a5a4a', '#4a3a5a'][zv], PA = o.PA || ['#3a3a48', '#4a3a2a', '#2a3a4a', '#3a2a3a'][zv];
-    var cols = B.npc(R, Object.assign({}, o, { skin: SK, shirt: SH, pants: PA, shoes: '#5a5048', hatCol: '#4a4a4a', v: o.v }));
+    var bare = o.horns || o.antlers || o.shroom || o.crystal || o.hood || o.crown || o.eyes3 || o.bones || o.wrap || o.hs || o.lava || o.fins;
+    var cols = B.npc(R, Object.assign({}, o, { skin: SK, shirt: SH, pants: PA, shoes: '#5a5048', hatCol: '#4a4a4a', v: o.v, hat: bare ? 'none' : o.hat }));
     var dark = M('#120c0a'), blood = M('#5a1a14'), eyeM = o.eye ? M(o.eye, { emissive: o.eye, shininess: 80 }) : M(zv === 3 ? '#ff4ad8' : zv === 2 ? '#7af0ff' : '#e8ff4a', { emissive: zv === 3 ? '#ff2bd6' : zv === 2 ? '#2ad8ff' : '#c8ff2a', shininess: 80 }), tooth = M('#e8e0c0'), h = R.head;
     eachSide(function (s2) { S(h, .046, .05, .046, .262, .168, s2 * .09, eyeM); });   // yeux qui brillent
     S(h, .05, .045, .1, .245, .015, 0, dark); for (var k = -2; k <= 2; k++) S(h, .012, .018, .012, .262, .04, k * .024, tooth);   // bouche ouverte, dents
@@ -273,6 +274,21 @@
     if (zv === 3) { h.scale.set(1.45, 1.55, 1.45); h.position.y += .08; }
     if (o.moss) { var mm = M('#4f7a2a', { flatShading: true }); [[.05, 1.55, .25, .14], [-.05, 1.6, -.22, .16], [.12, 1.35, .18, .1], [-.1, 1.2, -.12, .12], [.0, 1.68, 0, .13]].forEach(function (q) { S(R.body, q[3], q[3] * .8, q[3], q[0], q[1], q[2], mm); }); S(h, .14, .1, .14, -.02, .3, 0, mm); }   // colosse : mousse et lichens
     if (o.crown) { var gd = M('#ffd23d', { shininess: 120, emissive: '#5a3a00' }); TO(h, .2, .03, 0, 0, .36, 0, gd, Math.PI / 2); for (var cs = 0; cs < 6; cs++) { var ca = cs / 6 * Math.PI * 2; C(h, .028, 0, .14, Math.cos(ca) * .2, .45, Math.sin(ca) * .2, gd); } S(h, .035, .035, .035, .2, .36, 0, M('#ff2bd6', { emissive: '#ff2bd6' })); }   // roi violet : couronne
+    /* ---- décorations des nouvelles créatures (Brume Violette, 32 espèces) ---- */
+    if (o.hs) { h.scale.multiplyScalar(o.hs); }
+    if (o.horns) { var hm = M(o.horns === 1 ? '#e8dcc0' : o.horns, { shininess: 60 }); eachSide(function (s2) { C(h, .012, .065, .34, .02, .32, s2 * .15, hm, s2 * -.6, 0, s2 * -.3); }); }
+    if (o.antlers) { var am = M('#6a4a2a', { flatShading: true }); eachSide(function (s2) { C(h, .018, .03, .42, -.02, .4, s2 * .15, am, s2 * -.55); [[.12, .5, .22, .5], [.02, .6, .26, -.2], [-.08, .52, .3, -.9]].forEach(function (q) { C(h, .01, .02, .22, q[0], q[1], s2 * q[2], am, s2 * -.3, 0, q[3]); }); }); }
+    if (o.shroom) { var sm = M(o.shroom, { shininess: 30 }), dots = M('#fff4e0'), st0 = M('#e8dcc0'); [[0, .42, 0, .2], [-.1, 1.62, .18, .13], [-.12, 1.4, -.2, .11], [-.15, 1.2, .05, .09]].forEach(function (q, i) { var par = i ? R.body : h; C(par, .025, .035, .1, q[0], q[1] - .05, q[2], st0); S(par, q[3], q[3] * .55, q[3], q[0], q[1], q[2], sm); S(par, .022, .012, .022, q[0] + q[3] * .5, q[1] + q[3] * .35, q[2], dots); S(par, .018, .01, .018, q[0] - q[3] * .3, q[1] + q[3] * .42, q[2] + q[3] * .4, dots); }); }
+    if (o.crystal) { var cm = M(o.crystal, { emissive: o.crystal, emissiveIntensity: .55, shininess: 140, flatShading: true }); [[-.3, 1.5, .12, .5], [-.3, 1.32, -.12, -.4], [-.26, 1.68, 0, .1], [-.05, 1.62, .32, .9], [-.05, 1.62, -.32, -.9], [-.08, .38, .1, .3]].forEach(function (q, i) { var cr = C(i === 5 ? h : R.body, 0, .08, .36, q[0], q[1], q[2], cm, q[3], 0, -.5); cr.geometry = new T3.CylinderGeometry(0, .08, .36, 5); }); }
+    if (o.lava) { var lm = M('#ff6a1a', { emissive: '#ff4a00', emissiveIntensity: .9 }); [[.25, 1.35, .1, .05], [.24, 1.15, -.12, .04], [-.22, 1.3, .14, .05], [.26, .98, .02, .04], [.1, 1.62, .2, .035], [-.2, 1.5, -.18, .04]].forEach(function (q) { S(R.body, .02, q[3] * 1.8, q[3], q[0], q[1], q[2], lm); }); S(h, .03, .05, .02, .2, .26, -.12, lm); S(h, .02, .04, .02, .2, .08, .15, lm); }
+    if (o.bones) { var bm = M('#ece4cc', { shininess: 40 }); for (var rb = 0; rb < 4; rb++) TO(R.body, .3 - rb * .015, .022, Math.PI, .03, 1.42 - rb * .1, 0, bm, 0, Math.PI / 2, 0); S(h, .2, .17, .19, .04, .17, 0, bm); }
+    if (o.wrap) { var wm = M(o.wrap === 1 ? '#d8c8a0' : o.wrap, { flatShading: true }); for (var w2 = 0; w2 < 6; w2++) TO(R.body, .22, .028, 0, 0, .95 + w2 * .12, 0, wm, Math.PI / 2, 0, (w2 % 2 ? .12 : -.1)); [R.aL, R.aR, R.lL, R.lR].forEach(function (lb) { for (var w3 = 0; w3 < 3; w3++) TO(lb, .075, .02, 0, 0, -.08 - w3 * .14, 0, wm, Math.PI / 2, 0, w3 % 2 ? .2 : -.2); }); TO(h, .23, .03, 0, .02, .1, 0, wm, Math.PI / 2, 0, .15); TO(h, .23, .03, 0, .02, .3, 0, wm, Math.PI / 2, 0, -.1); }
+    if (o.hood) { var hd = M(o.hood, { flatShading: false }); S(h, .29, .29, .28, -.04, .2, 0, hd); C(h, 0, .2, .3, -.1, .44, 0, hd, 0, 0, .35); S(R.body, .07, .6, .34, -.26, 1.05, 0, hd); TO(R.body, .2, .05, 0, 0, 1.52, 0, hd, Math.PI / 2); }
+    if (o.hump) { S(R.body, .26, .24, .28, -.2, 1.52, 0, M(SH)); }
+    if (o.eyes3) { S(h, .055, .06, .055, .255, .29, 0, eyeM); }
+    if (o.tusks) { eachSide(function (s2) { C(h, 0, .022, .14, .25, .02, s2 * .06, tooth, 0, 0, -.4); }); }
+    if (o.fins) { var fm = M(o.fins); for (var f2 = 0; f2 < 4; f2++) C(R.body, 0, .07, .2, -.24, 1.2 + f2 * .12, 0, fm, 0, 0, Math.PI / 2 + .3); eachSide(function (s2) { S(h, .02, .06, .05, .05, .15, s2 * .22, fm); }); }
+    if (o.tail) { var tm = M(SK); C(R.body, .02, .07, .6, -.38, .78, 0, tm, 0, 0, .9); }
     if (o.spikes) { var sp = M('#2a1030'); for (var k2 = 0; k2 < 5; k2++) C(R.body, .05, 0, .22, -.2, 1.25 + k2 * .09, 0, sp, 0, 0, Math.PI / 2 + .4); }   // hurleur : épines dans le dos
     return cols;
   };

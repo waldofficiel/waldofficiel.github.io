@@ -363,5 +363,12 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - `wald-royal/img/capitale.jpg` (bannière du launcher, galerie, bande-annonce) : l'ancien planeur noir « WALD » est remplacé par le planeur Wald Car Gonflable actuel (rendu 3D collé sur la capture).
 - iPhone/iPad = « Wald Royal iOS » (version web, sans launcher) : pas de mode Survie (`IOSW` dans jeu/index.html : bouton retiré, `?mode=survie` → br). Survie = payant, PC + Android seulement (site mis à jour).
 
+## 32 créatures, animations à débloquer, Wald Royal + Survie 5,99 € (cache v50)
+- `zombies.js` KIND = 32 espèces (24 nouvelles avec `an` = façon de bouger : crawl, hop, sway, charge, float, stomp, claw, twitch, flail ; `d` = texte du Livre). `ZOMB.demo(k, c, now, spd)` pose un modèle (rendus de pub). Jusqu'à 90 modèles construits.
+- `skins.js` B.zombie : décorations `horns, antlers, shroom, crystal, lava, bones, wrap, hood, hump, eyes3, tusks, fins, tail, hs` ; `o.hat` force le chapeau (les créatures décorées sont tête nue).
+- Animations de créatures (anim.js `zombi, rampe, spectre, couronne`) dans `DANCES` avec `unlock` = nb d'espèces découvertes (5/12/20/32), pas vendues en boutique ; `window.WRUNLOCK(n)` / `WRUNLOCKS()` (appelé par survie.js à chaque nouvelle espèce), affichées en haut du Livre. Musiques : alias DTR (même tempo).
+- Images de pub : `wald-royal/img/crea_horde.jpg`, `crea_boss.jpg`, `crea_rares.jpg` (page de rendu `/home/claude/_t_crea.html`, hors dépôt).
+- Launcher : page **Boutique** (Wald Royal + Survie 5,99 €, bouton gris tant que `window.SURV_PAY_URL` est vide), pub `TR[4]` qui se lance seule la 1re fois (`wg_adSurv1`), bouton JOUER/INSTALLER avec flèche ▾ : « Wald Royal » (gratuit) / « Wald Royal + Survie · 5,99 € » (grisé). Survie toujours jouable pour l'instant (pas de blocage, pas de paiement).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

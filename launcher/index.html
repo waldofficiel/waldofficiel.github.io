@@ -45,6 +45,17 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .tvbar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,.8),transparent)}
 .tvbar button{font:800 12px Inter;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 12px}.tvbar button.on{background:var(--pink);border-color:var(--pink)}#tvPlay{background:linear-gradient(180deg,#ffe36a,#ffb23d)!important;color:#1a0820!important;border:0!important}
 .note{font-size:12px;color:var(--mute);line-height:1.5}
+.split{position:relative;display:inline-flex}.split #play{border-radius:14px 0 0 14px}.split .arr{border-radius:0 14px 14px 0;padding:16px 16px;margin-left:2px;font-size:18px}
+.edm{position:absolute;left:0;bottom:calc(100% + 12px);z-index:20;width:300px;background:#160828;border:1px solid rgba(255,43,214,.45);border-radius:14px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.6)}.edm[hidden]{display:none}
+.edm button{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer}.edm button:hover:not([disabled]){background:rgba(255,255,255,.07)}
+.edm b{font:800 14px Inter}.edm small{grid-column:1;font-size:11px;color:var(--mute)}.edm i{grid-row:1/3;grid-column:2;align-self:center;font:900 13px Inter;font-style:normal;color:#ffd23d}
+.edm .on{background:rgba(255,43,214,.12)}.play.off{filter:grayscale(1);opacity:.5;box-shadow:none;cursor:not-allowed}.edm .off{opacity:.42;filter:grayscale(1);cursor:not-allowed}
+.sv{display:flex;flex-direction:column;gap:16px}.svh{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,43,214,.45);box-shadow:0 0 50px rgba(122,47,255,.35);min-height:320px;display:flex;align-items:flex-end}
+.svh img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:svz 14s ease-in-out infinite alternate}.svh:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,4,24,.92) 0%,rgba(11,4,24,.55) 55%,transparent)}
+@keyframes svz{from{transform:scale(1)}to{transform:scale(1.08) translateX(-2%)}}.svt{position:relative;z-index:1;padding:26px;max-width:520px}.svt h2{font:900 46px/1 Inter;margin:10px 0}.svt h2 em{font-style:normal;background:linear-gradient(180deg,#fff,#c77dff 60%,#7a2fff);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 16px rgba(199,125,255,.7))}
+.svt p{color:#e0d0f0;line-height:1.45}.svt .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 8px}
+.svg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.svg>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}.svg img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.svg b{display:block;padding:10px 12px 2px}.svg small{display:block;padding:0 12px 12px;color:var(--mute);font-size:12px;line-height:1.4}
+.price{display:inline-block;font:900 12px Inter;color:#1a0820;background:linear-gradient(180deg,#ffe36a,#ffb23d);border-radius:8px;padding:3px 8px;margin-left:6px}
 @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto}.brand{padding:0 6px}.brand small{display:none}nav{display:flex}nav button{padding:8px 10px;white-space:nowrap}nav button span.t{display:none}.acct{margin:0 0 0 auto;padding:4px 8px}.acct div{display:none}main{padding:14px}.hin h2{font-size:38px}.hero{min-height:280px}.top .search{display:none}}
 </style>
 </head>
@@ -55,6 +66,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     <nav>
       <button class="on" data-p="home">🏠 <span class="t">Accueil</span></button>
       <button data-p="lib">🎮 <span class="t">Bibliothèque</span></button>
+      <button data-p="shop">🛒 <span class="t">Boutique</span></button>
       <button data-p="news">📰 <span class="t">Nouveautés</span></button>
       <button data-p="acct">👤 <span class="t">Mon compte</span></button>
     </nav>
@@ -66,13 +78,14 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <div class="hero"><img class="bg" src="../wald-royal/img/capitale.jpg" alt="">
         <div class="hin"><span class="tag">SAISON 1 · ACCÈS ANTICIPÉ</span><h2>WALD<br>ROYAL</h2>
           <p>Battle Royale avec ou sans constructions, Créatif avec MAP 1V1 et PROPANE, Survie contre les zombies. Joue avec tes potes avec un code.</p>
-          <div class="row"><button class="play" id="play">▶ JOUER</button><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
+          <div class="row"><div class="split"><button class="play" id="play">▶ JOUER</button><button class="play arr" id="edB" type="button" aria-label="Choisir l'édition">▾</button>
+            <div class="edm" id="edM" hidden><button type="button" class="on" data-ed="wr"><b>Wald Royal</b><small>Battle Royale · Créatif · gratuit</small><i>✔</i></button><button type="button" class="off" data-ed="wrs" disabled><b>Wald Royal + Survie</b><small>32 créatures · monde de 4 km · bientôt disponible</small><i>5,99 €</i></button></div></div><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
       <h3>Modes de jeu</h3>
       <div class="grid">
         <button class="card" data-go="br"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs · Classé ou Partie rapide</small></div></button>
         <button class="card" data-go="creatif"><img src="../wald-royal/img/waldcar.jpg" alt=""><div><b>🎨 Créatif</b><small>Mon monde + maps publiques</small></div></button>
         <button class="card" data-go="bf"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>⚔️ MAP 1V1</b><small>Build fight entre potes</small></div></button>
-        <button class="card" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie</b><small>Monde de 4 km, zombies, ta base</small></div></button>
+        <button class="card" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie <span class="price">5,99 €</span></b><small>32 créatures · monde de 4 km · ta base</small></div></button>
       </div>
       <h3>Nouveautés</h3><div class="news" id="news1"></div>
     </section>
@@ -84,8 +97,20 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
         <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal · accès anticipé</small></div></button>
         <button class="card" data-tv="1"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>30 joueurs, 1 bus volant, 0 pitié</small></div></button>
         <button class="card" data-tv="2"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>🧟 Survie : l'histoire</b><small>La Brume Violette</small></div></button>
-        <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, PROPANE, entre potes</small></div></button></div>
+        <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, PROPANE, entre potes</small></div></button>
+        <button class="card" data-tv="4"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><b>🧟 Pub : Mode Survie</b><small>32 créatures · 5,99 €</small></div></button></div>
       <p class="note" style="margin-top:14px">Wald Game met Wald Royal à jour tout seul : seuls les fichiers qui ont changé sont téléchargés.</p>
+    </section>
+    <section class="page" data-p="shop">
+      <div class="top"><h1>Boutique</h1></div>
+      <div class="sv">
+        <div class="svh"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · DLC</span><h2>MODE <em>SURVIE</em></h2><p>La Brume Violette a tout envahi. Un monde de 4 km, <b>32 créatures</b> à découvrir, des boss, ta base à construire, et des animations à débloquer.</p>
+          <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + SURVIE · 5,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p></div></div>
+        <div class="svg"><div><img src="../wald-royal/img/crea_horde.jpg" alt=""><b>32 créatures</b><small>Communes, rares, épiques, légendaires. Certaines ne sortent que la nuit.</small></div>
+          <div><img src="../wald-royal/img/crea_rares.jpg" alt=""><b>Le Livre des créatures</b><small>Chaque espèce tuée débloque sa fiche et son histoire.</small></div>
+          <div><img src="../wald-royal/img/foret.jpg" alt=""><b>4 animations à débloquer</b><small>Danse du Zombie, La Rampante, Valse du Spectre, Danse du Roi Violet.</small></div>
+          <div><img src="../wald-royal/img/construction.jpg" alt=""><b>Ta base, ton lit</b><small>Bois, pierre, métal. Les brutes cassent le bois : construis solide.</small></div></div>
+      </div>
     </section>
     <section class="page" data-p="news"><div class="top"><h1>Nouveautés</h1></div><div class="news" id="news2"></div></section>
     <section class="page" data-p="acct">
@@ -98,11 +123,12 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
   </main>
 </div>
-<div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">🧟 Survie</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
+<div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="4">🧟 Pub Survie</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">🧟 Survie</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); }, LS = function (k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
-  var NEWS = [['MAP 1V1 et PROPANE', 'Deux maps publiques dans le Créatif : build fight entre potes, et cache-cache en objets avec le laser.', 'creatif.jpg', 'NOUVEAU'],
+  var NEWS = [['MISE À JOUR SURVIE : 32 CRÉATURES', 'Noyés, Momies, Cornus, Cerfs maudits, Reine des spores, Titan de givre, Dévoreur des cimes… 24 nouvelles créatures avec leur façon de bouger, et 4 animations à débloquer en remplissant le Livre des créatures.', 'crea_horde.jpg', 'MISE À JOUR'],
+    ['MAP 1V1 et PROPANE', 'Deux maps publiques dans le Créatif : build fight entre potes, et cache-cache en objets avec le laser.', 'creatif.jpg', 'NOUVEAU'],
     ['Joue avec tes potes', 'Dans les maps du Créatif, lancez la même map ou entrez le même code : vous êtes ensemble.', 'buildfight.jpg', 'EN LIGNE'],
     ['Constructions façon Fortnite', 'Construction au viseur, rampes parfaites, ÉDITER avec la grille de 9 cases bleues.', 'construction.jpg', 'GAMEPLAY'],
     ['Nouvelles armes', 'Lance-roquette, lanceur laser, lance-patate, pompe auto et pompe spécialisé.', 'lobby.jpg', 'ARMES'],
@@ -180,8 +206,9 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   var TR = [
     { bpm: 128, mood: 'hype', sc: [['capitale.jpg', 'WALD OFF GAMES', 'présente', 3], ['lobby.jpg', 'WALD ROYAL', 'le battle royale de Wald Off', 3.4], ['construction.jpg', 'CONSTRUIS', 'murs, rampes, édition à la grille', 2.6], ['buildfight.jpg', 'AFFRONTE TES POTES', 'MAP 1V1 · en ligne avec un code', 2.6], ['foret.jpg', 'SURVIS', 'la Brume Violette a tout envahi', 2.6], ['creatif.jpg', 'CRÉE', 'Créatif · PROPANE · cache-cache', 2.6], ['place.jpg', 'WALD ROYAL'].concat([END[1] + ' · ' + END[2], 5.5])] },
     { bpm: 132, mood: 'hype', sc: [['ville.jpg', '30 JOUEURS', 'un seul TOP 1', 2.6], ['planeur.jpg', 'SAUTE DU BUS', 'et plane où tu veux', 2.6], ['construction.jpg', 'CONSTRUIS · ÉDITE', 'comme dans les plus grands', 2.6], ['lawald.jpg', 'LA WALD', 'la voiture légendaire tombe du ciel', 2.6], ['desert.jpg', '2 CARTES', 'Los Campagnes · Sable Rouge', 2.4], ['top1.jpg', 'TOP 1', 'classé ou partie rapide', 3], ['place.jpg', 'BATTLE ROYALE', END[1], 4.5]] },
-    { bpm: 70, mood: 'dark', sc: [['collines.jpg', 'IL Y A TROIS ANS…', 'la Brume Violette est sortie de la terre', 4], ['village.jpg', 'LES VILLAGES SE SONT TUS', 'ceux qu\'elle touche ne dorment plus', 4], ['foret.jpg', '8 ESPÈCES', 'Rôdeurs, Brutes, Hurleurs… et des Spectres, la nuit', 4], ['lac.jpg', 'LES AFFICHES', 'cachées sur les pierres, elles racontent tout', 4], ['mer.jpg', 'LE LIVRE DES CRÉATURES', 'chaque créature tuée remplit une page', 4], ['collines.jpg', 'TROUVE LE ROI VIOLET', 'construis · survis · libère les Terres Sauvages', 4.5], ['foret.jpg', 'SURVIE', END[1], 4.5]] },
-    { bpm: 120, mood: 'fun', sc: [['creatif.jpg', 'MODE CRÉATIF', 'ton monde, tes règles', 2.8], ['buildfight.jpg', 'MAP 1V1', 'générateurs d\'armes · 200 PV · build fight', 3], ['capitale.jpg', 'PROPANE', 'deviens une poubelle… et siffle', 3], ['construction.jpg', 'CONSTRUCTIONS ILLIMITÉES', 'et tout est partagé avec tes potes', 3], ['village.jpg', 'ENTRE POTES', 'un code, et vous êtes ensemble', 3], ['place.jpg', 'CRÉATIF', END[1], 4.5]] }];
+    { bpm: 70, mood: 'dark', sc: [['collines.jpg', 'IL Y A TROIS ANS…', 'la Brume Violette est sortie de la terre', 4], ['village.jpg', 'LES VILLAGES SE SONT TUS', 'ceux qu\'elle touche ne dorment plus', 4], ['crea_horde.jpg', '32 ESPÈCES', 'Rôdeurs, Noyés, Cornus… et des Ombres, la nuit', 4], ['lac.jpg', 'LES AFFICHES', 'cachées sur les pierres, elles racontent tout', 4], ['mer.jpg', 'LE LIVRE DES CRÉATURES', 'chaque créature tuée remplit une page', 4], ['collines.jpg', 'TROUVE LE ROI VIOLET', 'construis · survis · libère les Terres Sauvages', 4.5], ['foret.jpg', 'SURVIE', END[1], 4.5]] },
+    { bpm: 120, mood: 'fun', sc: [['creatif.jpg', 'MODE CRÉATIF', 'ton monde, tes règles', 2.8], ['buildfight.jpg', 'MAP 1V1', 'générateurs d\'armes · 200 PV · build fight', 3], ['capitale.jpg', 'PROPANE', 'deviens une poubelle… et siffle', 3], ['construction.jpg', 'CONSTRUCTIONS ILLIMITÉES', 'et tout est partagé avec tes potes', 3], ['village.jpg', 'ENTRE POTES', 'un code, et vous êtes ensemble', 3], ['place.jpg', 'CRÉATIF', END[1], 4.5]] },
+    { bpm: 138, mood: 'dark', ad: 1, sc: [['collines.jpg', 'LA BRUME VIOLETTE…', '…a tout envahi', 2.6], ['crea_horde.jpg', '32 CRÉATURES', 'du Rôdeur au Dévoreur des cimes', 2.8], ['crea_rares.jpg', 'RARES · ÉPIQUES · LÉGENDAIRES', 'certaines ne sortent que la nuit', 2.8], ['crea_boss.jpg', 'LES BOSS', 'Reine des spores · Titan de givre · Seigneur Brasier', 3], ['construction.jpg', 'CONSTRUIS TA BASE', 'bois · pierre · métal · ton lit', 2.4], ['foret.jpg', '4 ANIMATIONS À DÉBLOQUER', 'remplis le Livre des créatures', 2.6], ['crea_boss.jpg', 'WALD ROYAL + SURVIE', '5,99 € · PC et Android · dans Wald Game', 5]] }];
   TR.forEach(function (t) { t.sc.forEach(function (q) { img(q[0]); }); });
   function au() { if (AC) return; try { AC = new (window.AudioContext || window.webkitAudioContext)(); OUT = AC.createGain(); OUT.gain.value = .8; OUT.connect(AC.destination); } catch (e) {} }
   function note(type, f, t, dur, vol, lp, f2) { var o = AC.createOscillator(), gn = AC.createGain(), last = o; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur * .7); gn.gain.setValueAtTime(.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + .01); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
@@ -189,9 +216,10 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   var NB = null; function nz(t, dur, vol, f, type) { if (!NB) { NB = AC.createBuffer(1, AC.sampleRate, AC.sampleRate); var d = NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; } var s0 = AC.createBufferSource(), gn = AC.createGain(), fl = AC.createBiquadFilter(); fl.type = type || 'highpass'; fl.frequency.value = f; s0.buffer = NB; gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(.001, t + dur); s0.connect(fl); fl.connect(gn); gn.connect(OUT); s0.start(t, Math.random() * .5); s0.stop(t + dur); }
   function mf(n) { return 440 * Math.pow(2, (n - 69) / 12); }
   var PROG = { hype: [[45, 52, 57], [41, 48, 53], [43, 50, 55], [40, 47, 52]], dark: [[38, 45, 50], [34, 41, 46], [36, 43, 48], [33, 40, 45]], fun: [[48, 52, 55], [45, 48, 52], [41, 45, 48], [43, 47, 50]] };
-  function music(tr, t0, total) { var S = 60 / tr.bpm / 4, n = Math.ceil(total / S), P = PROG[tr.mood];
+  function music(tr, t0, total) { var S = 60 / tr.bpm / 4, n = Math.ceil(total / S), P = PROG[tr.ad ? 'dark' : tr.mood];
     for (var k = 0; k < n; k++) { var t = t0 + k * S, st = k % 16, bar = Math.floor(k / 16), ch = P[bar % 4], fade = t - t0 > total - 2.5 ? .4 : 1;
-      if (tr.mood === 'dark') { if (st === 0) { ch.forEach(function (m, i) { note('sawtooth', mf(m), t, S * 16, .02 * fade, 700); note('sine', mf(m - 12), t, S * 16, .08 * fade); }); } if (st === 0 && bar % 2 === 0) { note('sine', 70, t, 1.2, .5 * fade, 0, 35); nz(t, .8, .1, 200, 'lowpass'); } if (st === 8 && bar % 2 === 1) note('sine', 90, t, .9, .35, 0, 45); if (st % 4 === 2) note('triangle', mf(ch[(st / 4 | 0) % 3] + 24), t, .8, .02); continue; }
+      if (tr.ad && st === 0 && bar % 2 === 0) { note('sine', 55, t, 1.4, .6 * fade, 0, 28); ch.forEach(function (m) { note('sawtooth', mf(m), t, S * 32, .018 * fade, 900); }); }
+      if (tr.mood === 'dark' && !tr.ad) { if (st === 0) { ch.forEach(function (m, i) { note('sawtooth', mf(m), t, S * 16, .02 * fade, 700); note('sine', mf(m - 12), t, S * 16, .08 * fade); }); } if (st === 0 && bar % 2 === 0) { note('sine', 70, t, 1.2, .5 * fade, 0, 35); nz(t, .8, .1, 200, 'lowpass'); } if (st === 8 && bar % 2 === 1) note('sine', 90, t, .9, .35, 0, 45); if (st % 4 === 2) note('triangle', mf(ch[(st / 4 | 0) % 3] + 24), t, .8, .02); continue; }
       if (st % 4 === 0) note('sine', 150, t, .3, .8 * fade, 0, 45); if (st === 4 || st === 12) { nz(t, .2, .3 * fade, 1500, 'bandpass'); } nz(t, st % 2 ? .03 : .06, .06 * fade, 8000);
       if (st % 2 === 0) note('sawtooth', mf(ch[0] - 12 + (st % 8 === 6 ? 12 : 0)), t, S * 1.6, .1 * fade, 700);
       var ar = ch[[0, 1, 2, 1][st % 4]] + (tr.mood === 'fun' ? 24 : 12); note('square', mf(ar), t, S * .9, .028 * fade, 3200);
@@ -222,7 +250,16 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   document.querySelectorAll('[data-tv]').forEach(function (b) { b.addEventListener('click', function () { play(+b.dataset.tv); }); });
   $('libCard').addEventListener('click', function () { play(0); });
   $('tvX').addEventListener('click', function () { stop(); $('tv').hidden = true; });
-  $('tvPlay').addEventListener('click', function () { stop(); location.href = '../jeu/index.html?jouer&from=launcher'; });
+  $('tvPlay').addEventListener('click', function () { stop(); $('tv').hidden = true; $('play').click(); });
   window.WRTV = play;
+  /* Boutique : Wald Royal + Survie à 5,99 € + pub qui se lance toute seule la 1re fois */
+  window.SURV_PAY_URL = window.SURV_PAY_URL || '';
+  $('edB').onclick = function (e) { e.stopPropagation(); $('edM').hidden = !$('edM').hidden; };
+  document.addEventListener('click', function (e) { if (!$('edM').contains(e.target)) $('edM').hidden = true; });
+  if (window.SURV_PAY_URL) { var eb = document.querySelector('#edM [data-ed=wrs]'); eb.disabled = false; eb.classList.remove('off'); eb.querySelector('small').textContent = '32 créatures · monde de 4 km'; eb.onclick = function () { location.href = SURV_PAY_URL; }; }   // lien de paiement (à créer par Wald Off : Stripe, Ko-fi, PayPal…)
+  $('svAd').onclick = function () { play(4); };
+  if (window.SURV_PAY_URL) $('svBuy').classList.remove('off');
+  $('svBuy').onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; else $('svMsg').innerHTML = '🔒 Pas encore en vente : le paiement arrive très bientôt.'; };
+  try { if (!localStorage.getItem('wg_adSurv1')) { localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { document.querySelector('nav [data-p=shop]').click(); play(4); }, 1500); } } catch (e) {}
 })();
 </script>

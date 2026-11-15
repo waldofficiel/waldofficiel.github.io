@@ -632,6 +632,7 @@ var DTR = {
             bass: '..x...x...x...x.', bassT: 'sawtooth', bassLp: 900, stab: '..x...x...x..x..', stabT: 'sawtooth', stabLp: 5200, sup: 1,
             mel: [[74, 0, 77, 0, 81, 0, 79, 77], [74, 0, 77, 0, 82, 0, 81, 77], [76, 0, 79, 0, 84, 0, 82, 79], [81, 0, 79, 0, 77, 0, 76, 0]], melT: 'sawtooth', melLp: 4200 } };
 var VOW = { ro: 'o', bo: 'o', ti: 'i', que: 'e', sync: 'i', bot: 'o', dance: 'a' };
+DTR.zombi = DTR.vague; DTR.rampe = DTR.poulet; DTR.spectre = DTR.disco; DTR.couronne = DTR.wald;   // musiques des danses de créatures (mêmes tempos)
 function dStepFn(tr, k, t) { var st = k % 16, bar = Math.floor(k / 16), sec = Math.floor(bar / 4) % 4, ch = tr.prog[bar % 4], S = 60 / tr.bpm / 4, intro = bar < 2;
   if (on16(tr.kick, st) && !(intro && st > 0 && bar === 0)) dKick(t);
   if (!intro && on16(tr.clap, st)) dClap(t);
@@ -1781,7 +1782,12 @@ var GLIDERS = { aile: { name: 'Aile Wald', price: 0, tag: 'Original' }, canard: 
 function myGl() { try { var s0 = JSON.parse(localStorage.getItem('wr_stats') || 'null'); if (s0 && s0.gl && GLIDERS[s0.gl]) return s0.gl; } catch (e) {} return 'aile'; }
 var DANCES = { wald: { name: 'Wald Groove', price: 0, tag: 'TOP 1', rc: '#ff2bd6', t: 6.6 }, disco: { name: 'Disco Fou', price: 300, tag: 'Rare', rc: '#3d8bff', t: .45 }, robot: { name: 'Robot', price: 400, tag: 'Rare', rc: '#3d8bff', t: .75 },
   poulet: { name: 'Danse du Poulet', price: 500, tag: 'Épique', rc: '#b44dff', t: .3 }, moulin: { name: 'Moulinette', price: 650, tag: 'Épique', rc: '#b44dff', t: .7 }, vague: { name: 'La Vague', price: 800, tag: 'Légendaire', rc: '#ffa21f', t: 2.2 },
-  syncrobot: { name: 'Sync Robot', price: 900, tag: 'SYNC', rc: '#00e5ff', t: 1.3 }, syncshuffle: { name: 'Sync Shuffle', price: 1000, tag: 'SYNC', rc: '#00e5ff', t: 4.3 } };   // SYNC : la musique + tout le monde autour danse pile en même temps
+  syncrobot: { name: 'Sync Robot', price: 900, tag: 'SYNC', rc: '#00e5ff', t: 1.3 }, syncshuffle: { name: 'Sync Shuffle', price: 1000, tag: 'SYNC', rc: '#00e5ff', t: 4.3 },
+  zombi: { name: 'Danse du Zombie', price: 0, unlock: 5, tag: 'CRÉATURES', rc: '#7a2fff', t: 1.2 }, rampe: { name: 'La Rampante', price: 0, unlock: 12, tag: 'CRÉATURES', rc: '#7a2fff', t: .5 },
+  spectre: { name: 'Valse du Spectre', price: 0, unlock: 20, tag: 'CRÉATURES', rc: '#7a2fff', t: 1.5 }, couronne: { name: 'Danse du Roi Violet', price: 0, unlock: 32, tag: 'CRÉATURES', rc: '#ffb52e', t: 2 } };
+/* animations débloquées en découvrant des créatures (Livre des créatures, Survie) */
+window.WRUNLOCKS = function () { return Object.keys(DANCES).filter(function (id) { return DANCES[id].unlock; }).map(function (id) { return [DANCES[id].unlock, DANCES[id].name, id]; }); };
+window.WRUNLOCK = function (known) { if (typeof ST === 'undefined') return; ST.ownD = ST.ownD || []; WRUNLOCKS().forEach(function (u) { if (known >= u[0] && ST.ownD.indexOf(u[2]) < 0) { ST.ownD.push(u[2]); saveST(); toast('💃 ANIMATION DÉBLOQUÉE : ' + u[1].toUpperCase() + ' (' + u[0] + ' créatures découvertes) · équipe-la au casier'); try { SFX.chest(); } catch (e) {} } }); };   // SYNC : la musique + tout le monde autour danse pile en même temps
 function myDances() { var l = (typeof ST !== 'undefined' && ST.ownD || []).slice(); if (typeof ST !== 'undefined' && ST.dance && l.indexOf('wald') < 0) l.unshift('wald'); return l; }
 function hasDance() { return myDances().length > 0; }
 var DSEL = 0;
@@ -2559,7 +2565,7 @@ function lockerRender() {
   var h = '';
   Object.keys(SKINS_SHOP).forEach(function (id) { var d = SKINS_SHOP[id]; if (d.price) h += offer('data-s', id, d, skinThumb(id), ST.own.indexOf(id) >= 0); });
   Object.keys(GLIDERS).forEach(function (id) { var d = GLIDERS[id]; if (d.price) h += offer('data-g', id, d, gliderThumb(id), ST.ownG.indexOf(id) >= 0, '🪂 '); });
-  Object.keys(DANCES).forEach(function (id) { var d = DANCES[id]; if (d.price) h += offer('data-d', id, d, skinThumb(ST.skin || 'wald', 0, id), myDances().indexOf(id) >= 0, '💃 '); });
+  Object.keys(DANCES).forEach(function (id) { var d = DANCES[id]; if (d.price && !d.unlock) h += offer('data-d', id, d, skinThumb(ST.skin || 'wald', 0, id), myDances().indexOf(id) >= 0, '💃 '); });
   $('shopList').innerHTML = h;
   $('shopList').querySelectorAll('[data-s]').forEach(function (b) { b.addEventListener('click', function () { openBuy('skin', b.dataset.s); }); });
   $('shopList').querySelectorAll('[data-g]').forEach(function (b) { b.addEventListener('click', function () { openBuy('gl', b.dataset.g); }); });

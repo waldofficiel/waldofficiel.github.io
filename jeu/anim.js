@@ -91,7 +91,24 @@
     else { o.lo = .15 + Math.max(0, s) * .45; o.ro = .15 + Math.max(0, -s) * .45; o.lk = .3 + k * .3; o.rk = .3 + k * .3; o.lt = .2; o.rt = .2; o.byw = c2 * .45;   // T-step
       o.la = 1.4 + c2 * .5; o.ra = 1.4 - c2 * .5; o.lb = .9; o.rb = .9; o.le = .3; o.re = .3; o.hy = -c2 * .3; }
     return o; } };
-  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague', 'syncrobot', 'syncshuffle'];
+  /* danses des créatures : débloquées en remplissant le Livre des créatures (Survie) */
+  D.zombi = { name: 'Danse du Zombie', bpm: 100, f: function (b) {   // bras tendus, pas traînés, la tête qui tombe sur le côté puis se redresse
+    var s = S(b * PI), k = Math.abs(s), dr = pulse(b / 2, .3);
+    return P({ la: 1.45 + s * .12, ra: 1.45 - s * .12, lb: .12, rb: .12, le: .15, re: .15, lw: .2, rw: .2, lt: .1 + Math.max(0, s) * .35, rt: .1 + Math.max(0, -s) * .35, lk: .2 + k * .3, rk: .2 + k * .3, bp: .3, byw: s * .25, br: s * .1, hr: .5 * S(b * PI / 2) - dr * .4, hp: .3 + dr * .3 }); } };
+  D.rampe = { name: 'La Rampante', bpm: 128, f: function (b) {   // accroupi au ras du sol, bras qui griffent le sol en rythme, puis redressement brusque
+    var bb = b % 8, up = bb >= 6, s = S(b * PI * 2), g = pulse(b, .4);
+    if (up) { var f = ease(Math.min(1, (bb - 6) * 2)); return P({ la: 2.8 * f, ra: 2.8 * f, lb: .6, rb: .6, le: .3, re: .3, lk: 1.2 * (1 - f), rk: 1.2 * (1 - f), lt: .8 * (1 - f), rt: .8 * (1 - f), bp: .9 * (1 - f) - .1 * f, hp: -.4 * f }); }
+    return P({ lt: .85, rt: .85, lk: 1.45, rk: 1.45, lo: .35, ro: .35, bp: .95, la: 1.5 + s * .5 + g * .3, ra: 1.5 - s * .5 + g * .3, lb: .3, rb: .3, le: .4, re: .4, hp: -.6, hy: s * .3 }); } };
+  D.spectre = { name: 'Valse du Spectre', bpm: 116, f: function (b) {   // flotte en tournant lentement, bras qui ondulent comme de la fumée
+    var s = S(b * PI / 2), w = S(b * PI);
+    return P({ by: .08 + S(b * PI / 4) * .06, byw: s * .9, la: 1.2 + w * .5, ra: 1.2 - w * .5, lb: .9 + S(b * PI + 1) * .3, rb: .9 - S(b * PI + 1) * .3, le: .5 + w * .4, re: .5 - w * .4, lw: w * .5, rw: -w * .5, lt: .2, rt: .2, lk: .5, rk: .5, hr: w * .25, hp: -.1 }); } };
+  D.couronne = { name: 'Danse du Roi Violet', bpm: 118, f: function (b) {   // pose royale, bras qui « appellent » la Brume, frappe du pied, puis bras croisés
+    var bb = b % 16, cross = bb >= 12, st = pulse(b, .25), s = S(b * PI);
+    var o = P({ lk: .1 + st * .3, rk: .1, lt: .05 + st * .4, rt: .05, bp: -.08, hp: -.25, byw: s * .15 });
+    if (cross) { o.la = o.ra = 1.2; o.lb = o.rb = -.6; o.le = o.re = 2.2; o.lw = o.rw = .4; o.hy = s * .4; }
+    else { var u = ease(tri(b / 2)); o.la = 1.6 + u * 1.1; o.ra = 1.6 + (1 - u) * 1.1; o.lb = o.rb = .7; o.le = .2 + (1 - u) * .8; o.re = .2 + u * .8; o.lw = -.4; o.rw = -.4; }
+    return o; } };
+  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague', 'syncrobot', 'syncshuffle', 'zombi', 'rampe', 'spectre', 'couronne'];
   function dance(id, t) { var d = D[id] || D.wald; return d.f(t * d.bpm / 60); }
 
   function blend(c, T, dt, k) {   // la pose affichée glisse vers la pose voulue
