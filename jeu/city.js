@@ -138,7 +138,7 @@
   };
   window.EXT_FURN = window.EXT_FURN || [];
   window.CITY = { build: function (THREE, ctx) { EXT.length = 0; BENCHES.length = 0; WRECK.length = 0;
-    T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.2, DES = ctx.DES, PCOL = ctx.PCOL || [];
+    T = THREE; var S = ctx.scene, hgt = ctx.hgt, r = rng(77), H = ctx.H || 3.75, DES = ctx.DES, PCOL = ctx.PCOL || [];
     GB = new T.BoxGeometry(1, 1, 1); GC = new T.CylinderGeometry(.5, .5, 1, 14); GC8 = new T.CylinderGeometry(.5, .5, 1, 8); GS = new T.SphereGeometry(.5, 12, 8);
     var steel = P('#9aa2ae'), dark = M('#2a2d34'), white = M('#e8eaee'), concrete = M('#b8b4ac'), glow = new T.MeshBasicMaterial({ color: '#fff4c8' });
     function col(x, z, hw, hd, h, y0) { PCOL.push({ x: x, z: z, hw: hw, hd: hd, y0: y0 == null ? hgt(x, z) : y0, h: h }); }

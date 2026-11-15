@@ -98,15 +98,16 @@
   /* ---------- vraies armes 3D : Quaternius « Animated FPS Guns » (CC0), jeu/models/guns ----------
      Chaque arme est chargée une fois, chaque partie reçoit sa couleur (bois, acier, noir…), puis tout est fusionné en UN mesh
      à couleurs de sommets : un seul appel de dessin par arme. Canon vers +x, crosse vers -x, comme les anciens modèles. */
-  var GUN3 = { pistolet: ['g_Pistol', .36, 0], smg: ['g_P90', .66, -1], fusil: ['g_Rifle', 1.08, -1], scar: ['g_Rifle', 1.08, -1, 'gold'], pompe: ['g_Shotgun', 1.12, -1], sniper: ['g_SniperRifle', 1.32, -1] };
+  var GUN3 = { pistolet: ['g_Pistol', .36, 0], smg: ['g_P90', .66, -1], fusil: ['g_Rifle', 1.08, -1], scar: ['g_Rifle', 1.08, -1, 'gold'], pompe: ['g_Shotgun', 1.12, -1], pompeS: ['g_Shotgun', 1.04, -1, 'tac'], sniper: ['g_SniperRifle', 1.32, -1] };
   var GPAL = { LightWood: '#b9773e', DarkWood: '#6a3c1c', Wood: '#8a5428', Black: '#1d1f24', Metal: '#7d848e', DarkerMetal: '#3c4048', DarkMetal: '#3c4048', Barrels: '#2e3238', Barrel: '#2e3238', Magazine: '#26292f',
     Muzzle: '#1a1a1c', BulletYellow: '#e8b830', BulletOrange: '#d87a2a', BulletRed: '#c8302a', BulletTip: '#c8902a', Trigger: '#141414', Green: '#4d6a3a', 'Material.001': '#2b2f36', 'Material.002': '#43484f', 'Material.003': '#1c1e22', 'Material.004': '#6e757e' };
   var GOLDPAL = { LightWood: '#f2c14a', DarkWood: '#c9922a', Metal: '#ffe08a', Black: '#2a2418', Barrels: '#b8862a' };
+  var TACPAL = { LightWood: '#2a2a30', DarkWood: '#17171b', Wood: '#202026', Metal: '#9a7bd8', DarkerMetal: '#2c2638', DarkMetal: '#2c2638', Barrels: '#1a1820' };   // pompe spécialisé : noir et violet
   var GUNT = {}, GREADY = false;
   window.GUNS3D = { ready: function () { return GREADY; }, onReady: null,
     load: function (THREE) { if (!THREE.GLTFLoader || GREADY) return; T = THREE; var L = new THREE.GLTFLoader(), names = ['g_Pistol', 'g_P90', 'g_Rifle', 'g_Shotgun', 'g_SniperRifle'], left = names.length, raw = {};
       names.forEach(function (n) { L.load('models/guns/' + n + '.glb', function (g) { raw[n] = g.scene; if (--left === 0) done(); }, null, function () { if (--left === 0) done(); }); });
-      function done() { Object.keys(GUN3).forEach(function (k) { var q = GUN3[k], sc = raw[q[0]]; if (!sc) return; GUNT[k] = bake(sc, q[1], q[2], q[3] ? GOLDPAL : null); }); GREADY = true; if (window.GUNS3D.onReady) window.GUNS3D.onReady(); } } };
+      function done() { Object.keys(GUN3).forEach(function (k) { var q = GUN3[k], sc = raw[q[0]]; if (!sc) return; GUNT[k] = bake(sc, q[1], q[2], q[3] === 'gold' ? GOLDPAL : q[3] === 'tac' ? TACPAL : null); }); GREADY = true; if (window.GUNS3D.onReady) window.GUNS3D.onReady(); } } };
   function bake(scene, len, rotY, over) {
     scene.updateMatrixWorld(true); var parts = [];
     scene.traverse(function (o) { if (!o.isMesh) return; var g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld); var nm = (o.material.name || o.name || '').replace(/\.\d+$/, '') , key = o.material.name || '';
@@ -118,11 +119,11 @@
     if (rotY) G.rotateY(rotY * Math.PI / 2);
     G.computeBoundingBox(); var b = G.boundingBox, L = b.max.x - b.min.x, s = len / L; G.scale(s, s, s); G.computeBoundingBox(); b = G.boundingBox;
     G.translate(-(b.min.x + b.max.x) / 2 + len * .12, -(b.min.y + b.max.y) / 2 - (b.max.y - b.min.y) * .08, -(b.min.z + b.max.z) / 2); G.computeBoundingSphere();
-    var m = new T.Mesh(G, new T.MeshPhongMaterial({ vertexColors: true, shininess: over ? 90 : 45, specular: over ? '#8a6a20' : '#3a3a3a' })); m.castShadow = true; return m;
+    var m = new T.Mesh(G, new T.MeshPhongMaterial({ vertexColors: true, shininess: over ? 90 : 45, specular: over === TACPAL ? '#5a4a7a' : over ? '#8a6a20' : '#3a3a3a' })); m.castShadow = true; return m;
   }
   window.buildGun = function (THREE, k, rc) { T = THREE; var g = new THREE.Group();
     if (GUNT[k]) { var m = GUNT[k].clone(); g.add(m); g.userData.real = true; g.userData.gscale = 1; return g; }   // vraie arme 3D (déjà à la bonne taille)
-    (B[k] || B.pistolet)(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };
+    (B[k] || (k === 'pompeS' ? B.pompe : B.pistolet))(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };
 
   /* ---------- planeur : aile delta tendue sur une armature, barre de contrôle ---------- */
   var GT = {};

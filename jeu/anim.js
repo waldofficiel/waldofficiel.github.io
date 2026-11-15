@@ -71,7 +71,27 @@
     var ph = S(b * PI * .5), w = function (o2) { return S(b * PI * .5 + o2); };
     return P({ lb: 1.45, rb: 1.45, la: .1 + w(0) * .3, ra: .1 - w(1.5) * .3, le: .6 + w(.8) * .6, re: .6 - w(2.3) * .6, lw: 1.3, rw: 1.3,
       byw: ph * .2, br: ph * .12, hr: -ph * .2, lk: .2 + Math.abs(ph) * .3, rk: .2 + Math.abs(ph) * .3, lt: .15, rt: .15 }); } };
-  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague'];
+  /* ---------- SYNC DANCES : chorégraphies calées sur leur musique (16 temps), pensées pour danser à plusieurs en même temps ---------- */
+  function hit(b, w) { return pulse(b, w || .18); }   // à-coup sec sur le temps
+  D.syncrobot = { name: 'Sync Robot', bpm: 120, f: function (b) {   // robot « popping » : bras qui se bloquent en équerre, tête qui clique, le corps tourne par crans
+    var bar = Math.floor(b) % 16, ph = Math.floor(b / 4) % 4, st = (b * 2) % 1, lock = ease(Math.min(1, st * 6)), k = hit(b);
+    var o = P({ lk: .22 + k * .2, rk: .22 + k * .2, lt: .12 + k * .1, rt: .12 + k * .1, lo: .08, ro: .08, by: -k * .03, bp: .04 });
+    var pose = [[1.57, 0, 1.57, 1.57, 0, 0], [1.57, 1.57, 1.57, 0, .35, 0], [3.0, 1.57, .2, 1.57, -.35, 0], [.2, 1.57, 3.0, 1.57, .35, 0],
+      [1.57, 1.45, 1.57, 1.45, 0, .5], [1.57, 1.45, 1.57, 1.45, 0, -.5], [2.2, 0, 2.2, 0, 0, 0], [.4, 1.9, .4, 1.9, 0, 0]];
+    var i0 = (Math.floor(b * 2)) % 8, i1 = (i0 + 7) % 8, A = pose[(i0 + ph * 2) % 8], B = pose[(i1 + ph * 2) % 8], m = function (i) { return B[i] + (A[i] - B[i]) * lock; };
+    o.la = m(0); o.le = m(1); o.ra = m(2); o.re = m(3); o.hy = m(4); o.byw = m(5) + (ph === 3 ? Math.floor(b) % 4 * .4 - .6 : 0);
+    o.lb = .25; o.rb = .25; o.lw = .2; o.rw = .2; o.hp = -k * .12; o.hr = (Math.floor(b) % 2 ? .12 : -.12) * lock;
+    if (ph === 2 && (bar % 4) >= 2) { var w = S(b * PI * 2); o.la = 1.57 + w * .25; o.ra = 1.57 - w * .25; o.le = .1 + Math.max(0, w) * 1.2; o.re = .1 + Math.max(0, -w) * 1.2; o.lw = o.rw = 1.4; }   // la vague mécanique
+    return o; } };
+  D.syncshuffle = { name: 'Sync Shuffle', bpm: 124, f: function (b) {   // running man + T-step, bras qui pompent, demi-tour toutes les 8 mesures
+    var ph = Math.floor(b / 8) % 2, s = S(b * PI), c2 = C(b * PI), k = Math.abs(s), pump = hit(b, .3);
+    var o = P({ by: -.04 - pump * .03, bp: .12 });
+    if (!ph) { o.lt = .15 + Math.max(0, s) * .95; o.lk = .15 + Math.max(0, s) * 1.25; o.rt = .15 + Math.max(0, -s) * .95; o.rk = .15 + Math.max(0, -s) * 1.25; o.lo = .06; o.ro = .06;   // running man
+      o.la = .9 + pump * .6; o.ra = .9 + pump * .6; o.lb = .2; o.rb = .2; o.le = 1.7 - pump * .5; o.re = 1.7 - pump * .5; o.lw = .1; o.rw = .1; o.hp = pump * .2; }
+    else { o.lo = .15 + Math.max(0, s) * .45; o.ro = .15 + Math.max(0, -s) * .45; o.lk = .3 + k * .3; o.rk = .3 + k * .3; o.lt = .2; o.rt = .2; o.byw = c2 * .45;   // T-step
+      o.la = 1.4 + c2 * .5; o.ra = 1.4 - c2 * .5; o.lb = .9; o.rb = .9; o.le = .3; o.re = .3; o.hy = -c2 * .3; }
+    return o; } };
+  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague', 'syncrobot', 'syncshuffle'];
   function dance(id, t) { var d = D[id] || D.wald; return d.f(t * d.bpm / 60); }
 
   function blend(c, T, dt, k) {   // la pose affichée glisse vers la pose voulue

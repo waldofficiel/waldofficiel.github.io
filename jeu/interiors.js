@@ -29,7 +29,7 @@
     var slabs = [], steps = [];
     ctx.HOUSES.forEach(function (hs) {
       if (hs.barn || hs.m === 'metal' || hs.m === 'brique' || hs.m === 'grange') { hs.nf = 1; return; }
-      var nf = hs.h >= 6 ? Math.max(2, Math.round(hs.h / 3.2)) : 1; hs.nf = nf; if (nf < 2) return;
+      var nf = hs.h >= 6 ? Math.max(2, Math.round(hs.h / (ctx.H || 3.75))) : 1; hs.nf = nf; if (nf < 2) return;
       var F = frame(hs), FH = hs.h / nf, Lr = Math.min(F.W - 2.4, 7), sw = 1.35, vA = -F.D / 2 + .05, vB = vA + sw;
       if (Lr < 3.5 || F.D < 6) { hs.nf = 1; return; }
       hs.fl = { F: F, FH: FH, Lr: Lr, strips: [[vA, vA + sw], [vB, vB + sw]] }; FLOORED.push(hs);
@@ -162,6 +162,7 @@
       for (var f = 0; f < nf; f++) for (var i = 0; i < n; i++) { var off = (i - (n - 1) / 2) * (len / n), cy = hs.y0 + f * FH + (fav ? 1.1 : big ? .75 : .95) + wh / 2;
         if (nf === 1 && hs.h > 4.6) cy = hs.y0 + hs.h * .55;
         if (cy + wh / 2 > hs.y0 + hs.h - .25) continue;
+        if (w.st != null && (cy - wh / 2 < w.y0 + .1 || cy + wh / 2 > w.y0 + w.h - .1)) continue;   // panneau d'un seul étage
         var q = { w: w, off: off, y: cy, ww: ww, wh: wh, bal: f > 0 && (hs.m === 'facade' || hs.m === 'beton' || hs.m === 'riche') && fract(Math.sin(off * 12.9 + w.x * 7.7 + w.z * 3.3 + f * 3.1) * 43758.5) < .3 };
         list.push(q); if (!byWall.has(w)) byWall.set(w, []); byWall.get(w).push(q); } });
     var IT = intTex(), wallMeshes = {}, segs = {}, o = new T.Object3D(), tc = new T.Color();
@@ -336,7 +337,7 @@
     },
     groundAt: groundAt, ceilAt: ceilAt, setWall: setWall,
     update: function (cam, fog) { if (FIX.winMat && fog) { FIX.winMat.uniforms.fogColor.value.copy(fog.color); FIX.winMat.uniforms.fogNear.value = fog.near; FIX.winMat.uniforms.fogFar.value = fog.far; }
-      var cx = cam.position.x, cz = cam.position.z; var R2 = cam.position.y > 60 ? 0 : (window.SET && SET.gfx === 2 ? 80 : 60); FIX.clusters.forEach(function (q) { q.m.visible = Math.hypot(q.x - cx, q.z - cz) < R2; }); },
+      var cx = cam.position.x, cz = cam.position.z; var R2 = cam.position.y > 60 ? 0 : (window.SET && SET.gfx >= 2 ? 80 : 60); FIX.clusters.forEach(function (q) { q.m.visible = Math.hypot(q.x - cx, q.z - cz) < R2; }); },
     stats: function () { var nv = 0; FIX.clusters.forEach(function (q) { nv += q.m.geometry.attributes.position.count; }); return { verts: nv, windows: FIX.win ? FIX.win.list.length : 0, furniture: PLACED.length, clusters: FIX.clusters.length, floors: FLOORED.length, ready: !!FIX.ready }; }
   };
 })();

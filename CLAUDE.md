@@ -280,6 +280,15 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Aide à la visée** douce (`aimPull`, ~3× moins forte que l'ancienne) réglable 0–200 % dans les paramètres (`SET.aim`).
 - Optimisation : rochers/minerai rangés par distance (`nodePack`), paquets `OPT.chunk` cachés au-delà du brouillard (`OPT.cull`). `WR.day(t)`, `ZOMB.prebuild()` pour les tests. Cache du service worker : **v32**.
 
+## 4 modes, sac, paramètres, grille, pompes, Sync Dance, Ultra PC (cache v33)
+- Modes (`?mode=br|zb|survie|creatif`, `localStorage.wr_mode`) : BATTLE ROYALE (constructions, pas de bulle), ZÉRO CONSTRUCTION (bulle bouclier, pas de construction), SURVIE, CRÉATIF (carte survie, matériaux ∞, 2 shields au départ, armurerie infinie : pompe, pompe spécialisé, PM, AR, sniper, shields). Drapeaux `SURV`, `CREA`, `ZB`, `BUILD`.
+- Survie : sac de 20 places (🎒 / I / Tab) dans survie.js (`BAG`, `bagAdd`) ; le lit et les coffres récupérés (coffre ouvert parfois récupéré, ou cassé à la pioche) se POSENT depuis le sac ; lit posé = point de réapparition ; coffres de rangement (`STOR`).
+- Paramètres façon gros jeux : onglets JEU / GRAPHISMES / COMMANDES PC (touches réassignables + AVANCÉ, `BIND`/`BIND0`, `localStorage.wr_bind`, `bindAct(code)`, `kd(action)`) / COMMANDES TÉLÉPHONE (bientôt). survie.js lit aussi `window.bindAct`. Sprint (Maj), grimper : sauter face à un mur (`climbUp`), on tient debout sur le haut des murs.
+- Grille : `house()` recale TOUS les bâtiments sur la grille de construction (côtés multiples de 5 m, étages `H = 3.75`, murs en panneaux 5 m × 3,75 m, `WKEY` évite les murs mitoyens en double, `w.bw` = poids pour `hs.broken`). Un panneau cassé se remplace pile par un mur construit (survie.js `slotWalls`, niveau calé sur les étages). Les coffres suivent leur maison (`ox/oz`).
+- Pompes : `pompe` = Pompe auto (8 balles, 150 max à la tête), `pompeS` = Pompe spécialisé (5 balles, 180 à la tête, plus lent, noir/violet). Viseur CARRÉ dynamique = zone des plombs (`#cross.sg`).
+- PC : pas de tir auto ni de boutons tactiles ; réglage graphique ULTRA (q=3, PC seulement, par défaut) : suréchantillonnage ×1,5, ombres 4096, AO renforcé, anisotropie 16 (`gfxAniso`), vue et herbe plus loin.
+- Danses : chaque danse a sa musique ORIGINALE jouée par le synthé du jeu (`DTR`, `dStepFn`, calée sur `danceT0` et le BPM de anim.js, la musique du jeu baisse via `DUCK`). Nouvelles SYNC DANCES `syncrobot` (voix robot `dVox`) et `syncshuffle` : on se synchronise avec ceux qui dansent à moins de 15 m.
+
 ## Idées en attente / pistes
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.
