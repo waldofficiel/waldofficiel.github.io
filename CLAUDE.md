@@ -403,5 +403,10 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Pignons = murs de construction : murs pleins 5 × 3,5 m + murs édités en triangle, empilés en escalier (`pieces(hs)` ; un mur plein = 2 triangles, une seule InstancedMesh par matière, `hs.gim/gi/gmats` pour la casse).
 - Grand mur de Mirage City en panneaux 5 × 3,5 m sur 2 rangées ; murs isolés en 5 m × 3,5 m. Les maisons (`house`) étaient déjà en panneaux 5 m × 3,5 m (étages `H` = 3,5).
 
+## Gouttières, menu sans pause, danses après TOP 1 (cache v58)
+- Toits à 2 pentes : avancée de 0,8 m (`OV`, `hs.eaveY/eaveZ`), gouttières + descentes en métal (2 InstancedMesh) ; chaque coin = une entrée `window.EXT_WRECK` (`gutter:1`, `kit.show`) : 2 coups de pioche = MÉTAL, pas constructibles.
+- Échap / ⚙️ n'arrête plus la partie (`PMENU`, `pause()` ne change plus `state`) : seules les commandes du perso sont bloquées.
+- TOP 1 : gros bouton « 💃 DANSER » en haut (`#vDance`) qui ouvre la roue avec TOUTES ses danses (`doDance`, `WIN`).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.

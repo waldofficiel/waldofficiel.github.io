@@ -177,7 +177,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .pmap canvas.pthumb{width:84px;height:69px;padding:0}.n2{background:#c0c8d8!important}
 #netB{left:50%;top:calc(46px + env(safe-area-inset-top,0px));transform:translateX(-50%);font:800 11px var(--body);color:#fff;background:rgba(11,4,24,.65);border:1px solid rgba(61,214,255,.5);border-radius:10px;padding:3px 10px;pointer-events:none}
 .friends{display:grid;gap:5px;background:rgba(11,4,24,.78);border:2px solid rgba(61,214,255,.35);border-radius:14px;padding:8px 10px}.friends b{font:900 12px var(--body);color:var(--cyan)}.friends small{font-size:11px;color:var(--mute)}.frow{display:grid;grid-template-columns:1.4fr 1fr auto;gap:5px}.frow input{font:800 13px var(--body);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:7px 8px;min-width:0;text-transform:none}#codeI{text-transform:uppercase;letter-spacing:.15em}.frow button{font:900 11px var(--body);color:#fff;background:linear-gradient(135deg,#ff2bd6,#7a2fff);border:0;border-radius:9px;padding:0 10px;cursor:pointer}
-#eaB[hidden]{display:none!important}#bFly{position:fixed;right:calc(14px + env(safe-area-inset-right));top:50%;z-index:9;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(11,4,24,.55);color:#fff;font-size:22px;line-height:1;pointer-events:auto}#bFly small{display:block;font:900 8px var(--body)}#bFly.on{background:#ff2bd6}#bFly[hidden]{display:none}.n3{background:linear-gradient(135deg,#ff6a1a,#ffd23d)!important;color:#2a0a00!important}#commL{display:flex;flex-direction:column;gap:8px}#commL .cl{color:#b9a8d0;font:700 11px var(--body)}.pmap.cm .pthumb{font-size:30px;background:linear-gradient(135deg,#3a0f5e,#7a2fff)}
+#eaB[hidden]{display:none!important}#victory #vDance{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(110px + env(safe-area-inset-right,0px));pointer-events:auto;font:900 18px var(--display);padding:12px 22px;border-radius:14px;box-shadow:0 0 22px rgba(255,43,214,.6);animation:vfade .8s 1.2s both;z-index:3}#bFly{position:fixed;right:calc(14px + env(safe-area-inset-right));top:50%;z-index:9;width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,.4);background:rgba(11,4,24,.55);color:#fff;font-size:22px;line-height:1;pointer-events:auto}#bFly small{display:block;font:900 8px var(--body)}#bFly.on{background:#ff2bd6}#bFly[hidden]{display:none}.n3{background:linear-gradient(135deg,#ff6a1a,#ffd23d)!important;color:#2a0a00!important}#commL{display:flex;flex-direction:column;gap:8px}#commL .cl{color:#b9a8d0;font:700 11px var(--body)}.pmap.cm .pthumb{font-size:30px;background:linear-gradient(135deg,#3a0f5e,#7a2fff)}
 #pubM{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(11,4,24,.78);padding:10px;overflow:auto}#pubM[hidden]{display:none}.pubc{width:min(560px,96vw);max-height:92vh;overflow:auto;background:#160828;border:2px solid #ff2bd6;border-radius:16px;padding:16px;color:#fff;display:flex;flex-direction:column;gap:6px}
 .pubc h2{margin:0;font:900 22px var(--display)}.pubc .sm{margin:0;font:600 12px var(--body);color:#c8b8e0}.pubc label{font:800 11px var(--body);color:#d9c8f0;letter-spacing:.06em}.pubc input,.pubc select{font:700 14px var(--body);color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:9px;padding:8px}
 .pbT{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.pbT button{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;padding:8px 4px;cursor:pointer}.pbT button.on{border-color:#ff2bd6;background:rgba(255,43,214,.15)}.pbT b{display:block;font:900 12px var(--body)}.pbT small{font:600 10px var(--body);color:#b9a8d0}
@@ -447,7 +447,7 @@ body:not(.touch) #bCrouch{display:none}
 <div id="victory" hidden>
   <div class="vt" id="vT">TOP 1</div>
   <div class="vs" id="vS"></div>
-  <div class="vb"><button class="ghost" id="vDance" type="button">💃 DANSE</button><button class="go" id="vAgain" type="button">REJOUER</button><button class="ghost" id="vMenu" type="button">MENU</button></div>
+  <button class="go" id="vDance" type="button">💃 DANSER</button><div class="vb"><button class="go" id="vAgain" type="button">REJOUER</button><button class="ghost" id="vMenu" type="button">MENU</button></div>
 </div>
 <div class="screen" id="end" hidden>
   <div class="card">
@@ -1285,7 +1285,9 @@ var CHEST0 = [], WMAT = {};
   var TH = Math.atan(H / GRID);
   roofsT.forEach(function (hs) { var RT = RTS[hs.roof || 'toit'].m, i = hs.rk; hs.rim = RT; hs.ri = [i * 3, i * 3 + 1, i * 3 + 2];
     var nz = Math.max(1, Math.round(hs.hz * 2 / GRID)), half = Math.floor(nz / 2), odd = nz % 2, run = half * GRID, rise = half * H; hs.rise = rise; hs.mats = [];
-    [-1, 1].forEach(function (sd) { o.position.set(hs.x, hs.y0 + hs.h + rise / 2 + .12, hs.z + sd * (hs.hz - run / 2)); o.rotation.set(sd * TH, 0, 0); o.scale.set(hs.hx * 2 + .5, .22, Math.max(.01, run / Math.cos(TH) + .1)); o.updateMatrix(); hs.mats.push(o.matrix.clone()); });
+    var OV = .8;   // avancée du toit au-dessus des murs (les gouttières sont au bout)
+    [-1, 1].forEach(function (sd) { o.position.set(hs.x, hs.y0 + hs.h + rise / 2 - OV * Math.tan(TH) / 2 + .12, hs.z + sd * (hs.hz - run / 2 + OV / 2)); o.rotation.set(sd * TH, 0, 0); o.scale.set(hs.hx * 2 + 1.2, .22, Math.max(.01, (run + OV) / Math.cos(TH) + .1)); o.updateMatrix(); hs.mats.push(o.matrix.clone()); });
+    hs.eaveY = hs.y0 + hs.h - OV * Math.tan(TH) - .05; hs.eaveZ = hs.hz + OV;
     o.position.set(hs.x, hs.y0 + hs.h + rise + .12, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 + .5, odd ? .22 : .001, odd ? GRID + .1 : .001); o.updateMatrix(); hs.mats.push(o.matrix.clone());   // faîtage plat (case du milieu)
     hs.mats.forEach(function (mm, j) { RT.setMatrixAt(hs.ri[j], mm); }); });
   // plafonds (vus de l'intérieur) : bois, brique, tôle ou béton selon le bâtiment — jamais transparent
@@ -1293,6 +1295,15 @@ var CHEST0 = [], WMAT = {};
     HOUSES.forEach(function (hs) { var k = CK[hs.m] || 'beton'; (by[k] = by[k] || []).push(hs); });
     Object.keys(by).forEach(function (k) { var L = by[k], cm = new THREE.InstancedMesh(BOX, worldMat(TX[k === 'bois' ? 'sol' : k], { brique: .55, beton: .25, metal: .35, bois: .45 }[k], { lit: .55 }), L.length); cm.receiveShadow = true; scene.add(cm);
       L.forEach(function (hs, i) { hs.cim = cm; hs.ci = i; o.position.set(hs.x, hs.y0 + hs.h - .07, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 - .1, .14, hs.hz * 2 - .1); o.updateMatrix(); hs.cmat = o.matrix.clone(); cm.setMatrixAt(i, hs.cmat); }); }); })();
+  /* GOUTTIÈRES + DESCENTES au bout des toits (on ne peut pas les construire, mais on peut les casser à la pioche : MÉTAL) */
+  (function () { var gutM = worldMat(TX.metal, .5), N = roofsT.length * 4, gIM = new THREE.InstancedMesh(BOX, gutM, Math.max(1, N)), sIM = new THREE.InstancedMesh(CYL, gutM, Math.max(1, N)), GM = [], SM = [], k = 0;
+    gIM.castShadow = sIM.castShadow = true; scene.add(gIM); scene.add(sIM);
+    var kit = { show: function (i, on) { gIM.setMatrixAt(i, on ? GM[i] : ZERO); sIM.setMatrixAt(i, on ? SM[i] : ZERO); gIM.instanceMatrix.needsUpdate = sIM.instanceMatrix.needsUpdate = true; } }, EW = window.EXT_WRECK || (window.EXT_WRECK = []);
+    roofsT.forEach(function (hs) { [-1, 1].forEach(function (sd) { [-1, 1].forEach(function (hf) { var len = hs.hx + .6, gz = hs.z + sd * hs.eaveZ, gy = hs.eaveY;
+      o.position.set(hs.x + hf * len / 2, gy, gz); o.rotation.set(0, 0, 0); o.scale.set(len, .2, .24); o.updateMatrix(); GM[k] = o.matrix.clone(); gIM.setMatrixAt(k, GM[k]);
+      var sx = hs.x + hf * (hs.hx + .45), sh2 = Math.max(.5, gy - hs.y0); o.position.set(sx, hs.y0 + sh2 / 2, gz); o.scale.set(.16, sh2, .16); o.updateMatrix(); SM[k] = o.matrix.clone(); sIM.setMatrixAt(k, SM[k]);
+      EW.push({ x: sx, z: gz, y: hs.y0, r: .35, hp: 2, kit: kit, i: k, gutter: 1 }); k++; }); }); });
+    gIM.count = sIM.count = k; })();
   /* PIGNONS faits de MURS DE CONSTRUCTION : murs pleins de 5 m × 3,5 m + murs édités en triangle (comme un mur édité en diagonale), empilés en escalier jusqu'au faîtage */
   (function () { var sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(1, 0); sh.lineTo(0, 1); sh.closePath(); var tg = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); tg.translate(0, 0, -.5);
     var by = {}; roofsT.forEach(function (hs) { (by[hs.m] = by[hs.m] || []).push(hs); });
@@ -2045,12 +2056,12 @@ var keys = {}, joy = null, lookPtr = null, fireLook = null, fireHeld = false, ju
 addEventListener('keydown', function (e) { if (e.repeat || REBIND) return; keys[e.code] = true; var a = bindAct(e.code); if (e.code === 'Tab') a = 'sac';
   if (state === 'play' && a === 'accroupi') toggleCrouch(); if (state === 'play' && a === 'danse') doDance(); if (a === 'sauter') { e.preventDefault(); jumpPress = true; } if (a === 'interagir') { if (me.prop) unProp(); else actPress = true; } if (a === 'siffler') whistle(); if (a === 'recharger') relPress = true;
   if (a === 'sprint') nitroPress = true; if (a === 'arme1') slotPress = 0; if (a === 'arme2') slotPress = 1; if (a === 'arme3') slotPress = 2; if (a === 'soin') slotPress = 3; if (a === 'soinSuivant') healCycle(); if (a === 'sac') { e.preventDefault(); invToggle(); } if (a === 'tirAuto') autoToggle(); if (a === 'carte' && !e.repeat) toggleMap();
-  if (/^F[1-9]$/.test(e.code)) e.preventDefault(); if ((a === 'pause' || e.code === 'Escape') && state === 'play') pause(true); });
+  if (/^F[1-9]$/.test(e.code)) e.preventDefault(); if ((a === 'pause' || e.code === 'Escape') && state === 'play') pause(!PMENU); });
 addEventListener('keyup', function (e) { keys[e.code] = false; });
 cv.addEventListener('mousedown', function (e) { if (isTouch || state !== 'play' || invOpen()) return; if (document.pointerLockElement !== cv) { if (cv.requestPointerLock) cv.requestPointerLock(); return; } if (e.button === 0) fireHeld = true; });
 addEventListener('mouseup', function () { if (!isTouch) fireHeld = false; });
 addEventListener('mousemove', function (e) { if (document.pointerLockElement === cv) { lookDX += e.movementX * .0024; lookDY += e.movementY * .0024; } });
-document.addEventListener('pointerlockchange', function () { if (document.pointerLockElement !== cv && state === 'play' && !isTouch && !invOpen()) pause(true); });
+document.addEventListener('pointerlockchange', function () { if (document.pointerLockElement !== cv && state === 'play' && !isTouch && !invOpen() && !PMENU) pause(true); });
 cv.addEventListener('wheel', function (e) { for (var i = 1; i <= 3; i++) { var j = ((me.slot + (e.deltaY > 0 ? i : -i)) % 3 + 3) % 3; if (me.inv[j]) { slotPress = j; break; } } }, { passive: true });
 var touchEl = $('touch'), stick = $('stick');
 touchEl.addEventListener('pointerdown', function (e) {
@@ -2077,8 +2088,8 @@ function danceNow(id) { if (!id || !me.alive || me.mode !== 'ground' || me.veh) 
   if (near.length) { var ld = near.filter(function (p) { return /^sync/.test(p.dz); })[0]; if (ld && !/^sync/.test(id)) { me.dz = ld.dz; me.danceT0 = ld.danceT0; } else if (/^sync/.test(id)) near.forEach(function (p) { p.dz = id; p.danceT0 = me.danceT0; p.danceT = Math.max(p.danceT, 30); }); toast('🔗 SYNC DANCE ×' + (near.length + 1)); } me.crouch = false; $('bCrouch').classList.remove('act'); $('dWheel').hidden = true; }
 function doDance() {   // roue des 5 danses choisies au casier
   if (!hasDance() || !me.alive || me.mode !== 'ground' || me.veh) return; var W = $('dWheel'); if (!W.hidden) { W.hidden = true; return; }
-  var DL = danceLoad(), sk = ST.skin || 'wald';
-  $('dwIn').innerHTML = DL.map(function (id, i) { var a = -Math.PI / 2 + i / 5 * 6.283, x = 50 + Math.cos(a) * 37, y = 50 + Math.sin(a) * 37;
+  var DL = WIN ? myDances().slice(0, 12) : danceLoad(), sk = ST.skin || 'wald', DN = Math.max(5, DL.length);   // après un TOP 1 : TOUTES ses danses
+  $('dwIn').innerHTML = DL.map(function (id, i) { var a = -Math.PI / 2 + i / DN * 6.283, x = 50 + Math.cos(a) * 37, y = 50 + Math.sin(a) * 37;
     return '<button class="dwb' + (id ? '' : ' empty') + '" type="button" data-d="' + (id || '') + '" style="left:' + x + '%;top:' + y + '%">' + (id ? '<img src="' + skinThumb(sk, 0, id) + '" alt="">' + DANCES[id].name : '+') + '</button>'; }).join('') + '<button class="dwc" type="button" id="dwX">✕</button>';
   $('dwIn').querySelectorAll('.dwb').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); danceNow(b.dataset.d); }); });
   W.hidden = false; }
@@ -2350,7 +2361,7 @@ function update(dt) {
   var fx = Math.cos(camA), fz = Math.sin(camA), rx = -fz, rz = fx;
   var jx = 0, jy = 0; if (joy) { jx = joy.x; jy = joy.y; } else { if (kd('avancer') || keys.ArrowUp) jy -= 1; if (kd('reculer') || keys.ArrowDown) jy += 1; if (kd('gauche') || keys.ArrowLeft) jx -= 1; if (kd('droite') || keys.ArrowRight) jx += 1; }
   var jl = Math.hypot(jx, jy); if (jl > 1) { jx /= jl; jy /= jl; }
-  var mvx = fx * -jy + rx * jx, mvz = fz * -jy + rz * jx;
+  var mvx = fx * -jy + rx * jx, mvz = fz * -jy + rz * jx; if (PMENU) { mvx = mvz = 0; fireHeld = false; jumpPress = false; }
   pl.forEach(function (p) {
     if (p.net) { netTick(p, dt); return; }
     if (!p.alive) return;
@@ -2685,10 +2696,12 @@ function endGame(win, killer) {
     settle(win); $('eP').textContent = '#' + place; $('eK').textContent = me.kills; $('end').hidden = false; if (win) voice('wald_off', 1);
   }, win ? 700 : 1300);
 }
-function toMenu() { netStop(); try { localStorage.removeItem('wr_pubLoad'); } catch (e) {} if (SURV && SV && state === 'play') SV.save(); WIN = false; document.body.classList.remove('won'); $('victory').hidden = true; $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); music(true); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
-function pause(on) { if (on && state === 'play') { state = 'pause'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('pause').hidden = false; } else if (!on && state === 'pause') { state = 'play'; tPrev = performance.now(); $('pause').hidden = true; if (!isTouch && cv.requestPointerLock) cv.requestPointerLock(); } }
+function toMenu() { PMENU = false; $('pause').hidden = true; netStop(); try { localStorage.removeItem('wr_pubLoad'); } catch (e) {} if (SURV && SV && state === 'play') SV.save(); WIN = false; document.body.classList.remove('won'); $('victory').hidden = true; $('inv').hidden = true; state = 'menu'; fireHeld = false; if (eng) eng.g.gain.value = 0; $('end').hidden = true; $('pause').hidden = true; $('lobby').hidden = false; tab('jouer'); music(true); if (document.exitPointerLock && document.pointerLockElement) document.exitPointerLock(); }
+/* MENU (Échap / ⚙️) : la partie NE S'ARRÊTE PAS (vrais joueurs en ligne, comme dans les vrais battle royale) ; on bloque juste les commandes du perso */
+var PMENU = false;
+function pause(on) { if (on && state === 'play' && !PMENU) { PMENU = true; fireHeld = false; $('pause').hidden = false; if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock(); } else if (!on && PMENU) { PMENU = false; $('pause').hidden = true; if (!isTouch && cv.requestPointerLock && state === 'play') cv.requestPointerLock(); } }
 $('play').addEventListener('click', start); $('vAgain').addEventListener('click', function () { $('victory').hidden = true; music(false); start(); }); $('vMenu').addEventListener('click', toMenu);
-$('vDance').addEventListener('click', function () { var l = myDances(); if (!l.length) return; if (me.danceT > 0) { ST.dz = l[(l.indexOf(curDance()) + 1) % l.length]; saveST(); } startDance(me, 60); me.dz = curDance(); toast('💃 ' + DANCES[me.dz].name); }); $('again').addEventListener('click', start); $('toMenu').addEventListener('click', toMenu);
+$('vDance').addEventListener('click', function () { if (!myDances().length) return; doDance(); }); $('again').addEventListener('click', start); $('toMenu').addEventListener('click', toMenu);
 $('quit').addEventListener('click', toMenu); if (CREA) $('quit').textContent = '🚪 Quitter la partie'; if (MODE === 'creatif') { $('pPub').hidden = false; $('pPub').addEventListener('click', pubOpen); } $('resume').addEventListener('click', function () { pause(false); });
 document.addEventListener('visibilitychange', function () { if (document.hidden) { pause(true); music(false); } else if (state === 'menu') music(true); else if (state === 'play' && me.mode === 'bus') music(true, 'bus'); });
 ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { if (state === 'menu') { initAudio(); if (!musOn || MUSMODE !== 'lobby') music(true); } }, true); });
