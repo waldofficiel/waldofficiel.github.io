@@ -121,6 +121,11 @@
     G.translate(-(b.min.x + b.max.x) / 2 + len * .12, -(b.min.y + b.max.y) / 2 - (b.max.y - b.min.y) * .08, -(b.min.z + b.max.z) / 2); G.computeBoundingSphere();
     var m = new T.Mesh(G, new T.MeshPhongMaterial({ vertexColors: true, shininess: over ? 90 : 45, specular: over === TACPAL ? '#5a4a7a' : over ? '#8a6a20' : '#3a3a3a' })); m.castShadow = true; return m;
   }
+  /* MODÈLES PROVISOIRES (blocs) : lance-patate, lance-roquette, lanceur laser — À REVOIR plus tard */
+  function blk(g, sx, sy, sz, x, y, z, col, em) { var m = new T.Mesh(new T.BoxGeometry(sx, sy, sz), new T.MeshPhongMaterial({ color: col, emissive: em || '#000000' })); m.position.set(x, y, z); g.add(m); return m; }
+  B.patate = function (g, c) { blk(g, .7, .14, .14, .1, 0, 0, '#7a5a2a'); blk(g, .14, .2, .1, -.12, -.14, 0, '#4a3018'); blk(g, .12, .12, .12, .5, 0, 0, '#c8a060'); };
+  B.roquette = function (g, c) { blk(g, 1, .18, .18, .05, .02, 0, '#3a4a2a'); blk(g, .16, .22, .12, -.05, -.16, 0, '#22261c'); blk(g, .14, .14, .14, .58, .02, 0, '#c83a2a'); };
+  B.laser = function (g, c) { blk(g, .55, .12, .1, .08, 0, 0, '#1a1a24'); blk(g, .5, .03, .03, .12, .07, 0, '#ff2bd6', '#ff2bd6'); blk(g, .12, .18, .08, -.1, -.13, 0, '#2a2a36'); };
   window.buildGun = function (THREE, k, rc) { T = THREE; var g = new THREE.Group();
     if (GUNT[k]) { var m = GUNT[k].clone(); g.add(m); g.userData.real = true; g.userData.gscale = 1; return g; }   // vraie arme 3D (déjà à la bonne taille)
     (B[k] || (k === 'pompeS' ? B.pompe : B.pistolet))(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };

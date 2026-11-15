@@ -1364,14 +1364,17 @@ var WEAPONS = {
   fusil:    { name: 'Fusil d\'assaut', mag: 30, rl: 2.1, cd: .17, dmg: 21, range: 120, spread: .016, wall: 18, rar: 1 },
   pompe:    { name: 'Pompe auto', mag: 8, rl: 3.6, cd: .55, dmg: 6.67, pellets: 10, hs: 1.5, range: 26, spread: .07, wall: 30, rar: 2 },   // max 150 à la tête (10 plombs à bout portant)
   pompeS:   { name: 'Pompe spécialisé', mag: 5, rl: 4.2, cd: 1.05, dmg: 8, pellets: 10, hs: 1.5, range: 28, spread: .048, wall: 36, rar: 3 },   // 180 à la tête, plus lent : tu tires, tu construis, tu tires
+  patate:   { name: 'Lance-patate', mag: 6, rl: 2.4, cd: .7, dmg: 45, range: 60, spread: .02, wall: 60, rar: 2, boom: 3 },   // À REVOIR : modèle 3D provisoire (blocs)
+  roquette: { name: 'Lance-roquette', mag: 1, rl: 3, cd: 1, dmg: 90, range: 160, spread: .004, wall: 300, rar: 4, boom: 6 },   // À REVOIR : modèle 3D provisoire
+  laser:    { name: 'Lanceur laser', mag: 40, rl: 2.5, cd: .1, dmg: 15, range: 140, spread: .003, wall: 20, rar: 3 },   // À REVOIR : modèle 3D provisoire
   scar:     { name: 'Fusil Doré', mag: 30, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
   sniper:   { name: 'Sniper lourd', mag: 1, rl: 2.6, cd: .6, dmg: 110, range: 320, spread: 0, wall: 120, rar: 3 }
 };
-var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompeS', 'pompeS', 'scar', 'scar', 'sniper'];
+var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompeS', 'pompeS', 'scar', 'scar', 'sniper', 'patate', 'roquette', 'laser'];
 function randWeapon() { return WLIST[Math.random() * WLIST.length | 0]; }
 function newSlot(k) { return { k: k, mag: WEAPONS[k].mag, res: WEAPONS[k].mag * 3, rlT: 0 }; }
 function cur(p) { return p.inv[p.slot] || null; }
-var GUNSCALE = { pistolet: 1.1, smg: .92, fusil: .66, scar: .66, pompe: .68, pompeS: .66, sniper: .6 };
+var GUNSCALE = { pistolet: 1.1, smg: .92, fusil: .66, scar: .66, pompe: .68, pompeS: .66, sniper: .6, patate: .7, roquette: .6, laser: .8 };
 function gunModel(k) {
   if (window.buildGun) { var gg = new THREE.Group(), inner = window.buildGun(THREE, k, RAR[WEAPONS[k].rar]); if (!inner.userData.real) inner.scale.setScalar(GUNSCALE[k] || .7); gg.add(inner); return gg; }
   var g = new THREE.Group(), c = RAR[WEAPONS[k].rar];
@@ -1880,7 +1883,7 @@ function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
     var sp = p.bot ? W2.spread : (w0.k === 'sniper' ? (adsK > .85 ? 0 : .06) : W2.spread * (1.8 - adsK * 1.35)) * (Math.hypot(p.vx, p.vz) > 1 ? 1.6 : 1) * (p.y > (p.gy || 0) + .1 ? 2 : 1), ex = dx + (Math.random() - .5) * sp * 2, ey = dy + (Math.random() - .5) * sp * 2, ez = dz + (Math.random() - .5) * sp * 2, l = Math.hypot(ex, ey, ez); ex /= l; ey /= l; ez /= l;
     var h = castRay(ox + ex * tMin, oy + ey * tMin, oz + ez * tMin, ex, ey, ez, W2.range, p, p === me && isTouch ? .1 : 0), T = h.t + tMin;
     var hx = ox + ex * T, hy = oy + ey * T, hz = oz + ez * T;
-    if (i < 3 && (p === me || dist(p.x, p.z, me.x, me.z) < 150)) tracer(mx, my, mz, hx, hy, hz, W2.rar >= 4 ? '#ffd27a' : '#fff6c2');
+    if (i < 3 && (p === me || dist(p.x, p.z, me.x, me.z) < 150)) tracer(mx, my, mz, hx, hy, hz, w0.k === 'laser' ? '#ff2bd6' : w0.k === 'patate' ? '#c8a060' : W2.rar >= 4 ? '#ffd27a' : '#fff6c2');
     var dmg = W2.dmg * (W2.pellets ? (T < 5 ? 1.5 : Math.max(.2, 1.5 - (T - 5) / (W2.range - 5) * 1.3)) : 1);
     if (h.kind === 'pl') { var dd = dmg * (h.head ? W2.hs || 1.6 : 1), shd = h.o.sh > 0; hurt(h.o, dd, p); burst(hx, hy, hz, 3, shd ? '#6fd0ff' : '#ff4d6d', 3, .12, .4); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, dd, shd, h.head); } }
     else if (h.kind === 'bubble') bubbleHit(h.o, hx, hy, hz);
@@ -1888,6 +1891,8 @@ function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
     else if (h.kind === 'wall') { hitWall(h.o, W2.wall, p); burst(hx, hy, hz, 2, MATS[h.o.m].col, 3, .14, .5); }
     else if (h.kind === 'veh') { hurtVeh(h.o, dmg, p); if (h.o.driver && Math.random() < .3) hurt(h.o.driver, dmg * .5, p); burst(hx, hy, hz, 2, '#ffd27a', 4, .1, .3); }
     else if (h.kind) burst(hx, hy, hz, 2, h.kind === 'ground' ? '#8a7a5a' : '#6a4a2a', 2.5, .12, .4);
+    if (W2.boom && h.kind) { burst(hx, hy, hz, 26, ['#ffb02a', '#ff5a1a', '#3a3a3a'], 9, .3, 1); SFX.crack(); WALLS.forEach(function (w) { if (w.alive && Math.abs(w.x - hx) < W2.boom + w.hw && Math.abs(w.z - hz) < W2.boom + w.hd && hy > w.y0 - 2 && hy < w.y0 + w.h + 2) hitWall(w, W2.wall, p); });   // explosion : casse les murs autour
+      pl.forEach(function (o) { if (o !== p && o.alive && o !== h.o && dist(o.x, o.z, hx, hz) < W2.boom && Math.abs(o.y - hy) < W2.boom) hurt(o, W2.dmg * .5, p); }); }
   }
   w0.mag--; p.fireCd = W2.cd; p.recoil = .1;
   SFX.shot(w0.k, p === me ? 1 : Math.max(0, 1 - dist(p.x, p.z, me.x, me.z) / 160) * .6);
@@ -2195,7 +2200,7 @@ function drawMini(full) {
 }
 var hc = {}; function setT(id, v) { if (hc[id] !== v) { hc[id] = v; $(id).textContent = v; } }
 function icon(g, k, w, h) {
-  var c = RAR[WEAPONS[k].rar], L = { pistolet: 30, smg: 50, fusil: 66, scar: 72, pompe: 70, pompeS: 68, sniper: 86 }[k], s = Math.min(1.1, (w - 8) / L);
+  var c = RAR[WEAPONS[k].rar], L = { pistolet: 30, smg: 50, fusil: 66, scar: 72, pompe: 70, pompeS: 68, sniper: 86, patate: 64, roquette: 86, laser: 60 }[k], s = Math.min(1.1, (w - 8) / L);
   g.save(); g.translate(w / 2, h / 2); g.scale(s, s); g.translate(-L / 2, -2); g.fillStyle = '#f3f3f3';
   g.fillRect(0, -6, L * .82, 10); g.fillRect(L * .82, -3, L * .18, 5); g.fillRect(L * .3, 2, 8, 14); if (k !== 'pistolet' && k !== 'smg') g.fillRect(-2, -5, L * .22, 12); if (k === 'sniper') g.fillRect(L * .35, -13, 22, 6); if (k === 'pompe' || k === 'pompeS') g.fillRect(L * .5, 3, 18, 6);
   g.fillStyle = c; g.fillRect(4, -6, L * .5, 3); g.restore();

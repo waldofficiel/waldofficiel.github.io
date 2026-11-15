@@ -304,3 +304,6 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Une clé de signature Android secrète (secret GitHub) avant le Play Store.
 - Un certificat de signature Windows pour enlever l'écran SmartScreen.
 - Du multijoueur réel (pour l'instant ce sont des bots).
+
+## À REVOIR (rappeler à l'utilisateur)
+- 3 nouvelles armes en **modèles provisoires (blocs)** à refaire : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
