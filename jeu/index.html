@@ -482,6 +482,8 @@ function brMap(t) { return BRMAPS[Math.floor((t || Date.now()) / ROT) % BRMAPS.l
 var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROPANE' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
 var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) MODE = mm; } catch (e) {}
 try { var mo = (location.search.match(/[?&]mode=(\w+)/) || [])[1]; if (MODES[mo]) MODE = mo; } catch (e) {}
+var IOSW = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);   // Wald Royal iOS (web) : pas de Survie (payant, PC + Android)
+if (IOSW && MODE === 'survie') MODE = 'br';
 var MAP = MODE === 'prop' ? 'propane' : MODE === 'survie' || MODE === 'creatif' || MODE === 'bf' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
 var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', CREA = MODE === 'creatif' || MODE === 'bf' || MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB, MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM ? 1 : 30, ISL = SURV ? 1720 : PROPM ? 240 : 420, HALF = SURV ? 2000 : PROPM ? 300 : 500;   // PROPANE : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
@@ -2623,7 +2625,8 @@ if (SURV && !CREA && SV && SV.hasSave()) (function () { var d = document.createE
 var MGRP = MODE === 'br' || MODE === 'zb' ? 'br' : MODE === 'survie' ? 'survie' : 'creatif';   // menu JOUER : Battle Royale (constru / zéro constru) · Créatif (mon monde / maps publiques) · Survie
 function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'prop' ? 'propane' : nm === 'survie' || nm === 'creatif' || nm === 'bf' ? 'survie' : brMap();
   if (nmap === MAP && !SURV) { try { localStorage.setItem('wr_mode', nm); } catch (e) {} location.reload(); return; } if (el) el.classList.add('load'); goMap(nmap, nm); }
-function mgrpDraw() { document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
+function mgrpDraw() { if (IOSW) { var sb0 = document.querySelector('#mgrp [data-g=survie]'); if (sb0) sb0.remove(); }
+document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
   document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === MODE); }); }
 document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.addEventListener('click', function () { MGRP = b.dataset.g; mgrpDraw(); if (MGRP === 'survie') pickMode('survie', b); else if (MGRP === 'br' && MODE !== 'br' && MODE !== 'zb') pickMode('br', b); }); });
 document.querySelectorAll('#subBR [data-mode], #subCR [data-mode]').forEach(function (b) { b.addEventListener('click', function () { pickMode(b.dataset.mode, b); }); });

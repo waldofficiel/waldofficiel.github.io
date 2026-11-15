@@ -359,5 +359,9 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Profil partagé : toutes les clés localStorage `wr*` passent par `profile.json` de l'appli (launcher importe au chargement, exporte avant JOUER ; le jeu installé importe au démarrage (script en tête) et exporte toutes les 15 s + en quittant, `window.WGsave`).
 - Le workflow d'applis ne se lance plus que sur `app/**` (le jeu se met à jour via le site, sans rebuild).
 
+## Image du planeur, Wald Royal iOS (cache v49)
+- `wald-royal/img/capitale.jpg` (bannière du launcher, galerie, bande-annonce) : l'ancien planeur noir « WALD » est remplacé par le planeur Wald Car Gonflable actuel (rendu 3D collé sur la capture).
+- iPhone/iPad = « Wald Royal iOS » (version web, sans launcher) : pas de mode Survie (`IOSW` dans jeu/index.html : bouton retiré, `?mode=survie` → br). Survie = payant, PC + Android seulement (site mis à jour).
+
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
