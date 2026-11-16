@@ -447,3 +447,9 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Miniatures dessinées pour PARCOURS (th4) et GUN GAME (th5), style néon/chrome comme 1V1 et PROP HUNT.
 - Wald Game PC : fenêtre normale (1280×760, réduire/agrandir/fermer) comme Epic ; plein écran auto quand le jeu est lancé (`did-navigate`), F11 bascule.
 - Codes Survie (launcher > Mon compte) : empreinte SHA-256 `wg-survie|CODE` dans `SC` (hash → nb d'utilisations). Utilisations comptées par appareil (`wg_dev`) via messages retenus MQTT `wr4pub/v1/code/<hash16>/<dev>`. Le code en clair n'est JAMAIS dans le dépôt.
+
+## v66 : inventaire 5 places
+- `me.inv` = 5 cases (armes OU soins). Un soin dans une case = marqueur `{ h: 'mini'|'shield'|'heal'|'bulle' }`, le nombre reste dans `me.heals`. `invSync()` (chaque image) : complète à 5, retire les marqueurs à 0, ajoute un marqueur pour un soin sans case. `cur(p)` = arme seulement, `curH(p)` = soin en main (tir = utiliser).
+- Glisser une case sur une autre (barre ou sac) = échanger (`DRAGS`, `invSwap`). Touches Case 1-5 (`arme1..arme5`, 1-5), « soin » = C (case de soin suivante). Inventaire plein → soins refusés.
+- Bots : toujours 3 cases et soins en compteur.
+- Salle d'attente : « 👥 n/16 ».
