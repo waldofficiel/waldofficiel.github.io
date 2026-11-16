@@ -434,3 +434,11 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - `gpTick(dt)` (appelé dans `loop`) lit l'API Gamepad. Disposition `SET.gp` : `pro` (défaut, Builder Pro Fortnite : B = construction, RT mur / LT escalier / RB sol / LB toit, Y éditer, croix ← matériau) ou `simple` (jeu de tir classique, pas de construction). Actions envoyées en faux événements clavier (`gpTap`). Menus : croix + A/B (`gpMenuNav`, classe `.gpf`). Onglet Paramètres « 🎮 MANETTE » (`gpPane`). `body.gp` cache les boutons tactiles.
 - En construction : clic droit = changer de matériau (plus jamais la visée), `adsSet` refuse de viser avec un outil.
 - Launcher : « Mot de passe oublié ? » → recrée le mot de passe du compte local (pseudo + e-mail pré-remplis, progression gardée).
+
+## v64 : correctifs Créatif + jouabilité avancée
+- Build fight : le compte à rebours de la salle d'attente (`WAIT0`) repart quand on entre (avant : depuis le chargement → partie lancée toute seule avec des bots qui tiraient). Bots du créatif : ne visent que les joueurs de LEUR partie (`nearestEnemy`), dégâts `h` ignorés hors partie, bots des autres parties ignorés.
+- Créatif : plus de Wald qui tombe du ciel (`dropUpdate`). Message d'accueil selon le mode (`SVC.creaIntro`), plus de liste de touches ; message perso à la publication (`PUB.msg`).
+- Viseur du pompe ×0,55 (max 17 % de l'écran). Aide à la visée désactivée à la souris (seulement tactile/manette).
+- Jouabilité avancée (Paramètres > Jeu) : éditer en un clic (`SET.editRel`, valide au relâchement, glisser = enlever plusieurs cases), FPS affichés (`SET.fps`, #fpsC), limite FPS (`SET.fpsMax`).
+- Entrée valide les fenêtres ; maintenir Entrée 1 s (ou X manette) dans la salle d'attente = lancer (`enterHold`).
+- Construction : `planFree()` (si la case visée est prise : case de la grille, puis étage au-dessus), aperçu bleu clair + contour.

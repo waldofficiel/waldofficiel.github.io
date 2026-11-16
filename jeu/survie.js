@@ -112,8 +112,8 @@
     else if (p.t === 'toit') { o.position.set(p.x, p.L, p.z); }
     o.updateMatrix(); return o.matrix; }
   // où va la pièce ? (cellule de 4 m, niveau aligné sur les pièces voisines)
-  function plan() { var P0 = me(), onR = PIECES.some(function (q) { return q.t === 'esc' && Math.abs(P0.x - q.x) <= CELL / 2 + .1 && Math.abs(P0.z - q.z) <= CELL / 2 + .1 && P0.y > q.L - .2 && P0.y < q.L + LH + .5; });
-    if (!onR) { var pa = planAim(); if (pa) return pa; }   // sur une rampe : on construit dans la foulée (règle d'avant)
+  function plan(noAim) { var P0 = me(), onR = PIECES.some(function (q) { return q.t === 'esc' && Math.abs(P0.x - q.x) <= CELL / 2 + .1 && Math.abs(P0.z - q.z) <= CELL / 2 + .1 && P0.y > q.L - .2 && P0.y < q.L + LH + .5; });
+    if (!onR && !noAim) { var pa = planAim(); if (pa) return pa; }   // sur une rampe : on construit dans la foulée (règle d'avant)
     var P = me(), a = C.camA(), pitch = C.camP(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d];
     var ci = Math.floor(P.x / CELL), cj = Math.floor(P.z / CELL), b0 = null, bd = 14;
     PIECES.forEach(function (q) { var dd = Math.hypot(q.x - P.x, q.z - P.z); if (dd < bd && Math.abs(q.L - P.y) < 10) { bd = dd; b0 = q.L; } });
@@ -133,6 +133,9 @@
     for (var hi = 0; hi < C.HOUSES.length; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(p.x - hs.x) > hs.hx + .6 || Math.abs(p.z - hs.z) > hs.hz + .6 || p.L < hs.y0 - 1.2 || p.L > hs.y0 + hs.h + 1.2) continue;
       p.L = hs.y0 + LH * Math.round((p.L - hs.y0) / LH); break; }   // dans un bâtiment : on se cale sur ses étages (mur cassé → ton mur prend exactement sa place)
     p.key += '|' + p.L.toFixed(1); return p; }
+  function planFree() {   /* case visée déjà prise : on essaie la case de la grille devant soi, puis un étage au-dessus (comme Fortnite qui pose toujours quelque part) */
+    var p = plan(); if (!p || p.t === 'lit' || !taken(p.key, p)) return p; var q = plan(true); if (q && !taken(q.key, q)) return q;
+    var up = Object.assign({}, p, { L: p.L + LH }); up.key = p.key.replace(/\|[-\d.]+$/, '|' + up.L.toFixed(1)); return taken(up.key, up) ? p : up; }
   function slotWalls(p, lin) { var ax = p.hw > p.hd; return C.WALLS.filter(function (w) { return w.alive && !w.build && !!w.lintel === lin && Math.abs(ax ? w.z - p.z : w.x - p.x) < .45 && Math.abs(ax ? w.x - p.x : w.z - p.z) < (ax ? w.hw : w.hd) + CELL / 2 - .3 && w.y0 < p.L + LH - .4 && w.y0 + w.h > p.L + .4; }); }
   /* CONSTRUIRE AU VISEUR : on suit le rayon de la caméra jusqu'au sol, à une pièce ou à un mur ; la pièce va dans la case visée,
      au niveau visé (calé sur la grille de 3,5 m des pièces voisines ou du sol). Les escaliers se prolongent pile au bout du précédent. */
@@ -244,17 +247,21 @@
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
     if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
     var h = aimWall(); if (!h) { C.toast('VISE UN DE TES MURS POUR L\'ÉDITER'); return; }
-    EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast('✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
+    EDRAG = 0; ELASTI = -1; EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast(C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
   var EPREV = null;
   function editTap() { if (!EDW) return; var h = aimWall(); if (!h || h.p !== EDW) return; var o = h.o, d = h.d, p = EDW, ax = p.hw > p.hd, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
-    var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))), i = r * 3 + c; EMK[i] = !EMK[i]; gridDraw(); C.tone('square', EMK[i] ? 520 : 760, 0, .05, .04); }
+    var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))), i = r * 3 + c; EMK[i] = !EMK[i]; ELASTI = i; gridDraw(); C.tone('square', EMK[i] ? 520 : 760, 0, .05, .04); }
+  var EDRAG = 0, ELASTI = -1;
+  function editCell() { if (!EDW) return -1; var h = aimWall(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, ax = p.hw > p.hd, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
+    var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
+  function editDrag() { var i = editCell(); if (i < 0 || i === ELASTI) return; ELASTI = i; if (!EMK[i]) { EMK[i] = true; gridDraw(); C.tone('square', 520, 0, .05, .04); } }   /* on glisse en gardant appuyé : chaque case survolée s'enlève */
   function editCancel() { if (!EDW) return; EDW = null; gridDraw(); TOOL = EPREV === 'edit' ? null : EPREV; }
   function ghostShow(p, ok) {
-    if (!GHOST) { GHOST = {}; var gm = new T.MeshBasicMaterial({ color: '#3ab0ff', transparent: true, opacity: .38, depthWrite: false }); GHOST.mat = gm;
+    if (!GHOST) { GHOST = {}; var gm = new T.MeshBasicMaterial({ color: '#7fd4ff', transparent: true, opacity: .42, depthWrite: false, depthTest: true }); GHOST.mat = gm; var gl = new T.LineBasicMaterial({ color: '#e8f8ff', transparent: true, opacity: .9, depthWrite: false }); GHOST.lm = gl;
       GEO.lit = new T.BoxGeometry(1.2, .6, 2.2); GEO.lit.translate(0, .3, 0); GEO.coffre = new T.BoxGeometry(1.2, .85, .8); GEO.coffre.translate(0, .42, 0);
-      ['mur', 'sol', 'esc', 'toit', 'lit', 'coffre'].forEach(function (k) { var m = new T.Mesh(k === 'mur' || k === 'sol' ? C.BOX : GEO[k], gm); m.visible = false; m.renderOrder = 3; m.userData.dyn = true; C.scene.add(m); GHOST[k] = m; }); }
+      ['mur', 'sol', 'esc', 'toit', 'lit', 'coffre'].forEach(function (k) { var m = new T.Mesh(k === 'mur' || k === 'sol' ? C.BOX : GEO[k], gm); m.visible = false; m.renderOrder = 3; m.userData.dyn = true; m.frustumCulled = false; try { var ln = new T.LineSegments(new T.EdgesGeometry(m.geometry, 30), gl); ln.renderOrder = 4; ln.frustumCulled = false; m.add(ln); } catch (e) {} C.scene.add(m); GHOST[k] = m; }); }
     ['mur', 'sol', 'esc', 'toit', 'lit', 'coffre'].forEach(function (k) { GHOST[k].visible = !!p && p.t === k; });
-    if (!p) return; var m = GHOST[p.t]; GHOST.mat.color.set(ok ? '#3ab0ff' : '#ff3a5a');
+    if (!p) return; var m = GHOST[p.t]; GHOST.mat.color.set(ok ? '#7fd4ff' : '#ff3a5a'); GHOST.lm.color.set(ok ? '#e8f8ff' : '#ffc0c8');
     if (p.t === 'mur') { m.position.set(p.x, p.L + LH / 2, p.z); m.rotation.set(0, 0, 0); m.scale.set(p.hw * 2 + .02, LH, p.hd * 2 + .02); }
     else if (p.t === 'lit' || p.t === 'coffre') { m.position.set(p.x, p.L, p.z); m.rotation.set(0, -p.d + Math.PI / 2, 0); m.scale.set(1, 1, 1); }
     else { var o = O3 || (O3 = new T.Object3D()); pieceMatrix(p, o); m.position.copy(o.position); m.rotation.copy(o.rotation); m.scale.copy(o.scale); if (p.t === 'sol') m.scale.y = .32; } }
@@ -557,12 +564,14 @@
   function intro() { if (!C.SURV) { var nI = 0; try { nI = +localStorage.getItem('wr_introBR') || 0; localStorage.setItem('wr_introBR', nI + 1); } catch (e) {} if (nI >= 3) return; }   // en Battle Royale : seulement les 3 premières fois
     var d = document.getElementById('sIntro'); if (!d) { d = document.createElement('div'); d.id = 'sIntro'; document.body.appendChild(d); }
     var tc = C.isTouch, row = function (k, t) { return '<div class="r"><b>' + k + '</b><span>' + t + '</span></div>'; };
+    if (C.CREA && C.creaIntro) { var ci = C.creaIntro(); d.innerHTML = '<div class="box"><h2>' + ci.t + '</h2><p>' + ci.d + '</p><div class="g">' + ci.r.map(function (q) { return row(q[0], q[1]); }).join('') + '</div><button type="button" id="sIntroGo">C\'EST PARTI</button><div class="bar"><i></i></div></div>';
+      d.hidden = false; var cl = function () { d.hidden = true; }; d.querySelector('#sIntroGo').addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); cl(); }); d.querySelector('#sIntroGo').addEventListener('click', cl); setTimeout(cl, 12000); return; }   /* créatif : le message dépend du mode (et du créateur), pas de liste de touches */
     d.innerHTML = '<div class="box"><h2>' + (C.CREA ? '🎨 CRÉATIF · TERRES SAUVAGES' : C.SURV ? '🧟 SURVIE · TERRES SAUVAGES' : C.BUILD ? '⚔️ BATTLE ROYALE' : '🛡️ ZÉRO CONSTRUCTION') + '</h2>' + (C.CREA ? '<p>Matériaux illimités, construis ce que tu veux. Les armes de l\'armurerie reviennent à l\'infini.</p>' : C.SURV ? '<p>Le monde est envahi de zombies. Récupère des matériaux, construis ta base, pose ton lit… et tue-les tous.</p>' : C.BUILD ? '<p>Pioche, matériaux et constructions !</p>' : '<p>Pas de constructions : utilise la bulle bouclier pour te protéger.</p>') +
       '<div class="g">' + (tc ? row(IC.pioche, 'Bouton pioche (en haut) puis le bouton de TIR pour frapper') + row(IC.build, 'Bouton construire puis le bouton de TIR pour poser la pièce') + row('🧱', 'Choisis MUR, SOL, ESCALIER, TOIT' + ' en bas, et la matière à droite')
         : row(KN('pioche'), 'Pioche · clic gauche pour frapper') + row(KN('construire'), 'Construire · clic gauche pour poser') + row(KN('mur') + '–' + KN('toit'), 'Mur, sol, escalier, toit') + row(KN('materiau'), 'Changer de matière (bois, pierre, métal)') + row(KN('sprint'), 'Sprinter · ' + KN('sauter') + ' contre un mur pour grimper')) + row(tc ? '✏️' : KN('editer'), 'Éditer un de tes murs : porte, fenêtre, 2 fenêtres…') +
       row('🪵', 'Arbres et cactus = bois · souche arrachée = l\'arbre ne repousse plus') + row('🧱', 'Rochers et murs en brique = pierre') + row('⛓', 'Carcasses de voitures, tracteur' + (C.SURV ? ', minerai bleu' : '') + ' = métal') + (C.SURV ? row('🎒', 'Sac de 20 places : ton lit et tes coffres sont dedans, touche POSER') + row('🛏', 'Pose ton lit chez toi = ton point de réapparition') + row('📦', 'Casse un coffre à la pioche pour le garder et ranger tes affaires') + row('💾', 'Sauvegarde automatique sur ton téléphone') : '') +
       '</div><button type="button" id="sIntroGo">C\'EST PARTI</button><div class="bar"><i></i></div></div>';
-    d.hidden = false; var close = function () { d.hidden = true; }; d.querySelector('#sIntroGo').addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); close(); }); setTimeout(close, C.SURV ? 15000 : 10000); }
+    d.hidden = false; var close = function () { d.hidden = true; }; d.querySelector('#sIntroGo').addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); close(); }); d.querySelector('#sIntroGo').addEventListener('click', close); setTimeout(close, C.SURV ? 15000 : 10000); }
 
   function bfKit() {   // 1v1 entre potes : 100 vie + 100 bouclier (200 PV), AR, pompe spécialisé, PM, 2 shields
     var P = me(); P.hp = 100; P.sh = 100; P.inv = [C.newSlot('fusil'), C.newSlot('pompeS'), C.newSlot('smg')]; P.slot = 1; P.heals.shield = 2; P.heals.mini = 0; P.heals.heal = 0; if (C.hudRefresh) C.hudRefresh(); }
@@ -610,13 +619,13 @@
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
       if (TOOL === 'place' && P.alive && P.mode === 'ground') ghostShow(placePlan(), true);
-      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = plan(), ok = !taken(p.key, p) && (C.CREA || RES[p.t === 'lit' ? 'bois' : MATK] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
+      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (C.CREA || RES[p.t === 'lit' ? 'bois' : MATK] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
       if (SW.t >= 0) { SW.t += dt; if (!SW.hit && SW.t >= .27) { SW.hit = true; strike(); } if (SW.t >= .5) SW.t = -1; } },
     use: function (held, dt) {
-      if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) editTap(); ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
+      if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) { editTap(); EDRAG = 1; } else if (held && EDRAG) editDrag(); if (!held && ELAST && EDRAG && C.editRel && C.editRel()) { EDRAG = 0; ELAST = false; editWall(); return; } ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
       if (TOOL === 'pioche') { if (held && SW.t < 0) { SW.t = 0; SW.hit = false; C.noise(.12, .05, 1800); } }
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
-      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = plan(); if (taken(p.key, p)) return; var mk = p.t === 'lit' ? 'bois' : MATK, cs = cost(p.t);
+      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planFree(); if (taken(p.key, p)) return; var mk = p.t === 'lit' ? 'bois' : MATK, cs = cost(p.t);
         if (!C.CREA && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
         if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!C.CREA) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
