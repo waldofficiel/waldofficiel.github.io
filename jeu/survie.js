@@ -241,23 +241,34 @@
   function maskSegs(mk) { var W = CELL / 2, cw = CELL / 3, rh = LH / 3, out = [];   // ÉDITION façon Fortnite : grille 3×3, cases enlevées = trous (portes, fenêtres…)
     for (var r = 0; r < 3; r++) { var c = 0; while (c < 3) { if (mk[r * 3 + c]) { c++; continue; } var c0 = c; while (c < 3 && !mk[r * 3 + c]) c++; out.push([-W + c0 * cw, -W + c * cw, r * rh, (r + 1) * rh]); } }
     return out.length ? out : [[-.01, .01, 0, .01]]; }
+  /* ÉDITS EN TRIANGLE comme Fortnite : un « L » de 3 cases dans un coin = petit triangle (coupe en biais), un escalier de 6 cases = demi-mur en diagonale */
+  var TRIS = { '3,6,7': ['tl', 0], '5,7,8': ['tr', 0], '0,1,3': ['bl', 0], '1,2,5': ['br', 0], '0,3,4,6,7,8': ['tl', 1], '2,4,5,6,7,8': ['tr', 1], '0,1,2,3,4,6': ['bl', 1], '0,1,2,4,5,8': ['br', 1] };
+  function triOf(mk) { if (!mk) return null; var ids = []; for (var i = 0; i < 9; i++) if (mk[i]) ids.push(i); return TRIS[ids.join(',')] || null; }
+  function triMesh(p, tri) { var W = CELL, H = LH, k = tri[1] ? 3 : 2, a = W * k / 3, b = H * k / 3, pts;   // forme du mur = carré moins le triangle du coin
+    var C4 = { bl: [0, 0], br: [W, 0], tl: [0, H], tr: [W, H] }[tri[0]], sx = tri[0].charAt(1) === 'l' ? 1 : -1, sy = tri[0].charAt(0) === 'b' ? 1 : -1, P1 = [C4[0] + sx * a, C4[1]], P2 = [C4[0], C4[1] + sy * b];
+    var ring = [[0, 0], [W, 0], [W, H], [0, H]], out = []; ring.forEach(function (q) { if (q[0] === C4[0] && q[1] === C4[1]) { if (sx * sy > 0) out.push(P2, P1); else out.push(P1, P2); } else out.push(q); });
+    var sh = new T.Shape(); out.forEach(function (q, i) { if (i) sh.lineTo(q[0] - W / 2, q[1]); else sh.moveTo(q[0] - W / 2, q[1]); });
+    var th = .28, g = new T.ExtrudeGeometry(sh, { depth: th, bevelEnabled: false }); g.translate(0, 0, -th / 2); var uv = g.attributes.uv; for (var v = 0; v < uv.count; v++) uv.setXY(v, (uv.getX(v) + W / 2) / W, uv.getY(v) / H);
+    var m = new T.Mesh(g, p.im.material); m.castShadow = m.receiveShadow = true; m.userData.dyn = true; m.position.set(p.x, p.L, p.z); if (!(p.hw > p.hd)) m.rotation.y = -Math.PI / 2; C.scene.add(m); return m; }
   function wallSegs(p, im) { var below = PIECES.some(function (q) { return q !== p && Math.abs(q.L - (p.L - LH)) < .2 && Math.hypot(q.x - p.x, q.z - p.z) < 3; }), gr = Math.min(C.hgt(p.x - (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z - (p.hw > p.hd ? 0 : CELL / 2 - .3)), C.hgt(p.x + (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z + (p.hw > p.hd ? 0 : CELL / 2 - .3))),
       ext = below || p.L - gr > 1.2 ? 0 : Math.max(0, p.L - gr + .05), alongX = p.hw > p.hd;   /* le bas du mur ne descend que jusqu'au sol (avant : 1 m dans le vide → « petit mur » sous les escaliers) */
-    p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
+    var TRI0 = triOf(p.mask); p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
       var w = { x: p.x + (alongX ? cu : 0), z: p.z + (alongX ? 0 : cu), y0: y0, hw: alongX ? hu : p.hw, hd: alongX ? p.hd : hu, m: MATW[p.m], h: y1 - y0, house: null, im: im, ii: im.free.pop(), alive: true, hp: p.hp, build: p };
-      C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; }
-  function wallFree(p) { (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
+      if (TRI0) w.cut = true; C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; if (TRI0) p.tri = triMesh(p, TRI0); }
+  function wallFree(p) { if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
   function placePiece(p) { if (p.t === 'lit') return placeBed(p);
     var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; if (!p.hp) { p.hmax = hpMax(p); p.hp = p.t === 'lit' || p.t === 'coffre' ? p.hmax : Math.round(p.hmax * (HP0[p.m] || 90) / (HPP[p.m] || 150)); p.grow = p.hp < p.hmax; }
     if (p.t === 'mur') { slotWalls(p, true).forEach(function (w) { w.alive = false; C.setWall(w, false); }); wallSegs(p, im); }
     else { p.ii = im.free.pop(); im.setMatrixAt(p.ii, pieceMatrix(p, O3 || (O3 = new T.Object3D()))); im.instanceMatrix.needsUpdate = true; }
     PIECES.push(p); return true; }
   /* SOLIDITÉ comme Fortnite : une pièce qui n'est plus reliée au sol (directement ou par d'autres pièces) TOMBE */
-  function grounded(p) { var g = C.hgt(p.x, p.z); if (window.INTERIORS && INTERIORS.groundAt) g = Math.max(g, INTERIORS.groundAt(p.x, p.z, p.L + .5)); return p.L <= g + .6; }
+  function grounded(p) { if (p.t === 'mur' && p.mask && p.mask[0] && p.mask[1] && p.mask[2]) return false;   /* rangée du bas enlevée : le mur ne touche plus le sol */
+    var g = C.hgt(p.x, p.z); if (window.INTERIORS && INTERIORS.groundAt) g = Math.max(g, INTERIORS.groundAt(p.x, p.z, p.L + .5)); return p.L <= g + .6; }
   /* LIENS ENTRE PIÈCES comme Fortnite : deux pièces se tiennent seulement si elles partagent une arête (bas d'un mur sur le bord d'un sol,
      mur posé pile sur un mur, coin de deux murs, bas d'une rampe sur un sol…). Un mur décalé en « escalier » sur un autre ne tient plus. */
   function cpts(p) { if (p._cp) return p._cp; var H = CELL / 2, L = p.L, x = p.x, z = p.z, o;
-    if (p.t === 'mur') { var ax = p.hw > p.hd; o = [[x, L, z], [x, L + LH, z], [x, L + LH / 2, z], ax ? [x - H, L + LH / 2, z] : [x, L + LH / 2, z - H], ax ? [x + H, L + LH / 2, z] : [x, L + LH / 2, z + H]]; }
+    if (p.t === 'mur') { var ax = p.hw > p.hd, mk = p.mask || []; o = [[x, L + LH / 2, z]]; if (!(mk[0] && mk[1] && mk[2])) o.push([x, L, z]); if (!(mk[6] && mk[7] && mk[8])) o.push([x, L + LH, z]);   /* un côté entièrement enlevé ne tient plus rien */
+      if (!(mk[0] && mk[3] && mk[6])) o.push(ax ? [x - H, L + LH / 2, z] : [x, L + LH / 2, z - H]); if (!(mk[2] && mk[5] && mk[8])) o.push(ax ? [x + H, L + LH / 2, z] : [x, L + LH / 2, z + H]); }
     else if (p.t === 'esc') { var dx = [1, 0, -1, 0][p.d], dz = [0, 1, 0, -1][p.d]; o = [[x - dx * H, L, z - dz * H], [x + dx * H, L + LH, z + dz * H], [x + dz * H, L + LH / 2, z - dx * H], [x - dz * H, L + LH / 2, z + dx * H]]; }
     else o = [[x - H, L, z], [x + H, L, z], [x, L, z - H], [x, L, z + H]];
     return (p._cp = o); }
@@ -319,7 +330,7 @@
   function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, p.mask ? p.mask.map(Number).join('') : '']; }
   function netPlace(a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null, _net: true }; placePiece(p); }
   function netRemove(key) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) { var p = PIECES[i]; p._net = true; removePiece(p, true); return; } }
-  function netEdit(key, mk) { PIECES.forEach(function (p) { if (p.key !== key || p.t !== 'mur') return; wallFree(p); p.mask = mk ? String(mk).split('').map(function (c) { return c === '1'; }) : null; wallSegs(p, p.im); }); }
+  function netEdit(key, mk) { PIECES.forEach(function (p) { if (p.key !== key || p.t !== 'mur') return; wallFree(p); p.mask = mk ? String(mk).split('').map(function (c) { return c === '1'; }) : null; p._cp = null; wallSegs(p, p.im); }); support(); }
   var EDW = null, EMK = null, EGRID = null, ELAST = false;
   function aimWall() { var P = me(), cm = C.cam(), d = new T.Vector3(); cm.getWorldDirection(d); var o = cm.position, best = null, bt = 15;
     PIECES.forEach(function (p) { if (p.t !== 'mur' || Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1); if (t < bt) { bt = t; best = p; } });
@@ -330,7 +341,7 @@
     EGRID.children.forEach(function (m, i) { var r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .08 : .36, rh - .08, ax ? .36 : cw - .08);
       m.material.color.set(EMK[i] ? '#ff3b6b' : '#3ab0ff'); m.material.opacity = EMK[i] ? .18 : .5; }); }
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
-    if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
+    if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); support(); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
     var h = aimWall(); if (!h) { C.toast('VISE UN DE TES MURS POUR L\'ÉDITER'); return; }
     EDRAG = 0; ELASTI = -1; EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast(C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
   var EPREV = null;
@@ -341,7 +352,7 @@
     var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
   function editDrag() { var i = editCell(); if (i < 0 || i === ELASTI) return; ELASTI = i; if (!EMK[i]) { EMK[i] = true; gridDraw(); C.tone('square', 520, 0, .05, .04); } }   /* on glisse en gardant appuyé : chaque case survolée s'enlève */
   function editReset() {   // clic droit en édition (comme Fortnite) : la pièce redevient d'origine (plus de fenêtre / porte), sans recliquer les cases
-    var p = EDW; if (!p) { var h = aimWall(); if (!h) return false; p = h.p; } EDW = null; wallFree(p); p.mask = null; p.v = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: '' }); gridDraw();
+    var p = EDW; if (!p) { var h = aimWall(); if (!h) return false; p = h.p; } EDW = null; wallFree(p); p.mask = null; p.v = null; p._cp = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: '' }); gridDraw();
     if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ MUR RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
   function editCancel() { if (!EDW) return; EDW = null; gridDraw(); TOOL = EPREV === 'edit' ? null : EPREV; }
   function ghostShow(p, ok) {
