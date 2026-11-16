@@ -1,0 +1,72 @@
+/* Wald Game : cinématiques en VRAIE 3D (mêmes modèles que le jeu) pour la pub et l'histoire de la Survie.
+   window.CINE.load(cb)  : charge three + modèles du jeu (créatures, loups, cerfs, taureau, arbres)
+   window.CINE.frame(id, t, W, H) -> canvas : dessine le plan « id » au temps t (secondes dans le plan) */
+(function () {
+  var J = '../jeu/', SRC = ['three.min.js', 'GLTFLoader.js', 'SkeletonUtils.js', 'anim.js', 'skins.js', 'zombies.js'], READY = false, LOADING = false, CBS = [];
+  var T, R, S, CAM, FOG, HEMI, MOON, RIM, RIM2, FIRE, FLASH, ground, stars, motes, Z = [], ANI = {}, MIX = [], TREES = [], WALLS = [], BOSS = null, CAMPF = null, last = 0;
+  function js(i, cb) { if (i >= SRC.length) return cb(); if (i === 0 && window.THREE) return js(1, cb); var s = document.createElement('script'); s.src = J + SRC[i]; s.onload = function () { js(i + 1, cb); }; s.onerror = function () { js(i + 1, cb); }; document.head.appendChild(s); }
+  function rnd(a) { var s = a || 1; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+  function setup(done) { T = window.THREE; var cv = document.createElement('canvas'); R = new T.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.15; R.shadowMap.enabled = true; R.shadowMap.type = T.PCFSoftShadowMap;
+    S = new T.Scene(); S.background = new T.Color('#140724'); FOG = S.fog = new T.FogExp2('#2a0d4a', .045); CAM = new T.PerspectiveCamera(40, 16 / 9, .1, 300);
+    HEMI = new T.HemisphereLight('#8a6acc', '#120818', .55); S.add(HEMI); MOON = new T.DirectionalLight('#c8b8ff', .9); MOON.position.set(-10, 18, -14); MOON.castShadow = true; MOON.shadow.mapSize.set(1024, 1024); var sc = MOON.shadow.camera; sc.left = sc.bottom = -22; sc.right = sc.top = 22; S.add(MOON);
+    RIM = new T.DirectionalLight('#ff2bd6', 1.4); RIM.position.set(-8, 4, 10); S.add(RIM); RIM2 = new T.DirectionalLight('#3dd6ff', .8); RIM2.position.set(10, 3, 8); S.add(RIM2);
+    FIRE = new T.PointLight('#ff8a2a', 0, 14, 2); FIRE.position.set(0, 1, 0); FIRE.castShadow = true; S.add(FIRE); FLASH = new T.AmbientLight('#e8d8ff', 0); S.add(FLASH);
+    var gc = document.createElement('canvas'); gc.width = gc.height = 512; var gg = gc.getContext('2d'), r = rnd(5); gg.fillStyle = '#2a3a22'; gg.fillRect(0, 0, 512, 512); for (var i = 0; i < 4000; i++) { gg.fillStyle = 'hsla(' + (80 + r() * 50) + ',' + (25 + r() * 25) + '%,' + (10 + r() * 22) + '%,.6)'; gg.fillRect(r() * 512, r() * 512, 2 + r() * 4, 2 + r() * 6); }
+    var gt = new T.CanvasTexture(gc); gt.wrapS = gt.wrapT = T.RepeatWrapping; gt.repeat.set(30, 30); gt.encoding = T.sRGBEncoding;
+    ground = new T.Mesh(new T.PlaneGeometry(240, 240, 60, 60), new T.MeshStandardMaterial({ map: gt, roughness: .95 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; var pa = ground.geometry.attributes.position; for (i = 0; i < pa.count; i++) { var x = pa.getX(i), y = pa.getY(i), d0 = Math.hypot(x, y); pa.setZ(i, d0 > 18 ? Math.sin(x * .07) * Math.cos(y * .06) * 2.5 * Math.min(1, (d0 - 18) / 20) : 0); } ground.geometry.computeVertexNormals(); S.add(ground);
+    var sg = new T.BufferGeometry(), sp = []; r = rnd(9); for (i = 0; i < 900; i++) { var th = r() * 6.28, ph = r() * 1.2; sp.push(Math.cos(th) * Math.cos(ph) * 150, Math.sin(ph) * 150 + 10, Math.sin(th) * Math.cos(ph) * 150); } sg.setAttribute('position', new T.Float32BufferAttribute(sp, 3)); stars = new T.Points(sg, new T.PointsMaterial({ color: '#ffffff', size: .6, fog: false })); S.add(stars);
+    var mn = new T.Mesh(new T.SphereGeometry(7, 24, 16), new T.MeshBasicMaterial({ color: '#f4ecff', fog: false })); mn.position.set(-60, 55, -110); S.add(mn);
+    var mg = new T.BufferGeometry(), mp = []; r = rnd(3); for (i = 0; i < 400; i++) mp.push((r() - .5) * 60, r() * 8, (r() - .5) * 60); mg.setAttribute('position', new T.Float32BufferAttribute(mp, 3)); motes = new T.Points(mg, new T.PointsMaterial({ color: '#c77dff', size: .12, transparent: true, opacity: .8 })); S.add(motes);
+    var L = new T.GLTFLoader(), left = 0, TR0 = {};
+    function fin() { if (--left > 0) return; placeTrees(TR0); done(); }
+    var TL = new T.TextureLoader(), TXC = {}; function tex(f) { if (!TXC[f]) { TXC[f] = TL.load(J + 'models/trees/' + f); TXC[f].encoding = T.sRGBEncoding; TXC[f].flipY = false; } return TXC[f]; }
+    ['PineTree_1', 'PineTree_3', 'PineTree_4', 'NormalTree_2', 'DeadTree_1', 'DeadTree_3'].forEach(function (n) { left++; var pre = n.split('_')[0], bark = pre === 'DeadTree' ? 'NormalTree_Bark.jpg' : pre + '_Bark.jpg';
+      L.load(J + 'models/trees/' + n + '.glb', function (g) { g.scene.traverse(function (o) { if (!o.isMesh) return; o.castShadow = true; var lf = /leaves/i.test(o.name) || /leaves/i.test(o.material.name || '');
+          o.material = new T.MeshStandardMaterial(lf ? { map: tex(pre + '_Leaves.png'), color: '#7a9a8a', alphaTest: .42, side: T.DoubleSide, roughness: .9 } : { map: tex(bark), color: '#b8a8a0', roughness: .95 }); }); TR0[n] = g.scene; fin(); }, null, fin); });
+    ['Wolf', 'Stag', 'Bull', 'Deer'].forEach(function (n) { left++; L.load(J + 'models/animaux/' + n + '.glb', function (g) { ANI[n] = g; fin(); }, null, fin); });
+    buildZombies(); buildWalls(); buildCamp(); }
+  function placeTrees(TR0) { var r = rnd(21), ks = Object.keys(TR0); if (!ks.length) return; for (var i = 0; i < 140; i++) { var a = r() * 6.28, d = 9 + r() * 70, x = Math.cos(a) * d, z = Math.sin(a) * d; if ((Math.abs(x) < 7 && z > -40 && z < 30) || (Math.abs(z) < 11 && Math.abs(x) < 70)) continue; var k = ks[i % ks.length], t = T.SkeletonUtils ? TR0[k].clone() : TR0[k].clone(); t.position.set(x, 0, z); t.rotation.y = r() * 6; t.scale.setScalar(1.6 + r() * 1.4); S.add(t); TREES.push(t); } }
+  function zomb(i, o) { var K = window.ZOMB.kinds()[i], ch = window.buildSkin(T, 'zombie', Object.assign({ sk: 'zombie', zv: K.m, v: i * 3 + 1 }, K.o || {}, o || {})); ch.root.scale.setScalar(K.sc); ch.root.traverse(function (q) { if (q.isMesh) q.castShadow = true; }); ch.ki = i; S.add(ch.root); return ch; }
+  function buildZombies() { if (!window.ZOMB || !window.buildSkin) return; var K = window.ZOMB.kinds(), r = rnd(4);
+    for (var i = 0; i < 18; i++) { var ki = [0, 1, 2, 3, 0, 2, 4, 5, 0, 6, 7, 2, 1, 8, 9, 0, 10, 11][i] % K.length, ch = zomb(ki); ch.bx = (r() - .5) * 12; ch.bz = -6 - r() * 22; ch.sp = .9 + r() * .7; ch.ph = r() * 9; Z.push(ch); }
+    var bi = 0; K.forEach(function (k, i) { if (k.id === 'roi') bi = i; }); BOSS = zomb(bi); BOSS.root.scale.setScalar(4.2); }
+  function buildWalls() { var c = document.createElement('canvas'); c.width = 512; c.height = 358; var g = c.getContext('2d'), r = rnd(8); g.fillStyle = '#6a3c18'; g.fillRect(0, 0, 512, 358);
+    for (var i = 0; i < 6; i++) { var y = 30 + i * 50; g.fillStyle = ['#c98d4f', '#b97a3e', '#d49a5c'][i % 3]; g.fillRect(24, y, 464, 40); g.fillStyle = 'rgba(60,30,8,.35)'; for (var k = 0; k < 6; k++) g.fillRect(24, y + r() * 40, 464, 1.5); g.fillStyle = '#333'; [50, 256, 462].forEach(function (x) { g.beginPath(); g.arc(x, y + 20, 4, 0, 7); g.fill(); }); }
+    g.fillStyle = '#8a5228'; g.fillRect(0, 0, 512, 26); g.fillRect(0, 332, 512, 26); g.fillRect(0, 0, 26, 358); g.fillRect(486, 0, 26, 358);
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; var m = new T.MeshStandardMaterial({ map: t, roughness: .8 });
+    [[0, 0, -1.5, 0], [-2.5, 0, -4, 1], [2.5, 0, -4, 1], [0, 0, -6.5, 0], [-2.5, 3.5, -4, 1], [2.5, 3.5, -4, 1], [0, 3.5, -6.5, 0], [0, 3.5, -1.5, 0]].forEach(function (p, i) { var w = new T.Mesh(new T.BoxGeometry(5, 3.5, .3), m); w.castShadow = w.receiveShadow = true; w.position.set(p[0], p[1] + 1.75, p[2]); if (p[3]) w.rotation.y = Math.PI / 2; w.userData.y = w.position.y; w.userData.d = i * .3; w.visible = false; S.add(w); WALLS.push(w); }); }
+  function buildCamp() { var g = new T.Group(); for (var i = 0; i < 7; i++) { var l = new T.Mesh(new T.CylinderGeometry(.09, .1, 1.1, 8), new T.MeshStandardMaterial({ color: '#4a2a12', roughness: .9 })); l.rotation.z = Math.PI / 2; l.rotation.y = i / 7 * Math.PI; l.position.y = .1; g.add(l); }
+    var fl = new T.Mesh(new T.ConeGeometry(.45, 1.4, 10), new T.MeshBasicMaterial({ color: '#ffb02a', transparent: true, opacity: .85 })); fl.position.y = .55; g.add(fl); g.userData.fl = fl; g.visible = false; S.add(g); CAMPF = g; }
+  var ACT = [];
+  function animal(n, x, z, a, clip, sc) { var A = ANI[n]; if (!A || !T.SkeletonUtils) return null; var o = T.SkeletonUtils.clone(A.scene); o.traverse(function (q) { if (q.isMesh) q.castShadow = true; }); o.position.set(x, 0, z); o.rotation.y = Math.PI / 2 - a; o.scale.setScalar(sc || 1); S.add(o);
+    var mx = new T.AnimationMixer(o), cl = A.animations.filter(function (c) { return c.name === clip; })[0] || A.animations[0]; mx.clipAction(cl).play(); MIX.push(mx); var q = { o: o, mx: mx, a: a, x0: x }; ACT.push(q); return q; }
+  function clearAct() { ACT.forEach(function (q) { S.remove(q.o); }); ACT = []; MIX = []; }
+  var CUR = '';
+  function enter(id) { CUR = id; clearAct(); Z.forEach(function (c) { c.root.visible = false; }); if (BOSS) BOSS.root.visible = false; WALLS.forEach(function (w) { w.visible = false; }); CAMPF.visible = false; FIRE.intensity = 0;
+    S.background.set('#140724'); FOG.color.set('#2a0d4a'); FOG.density = .045; HEMI.intensity = .55; MOON.intensity = .9; RIM.color.set('#ff2bd6'); RIM2.color.set('#3dd6ff'); RIM.intensity = 1.4; RIM2.intensity = .8; stars.visible = true; motes.visible = true; R.toneMappingExposure = 1.15;
+    if (id === 'horde' || id === 'titre') Z.forEach(function (c, i) { c.root.visible = true; });
+    if (id === 'rares') [Z[6], Z[7], Z[9]].forEach(function (c, i) { if (!c) return; c.root.visible = true; c.root.position.set((i - 1) * 2.6, 0, 0); c.root.rotation.y = -Math.PI / 2; });
+    if (id === 'boss') { BOSS.root.visible = true; BOSS.root.position.set(0, 0, -6); BOSS.root.rotation.y = -Math.PI / 2; FOG.color.set('#3a0a1a'); RIM.color.set('#ff2a2a'); RIM.intensity = 2.6; }
+    if (id === 'loups') { for (var i = 0; i < 6; i++) animal('Wolf', -10 - i * 3.2 - (i % 2) * 1.5, (i % 3 - 1) * 2.2, 0, 'Gallop', 1.25); animal('Stag', -26, 4.5, 0, 'Gallop', 1.3); }
+    if (id === 'faune') { animal('Bull', -3, -2, .4, 'Idle', 1.3); animal('Deer', 3.5, -4, 2.5, 'Eating', 1.2); animal('Stag', 1, -8, 2, 'Idle', 1.4); animal('Wolf', -6, -6, .9, 'Idle_2', 1.2); FOG.density = .03; HEMI.intensity = .9; S.background.set('#3a1a4a'); FOG.color.set('#5a2a5a'); }
+    if (id === 'base') { WALLS.forEach(function (w) { w.visible = true; }); FOG.density = .03; }
+    if (id === 'feu') { CAMPF.visible = true; CAMPF.position.set(0, 0, 0); animal('Wolf', 2.2, -1.2, Math.PI * .8, 'Idle_2', 1.1); S.background.set('#2a1030'); FOG.color.set('#3a1830'); MOON.intensity = .4; }
+    if (id === 'titre') { BOSS.root.visible = true; BOSS.root.position.set(0, 0, -26); BOSS.root.rotation.y = -Math.PI / 2; } }
+  function cam(x, y, z, tx, ty, tz, fov) { CAM.position.set(x, y, z); CAM.lookAt(tx, ty, tz); if (fov && CAM.fov !== fov) { CAM.fov = fov; CAM.updateProjectionMatrix(); } }
+  function frame(id, t, W, H) { if (!READY) return null; if (id !== CUR) enter(id); var now = performance.now() / 1000, dt = Math.min(.05, Math.max(0, now - (last || now))); last = now;
+    if (R.domElement.width !== W || R.domElement.height !== H) { R.setSize(W, H, false); CAM.aspect = W / H; CAM.updateProjectionMatrix(); }
+    MIX.forEach(function (m) { m.update(dt); }); motes.rotation.y += dt * .05; var mp = motes.geometry.attributes.position; for (var i = 0; i < mp.count; i += 7) mp.setY(i, (mp.getY(i) + dt * .4) % 8); mp.needsUpdate = true;
+    var fl = Math.random() < .012 ? 1 : 0; FLASH.intensity = Math.max(FLASH.intensity * .85, fl * (id === 'boss' || id === 'brume' || id === 'titre' ? 2.6 : 0));
+    if (id === 'brume') { FOG.density = .05 + Math.sin(t) * .01; cam(20 + Math.sin(t * .2) * 2, 1.6 + t * .15, 30 - t * 5, 20 + Math.sin(t * .3) * 3, 1.8, -20, 46); }
+    else if (id === 'horde' || id === 'titre') { Z.forEach(function (c) { var z = c.bz + t * c.sp * 1.1; c.root.position.set(c.bx, 0, z); c.root.rotation.y = -Math.PI / 2 + Math.sin(c.ph + t) * .1; if (window.ZOMB) window.ZOMB.demo(c.ki, c, now + c.ph, 1.2 + c.sp * .3); });
+      if (id === 'horde') cam(Math.sin(t * .4) * 1.2, .5 + t * .06, 4 - t * .2, 0, 1.5, -10, 46); else { cam(0, 1.6, 8, 0, 3.5, -8, 50); if (window.ZOMB) window.ZOMB.demo(BOSS.ki, BOSS, now, .6); BOSS.root.position.z = -26 + t * .8; } }
+    else if (id === 'rares') { [Z[6], Z[7], Z[9]].forEach(function (c, i) { if (!c) return; if (window.ZOMB) window.ZOMB.demo(c.ki, c, now + i, 0); c.root.rotation.y = -Math.PI / 2 + Math.sin(t * .8 + i) * .4; }); RIM.position.set(Math.cos(t) * 10, 4, Math.sin(t) * 10); var a2 = t * .25; cam(Math.sin(a2) * 7, 2.2, 8 + Math.cos(a2) * 1.5, 0, 1.4, 0, 34); }
+    else if (id === 'boss') { if (window.ZOMB) window.ZOMB.demo(BOSS.ki, BOSS, now, t > 1.2 ? 1.3 : 0); BOSS.root.position.z = -6 + Math.max(0, t - 1.2) * 1.2; RIM.intensity = 2 + Math.sin(t * 13) * .8; cam(Math.sin(t * .3) * 1.2, .4, 6 - t * .25, 0, 4.5, -6, 42 + t * 2); }
+    else if (id === 'loups') { ACT.forEach(function (q) { q.o.position.x = q.x0 + t * 11.5; }); cam(-14 + t * 10.5, 1.2, 8.5, -12 + t * 11.5, .9, 0, 42); }
+    else if (id === 'faune') { var a3 = t * .18; cam(Math.sin(a3) * 12, 2.6, Math.cos(a3) * 12, 0, 1, -4, 40); }
+    else if (id === 'base') { WALLS.forEach(function (w) { var k = Math.min(1, Math.max(0, (t - w.userData.d) / .35)); w.scale.set(1, Math.max(.001, k), 1); w.position.y = w.userData.y - (1 - k) * 1.75; }); var a4 = .35 + t * .2; cam(Math.sin(a4) * 12, 4.5, Math.cos(a4) * 12 - 4, 0, 3, -4, 42); }
+    else if (id === 'feu') { var fl2 = .8 + Math.sin(now * 17) * .1 + Math.sin(now * 7.3) * .12; FIRE.intensity = 3.2 * fl2; CAMPF.userData.fl.scale.set(fl2, .9 + Math.sin(now * 11) * .15, fl2); var a5 = t * .15; cam(-1 + Math.sin(a5) * 3, 1.5, 6.5, .6, .6, -.4, 40); }
+    R.render(S, CAM); return R.domElement; }
+  window.CINE = { ready: function () { return READY; }, frame: frame,
+    load: function (cb) { if (READY) return cb && cb(); if (cb) CBS.push(cb); if (LOADING) return; LOADING = true; js(0, function () { try { setup(function () { READY = true; CBS.forEach(function (f) { try { f(); } catch (e) {} }); CBS = []; }); } catch (e) { console.warn('CINE', e); } }); } };
+})();
