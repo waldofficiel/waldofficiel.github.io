@@ -527,3 +527,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v83 : MES ÎLES (Créatif façon Fortnite)
 - Au salon, Créatif → **MES ÎLES** (`ISLES` dans `wr_isles`, 4 max, `islDraw`) : carte par île (nom, modèle, nb de pièces, date, ✏️ renommer, 🗑 supprimer) + « ＋ NOUVELLE ÎLE » (`islNew`) avec 2 modèles : **ÎLE GRILLE** (mode `ile` : sol gris quadrillé 5 m, rien dessus, pas de butin, `NOSPAWN` partout) ou **GRANDE MAP** (mode `creatif`). `islGo` → `wr_isle` + `wr_crGo`.
 - Dans l'île : `islTick` recharge `wr_isle_<id>` (pièces via `SV.restore` = pièces à soi, appareils, règles, script) puis **sauvegarde toute seule** toutes les 15 s, en quittant (`toMenu`) et en fermant (`pagehide`) (`islStore`). Les anciens boutons Mon monde / Île vide sont remplacés par ce système.
+
+## v84-v85
+- v84 : icône ESCALIER = rampe, noms des pièces sans doublon (`window.keyName` exposé pour survie.js `KN`), « ∞ » en Créatif.
+- v85 : **matériaux 500 max de chaque** (comme Fortnite) partout (`RMAX`, `give` affiche « MAX »). En Créatif : infinis par défaut, règle de partie `mats` (`RSOPT.mats` : ♾️ infinis / 🪵 500 max) dans ⚙️ Paramètres (libre, MAP 1V1) ; avec « 500 max » chacun commence la partie à 500 de chaque (`SV.setRes`) et récolte à la pioche. `INF()` dans survie.js remplace les tests `C.CREA` liés aux matériaux ; `C.mat500()`.

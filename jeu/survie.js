@@ -330,7 +330,8 @@
     return g; }
 
   /* ---------------- pioche : viser et taper ---------------- */
-  function give(k, n, x, y, z) { if (!C.BUILD || C.CREA) return; RES[k] = Math.min(999, RES[k] + n); pop('+' + n + ' ' + ICON[k]); hudRes(); }
+  var RMAX = 500; function INF() { return C.CREA && !(C.mat500 && C.mat500()); }   // matériaux : 500 max de chaque (comme Fortnite) ; infinis en Créatif sauf si la partie dit « 500 max »
+  function give(k, n, x, y, z) { if (!C.BUILD || INF()) return; if (RES[k] >= RMAX) { pop('MAX ' + ICON[k]); return; } RES[k] = Math.min(RMAX, RES[k] + n); pop('+' + n + ' ' + ICON[k]); hudRes(); }
   function pop(t) { var d = document.createElement('div'); d.className = 'sPop'; d.textContent = t; d.style.left = (46 + Math.random() * 8) + '%'; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 900); }
   function strike() {
     var P = me(), a = C.camA(), fx = Math.cos(a), fz = Math.sin(a), best = null, bd = 3.3, ox = P.x, oz = P.z, oy = P.y + 1.2;
@@ -468,11 +469,11 @@
       else if (a === 'editer' && C.BUILD) editWall(); });
   }
   function press(b, fn) { b.addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); fn(); }); }
-  function pickMat(cs) { if (C.CREA || RES[MATK] >= cs) return MATK; var L = ['bois', 'pierre', 'metal']; for (var i = 0; i < 3; i++) if (RES[L[i]] >= cs) return L[i]; return MATK; }   // plus assez de la matière choisie : on passe tout seul à une autre (bois, puis pierre, puis métal)
+  function pickMat(cs) { if (INF() || RES[MATK] >= cs) return MATK; var L = ['bois', 'pierre', 'metal']; for (var i = 0; i < 3; i++) if (RES[L[i]] >= cs) return L[i]; return MATK; }   // plus assez de la matière choisie : on passe tout seul à une autre (bois, puis pierre, puis métal)
   function nextMat() { var L = ['bois', 'pierre', 'metal']; MATK = L[(L.indexOf(MATK) + 1) % 3]; hudBuild(); }
-  function hudRes() { ['bois', 'pierre', 'metal'].forEach(function (k) { var b = el[k] && el[k].querySelector('b'), v = C.CREA ? '∞' : String(RES[k]); if (b && b.textContent !== v) { b.textContent = v; el[k].classList.remove('flash'); void el[k].offsetWidth; el[k].classList.add('flash'); setTimeout(function () { el[k].classList.remove('flash'); }, 250); } }); }
+  function hudRes() { ['bois', 'pierre', 'metal'].forEach(function (k) { var b = el[k] && el[k].querySelector('b'), v = INF() ? '∞' : String(RES[k]); if (b && b.textContent !== v) { b.textContent = v; el[k].classList.remove('flash'); void el[k].offsetWidth; el[k].classList.add('flash'); setTimeout(function () { el[k].classList.remove('flash'); }, 250); } }); }
   function hudBuild() { if (!el.build) return; el.build.querySelectorAll('[data-p]').forEach(function (b) { b.classList.toggle('on', b.dataset.p === PIECE); });
-    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + (C.CREA ? '∞' : RES[MATK]);
+    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + (INF() ? '∞' : RES[MATK]);
     el.tools.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === TOOL); }); el.build.hidden = TOOL !== 'build'; }
   function act() { if (!C.SURV) return false; if (window.FAUNE && FAUNE.on && FAUNE.act()) return true; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
   function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast(C.CREA ? 'CONSTRUCTIONS DÉSACTIVÉES DANS CETTE PARTIE' : 'PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
@@ -677,15 +678,15 @@
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
       if (TOOL === 'place' && P.alive && P.mode === 'ground') ghostShow(placePlan(), true);
-      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (C.CREA || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
+      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (INF() || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
       if (SW.t >= 0) { SW.t += dt; if (!SW.hit && SW.t >= .27) { SW.hit = true; strike(); } if (SW.t >= .5) SW.t = -1; } },
     use: function (held, dt) {
       if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) { editTap(); EDRAG = 1; } else if (held && EDRAG) editDrag(); if (!held && ELAST && EDRAG && C.editRel && C.editRel()) { EDRAG = 0; ELAST = false; editWall(); return; } ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
       if (TOOL === 'pioche') { if (held && SW.t < 0) { SW.t = 0; SW.hit = false; C.noise(.12, .05, 1800); } }
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
       else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planFree(); if (taken(p.key, p)) return; var cs = cost(p.t), mk = p.t === 'lit' ? 'bois' : pickMat(cs); if (p.t !== 'lit' && mk !== MATK) { MATK = mk; p.m = mk; hudBuild(); }
-        if (!C.CREA && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
-        if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!C.CREA) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
+        if (!INF() && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
+        if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!INF()) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
     pose: function (o, c, ok) {   // bras qui tiennent la pioche / le plan de construction
       if (!TOOL || !ok) return; var th;
@@ -698,7 +699,7 @@
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
-    res: function () { return RES; }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
+    res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }
 })();
