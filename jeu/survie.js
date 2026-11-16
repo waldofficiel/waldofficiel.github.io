@@ -99,6 +99,20 @@
     var nb = new T.BoxGeometry(.03, .16, .08); m(nb, neon, .955, 0, 0);
     g.position.set(.02, -.7, 0); g.visible = false; return g;
   }
+  /* prise à deux mains : pour chaque angle du bras droit, angles des deux bras calculés pour que la main gauche tienne le manche 24 cm au-dessus de la droite */
+  var GRIP = [[-.1, -.5, 1.4, 0, -.6, -.8, .15], [.55, 0, 1.1, .4, -.4, .4, .15], [1.0, .5, 1.2, .5, -.2, .7, .15], [1.6, .5, .7, 1.2, -.9, .4, 0], [2.2, .5, .7, 1.1, -1.3, 1, .3]];
+  function pickGrip(th) { var i = 0; while (i < GRIP.length - 2 && th > GRIP[i + 1][0]) i++; var A = GRIP[i], B = GRIP[i + 1], k = Math.max(0, Math.min(1, (th - A[0]) / (B[0] - A[0]))), r = [];
+    for (var j = 1; j < 7; j++) r.push(A[j] + (B[j] - A[j]) * k); return r; }
+  var BOOK = null;
+  function buildBook() {   // « cahier de construction » : un plan bleu quadrillé, tenu dans la main gauche quand on construit
+    var cv = document.createElement('canvas'); cv.width = cv.height = 128; var x = cv.getContext('2d'); x.fillStyle = '#1d5fd6'; x.fillRect(0, 0, 128, 128); x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 1;
+    for (var i = 8; i < 128; i += 15) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 128); x.stroke(); x.beginPath(); x.moveTo(0, i); x.lineTo(128, i); x.stroke(); }
+    x.strokeStyle = '#fff'; x.lineWidth = 3; x.strokeRect(22, 30, 84, 60); x.beginPath(); x.moveTo(22, 30); x.lineTo(64, 12); x.lineTo(106, 30); x.stroke(); x.strokeRect(54, 62, 20, 28);
+    var tx = new T.CanvasTexture(cv), cover = new T.MeshLambertMaterial({ map: tx }), page = new T.MeshLambertMaterial({ color: '#f4f1e6' }), g = new T.Group();
+    var b = new T.Mesh(new T.BoxGeometry(.05, .3, .38), [page, page, page, page, cover, cover]); b.rotation.y = Math.PI / 2; g.add(b);
+    var c2 = new T.Mesh(new T.BoxGeometry(.012, .31, .39), cover); c2.position.set(-.03, 0, 0); g.add(c2);
+    g.traverse(function (m) { if (m.isMesh) m.castShadow = true; }); g.visible = false; return g; }
+  function attachBook(c) { if (!BOOK) BOOK = buildBook(); var par = c.eL || c.aL; if (BOOK.parent !== par) { if (BOOK.parent) BOOK.parent.remove(BOOK); par.add(BOOK); BOOK.position.set(.12, c.eL ? -.36 : -.66, .06); BOOK.rotation.set(0, 0, -.9); } }
   function attachPick(c) { if (!PICK) PICK = buildPick(); if (PICK.parent !== c.aR) { if (PICK.parent) PICK.parent.remove(PICK); c.aR.add(PICK); } }
 
   /* ---------------- constructions ---------------- */
@@ -180,6 +194,10 @@
     for (var hi = 0; hi < C.HOUSES.length; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(p.x - hs.x) > hs.hx + .6 || Math.abs(p.z - hs.z) > hs.hz + .6 || p.L < hs.y0 - 1.2 || p.L > hs.y0 + hs.h + 1.2) continue;
       p.L = hs.y0 + LH * Math.round((p.L - hs.y0) / LH); break; }   // dans un bâtiment : on se cale sur ses étages (mur cassé → ton mur prend exactement sa place)
     p.key += '|' + p.L.toFixed(1); return p; }
+  function anchored(p) { if (!p || p.t === 'lit') return true; if (grounded(p) || (p.t === 'mur' && C.hgt(p.x, p.z) > p.L - .8)) return true;
+    for (var i = 0; i < PIECES.length; i++) if (linked(p, PIECES[i])) return true;
+    return houseTouch(p); }
+  function planOk() { var p = planFree(); if (anchored(p)) return p; var q = plan(true); return q && anchored(q) && !taken(q.key, q) ? q : Object.assign(p, { bad: true }); }   /* visée dans le vide : on retombe sur la case devant soi, sinon rien */
   function planFree() {   /* case visée déjà prise : on essaie la case de la grille devant soi, puis un étage au-dessus (comme Fortnite qui pose toujours quelque part) — sauf l'escalier : UN seul à la fois */
     var p = plan(); if (!p || p.t === 'lit' || !taken(p.key, p) || p.t === 'esc') return p; var q = plan(true); if (q && !taken(q.key, q)) return q;
     var up = Object.assign({}, p, { L: p.L + LH }); up.key = p.key.replace(/\|[-\d.]+$/, '|' + up.L.toFixed(1)); return taken(up.key, up) ? p : up; }
@@ -187,10 +205,10 @@
   /* CONSTRUIRE AU VISEUR : on suit le rayon de la caméra jusqu'au sol, à une pièce ou à un mur ; la pièce va dans la case visée,
      au niveau visé (calé sur la grille de 3,5 m des pièces voisines ou du sol). Les escaliers se prolongent pile au bout du précédent. */
   function aimHit() { var cm = C.cam(); if (!cm) return null; var o = cm.position, d = new T.Vector3(); cm.getWorldDirection(d); var P = me(), x, y, z;
-    for (var t = 1; t < 16; t += .2) { x = o.x + d.x * t; y = o.y + d.y * t; z = o.z + d.z * t; if (Math.hypot(x - P.x, z - P.z) > CELL * 1.6) break;
+    for (var t = 1; t < 22; t += .15) { x = o.x + d.x * t; y = o.y + d.y * t; z = o.z + d.z * t; if (Math.hypot(x - P.x, z - P.z) > CELL * 2.1) break;
       var g = Math.max(C.hgt(x, z), groundAt(x, z, y + .2)); if (y <= g + .02) return { x: x, y: g, z: z, top: true };
       for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (w.alive && Math.abs(x - w.x) <= w.hw + .05 && Math.abs(z - w.z) <= w.hd + .05 && y >= w.y0 && y <= w.y0 + w.h) return { x: x, y: y, z: z, wall: w }; } }
-    return { x: x, y: Math.max(P.y, y), z: z, air: true }; }
+    return { x: x, y: Math.max(P.y - LH * 1.6, Math.min(P.y + LH * .9, y)), z: z, air: true }; }
   function lvl(x, z, y) { var base = null, bd = 12; PIECES.forEach(function (q) { var dd = Math.hypot(q.x - x, q.z - z); if (dd < bd) { bd = dd; base = q.L; } });
     for (var hi = 0; hi < C.HOUSES.length && base == null; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(x - hs.x) < hs.hx + 3 && Math.abs(z - hs.z) < hs.hz + 3) base = hs.y0; }
     if (base == null) { var g0 = C.hgt(Math.floor(x / CELL) * CELL + CELL / 2, Math.floor(z / CELL) * CELL + CELL / 2); base = C.snapY ? C.snapY(g0) : g0; }   /* grille verticale commune à toute la map */
@@ -206,7 +224,7 @@
       p.key = t[0] + '|' + ci + '|' + cj; }
     if (Math.abs(p.x - P.x) > CELL * 2.2 || Math.abs(p.z - P.z) > CELL * 2.2) return null;
     p.key += '|' + p.L.toFixed(1); return p; }
-  function taken(key, p) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) return true; return !!(p && p.t === 'mur' && slotWalls(p, false).length); }   // un mur de maison encore debout occupe la place
+  function taken(key, p) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) return true; return !!(p && p.t === 'mur' && (slotWalls(p, false).length || slotWalls(p, true).length)); }   // un mur de maison occupe la place — y compris une PORTE de maison : c'est un « edit » de la map (comme Fortnite), on ne peut pas la boucher
   function placeBed(p) { BED = { x: p.x, z: p.z, y: p.L, a: p.d }; showBed(); C.toast('LIT POSÉ : TU RÉAPPARAÎTRAS ICI'); save(); return true; }
   function showBed() { if (!BED) { if (BEDM) BEDM.visible = false; return; } if (!BEDM) { if (!BEDTPL) return; BEDM = new T.Mesh(BEDTPL.geo, BEDTPL.mat); BEDM.castShadow = true; BEDM.userData.dyn = true; C.scene.add(BEDM); }
     BEDM.visible = true; BEDM.position.set(BED.x, BED.y, BED.z); BEDM.rotation.set(0, -BED.a + Math.PI / 2, 0); }
@@ -232,8 +250,17 @@
     PIECES.push(p); return true; }
   /* SOLIDITÉ comme Fortnite : une pièce qui n'est plus reliée au sol (directement ou par d'autres pièces) TOMBE */
   function grounded(p) { var g = C.hgt(p.x, p.z); if (window.INTERIORS && INTERIORS.groundAt) g = Math.max(g, INTERIORS.groundAt(p.x, p.z, p.L + .5)); return p.L <= g + .6; }
-  function linked(a, b) { var dl = Math.abs(a.L - b.L); if (dl > LH + .15) return false; var d = Math.hypot(a.x - b.x, a.z - b.z); return d <= CELL + .15 && (dl > .1 || d > .2); }
-  var SUPT = 0; function support() { SUPT = 0; var ok = new Set(), q = []; PIECES.forEach(function (p) { if (grounded(p)) { ok.add(p); q.push(p); } });
+  /* LIENS ENTRE PIÈCES comme Fortnite : deux pièces se tiennent seulement si elles partagent une arête (bas d'un mur sur le bord d'un sol,
+     mur posé pile sur un mur, coin de deux murs, bas d'une rampe sur un sol…). Un mur décalé en « escalier » sur un autre ne tient plus. */
+  function cpts(p) { if (p._cp) return p._cp; var H = CELL / 2, L = p.L, x = p.x, z = p.z, o;
+    if (p.t === 'mur') { var ax = p.hw > p.hd; o = [[x, L, z], [x, L + LH, z], [x, L + LH / 2, z], ax ? [x - H, L + LH / 2, z] : [x, L + LH / 2, z - H], ax ? [x + H, L + LH / 2, z] : [x, L + LH / 2, z + H]]; }
+    else if (p.t === 'esc') { var dx = [1, 0, -1, 0][p.d], dz = [0, 1, 0, -1][p.d]; o = [[x - dx * H, L, z - dz * H], [x + dx * H, L + LH, z + dz * H], [x + dz * H, L + LH / 2, z - dx * H], [x - dz * H, L + LH / 2, z + dx * H]]; }
+    else o = [[x - H, L, z], [x + H, L, z], [x, L, z - H], [x, L, z + H]];
+    return (p._cp = o); }
+  function linked(a, b) { if (Math.abs(a.L - b.L) > LH + .3 || Math.abs(a.x - b.x) > CELL + .3 || Math.abs(a.z - b.z) > CELL + .3) return false; var A = cpts(a), B = cpts(b);
+    for (var i = 0; i < A.length; i++) for (var j = 0; j < B.length; j++) if (Math.abs(A[i][0] - B[j][0]) < .35 && Math.abs(A[i][1] - B[j][1]) < .35 && Math.abs(A[i][2] - B[j][2]) < .35) return true; return false; }
+  function houseTouch(p) { for (var j = 0; j < C.WALLS.length; j++) { var w = C.WALLS[j]; if (!w.alive || w.build) continue; if (Math.abs(w.x - p.x) < w.hw + CELL / 2 + .3 && Math.abs(w.z - p.z) < w.hd + CELL / 2 + .3 && w.y0 < p.L + LH + .2 && w.y0 + w.h > p.L - .3) return true; } return false; }
+  var SUPT = 0; function support() { SUPT = 0; var ok = new Set(), q = []; PIECES.forEach(function (p) { if (p.t === 'lit' || grounded(p) || houseTouch(p)) { ok.add(p); q.push(p); } });
     while (q.length) { var a = q.pop(); for (var i = 0; i < PIECES.length; i++) { var b = PIECES[i]; if (!ok.has(b) && linked(a, b)) { ok.add(b); q.push(b); } } }
     var fall = PIECES.filter(function (p) { return !ok.has(p); }); fall.forEach(function (p, k) { setTimeout(function () { removePiece(p, true, true); }, 60 + k * 45); }); }
   function removePiece(p, fx, noChk) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1); if (HOOK && !p._net) HOOK('r', { key: p.key }); if (!noChk && fx && !SUPT) { SUPT = 1; setTimeout(support, 120); }
@@ -309,6 +336,9 @@
   function editCell() { if (!EDW) return -1; var h = aimWall(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, ax = p.hw > p.hd, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
     var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
   function editDrag() { var i = editCell(); if (i < 0 || i === ELASTI) return; ELASTI = i; if (!EMK[i]) { EMK[i] = true; gridDraw(); C.tone('square', 520, 0, .05, .04); } }   /* on glisse en gardant appuyé : chaque case survolée s'enlève */
+  function editReset() {   // clic droit en édition (comme Fortnite) : la pièce redevient d'origine (plus de fenêtre / porte), sans recliquer les cases
+    var p = EDW; if (!p) { var h = aimWall(); if (!h) return false; p = h.p; } EDW = null; wallFree(p); p.mask = null; p.v = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: '' }); gridDraw();
+    if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ MUR RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
   function editCancel() { if (!EDW) return; EDW = null; gridDraw(); TOOL = EPREV === 'edit' ? null : EPREV; }
   function ghostShow(p, ok) {
     if (!GHOST) { GHOST = {}; var gm = new T.MeshBasicMaterial({ color: '#7fd4ff', transparent: true, opacity: .42, depthWrite: false, depthTest: true }); GHOST.mat = gm; var gl = new T.LineBasicMaterial({ color: '#e8f8ff', transparent: true, opacity: .9, depthWrite: false }); GHOST.lm = gl;
@@ -399,7 +429,7 @@
     (window.EXT_WRECK || []).forEach(function (w, i) { w.hp0 = w.hp; w.cols = w.col ? [w.col] : []; w.id = 'k' + i; WRECKS.push(w); });   // le tracteur du ranch
     return true; }
   function wreckVis() { var P = me(); WRECKS.forEach(function (w) { if (w.g && !w.dead) w.g.visible = Math.abs(w.x - P.x) < 260 && Math.abs(w.z - P.z) < 260; }); }
-  function hitPiece(p, dmg) { p.hp -= dmg; C.tone('square', 240, 150, .07, .06); (p.ws || []).forEach(function (w) { w.hp = p.hp; }); if (p.hp <= 0) removePiece(p, true); else C.burst(p.x, p.L + 1.2, p.z, 5, [C.MATS[MATW[p.m]].col], 3, .12, .4); }
+  function hitPiece(p, dmg) { p.hp -= dmg; if (C.bhp) C.bhp(p.x, p.L + (p.t === 'sol' ? 1.2 : 3.9), p.z, p.hp, p.hmax || hpMax(p)); C.tone('square', 240, 150, .07, .06); (p.ws || []).forEach(function (w) { w.hp = p.hp; }); if (p.hp <= 0) removePiece(p, true); else C.burst(p.x, p.L + 1.2, p.z, 5, [C.MATS[MATW[p.m]].col], 3, .12, .4); }
   function fell(t) {   // l'arbre tombe : il disparaît, une souche reste, il repoussera
     t.cut = true; t.cutT = 0; t.r0 = t.r; t.h0 = t.h; t.r = 0; t.h = -99; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, false);
     STUMPL.push(t); stumpsRefresh(); C.SFX.crack(); C.noise(.5, .25, 500); C.burst(t.x, t.y + 3, t.z, 30, ['#3a6a2a', '#5a8a3a', '#8a5a2e', '#2a4a1e'], 8, .35, 1.6, .5); give('bois', 10); }
@@ -663,7 +693,7 @@
     bag: function (on) { bag(on); }, bagOpen: function () { return BAGON; }, bagAdd: bagAdd, act: act,
     save: save, hasSave: function () { return !!loadSave(); }, wipe: function () { try { localStorage.removeItem(SKEY); localStorage.removeItem(SKEY + '_fog'); } catch (e) {} },
     update: function (dt) { TIME += dt; for (var gi = 0; gi < PIECES.length; gi++) { var gp = PIECES[gi]; if (!gp.grow) continue; gp.hp = Math.min(gp.hmax, gp.hp + (gp.hmax * (1 - (HP0[gp.m] || 90) / (HPP[gp.m] || 150))) / (HPT[gp.m] || 4) * dt); if (gp.hp >= gp.hmax) gp.grow = false; if (gp.ws) gp.ws.forEach(function (w) { w.hp = gp.hp; }); } if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
-      if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0);
+      if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0); if (P.model && (TOOL === 'build' || TOOL === 'edit')) attachBook(P.model); if (BOOK) BOOK.visible = (TOOL === 'build' || TOOL === 'edit') && P.alive && !(P.danceT > 0) && P.mode === 'ground';
       // arbres qui tremblent, rochers qui reviennent, arbres qui repoussent
       C.TREES.forEach(function (t) { if (t.shk > 0) { t.shk = Math.max(0, t.shk - dt); if (window.TREES3D && TREES3D.shake) TREES3D.shake(t, t.shk > 0 ? Math.sin(t.shk * 70) * t.shk * .5 : 0); } });
       NODES.forEach(function (n) { if (n.shk > 0) { n.shk = Math.max(0, n.shk - dt); nodeSet(n); } if (n.dead) { n.t += dt; if (n.t > 240 && Math.hypot(n.x - P.x, n.z - P.z) > 40) { n.dead = false; n.hp = n.max; C.PCOL.push(n.col); nodeSet(n); } } });
@@ -678,28 +708,31 @@
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
       if (TOOL === 'place' && P.alive && P.mode === 'ground') ghostShow(placePlan(), true);
-      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (INF() || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
+      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planOk(), ok = !p.bad && !taken(p.key, p) && (INF() || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
       if (SW.t >= 0) { SW.t += dt; if (!SW.hit && SW.t >= .27) { SW.hit = true; strike(); } if (SW.t >= .5) SW.t = -1; } },
     use: function (held, dt) {
       if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) { editTap(); EDRAG = 1; } else if (held && EDRAG) editDrag(); if (!held && ELAST && EDRAG && C.editRel && C.editRel()) { EDRAG = 0; ELAST = false; editWall(); return; } ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
       if (TOOL === 'pioche') { if (held && SW.t < 0) { SW.t = 0; SW.hit = false; C.noise(.12, .05, 1800); } }
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
-      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planFree(); if (taken(p.key, p)) return; var cs = cost(p.t), mk = p.t === 'lit' ? 'bois' : pickMat(cs); if (p.t !== 'lit' && mk !== MATK) { MATK = mk; p.m = mk; hudBuild(); }
+      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planOk(); if (p.bad || taken(p.key, p)) return; var cs = cost(p.t), mk = p.t === 'lit' ? 'bois' : pickMat(cs); if (p.t !== 'lit' && mk !== MATK) { MATK = mk; p.m = mk; hudBuild(); }
         if (!INF() && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
         if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!INF()) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
     pose: function (o, c, ok) {   // bras qui tiennent la pioche / le plan de construction
       if (!TOOL || !ok) return; var th;
-      if (TOOL === 'pioche') { var t = SW.t; th = t < 0 ? .55 : t < .2 ? .55 + (2.6 - .55) * (t / .2) : t < .3 ? 2.6 - (2.6 + .1) * ((t - .2) / .1) : -.1 + (.65) * ((t - .3) / .2);
-        o.ra = th; o.rb = .12; o.rw = 0; o.re = 0; o.la = th + .05; o.lb = -.42; o.lw = .3; o.le = .15; o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); }
-      else { o.ra = .95; o.rb = .1; o.re = .5; o.rw = .2; o.la = .95; o.lb = -.25; o.le = .5; o.lw = .4; } },
+      if (TOOL === 'pioche') { var t = SW.t; th = t < 0 ? .55 : t < .2 ? .55 + (2.2 - .55) * (t / .2) : t < .3 ? 2.2 - (2.2 + .1) * ((t - .2) / .1) : -.1 + (.65) * ((t - .3) / .2);
+        var g = pickGrip(th); o.ra = th; o.rb = g[0]; o.rw = g[1]; o.re = 0; o.la = g[2]; o.lb = g[3]; o.lw = g[4]; o.le = g[5]; o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); o.byw = (o.byw || 0) - .25; }   // pioche à DEUX mains (main gauche plus haut sur le manche), comme Fortnite
+      else { o.ra = 1.3; o.rb = .05; o.re = .15; o.rw = .25; o.la = 1.0; o.lb = -.5; o.le = .75; o.lw = .45; } },   // plan de construction tenu dans la main gauche, main droite qui vise
     blendK: function () { return TOOL === 'pioche' ? 30 : 12; },
     tool: function () { return TOOL; }, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
     toolName: function () { if (TOOL === 'place') return 'Poser ' + (PLACEK === 'lit' ? 'le LIT 🛏' : 'le COFFRE 📦') + ' · tire pour poser'; return TOOL === 'pioche' ? 'Pioche ⛏ · arbres = bois, rochers = pierre, carcasses = métal' : PIECE === 'lit' ? 'Construire 🔨 · LIT (30 bois) = réapparition' : 'Construire 🔨 · ' + PNAME[PIECE] + ' en ' + NAME[MATK].toLowerCase() + ' (' + COST + ')'; },
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
-    res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
+    res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, editReset: editReset, ledge: function (x, y, z, fx, fz) { var best = null;   // bord d'un sol / d'une rampe juste devant, à portée de saut : on s'y agrippe
+      [.7, 1.3].forEach(function (k) { var px = x + fx * k, pz = z + fz * k; PIECES.forEach(function (q) { if (q.t !== 'sol' && q.t !== 'esc' && q.t !== 'toit') return; if (Math.abs(px - q.x) > CELL / 2 + .05 || Math.abs(pz - q.z) > CELL / 2 + .05) return; var top = q.t === 'sol' ? q.L + .15 : groundAt(px, pz, y + 4); if (top > y + .7 && top < y + 4.3 && (best == null || top < best)) best = top; }); }); return best; },
+    _ev: function (s) { return eval(s); },
+    nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }
 })();
