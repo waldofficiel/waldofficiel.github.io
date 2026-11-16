@@ -535,7 +535,7 @@ if (IOSW && MODE === 'survie') MODE = 'br';
 var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_creator') === '1'; SURVOK = CREATOR || localStorage.getItem('wr_survie_ok') === '1'; } catch (e) {}
 if (MODE === 'survie' && !SURVOK) MODE = 'br';
 var MAP = MODE === 'zw' ? 'desert' : MODE === 'ile' || MODE === 'cs' || MODE === 'prop' || MODE === 'lave' || MODE === 'bf' || MODE === 'obby' || MODE === 'gg' || MODE === 'mm' ? 'propane' : MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb' && MODE !== 'zw') MODE = 'br'; } } catch (e) {}
-var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile' || MODE === 'cs', CREA = MODE === 'creatif' || MODE === 'zw' || MODE === 'ile' || MODE === 'cs' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg' && MODE !== 'cs', MAPNAME = MAPS[MAP];
+var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile' || MODE === 'cs' || MODE === 'gg' || MODE === 'mm' || MODE === 'lave' || MODE === 'obby',   /* maps du Créatif faites DE ZÉRO sur l'île plate (plus le décor du mode classique) */ CREA = MODE === 'creatif' || MODE === 'zw' || MODE === 'ile' || MODE === 'cs' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg' && MODE !== 'cs', MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM || MODE === 'zw' ? 1 : 50, ISL = SURV ? 1720 : PROPM ? 240 : DES ? 465 : 420, HALF = SURV ? 2000 : PROPM ? 300 : DES ? 550 : 500;   // 50 joueurs par partie ; carte désert un peu plus grande   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
@@ -971,7 +971,7 @@ var TOWNS = SURV ? [['Camp du Départ', 140, 120, 44, 'chalet'], ['Refuge des Lo
     ['Avant-poste', 1120, -520, 38, 'chalet'], ['Village Brûlé', -420, 280, 46, 'chalet'], ['Ferme Abandonnée', 440, -330, 40, 'chalet'], ['Col des Brumes', -1240, -160, 34, 'chalet'], ['Oasis Sèche', 960, 620, 36, 'chalet'],
     ['Plage des Naufragés', 1060, 1010, 56, 'plage'], ['Village du Sud', 120, 1060, 42, 'chalet'], ['Arène Build Fight', -60, -60, 34, 'arena']]
   : DES ? [['Mirage City', 120, 20, 88, 'centre'], ['Canyon Rouillé', -50, -310, 62, '2cv'], ['Oasis Chrome', 210, -210, 44, 'concess'], ['Puits Turbo', 40, 320, 40, 'garage'], ['Fort Cactus', -150, 280, 48, 'village'], ['Mine Rouge', 60, -150, 46, 'mine'], ['Motel Néon', 250, 170, 42, 'motel']]
-  : VIDE ? [['Île vide', 0, 0, 1.5, 'vide']]
+  : VIDE ? [['Île vide', 0, 0, MODE === 'gg' || MODE === 'mm' ? 40 : 1.5, 'vide']]
   : PROPM ? [['Propane City', 20, -15, 46, 'centre'], ['Ranch Pétard', -140, -30, 46, '2cv'], ['Avenue Gaz', 100, -140, 36, 'concess'], ['Port Bouteille', 165, 50, 32, 'garage'], ['Village Flamme', -75, 130, 38, 'village'], ['Chalet Bonbonne', -40, -110, 32, 'chalet'], ['Mini Ranch', 80, 140, 30, 'chalet'], ['Hameau Briquet', -165, 95, 28, 'chalet']].concat(MODE === 'bf' ? [['Arène Build Fight', 160, -70, 52, 'arena']] : [])
   : [['Turbo Towers', 40, -30, 58, 'centre'], ['Rusty Ranch', -255, -55, 62, '2cv'], ['Chrome Avenue', 175, -255, 44, 'concess'], ['Piston Docks', 300, 85, 40, 'garage'], ['Golden Hollow', -130, 255, 48, 'village'], ['Lodge des Pins', -60, -175, 44, 'chalet']]; ARENA = TOWNS.filter(function (t) { return t[4] === 'arena'; })[0] || null; window.NOSPAWN = function (x, z) { if (MODE === 'cs') return Math.abs(x) < 70 && Math.abs(z) < 45; if (MODE === 'ile') return true; var R = ARENA && ARENA[3] >= 50 ? 46 : 40; return !!ARENA && Math.abs(x - ARENA[1]) < R && Math.abs(z - ARENA[2]) < R; };   // zone build fight + générateurs : rien ne pousse   // zone build fight plate (map « 1v1 entre potes »)
 var ROADS = VIDE ? [] : SURV ? [[0, 6], [0, 7], [0, 2], [6, 1], [1, 8], [1, 3], [6, 4], [4, 11], [0, 11], [2, 9], [9, 10], [7, 5], [11, 10]] : PROPM ? [[0, 1], [0, 2], [0, 3], [0, 4], [3, 6], [4, 7], ['y', 0, .4, 5]] : DES ? [[0, 2], [0, 3], [0, 5], [0, 6], [1, 5], [3, 4], [0, 4], [2, 6]] : [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], ['y', 0, .4, 5]];   // ['y', route, t, ville] : bifurcation propre depuis une route principale
@@ -1670,6 +1670,7 @@ function rStart(m) { rUI(); RSCORE = 0; RCHR = {}; setTimeout(function () { if (
   if (TPL === 'cs') { csBuild(); ROUND.ph = 'play'; if (SV && SV.setTool) SV.setTool(null); csGo(m); pl.forEach(function (p) { if (p.net && m.team[p.id] != null) p.team = m.team[p.id]; }); scrRun(CS_SCRIPT); return; }
   if (TPL === 'mm') { ROUND.mur = m.mur; ROUND.sher = m.sher; ROUND.armed = false; ROUND.mrev = false; me.hp = 100; me.sh = 0; me.heals = { mini: 0, shield: 0, heal: 0, bulle: 0 }; var t1 = TOWNS[Math.floor(Math.random() * TOWNS.length)], a1 = Math.random() * 6.283; me.x = t1[1] + Math.cos(a1) * 8; me.z = t1[2] + Math.sin(a1) * 8; me.y = me.gy = hgt(me.x, me.z); mmGive(); Object.keys(BOTS).forEach(function (id) { mmBotGive(BOTS[id]); });
     var rr = mmMyRole(); toast(rr === 'mur' ? '🔪 TU ES LE MEURTRIER · ton arme arrive dans 15 s · ne te fais pas repérer !' : rr === 'sher' ? '🔫 TU ES LE SHÉRIF · trouve le meurtrier et tire-lui dessus (si tu tues un innocent, tu meurs aussi)' : '🙂 TU ES INNOCENT · cache-toi, observe, survis 4 minutes'); return; }
+  if ((TPL === 'gg' || TPL === 'mm') && VIDE) wvBuild();
   if (TPL === 'gg') { GGLV = 0; GGTOP = {}; me.gl = 0; items.slice().forEach(removeItem); ggSpawn(me); Object.keys(BOTS).forEach(function (id) { BOTS[id].gl = 0; ggSpawn(BOTS[id]); }); toast('🔫 GUN GAME ! Chaque élimination = arme suivante · le 1er à éliminer avec le Fusil Doré gagne'); return; }
   if (TPL === 'zw') { zwStart(m); return; }
   if (TPL === 'obby') { OBCP = 0; OBDONE = false; me.inv = [null, null, null]; me.hp = 100; if (!DEV.length) { DEV = obbyGen(); devBuild(); } obRespawn(); toast('🏃 PARCOURS ! Saute de plateforme en plateforme, les points verts sauvegardent, le 1er à l\'arrivée gagne'); return; }
@@ -1684,7 +1685,7 @@ function rEnd(txt) { if (!ROUND) return; ROUND.ph = 'end'; ROUND.endT = performa
 function rCage() { me.x = ISL + 45; me.z = ISL + 45; me.y = me.gy = 140; me.vx = me.vz = me.vy = 0; }
 function roundTick(dt) { if (!CREA) return; rUI(); flyBtn(); if (state === 'play' && DEV.length) devTick(dt); if (me.fly && !FLYOK()) me.fly = false; var w = $('wroom'), hud = $('rHud'), bl = $('rBlind'), now = performance.now();
   if (state !== 'play') { w.hidden = true; hud.hidden = true; bl.hidden = true; return; }
-  if (LAVA && (!ROUND || TPL !== 'lave')) LAVA.visible = false; pubApply(); if (TPL === 'zw' && (!ROUND || ROUND.ph === 'end') && storm.mode !== 'off') zwOff();
+  if (LAVA && (!ROUND || TPL !== 'lave')) LAVA.visible = false; pubApply(); if (!WVB && VIDE && (TPL === 'gg' || TPL === 'mm') && SV && SV.netPlace) wvBuild(); if (TPL === 'zw' && (!ROUND || ROUND.ph === 'end') && storm.mode !== 'off') zwOff();
   crBotsTick(dt);
   if (!ROUND) { bl.hidden = true; hud.hidden = true; w.hidden = false; rDisarm(); unProp(true); enterHold(GP.xh);
     var auto = TPL !== 'libre' && TPL !== 'lave' || TPL === 'lave', wl = Math.max(0, Math.ceil(60 - (now - WAIT0) / 1000)), hum = rPlayers();
@@ -1740,7 +1741,18 @@ function lavaTick(dt) { var hud = $('rHud'), bl = $('rBlind'), now = performance
    Le parcours officiel est généré (même graine chez tout le monde) ; dans Mon monde on pose les mêmes appareils et on les publie avec son jeu. */
 var DEV = [], DEVG = null, OBCP = 0, OBDONE = false;
 var DEVC = { pf: '#d8d0f0', mv: '#3dd6ff', cp: '#3dff7a', kill: '#ff2a3a', fin: '#ffd23d', tp: '#b44dff', btn: '#ff7a1a', zn: '#3dd6ff' };
-function devMesh(d) { var g = new THREE.Group(), s2 = d.s || 3.2, glow = d.k === 'kill' || d.k === 'cp' || d.k === 'fin', top = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: DEVC[d.k] || '#ffffff', emissive: glow ? DEVC[d.k] : '#000000', emissiveIntensity: glow ? .45 : 0 }));
+/* TERRAIN du Créatif : collines, montagnes, plateaux (on part d'une île plate et on sculpte sa map) — s = rayon */
+var TERK = { col: .42, mont: .85, pla: .3, dune: .25 };
+function terH(d, r) { var R = d.s || 14, H = R * TERK[d.k]; if (r >= R) return -1e9; var u = r / R; if (d.k === 'pla') return d.y + H * (u < .55 ? 1 : .5 + .5 * Math.cos(Math.PI * (u - .55) / .45)); var c = .5 + .5 * Math.cos(Math.PI * u); return d.y + H * (d.k === 'mont' ? Math.pow(c, 1.35) : c); }
+function terMesh(d) { var R = d.s || 14, H = R * TERK[d.k], N = 26, pts = []; for (var i = 0; i <= N; i++) { var r = R * (1 - i / N); pts.push(new THREE.Vector2(Math.max(.001, r), terH(d, r) - d.y)); }
+  var g = new THREE.LatheGeometry(pts, 40), P = g.attributes.position, col = new Float32Array(P.count * 3), C = new THREE.Color(), rnd = mulberry((d.id || 1) * 97);
+  var C1 = new THREE.Color(DES ? '#d8b070' : '#5fbf4a'), C2 = new THREE.Color(DES ? '#b98a50' : '#3f8f36'), CR = new THREE.Color('#8f8a82'), CS2 = new THREE.Color('#f4f6fa');
+  for (var v = 0; v < P.count; v++) { var y = P.getY(v), k = H > 0 ? y / H : 0, x = P.getX(v), z = P.getZ(v), nx = rnd() * .08;
+    if (d.k === 'mont' && k > .82) C.copy(CS2); else if (d.k === 'mont' && k > .35) C.copy(CR).lerp(C2, Math.max(0, .6 - k) * 1.5); else C.copy(C1).lerp(C2, (Math.sin(x * .7) * Math.cos(z * .6) + 1) * .3 + nx);
+    if (d.k !== 'pla' && d.k !== 'dune') P.setY(v, y + (k > .05 && k < .97 ? (rnd() - .5) * .25 * (d.k === 'mont' ? 3 : 1) : 0)); col[v * 3] = C.r; col[v * 3 + 1] = C.g; col[v * 3 + 2] = C.b; }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals(); var m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })); m.castShadow = m.receiveShadow = true; return m; }
+function devMesh(d) { if (TERK[d.k] != null) { var tg = new THREE.Group(); tg.add(terMesh(d)); if (MODE === 'creatif' && !PUBKEY && d.id) tg.add(devLabel(d)); tg.position.set(d.x, d.y, d.z); tg.traverse(function (o) { o.userData.dyn = true; }); return tg; }
+  var g = new THREE.Group(), s2 = d.s || 3.2, glow = d.k === 'kill' || d.k === 'cp' || d.k === 'fin', top = new THREE.Mesh(BOX, new THREE.MeshLambertMaterial({ color: DEVC[d.k] || '#ffffff', emissive: glow ? DEVC[d.k] : '#000000', emissiveIntensity: glow ? .45 : 0 }));
   top.scale.set(s2, .5, s2); top.position.y = -.25; top.castShadow = top.receiveShadow = true; g.add(top);
   if (d.k === 'cp' || d.k === 'fin') { var pole = new THREE.Mesh(CYL, mat('#ffffff')); pole.scale.set(.12, 2.6, .12); pole.position.set(s2 / 2 - .3, 1.3, 0); g.add(pole); var fl = new THREE.Mesh(BOX, new THREE.MeshBasicMaterial({ color: DEVC[d.k] })); fl.scale.set(.9, .6, .05); fl.position.set(s2 / 2 + .15, 2.25, 0); g.add(fl); }
   if (d.k === 'fin') { var arch = new THREE.Mesh(new THREE.TorusGeometry(1.6, .14, 8, 24, Math.PI), new THREE.MeshBasicMaterial({ color: '#ffd23d' })); g.add(arch); }
@@ -1760,7 +1772,8 @@ function obbyGen() { var R = mrng(777), T0 = TOWNS[0], x = T0[1] + 24, z = T0[2]
       if (r > .8) { var sa = a + Math.PI / 2, kd = sz + .5; L.push({ k: 'kill', x: x + Math.cos(sa) * kd, y: y, z: z + Math.sin(sa) * kd, s: sz }); L.push(L.splice(L.length - 2, 1)[0]); } }   // un bloc mortel à côté (le chemin reste le dernier élément)
     var p2 = L[L.length - 1]; a += (R() - .5) * .6; var d2 = (p2.s || 3.2) / 2 + 2 + 2.25; L.push({ k: st === 4 ? 'fin' : 'cp', x: p2.x + Math.cos(a) * d2, y: p2.y + .3, z: p2.z + Math.sin(a) * d2, s: 4.5 }); }
   L.forEach(function (d, i) { d.x0 = d.x; d.id = i + 1; }); DEVID = L.length + 1; return L; }
-function devTop(px, pz, py) { var best = -1e9, hit = null; for (var i = 0; i < DEV.length; i++) { var d = DEV[i], h2 = (d.s || 3.2) / 2 + .3; if (d.off || d.k === 'zn') continue; if (Math.abs(px - d.x) > h2 || Math.abs(pz - d.z) > h2) continue; if (py < d.y - .7 || d.y < best) continue; best = d.y; hit = d; } return hit; }
+function devTop(px, pz, py) { var best = -1e9, hit = null; for (var i = 0; i < DEV.length; i++) { var d = DEV[i], h2 = (d.s || 3.2) / 2 + .3; if (d.off || d.k === 'zn') continue;
+    if (TERK[d.k] != null) { var dx0 = px - d.x, dz0 = pz - d.z; if (Math.abs(dx0) > d.s || Math.abs(dz0) > d.s) continue; var th0 = terH(d, Math.hypot(dx0, dz0)); if (th0 > best && py >= th0 - 1.4) { best = th0; hit = { y: th0, k: d.k, d: d }; } continue; } if (Math.abs(px - d.x) > h2 || Math.abs(pz - d.z) > h2) continue; if (py < d.y - .7 || d.y < best) continue; best = d.y; hit = d; } return hit; }
 function devTick(dt) { var now = performance.now();
   if (TPL !== 'obby') DEV.forEach(function (d) { if (d.k !== 'mv') return; var nx = d.x0 + Math.sin(now / 1000 * .9 + d.x0) * 3.2; if (Math.abs(me.y - d.y) < .2 && Math.abs(me.x - d.x) < (d.s || 3.2) / 2 + .3 && Math.abs(me.z - d.z) < (d.s || 3.2) / 2 + .3) me.x += nx - d.x; d.x = nx; if (d.g) d.g.position.x = nx; });
   var prev = RONTOP; rulesTick(dt); var on = devTop(me.x, me.z, me.y); on = on && Math.abs(me.y - on.y) < .25 ? on : null;
@@ -1785,13 +1798,14 @@ function obbyTick(dt) { var hud = $('rHud'), now = performance.now(), el = (now 
   if (el > T) rEnd('⏱ TEMPS ÉCOULÉ · personne n\'a fini'); }
 /* appareils du Créatif : poser / enlever (Mon monde) */
 function devPlace(k) { var fly = !!me.fly, ca = Math.cos(camA), sa = Math.sin(camA), x = fly ? me.x : me.x + ca * 4, z = fly ? me.z : me.z + sa * 4, y = fly ? me.y - .05 : Math.max(me.y, hgt(x, z)) + .3;
-  var d = { k: k, id: DEVID++, x: Math.round(x * 2) / 2, y: Math.round(y * 4) / 4, z: Math.round(z * 2) / 2, s: k === 'cp' || k === 'fin' ? 4.5 : k === 'zn' ? 4 : 3.2 }; d.x0 = d.x; DEV.push(d); if (!DEVG) devBuild(); else { d.g = devMesh(d); DEVG.add(d.g); }
+  var TS0 = { col: 14, mont: 30, pla: 12, dune: 18 }[k]; if (TS0) { x = me.x + ca * (TS0 * .8 + 3); z = me.z + sa * (TS0 * .8 + 3); y = hgt(x, z) - .2; }
+  var d = { k: k, id: DEVID++, x: Math.round(x * 2) / 2, y: Math.round(y * 4) / 4, z: Math.round(z * 2) / 2, s: TS0 || (k === 'cp' || k === 'fin' ? 4.5 : k === 'zn' ? 4 : 3.2) }; d.x0 = d.x; DEV.push(d); if (!DEVG) devBuild(); else { d.g = devMesh(d); DEVG.add(d.g); }
   if (fly) { me.y = d.y; me.vy = 0; }
-  toast('🧩 ' + { pf: 'PLATEFORME', mv: 'PLATEFORME QUI BOUGE', cp: 'POINT DE PASSAGE', kill: 'BLOC MORTEL', fin: 'ARRIVÉE', tp: 'TÉLÉPORTEUR', btn: 'BOUTON', zn: 'ZONE' }[k] + ' n°' + d.id + ' POSÉ' + (k === 'cp' && obCPs().length === 1 ? ' · c\'est le DÉPART du parcours' : '')); }
+  toast('🧩 ' + { pf: 'PLATEFORME', mv: 'PLATEFORME QUI BOUGE', cp: 'POINT DE PASSAGE', kill: 'BLOC MORTEL', fin: 'ARRIVÉE', tp: 'TÉLÉPORTEUR', btn: 'BOUTON', zn: 'ZONE', col: 'COLLINE', mont: 'MONTAGNE', pla: 'PLATEAU', dune: 'DUNE' }[k] + ' n°' + d.id + ' POSÉ' + (k === 'cp' && obCPs().length === 1 ? ' · c\'est le DÉPART du parcours' : '')); }
 function devDel() { var b = -1, bd = 6; DEV.forEach(function (d, i) { var q = Math.hypot(d.x - me.x, d.z - me.z) + Math.abs(d.y - me.y) * .5; if (q < bd) { bd = q; b = i; } }); if (b < 0) { toast('Aucun appareil près de toi'); return; } var d = DEV.splice(b, 1)[0]; if (d.g && DEVG) DEVG.remove(d.g); toast('🗑 APPAREIL ENLEVÉ'); }
 function devOpen() { var d = $('devM'); if (!d) { d = document.createElement('div'); d.id = 'devM'; document.body.appendChild(d); }
-  d.innerHTML = '<div class="pubc"><h2>🧩 APPAREILS</h2><p class="sm">Pose-les devant toi (ou sous tes pieds en volant ✈️) pour créer un parcours, un jeu de sauts, des pièges… puis Échap → Publier le jeu avec le type « 🏃 Parcours ».</p><div class="pbT">' +
-    [['pf', '⬜ Plateforme', 'Sol flottant'], ['mv', '🟦 Qui bouge', 'Va et vient'], ['cp', '🟢 Point de passage', 'Le 1er = départ'], ['kill', '🟥 Bloc mortel', 'Renvoie au point'], ['fin', '🏁 Arrivée', 'Le 1er arrivé gagne'], ['tp', '🌀 Téléporteur', 'Vers le suivant'], ['btn', '🔴 Bouton', 'Pour les règles'], ['zn', '🔷 Zone', 'Invisible, règles']].map(function (q) { return '<button type="button" data-dv="' + q[0] + '"><b>' + q[1] + '</b><small>' + q[2] + '</small></button>'; }).join('') +
+  d.innerHTML = '<div class="pubc"><h2>🧩 APPAREILS & TERRAIN</h2><p class="sm">Collines, montagnes, plateaux et dunes pour sculpter ton île. Pose-les devant toi (ou sous tes pieds en volant ✈️) pour créer un parcours, un jeu de sauts, des pièges… puis Échap → Publier le jeu avec le type « 🏃 Parcours ».</p><div class="pbT">' +
+    [['pf', '⬜ Plateforme', 'Sol flottant'], ['mv', '🟦 Qui bouge', 'Va et vient'], ['cp', '🟢 Point de passage', 'Le 1er = départ'], ['kill', '🟥 Bloc mortel', 'Renvoie au point'], ['fin', '🏁 Arrivée', 'Le 1er arrivé gagne'], ['tp', '🌀 Téléporteur', 'Vers le suivant'], ['btn', '🔴 Bouton', 'Pour les règles'], ['zn', '🔷 Zone', 'Invisible, règles'], ['col', '⛰️ Colline', 'Terrain, 14 m'], ['mont', '🏔️ Montagne', 'Terrain, 30 m, neige'], ['pla', '🟫 Plateau', 'Haut et plat'], ['dune', '🏜️ Dune', 'Douce, très large']].map(function (q) { return '<button type="button" data-dv="' + q[0] + '"><b>' + q[1] + '</b><small>' + q[2] + '</small></button>'; }).join('') +
     '</div><div class="pbB"><button type="button" class="ghost" id="dvRules">⚡ Règles QUAND… ALORS…</button><button type="button" class="ghost" id="dvDel">🗑 Enlever le plus proche</button><button type="button" class="ghost" id="dvX">Fermer</button></div><p class="sm">' + DEV.length + ' appareil(s) posé(s)</p></div>';
   d.hidden = false; d.querySelectorAll('[data-dv]').forEach(function (b) { b.onclick = function () { devPlace(b.dataset.dv); d.hidden = true; pause(false); }; });
   $('dvDel').onclick = function () { devDel(); d.hidden = true; pause(false); }; $('dvRules').onclick = function () { d.hidden = true; rulesOpen(); }; $('dvX').onclick = function () { d.hidden = true; }; }
@@ -1978,6 +1992,31 @@ function zwStart(m) { var ids = ROUND.ids.slice(), n = Math.max(1, ids.length), 
   me.heals = { mini: 0, shield: 0, heal: 0, bulle: 0 }; hbKey = ''; if (SV && SV.setRes) SV.setRes(500); if (SV && SV.setTool) SV.setTool(null);
   storm = { x: C0[0], z: C0[1], r: R + 26, phase: 0, t: 0, mode: 'wait', plan: ZWPLAN, rng: mulberry(zwHash('s' + m.by + ids.length)) }; zwNext();
   toast('🏜️ FIN DE ZONE ! Prends le butin de ta pièce · 500 de chaque matériau · la zone se ferme vite · le dernier en vie gagne'); }
+/* ===== WALD VILLAGE : la map officielle de GUN GAME et MEURTRE MYSTÈRE, construite de zéro par Wald Game avec les pièces du Créatif
+   (maisons de 2×2 cases, certaines à étage avec rampe, portes et fenêtres éditées, toits plats, abris) + collines et montagnes autour. Même graine chez tout le monde. ===== */
+var WVB = false;
+function wvBuild() { if (!SV || !SV.netPlace) return; WVB = true; if (SV.clearBuilds) SV.clearBuilds(); var R = mulberry(4242), P = [], L0 = +snapY(hgt(0, 0)).toFixed(1), LH = 3.5, MT = ['bois', 'pierre', 'bois', 'metal', 'pierre'];
+  function lv(k) { return +(L0 + k * LH).toFixed(1); }
+  function wx(ex, cj, L, m, mk) { P.push(['mur', m, ex * 5, cj * 5 + 2.5, L, 0, 'm|x|' + ex + '|' + cj + '|' + L.toFixed(1), .14, 2.5, mk || '']); }
+  function wz(ci, ez, L, m, mk) { P.push(['mur', m, ci * 5 + 2.5, ez * 5, L, 1, 'm|z|' + ci + '|' + ez + '|' + L.toFixed(1), 2.5, .14, mk || '']); }
+  function fl(ci, cj, L, m) { P.push(['sol', m, ci * 5 + 2.5, cj * 5 + 2.5, L, 0, 's|' + ci + '|' + cj + '|' + L.toFixed(1), 0, 0, '']); }
+  var DOOR = '010010000', WIN = '000010000', HOUSES8 = [];
+  for (var h = 0; h < 9; h++) { var a = h / 9 * 6.283 + .2, rr = 24 + R() * 6, ci = Math.round(Math.cos(a) * rr / 5) - 1, cj = Math.round(Math.sin(a) * rr / 5) - 1, m = MT[(R() * MT.length) | 0], two = R() < .45;
+    var cx = ci * 5 + 5, cz = cj * 5 + 5, dside = Math.abs(cx) > Math.abs(cz) ? (cx > 0 ? 'xn' : 'xp') : (cz > 0 ? 'zn' : 'zp');   // porte vers la place
+    for (var k = 0; k < (two ? 2 : 1); k++) { var L = lv(k);
+      [0, 1].forEach(function (o) { var mk0 = function (side) { return k === 0 && side === dside && o === 0 ? DOOR : R() < .35 ? WIN : ''; };
+        wx(ci, cj + o, L, m, mk0('xn')); wx(ci + 2, cj + o, L, m, mk0('xp')); wz(ci + o, cj, L, m, mk0('zn')); wz(ci + o, cj + 2, L, m, mk0('zp')); }); }
+    var top = lv(two ? 2 : 1); [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (q) { fl(ci + q[0], cj + q[1], top, m); });
+    if (two) { P.push(['esc', m, (ci + 1) * 5 + 2.5, cj * 5 + 2.5, L0, 1, 'e|' + (ci + 1) + '|' + cj + '|' + L0.toFixed(1), 0, 0, '']);   // rampe vers l'étage (monte vers +z)
+      [[0, 0], [0, 1], [1, 1]].forEach(function (q) { fl(ci + q[0], cj + q[1], lv(1), m); }); }
+    HOUSES8.push([cx, cz]); }
+  for (var c = 0; c < 14; c++) { var a2 = R() * 6.283, r2 = 8 + R() * 30, ci2 = Math.floor(Math.cos(a2) * r2 / 5), cj2 = Math.floor(Math.sin(a2) * r2 / 5), m2 = R() < .5 ? 'metal' : 'pierre';   // abris (murs isolés)
+    if (R() < .5) wx(ci2, cj2, L0, m2, R() < .4 ? '111000000' : ''); else wz(ci2, cj2, L0, m2, R() < .4 ? '111000000' : ''); }
+  P.forEach(function (q) { SV.netPlace(q); });
+  if (!DEV.some(function (d) { return TERK[d.k] != null; })) { var TD = []; for (var t = 0; t < 6; t++) { var a3 = t / 6 * 6.283 + .5; TD.push({ k: 'col', x: Math.cos(a3) * 62, z: Math.sin(a3) * 62, s: 14 + (t % 3) * 4 }); }
+    [[110, 30, 34], [-95, 80, 30], [20, -120, 38]].forEach(function (q) { TD.push({ k: 'mont', x: q[0], z: q[1], s: q[2] }); });
+    TD.forEach(function (d) { d.id = DEVID++; d.y = +(hgt(d.x, d.z) - .2).toFixed(2); d.x0 = d.x; DEV.push(d); }); devBuild(); }
+  return HOUSES8; }
 /* textures façon map de désert « dust » pour CS WILD GO : murs en enduit sable avec blocs de pierre, et caisses en bois (dessinées, originales) */
 function csWallTex() { var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = mulberry(51);
   g.fillStyle = '#cdb68a'; g.fillRect(0, 0, W, H); for (var i = 0; i < 900; i++) { g.fillStyle = 'rgba(' + (r() < .5 ? '120,90,50' : '250,235,200') + ',' + (.04 + r() * .08) + ')'; g.beginPath(); g.ellipse(r() * W, r() * H, 6 + r() * 60, 4 + r() * 30, r() * 3, 0, 6.3); g.fill(); }
