@@ -456,3 +456,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## v67 : graphismes détaillés
 - `GQ(k)` = sous-réglage `SET.gx[k]` sinon le préréglage `SET.gfx`. Sous-parties : res, shadow, view, grass, ao, post, tex (Bas/Moyen/Max/Ultra, Off pour ombres/herbe/ombrage). Cliquer un préréglage remet tout (`SET.gx = {}`), toucher une sous-partie = « Personnalisé ». Ultra PC poussé : brouillard 820, sol 320, herbe 68, AO .95.
+
+## v68 : Solo/Duo/Trio/Section + amis
+- `TEAMSZ` (`wr_team`, boutons #segTm sous Battle Royale), `TM()` = taille d'équipe en BR seulement. `reset()` donne `p.team` (moi + bots coéquipiers = équipe 0, étiquette bleue `teamTag`). Pas de tir ami (`hurt`), bots/aide à la visée ignorent les coéquipiers, coéquipiers sautent du bus avec moi. Fin : `teamsAlive()` ; si je meurs et que l'équipe vit encore, la partie continue.
+- Amis (`FR`, bouton 👥 AMIS du salon, modal #frM) : code ami `wr_fid` (6 car.), liste `wr_friends`. Présence `pres/<id>` toutes les 30 s, invitations `inv/<id>` (relais MQTT retenu) lues toutes les 12 s → bandeau #frInv « REJOINDRE » (met le code de salon + le mode, relance). LIMITE : le Battle Royale n'est pas encore en réseau (le Créatif oui) → à faire : synchroniser bus/tempête/butin pour jouer en BR entre potes.
