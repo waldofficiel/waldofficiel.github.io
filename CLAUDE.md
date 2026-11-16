@@ -453,3 +453,6 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Glisser une case sur une autre (barre ou sac) = échanger (`DRAGS`, `invSwap`). Touches Case 1-5 (`arme1..arme5`, 1-5), « soin » = C (case de soin suivante). Inventaire plein → soins refusés.
 - Bots : toujours 3 cases et soins en compteur.
 - Salle d'attente : « 👥 n/16 ».
+
+## v67 : graphismes détaillés
+- `GQ(k)` = sous-réglage `SET.gx[k]` sinon le préréglage `SET.gfx`. Sous-parties : res, shadow, view, grass, ao, post, tex (Bas/Moyen/Max/Ultra, Off pour ombres/herbe/ombrage). Cliquer un préréglage remet tout (`SET.gx = {}`), toucher une sous-partie = « Personnalisé ». Ultra PC poussé : brouillard 820, sol 320, herbe 68, AO .95.
