@@ -536,3 +536,4 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Salon (PC) : **Échap** (ou bouton ☰ `#escB` en haut à droite) = `escMenu(true)` : amis en grand à gauche (`#frM.big`) + colonne `#escM` à droite (⚙️ RÉGLAGES, 📊 STATS, 💬 COMMENTAIRES, ⬅ WALD GAME, ✕). L'onglet « Réglages » de la barre du haut est caché sur PC (`body.pcLobby`), il reste sur téléphone.
 - Launcher : le **logo `jeu/logo.jpg`** remplace les vieilles images pour Wald Royal (carte Bibliothèque, carte Boutique, titre de la diapo Battle Royale `.hlogo`). Images du site rafraîchies : `lobby.jpg` (salon ranch), `creatif.jpg` (Mes îles).
 - Appli PC (`app/desktop/main.js` `screen()`) : écran de démarrage en LARGE (icône Wald Game à gauche, titre, barre qui charge, « WALD OFF GAMES · WALD ROYAL ») au lieu du petit bloc façon téléphone. Il faut réinstaller WaldGame-Setup.exe pour l'avoir.
+- v87 : viseur carré des pompes (auto + spécialisé) divisé par 2 (max 8,5 % de l'écran).
