@@ -523,3 +523,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - **Dégâts de chute** : au-delà de 10,5 m (3 étages), 10 + 5,2 par mètre en plus (`p.ftop`).
 - **Sac PC** : X = jeter l'objet sous la souris (ou sélectionné / en main).
 - **MAP 1V1** : panneau-bouton « RÉINITIALISER les constructions » au bout de la rangée de générateurs (`rzTick`, `rzDo`, E ou bouton), message réseau `rz`, `SV.wipe()`.
+
+## v83 : MES ÎLES (Créatif façon Fortnite)
+- Au salon, Créatif → **MES ÎLES** (`ISLES` dans `wr_isles`, 4 max, `islDraw`) : carte par île (nom, modèle, nb de pièces, date, ✏️ renommer, 🗑 supprimer) + « ＋ NOUVELLE ÎLE » (`islNew`) avec 2 modèles : **ÎLE GRILLE** (mode `ile` : sol gris quadrillé 5 m, rien dessus, pas de butin, `NOSPAWN` partout) ou **GRANDE MAP** (mode `creatif`). `islGo` → `wr_isle` + `wr_crGo`.
+- Dans l'île : `islTick` recharge `wr_isle_<id>` (pièces via `SV.restore` = pièces à soi, appareils, règles, script) puis **sauvegarde toute seule** toutes les 15 s, en quittant (`toMenu`) et en fermant (`pagehide`) (`islStore`). Les anciens boutons Mon monde / Île vide sont remplacés par ce système.
