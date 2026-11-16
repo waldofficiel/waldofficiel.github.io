@@ -116,7 +116,12 @@ body.touch #bAuto{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 .invbox{width:min(520px,100%);max-height:100%;overflow:auto;background:rgba(18,8,38,.94);border:2px solid var(--violet);border-radius:16px;padding:12px;display:grid;gap:10px}
 .invhead{display:flex;justify-content:space-between;align-items:center;font:900 18px var(--display)}
 .invhead button{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;padding:2px 8px}
-.invslots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.invground{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.invslots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+/* inventaire façon Fortnite : les 5 cases alignées en bas, matériaux / munitions à droite */
+#inv .invbox{width:min(980px,100%);grid-template-columns:1fr 230px;grid-template-areas:"head head" "main side" "bar side" "tip tip";align-items:start}
+#inv .invhead{grid-area:head}#inv .invmain{grid-area:main;display:grid;gap:8px;min-height:120px}#inv .invside{grid-area:side;display:grid;gap:8px;align-content:start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px}#inv .invbar{grid-area:bar;display:grid;gap:6px}#invTip{grid-area:tip}
+.invside .rs{display:flex;align-items:center;justify-content:space-between;gap:8px;font:800 14px var(--body);padding:6px 8px;border-radius:8px;background:rgba(0,0,0,.28)}.invside .rs b{font:900 15px var(--display)}.invside .rs i{font-style:normal;font-size:18px}
+@media (max-width:700px){#inv .invbox{grid-template-columns:1fr;grid-template-areas:"head" "main" "side" "bar" "tip"}#inv .icard{min-height:72px;font-size:10px;padding:6px 3px}}.invground{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
 .icard{position:relative;display:grid;gap:2px;justify-items:center;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 6px;cursor:pointer;color:#fff;font:700 12px var(--body);text-align:center;min-height:86px}
 .icard canvas{width:84px;height:40px}.icard small{color:var(--mute);font-size:11px}.icard.sel{outline:3px solid var(--sun);outline-offset:1px}.icard.eq::after{content:"EN MAIN";position:absolute;top:4px;left:6px;font-size:9px;color:var(--sun)}
 .icard .drop{position:absolute;top:2px;right:4px;background:rgba(255,43,100,.85);border:0;color:#fff;border-radius:6px;font:900 11px var(--body);padding:2px 6px;cursor:pointer}
@@ -228,7 +233,7 @@ body.buying #lobby>*:not(#buyPop){visibility:hidden}
 .dhelp{font-size:12px;opacity:.75;margin:0 0 8px}
 #dWheel{position:fixed;inset:0;z-index:66;display:grid;place-items:center;background:rgba(10,4,20,.35)}#dWheel[hidden]{display:none}
 #dWheel .dw{position:relative;width:min(300px,62vh);aspect-ratio:1}#dWheel .dwb{position:absolute;width:31%;aspect-ratio:1;border-radius:50%;border:2px solid #ff2bd6;background:radial-gradient(circle at 50% 35%,#5a1f9a,#1a0830);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 10px var(--display);overflow:hidden;transform:translate(-50%,-50%);box-shadow:0 0 14px rgba(255,43,214,.45)}
-#dWheel .dwb img{width:72%;border-radius:50%}#dWheel .dwb.empty{opacity:.35;border-style:dashed}#dWheel .dwc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26%;aspect-ratio:1;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.3);font-size:18px;font-weight:900}
+#dWheel .dwb.sel{transform:translate(-50%,-50%) scale(1.16);border-color:#ffd23d;box-shadow:0 0 22px #ffd23d,0 0 0 3px rgba(255,210,61,.35)}#dWheel .dwb img{width:72%;border-radius:50%}#dWheel .dwb.empty{opacity:.35;border-style:dashed}#dWheel .dwc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:26%;aspect-ratio:1;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:2px solid rgba(255,255,255,.3);font-size:18px;font-weight:900}
 .lslots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .lslot{position:relative;cursor:pointer;border-radius:14px;overflow:hidden;border:2px solid rgba(255,255,255,.18);background:linear-gradient(180deg,#4a1f86,#140829);text-align:center;padding-bottom:6px;transition:transform .15s}
 .lslot img{width:100%;aspect-ratio:1.25;object-fit:cover;display:block}.lslot em{position:absolute;top:6px;left:6px;font:900 10px var(--display);font-style:normal;letter-spacing:.08em;padding:2px 8px;border-radius:99px;background:#ff2bd6;color:#fff}
@@ -311,11 +316,9 @@ body:not(.touch) #bCrouch{display:none}
 <div id="inv" hidden>
   <div class="invbox">
     <div class="invhead"><b>Inventaire</b><button id="invClose" type="button" aria-label="Fermer">✕</button></div>
-    <div class="invslots" id="invSlots"></div>
-    <div class="invsub">Soins</div>
-    <div class="invheals" id="invHeals"></div>
-    <div class="invsub">Au sol autour de toi</div>
-    <div class="invground" id="invGround"></div>
+    <div class="invmain"><div class="invsub">Au sol autour de toi</div><div class="invground" id="invGround"></div><div class="invheals" id="invHeals" hidden></div></div>
+    <div class="invside" id="invSide"></div>
+    <div class="invbar"><div class="invsub">Tes 5 cases</div><div class="invslots" id="invSlots"></div></div>
     <p class="invtip" id="invTip">Touche une arme, puis une case pour la mettre à cette place.</p>
   </div>
 </div>
@@ -985,6 +988,7 @@ function campPatches(c, t, ti, cols) { var r = mulberry(4400 + ti), H2 = (HOUSES
     c.fillStyle = cols ? cols[n % cols.length] + (.25 + r() * .4) + ')' : 'rgba(255,0,0,' + (.18 + r() * .25) + ')'; c.beginPath(); c.ellipse(hx, hz, (1.5 + r() * 4.5) * sp, (1 + r() * 3) * sp, r() * 3, 0, 6.283); c.fill(); } }
 function townPath(c, t, off) { c.beginPath(); for (var i = 0; i <= 96; i++) { var a = i / 96 * 6.283, rr = t[3] * townK(t, a) + (off || 0); c.lineTo(t[1] + Math.cos(a) * rr, t[2] + Math.sin(a) * rr); } c.closePath(); }
 function inLake(x, z, m) { return LAKE && lakeD(x, z) < (m || 0); }
+var SWIMY = -2.0;   // eau à -0,75 : si le fond est plus bas que -2 m, on nage
 function inWater(x, z) { return hgt(x, z) < -.45; }   // on ralentit seulement quand on a vraiment les pieds dans l'eau
 function onLand(x, z) { return Math.hypot(x, z) < shoreR(Math.atan2(z, x)) - 4 && !inLake(x, z, 4); }
 function segD(px, pz, ax, az, bx, bz) { var dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((px - ax) * dx + (pz - az) * dz) / (dx * dx + dz * dz))); return Math.hypot(px - ax - dx * t, pz - az - dz * t); }
@@ -2249,8 +2253,9 @@ function animChar(p, dt) {   // tout passe par le système de poses (anim.js) : 
   if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { p.danceT -= dt; if (sp > .5 && p.danceT < 55) p.danceT = 0; }
   if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { T = A.dance(p.dz || 'wald', now - (p.danceT0 || 0)); c.gunHold.visible = false; k = 16; }
   else if (p.mode === 'fall') { T = A.glide(now); gr = false; }
+  else if (p.swim) { var sw = Math.sin(now * (sp > .5 ? 5 : 2.2)), fl = Math.sin(now * 9); T = A.P({ la: 1.7 + sw * 1.3, ra: 1.7 - sw * 1.3, lb: .25, rb: .25, le: .4, re: .4, lt: .35 + fl * .3 * amp, rt: .35 - fl * .3 * amp, lk: .3, rk: .3, bp: sp > .5 ? .75 : .25, hp: sp > .5 ? -.5 : -.1 }); c.gunHold.visible = false; gr = false; }   /* nage : bras qui tournent, jambes qui battent */
   else { T = p.crouch ? A.crouch(p.step, amp) : amp > .05 ? A.walk(p.step, amp, sp > 6.5) : A.idle(now + (p.id || 0) * 1.7); if (armed) { A.gunArms(T, 0); var apt = Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))); T.ra += apt; T.la += apt * .95; T.hp = (T.hp || 0) + apt * .35; } }   /* l'arme suit le viseur (haut / bas) */
-  if (SV && p === me) { SURVIE.pose(T, c, p.mode === 'ground' && !(p.danceT > 0)); if (stl) k = SURVIE.blendK(); }
+  if (SV && p === me) { SURVIE.pose(T, c, p.mode === 'ground' && !(p.danceT > 0) && !p.swim); if (stl) k = SURVIE.blendK(); }
   A.apply(c, A.blend(c, T, dt, k), gr);
   if (armed && p.recoil) { c.aR.rotation.z += p.recoil * 2; c.aL.rotation.z += p.recoil * 1.2; }
 }
@@ -2582,7 +2587,7 @@ function enterHold(hold0) { var h = ENTH || hold0; if (!h || !(state === 'play' 
 addEventListener('keyup', function (e) { keys[e.code] = false; });
 cv.addEventListener('mousedown', function (e) { if (isTouch || state !== 'play' || invOpen()) return; if (document.pointerLockElement !== cv) { if (cv.requestPointerLock) cv.requestPointerLock(); return; } if (e.button === 0) fireHeld = true; });
 addEventListener('mouseup', function () { if (!isTouch) fireHeld = false; });
-addEventListener('mousemove', function (e) { if (document.pointerLockElement === cv) { lookDX += e.movementX * .0024; lookDY += e.movementY * .0024; } });
+addEventListener('mousemove', function (e) { if (document.pointerLockElement === cv && $('dWheel').hidden) { lookDX += e.movementX * .0024; lookDY += e.movementY * .0024; } });
 document.addEventListener('pointerlockchange', function () { if (document.pointerLockElement !== cv && state === 'play' && !isTouch && !invOpen() && !PMENU) pause(true); });
 cv.addEventListener('wheel', function (e) { var n = me.inv.length; for (var i = 1; i <= n; i++) { var j = ((me.slot + (e.deltaY > 0 ? i : -i)) % n + n) % n; if (me.inv[j]) { slotPress = j; break; } } }, { passive: true });
 var touchEl = $('touch'), stick = $('stick');
@@ -2610,13 +2615,20 @@ function danceNow(id) { if (id && state === 'menu' && lme) { lme.dz = id; lme.da
   var near = pl.filter(function (p) { return p !== me && p.alive && p.danceT > 0 && dist(p.x, p.z, me.x, me.z) < 15; });   // SYNC DANCE : on se cale pile sur ceux qui dansent à côté
   if (near.length) { var ld = near.filter(function (p) { return /^sync/.test(p.dz); })[0]; if (ld && !/^sync/.test(id)) { me.dz = ld.dz; me.danceT0 = ld.danceT0; } else if (/^sync/.test(id)) near.forEach(function (p) { p.dz = id; p.danceT0 = me.danceT0; p.danceT = Math.max(p.danceT, 30); }); toast('🔗 SYNC DANCE ×' + (near.length + 1)); } me.crouch = false; $('bCrouch').classList.remove('act'); $('dWheel').hidden = true; }
 function doDance() {   // roue des 5 danses choisies au casier
-  var LOB = state === 'menu'; if (LOB && (!lme || document.querySelector('.modal:not([hidden])'))) return; if (!hasDance() || (!LOB && (!me.alive || me.mode !== 'ground' || me.veh))) return; var W = $('dWheel'); if (!W.hidden) { W.hidden = true; return; }
+  var LOB = state === 'menu'; if (LOB && (!lme || document.querySelector('.modal:not([hidden])'))) return; if (!hasDance() || (!LOB && (!me.alive || me.mode !== 'ground' || me.veh))) return; var W = $('dWheel'); if (!W.hidden) { if (DWSEL) danceNow(DWSEL); W.hidden = true; return; }
   var DL = WIN ? myDances().slice(0, 12) : danceLoad(), sk = ST.skin || 'wald', DN = Math.max(5, DL.length);   // après un TOP 1 : TOUTES ses danses
   $('dwIn').innerHTML = DL.map(function (id, i) { var a = -Math.PI / 2 + i / DN * 6.283, x = 50 + Math.cos(a) * 37, y = 50 + Math.sin(a) * 37;
-    return '<button class="dwb' + (id ? '' : ' empty') + '" type="button" data-d="' + (id || '') + '" style="left:' + x + '%;top:' + y + '%">' + (id ? '<img src="' + skinThumb(sk, 0, id) + '" alt="">' + DANCES[id].name : '+') + '</button>'; }).join('') + '<button class="dwc" type="button" id="dwX">✕</button>';
+    return '<button class="dwb' + (id ? '' : ' empty') + '" type="button" data-a="' + a.toFixed(3) + '" data-d="' + (id || '') + '" style="left:' + x + '%;top:' + y + '%">' + (id ? '<img src="' + skinThumb(sk, 0, id) + '" alt="">' + DANCES[id].name : '+') + '</button>'; }).join('') + '<button class="dwc" type="button" id="dwX">✕</button>';
   $('dwIn').querySelectorAll('.dwb').forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); danceNow(b.dataset.d); }); });
-  W.hidden = false; }
+  DWV.x = DWV.y = 0; DWSEL = null; W.hidden = false; }
 $('dWheel').addEventListener('click', function () { $('dWheel').hidden = true; });
+/* ROUE DES DANSES façon GTA / Fortnite : on bouge la souris vers une danse → elle s'allume ; clic (ou re-appui sur la touche) → on danse et la roue se ferme */
+var DWV = { x: 0, y: 0 }, DWSEL = null;
+function dwPick() { var W = $('dWheel'), L = Math.hypot(DWV.x, DWV.y), best = null, bd = 9; if (L > 24) { var a = Math.atan2(DWV.y, DWV.x); W.querySelectorAll('.dwb').forEach(function (b) { var d = Math.abs(angD(+b.dataset.a, a)); if (d < bd) { bd = d; best = b; } }); }
+  W.querySelectorAll('.dwb').forEach(function (b) { b.classList.toggle('sel', b === best); }); DWSEL = best && best.dataset.d ? best.dataset.d : null; }
+addEventListener('mousemove', function (e) { var W = $('dWheel'); if (W.hidden) return; if (document.pointerLockElement === cv) { DWV.x += e.movementX; DWV.y += e.movementY; var L = Math.hypot(DWV.x, DWV.y); if (L > 140) { DWV.x *= 140 / L; DWV.y *= 140 / L; } }
+  else { var r = W.querySelector('.dw').getBoundingClientRect(); DWV.x = e.clientX - (r.left + r.width / 2); DWV.y = e.clientY - (r.top + r.height / 2); } dwPick(); });
+addEventListener('mousedown', function (e) { var W = $('dWheel'); if (W.hidden || document.pointerLockElement !== cv) return; e.preventDefault(); e.stopImmediatePropagation(); if (e.button === 0 && DWSEL) danceNow(DWSEL); else W.hidden = true; }, true);
 function toggleMap() { var B = $('bigMap'); if (B.hidden && state !== 'play') return; B.hidden = !B.hidden; if (!B.hidden) drawMini(true); }   // grande carte
 $('mini').addEventListener('click', function (e) { e.stopPropagation(); toggleMap(); }); $('bigMap').addEventListener('click', function () { $('bigMap').hidden = true; });
 
@@ -2751,6 +2763,12 @@ function invRender() {
     d.insertAdjacentHTML('beforeend', '<span>' + HEAL[k].name + '</span><small>' + me.heals[k] + ' / ' + HEAL[k].max + ' · ' + (k === 'bulle' ? 'bloque les tirs 15 s' : k === 'heal' ? 'vie à 100' : k === 'mini' ? '+25 (max 50)' : '+50') + '</small>');
     if (me.heals[k]) { var u = document.createElement('button'); u.type = 'button'; u.className = 'use'; u.textContent = 'UTILISER'; u.addEventListener('click', function (e) { e.stopPropagation(); invToggle(false); useHeal(k); }); d.appendChild(u); }
     d.addEventListener('click', function () { if (me.heals[k]) { me.healSel = k; hbKey = ''; invRender(); } }); H.appendChild(d); });
+  var SD = $('invSide'), sh = '<div class="invsub">Matériaux</div>', RS = SV && SV.res ? SV.res() : null;
+  if (RS && BUILD) [['bois', '🪵', 'Bois'], ['pierre', '🧱', 'Pierre'], ['metal', '🔩', 'Métal']].forEach(function (m) { sh += '<div class="rs"><i>' + m[1] + '</i><span>' + m[2] + '</span><b>' + (RS[m[0]] | 0) + '</b></div>'; });
+  else sh += '<div class="rs"><span>Pas de constructions ici</span></div>';
+  var AM = {}; me.inv.forEach(function (w0) { if (w0 && !w0.h && WEAPONS[w0.k] && w0.res != null) { var nm = WEAPONS[w0.k].name; AM[nm] = (AM[nm] || 0) + (w0.res | 0); } });
+  sh += '<div class="invsub">Munitions</div>' + (Object.keys(AM).length ? Object.keys(AM).map(function (k) { return '<div class="rs"><span>' + k + '</span><b>' + AM[k] + '</b></div>'; }).join('') : '<div class="rs"><span>Aucune arme</span></div>');
+  SD.innerHTML = sh;
   var gn = groundNear(); if (!gn.length) G.innerHTML = '<p class="invtip">Aucune arme par terre ici.</p>';
   gn.forEach(function (it) { var d = card(it.slot); if (invSel && invSel.item === it) d.classList.add('sel'); d.addEventListener('click', function () { invSel = invSel && invSel.item === it ? null : { item: it }; invRender(); }); G.appendChild(d); });
   $('invTip').textContent = invSel ? (invSel.item ? 'Touche une case pour y mettre cette arme (l\'ancienne tombe par terre).' : 'Touche une autre case pour échanger leur place.') : '5 places pour tes armes ET tes soins · fais GLISSER une case sur une autre pour ranger · touche une case pour la prendre en main.';
@@ -2930,7 +2948,7 @@ function climbUp(p) { var fx = Math.cos(camA), fz = Math.sin(camA), best = null,
     var t = rayBox(p.x, p.y + .9, p.z, fx, 0, fz, w.x - w.hw, w.y0, w.z - w.hd, w.x + w.hw, top, w.z + w.hd); if (t < bt) { bt = t; best = w; } }
   if (!best) { var lt = SV && SV.ledge ? SV.ledge(p.x, p.y, p.z, fx, fz) : null; if (lt == null) return false; p.vy = Math.sqrt(2 * 25 * Math.max(.4, lt - p.y + .45)); p.climbT = .45; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }   /* agripper le bord d'un sol / d'une rampe */
   var top2 = best.y0 + best.h; p.vy = Math.sqrt(2 * 25 * (top2 - p.y + .55)); p.climbT = .55; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }
-function walk(p, dx, dz, dt, k) { var sp = 6.2 * (k == null ? 1 : k); if (inWater(p.x, p.z)) sp *= .45; p.vx += (dx * sp - p.vx) * Math.min(1, dt * 12); p.vz += (dz * sp - p.vz) * Math.min(1, dt * 12); p.x += p.vx * dt; p.z += p.vz * dt; }
+function walk(p, dx, dz, dt, k) { var sp = 6.2 * (k == null ? 1 : k); if (p.swim) sp = 6.2 * .6; else if (inWater(p.x, p.z)) sp *= .45; p.vx += (dx * sp - p.vx) * Math.min(1, dt * 12); p.vz += (dz * sp - p.vz) * Math.min(1, dt * 12); p.x += p.vx * dt; p.z += p.vz * dt; }
 function botThink(p, dt) {
   var ai = p.ai; ai.t -= dt; p.hurtT = Math.max(0, p.hurtT - dt);
   var st = stormTarget(), safe = dist(p.x, p.z, st[0], st[1]) < Math.max(6, st[2] * .8), armed = p.inv.some(function (w0) { return w0 && (w0.mag > 0 || w0.res > 0); });
@@ -3016,16 +3034,16 @@ function update(dt) {
         if (jumpPress && p === me && CREA && flyJump()) jumpPress = false;
         if (jumpPress && (onG(p) || !p.mant) && climbUp(p)) { jumpPress = false; p.mant = 1; p.cyT = 0; }   // grimper sur un mur / un rebord devant soi
         if (jumpPress && onG(p)) { p.cyT = 0; p.vy = (JMPT > performance.now() || RCUR && RCUR.jump && rLive() ? 14 : 8) * Math.sqrt(SCR.jmp || 1); if (p.crouch) { p.crouch = false; $('bCrouch').classList.remove('act'); } p.danceT = 0; }
-        var tool = SV && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt); if (GP.on) autoShoot = false;
+        var tool = SV && !p.swim && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt); if (GP.on) autoShoot = false;
         if (tool) SURVIE.use(fireHeld && !invOpen(), dt);
         if (fireHeld && p.useT > 0 && !curH(p)) cancelHeal(p);
-        if ((fireHeld || autoShoot) && !invOpen() && !(p.useT > 0) && !tool) { var cp = cam.position, cd = cam.getWorldDirection(v1), tMin = cp.distanceTo(v2.set(p.x, p.y + 1.5, p.z)); fireGun(p, cp.x, cp.y, cp.z, cd.x, cd.y, cd.z, tMin); }
+        if ((fireHeld || autoShoot) && !invOpen() && !(p.useT > 0) && !tool && !p.swim) { var cp = cam.position, cd = cam.getWorldDirection(v1), tMin = cp.distanceTo(v2.set(p.x, p.y + 1.5, p.z)); fireGun(p, cp.x, cp.y, cp.z, cd.x, cd.y, cd.z, tMin); }
       }
       if (actPress && SURV && SV && SV.act()) actPress = false;   // survie : ouvrir son coffre
       if (actPress) { if (p.veh) leave(p); else { var nv = nearVeh(p), sw = nearSwap(p); if (nv) enter(p, nv); else if (sw) { var old = p.inv[p.slot]; p.inv[p.slot] = sw.slot; removeItem(sw); if (old) dropItem(p.x + 1.4, p.z, old.k, old); SFX.pick(); toast(WEAPONS[sw.t].name.toUpperCase()); } } }
     }
     if (p.veh) { p.x = p.veh.x; p.z = p.veh.z; p.y = p.gy = p.veh.y; p.vx = p.veh.vx; p.vz = p.veh.vz; }
-    else { if (p.climbT > 0) { p.climbT -= dt; p.x += p.climbFx * 2.6 * dt; p.z += p.climbFz * 2.6 * dt; } pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y)); if (DEV.length) p.gy = Math.max(p.gy, devGround(p.x, p.z, p.y)); if (p === me && p.fly) { var fu = (kd('sauter') || keys.Space ? 1 : 0) - (p.crouch || kd('accroupi') ? 1 : 0); p.vy = fu * 11; p.y = Math.min(400, p.y + p.vy * dt); if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } } else { if (p.wasG && p.vy <= 0 && p.y > p.gy && p.y - p.gy < .6) p.y = p.gy;   /* on colle à la rampe en descendant (sinon on « flotte » et on ne peut plus sauter) */
+    else { if (p.climbT > 0) { p.climbT -= dt; p.x += p.climbFx * 2.6 * dt; p.z += p.climbFz * 2.6 * dt; } pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y)); if (DEV.length) p.gy = Math.max(p.gy, devGround(p.x, p.z, p.y)); p.swim = p.mode === 'ground' && !p.fly && p.gy < SWIMY - .05 && hgt(p.x, p.z) < SWIMY - .05; if (p.swim) { p.gy = SWIMY; p.ftop = null; }   /* eau trop profonde : on NAGE (tête hors de l'eau) */ if (p === me && p.fly) { var fu = (kd('sauter') || keys.Space ? 1 : 0) - (p.crouch || kd('accroupi') ? 1 : 0); p.vy = fu * 11; p.y = Math.min(400, p.y + p.vy * dt); if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } } else { if (p.wasG && p.vy <= 0 && p.y > p.gy && p.y - p.gy < .6) p.y = p.gy;   /* on colle à la rampe en descendant (sinon on « flotte » et on ne peut plus sauter) */
  p.vy -= 25 * dt; if (p.y > p.gy + .05) p.ftop = Math.max(p.ftop == null ? p.y : p.ftop, p.y); p.y += p.vy * dt; if (p.y <= p.gy) { if (p.ftop != null) { var fdr = p.ftop - p.gy; p.ftop = null; if (fdr > 10.5 && !p.fly && !WIN && p.alive && p.mode === 'ground') { var fdm = Math.round(10 + (fdr - 10.5) * 5.2); hurt(p, fdm, null); if (p === me) { dmgNum(p.x, p.y + 2, p.z, fdm, false, false); tone('sine', 140, 50, .25, .25); camKick = Math.max(camKick, .12); } } } p.y = p.gy; p.vy = 0; } p.wasG = p.y <= p.gy + .05; if (p.wasG) { p.cyT = .15; p.mant = 0; } else p.cyT = (p.cyT || 0) - dt; } }   /* dégâts de chute comme Fortnite (au-delà de 3 étages) */
   });
   actPress = jumpPress = nitroPress = false;
