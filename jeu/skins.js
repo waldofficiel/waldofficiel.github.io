@@ -312,6 +312,7 @@
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan', 'rico', 'nova'];
   window.buildSkin = function (THREE, id, opts) {
     init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts); if (id !== 'zombie') gear(R, id === 'flubb' ? .55 : 1);
+    if (id !== 'zombie' && id !== 'flubb') { R.head.scale.setScalar(.8); R.head.position.y -= .03; }   /* MANNEQUIN commun : même squelette pour tous les skins, tête plus petite (proportions plus réalistes, comme Fortnite) */
     R.cols = cols; return skinify(R);
   };
   /* ---------- SQUELETTE COMMUN : tous les persos passent par ici ----------

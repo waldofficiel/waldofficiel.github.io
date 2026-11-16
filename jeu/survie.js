@@ -117,7 +117,7 @@
     var P = me(), a = C.camA(), pitch = C.camP(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d];
     var ci = Math.floor(P.x / CELL), cj = Math.floor(P.z / CELL), b0 = null, bd = 14;
     PIECES.forEach(function (q) { var dd = Math.hypot(q.x - P.x, q.z - P.z); if (dd < bd && Math.abs(q.L - P.y) < 10) { bd = dd; b0 = q.L; } });
-    var L = b0 == null ? Math.round((P.y - .05) * 20) / 20 : b0 + LH * Math.floor((P.y + .6 - b0) / LH), t = PIECE, p = { t: t, m: MATK, d: d };
+    var g1 = C.snapY ? C.snapY(P.y) : P.y; if (g1 > P.y + 1.2) g1 -= LH; var L = b0 == null ? g1 : b0 + LH * Math.floor((P.y + .6 - b0) / LH), t = PIECE, p = { t: t, m: MATK, d: d };
     // debout sur une rampe : on construit dans la foulée, en haut (la cellule de la rampe compte comme la nôtre, niveau = haut de la rampe)
     var R = null; PIECES.forEach(function (q) { if (q.t === 'esc' && Math.abs(P.x - q.x) <= CELL / 2 + .1 && Math.abs(P.z - q.z) <= CELL / 2 + .1 && P.y > q.L + .1 && P.y < q.L + LH + .5) R = q; });
     if (R) { ci = Math.floor(R.x / CELL); cj = Math.floor(R.z / CELL); if (t !== 'mur') { var i0 = ci + dx, j0 = cj + dz, L0 = R.L + LH;
@@ -146,7 +146,7 @@
     return { x: x, y: Math.max(P.y, y), z: z, air: true }; }
   function lvl(x, z, y) { var base = null, bd = 12; PIECES.forEach(function (q) { var dd = Math.hypot(q.x - x, q.z - z); if (dd < bd) { bd = dd; base = q.L; } });
     for (var hi = 0; hi < C.HOUSES.length && base == null; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(x - hs.x) < hs.hx + 3 && Math.abs(z - hs.z) < hs.hz + 3) base = hs.y0; }
-    if (base == null) base = C.hgt(Math.floor(x / CELL) * CELL + CELL / 2, Math.floor(z / CELL) * CELL + CELL / 2);
+    if (base == null) { var g0 = C.hgt(Math.floor(x / CELL) * CELL + CELL / 2, Math.floor(z / CELL) * CELL + CELL / 2); base = C.snapY ? C.snapY(g0) : g0; }   /* grille verticale commune à toute la map */
     return base + LH * Math.floor((y - base) / LH + .12); }
   function planAim() { var t = PIECE; if (t === 'lit' || C.camP() > .9) return null; var h = aimHit(); if (!h) return null;
     var a = C.camA(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d], P = me();
@@ -172,7 +172,8 @@
   function maskSegs(mk) { var W = CELL / 2, cw = CELL / 3, rh = LH / 3, out = [];   // ÉDITION façon Fortnite : grille 3×3, cases enlevées = trous (portes, fenêtres…)
     for (var r = 0; r < 3; r++) { var c = 0; while (c < 3) { if (mk[r * 3 + c]) { c++; continue; } var c0 = c; while (c < 3 && !mk[r * 3 + c]) c++; out.push([-W + c0 * cw, -W + c * cw, r * rh, (r + 1) * rh]); } }
     return out.length ? out : [[-.01, .01, 0, .01]]; }
-  function wallSegs(p, im) { var below = PIECES.some(function (q) { return q !== p && Math.abs(q.L - (p.L - LH)) < .2 && Math.hypot(q.x - p.x, q.z - p.z) < 3; }), ext = below ? 0 : 1, alongX = p.hw > p.hd;
+  function wallSegs(p, im) { var below = PIECES.some(function (q) { return q !== p && Math.abs(q.L - (p.L - LH)) < .2 && Math.hypot(q.x - p.x, q.z - p.z) < 3; }), gr = Math.min(C.hgt(p.x - (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z - (p.hw > p.hd ? 0 : CELL / 2 - .3)), C.hgt(p.x + (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z + (p.hw > p.hd ? 0 : CELL / 2 - .3))),
+      ext = below || p.L - gr > 1.2 ? 0 : Math.max(0, p.L - gr + .05), alongX = p.hw > p.hd;   /* le bas du mur ne descend que jusqu'au sol (avant : 1 m dans le vide → « petit mur » sous les escaliers) */
     p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
       var w = { x: p.x + (alongX ? cu : 0), z: p.z + (alongX ? 0 : cu), y0: y0, hw: alongX ? hu : p.hw, hd: alongX ? p.hd : hu, m: MATW[p.m], h: y1 - y0, house: null, im: im, ii: im.free.pop(), alive: true, hp: p.hp, build: p };
       C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; }

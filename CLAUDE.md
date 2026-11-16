@@ -460,3 +460,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v68 : Solo/Duo/Trio/Section + amis
 - `TEAMSZ` (`wr_team`, boutons #segTm sous Battle Royale), `TM()` = taille d'équipe en BR seulement. `reset()` donne `p.team` (moi + bots coéquipiers = équipe 0, étiquette bleue `teamTag`). Pas de tir ami (`hurt`), bots/aide à la visée ignorent les coéquipiers, coéquipiers sautent du bus avec moi. Fin : `teamsAlive()` ; si je meurs et que l'équipe vit encore, la partie continue.
 - Amis (`FR`, bouton 👥 AMIS du salon, modal #frM) : code ami `wr_fid` (6 car.), liste `wr_friends`. Présence `pres/<id>` toutes les 30 s, invitations `inv/<id>` (relais MQTT retenu) lues toutes les 12 s → bandeau #frInv « REJOINDRE » (met le code de salon + le mode, relance). LIMITE : le Battle Royale n'est pas encore en réseau (le Créatif oui) → à faire : synchroniser bus/tempête/butin pour jouer en BR entre potes.
+
+## v70 : grille unique + têtes plus petites
+- GRILLE comme Fortnite : `snapY(y)` = 0,6 + 3,5·k (point 0 = sol des villes), cases de 5 m depuis x = 0 / z = 0. Les maisons (`house()`) ont `y0 = snapY(sol)` (+ `pad` pour aplatir), les constructions des joueurs se calent sur la même grille verticale (`C.snapY` dans `lvl` et `plan`). Zéro décalage entre map et constructions.
+- Murs construits : le bas ne descend plus que jusqu'au sol, et jamais si le mur est à plus de 1,2 m du sol (avant : 1 m de mur dans le vide = « petit mur » sous les escaliers).
+- Skins : même squelette « mannequin » pour tous (rig commun), tête ×0,8 (sauf Flubb/zombies). Hitbox tête = 0,40 m du haut.

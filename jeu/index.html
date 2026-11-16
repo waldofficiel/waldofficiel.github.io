@@ -1033,6 +1033,9 @@ var HR = SURV ? 4 : 2, HN = HALF * 2 / HR + 1, HG = new Float32Array(HN * HN);
 for (var hj = 0; hj < HN; hj++) for (var hi = 0; hi < HN; hi++) HG[hj * HN + hi] = baseH(-HALF + hi * HR, -HALF + hj * HR);
 function hgt(x, z) { var fx = (x + HALF) / HR, fz = (z + HALF) / HR; if (fx < 0 || fz < 0 || fx >= HN - 1 || fz >= HN - 1) return -3; var i = fx | 0, j = fz | 0, u = fx - i, v = fz - j, k = j * HN + i;
   return (HG[k] * (1 - u) + HG[k + 1] * u) * (1 - v) + (HG[k + HN] * (1 - u) + HG[k + HN + 1] * u) * v; }
+/* GRILLE DE CONSTRUCTION UNIQUE (comme Fortnite) : point 0 = sol des villes (y = 0,6), cases de 5 m depuis x = 0 / z = 0, étages de 3,5 m.
+   Maisons, murs de la map et constructions des joueurs tombent tous pile sur la même grille : aucun décalage. */
+var GY0 = .6; function snapY(y) { return GY0 + 3.5 * Math.round((y - GY0) / 3.5); }
 function pad(x, z, hx, hz, lvl) { var B = 7; for (var j = Math.max(0, Math.floor((z - hz - B + HALF) / HR)); j <= Math.min(HN - 1, Math.ceil((z + hz + B + HALF) / HR)); j++) for (var i = Math.max(0, Math.floor((x - hx - B + HALF) / HR)); i <= Math.min(HN - 1, Math.ceil((x + hx + B + HALF) / HR)); i++) {
   var wx = -HALF + i * HR, wz = -HALF + j * HR, dx = Math.max(0, Math.abs(wx - x) - hx - 1), dz = Math.max(0, Math.abs(wz - z) - hz - 1), f = 1 - sm01(0, B, Math.hypot(dx, dz)); HG[j * HN + i] += (lvl - HG[j * HN + i]) * f; } }
 var PEBS = [], PROPCOL = [], FRAMEC = 0, DARKK = 0, SUNI = null;   // PROPCOL : rochers, colonnes, cactus et palmiers du décor 3D (props.js)
@@ -1201,7 +1204,7 @@ function house(x, z, sx, sz, m, h, door) {
     [[0, 0], [GRID, 0], [-GRID, 0], [0, GRID], [0, -GRID]].some(function (o) { if (!hit(bx + o[0], bz + o[1], sx / 2, sz / 2)) { bx += o[0]; bz += o[1]; ok = true; return true; } });
     if (ok || (sx <= GRID && sz <= GRID)) break; if (sx >= sz) sx = Math.max(GRID, sx - GRID); else sz = Math.max(GRID, sz - GRID); }
   x = bx; z = bz;
-  var hx = sx / 2, hz = sz / 2, t = .3, y0 = hgt(x, z); if (!inTown(x, z, 2)) pad(x, z, hx, hz, y0);
+  var hx = sx / 2, hz = sz / 2, t = .3, y0 = snapY(hgt(x, z)); if (!inTown(x, z, 2) || Math.abs(y0 - hgt(x, z)) > .05) pad(x, z, hx, hz, y0);   /* sol de la maison calé sur la grille verticale (0 décalage avec les constructions) */
   var hs = { x: x, z: z, y0: y0, hx: hx, hz: hz, h: h, m: m, walls: [], ox: ox, oz: oz, ohx: ohx, ohz: ohz, flat: h > H + .5 || m === 'metal' || m === 'beton' || m === 'facade' }; HOUSES.push(hs);
   var dw = 1.3, side = door || 's', nst = Math.round(h / H), area = (sx + sz) / 2 * h; hs.door = side;
   function piece(alongX, cu, c0, u0, u1, f, lin) { var len = u1 - u0; if (len < .05) return; var mid = (u0 + u1) / 2, wx = alongX ? x + mid : c0, wz = alongX ? c0 : z + mid;
@@ -1429,7 +1432,7 @@ if (window.TREES3D) try { TREES3D.build(THREE, { scene: scene, renderer: R3, DES
   onReady: function () { var far = TREES3D.hasFar(); (GFX.treeIM || []).forEach(function (im) { im.castShadow = false; if (far) im.visible = false; im.children.forEach(function (c) { c.castShadow = false; }); }); } }); } catch (e) { console.error('TREES3D', e); }
 if (window.OPT) try { var OPTR = OPT.batch(scene.children.slice(OPT_N0)); console.log('OPT batch', JSON.stringify(OPTR)); } catch (e) { console.error('OPT', e); }
 /* mode survie (survie.js) : pioche, ressources (bois, pierre, métal) et constructions façon Fortnite */
-var SV = null, SVC = null; if (window.SURVIE) try { SURVIE.init(THREE, SVC = { creaIntro: function () { var esc = function (x) { return String(x || '').replace(/[<>&]/g, ''); }, gen = [['⚙️', 'Bouton PARAMÈTRES : choisis la map et les règles'], ['▶️', isTouch ? 'LANCER LA PARTIE quand tout le monde est prêt' : 'Maintiens ENTRÉE pour lancer la partie']];
+var SV = null, SVC = null; if (window.SURVIE) try { SURVIE.init(THREE, SVC = { snapY: snapY, creaIntro: function () { var esc = function (x) { return String(x || '').replace(/[<>&]/g, ''); }, gen = [['⚙️', 'Bouton PARAMÈTRES : choisis la map et les règles'], ['▶️', isTouch ? 'LANCER LA PARTIE quand tout le monde est prêt' : 'Maintiens ENTRÉE pour lancer la partie']];
     if (PUB) return { t: '🌐 ' + esc(PUB.name).toUpperCase(), d: PUB.msg ? esc(PUB.msg) : 'Un jeu créé par ' + esc(PUB.by) + '. Bonne partie !', r: [['👤', 'Créé par ' + esc(PUB.by)]].concat(gen) };
     var M = { libre: ['🎨 MON MONDE', 'Ton terrain de jeu : construis, place des appareils, invente tes règles, puis publie ton jeu pour tout le monde.', [['🧩', 'Échap → Appareils et Règles pour créer ton mode'], ['📤', 'Échap → Publier le jeu quand c\'est prêt']]],
       bf: ['⚔️ MAP 1V1', 'Build fight : 200 PV, armes sur le carré, celui qui construit le mieux gagne.', []], prop: ['🎭 PROP HUNT', '1 chercheur tiré au hasard, les autres se transforment en objets. 3 joueurs minimum.', []],
@@ -2476,7 +2479,7 @@ function castRay(ox, oy, oz, dx, dy, dz, maxT, skip, fat) {
     if (disc < 0) continue; var sq = Math.sqrt(disc), t1 = -bq - sq, t2 = -bq + sq; t = t1 > .05 ? t1 : t2 > .05 ? t2 : 1e9; if (t < best.t) best = { t: t, kind: 'bubble', o: bb }; }
   if (window.ZOMB && ZOMB.on) { var zh = ZOMB.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (zh) best = zh; }   // zombies (mode survie)
   for (i = 0; i < vehicles.length; i++) { var v = vehicles[i]; if (!v.alive || (skip && skip.veh === v)) continue; t = rayBox(ox, oy, oz, dx, dy, dz, v.x - 1.9, v.y, v.z - 1.9, v.x + 1.9, v.y + 2, v.z + 1.9); if (t < best.t) best = { t: t, kind: 'veh', o: v }; }
-  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .48 }; } /* HITBOX COMMUNE à tous les skins */
+  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .4 }; } /* HITBOX COMMUNE à tous les skins */
   return best;
 }
 var camKick = 0;
