@@ -17,11 +17,20 @@ app.commandLine.appendSwitch('force_high_performance_gpu');
 
 let GAME = null, win = null, busy = false;
 
-function screen(msg) {
+function screen(msg) {   // écran de démarrage façon PC (large) : icône Wald Game à gauche, titre + barre qui charge à droite
+  let ic = ''; try { ic = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'icon.png')).toString('base64'); } catch (e) {}
   return 'data:text/html;charset=utf-8,' + encodeURIComponent(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 35%,#3a0f5e,#0b0418 70%);color:#fff;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.b{width:min(520px,80vw);text-align:center}h1{margin:0 0 12px;font-size:54px;font-weight:900;letter-spacing:.04em;background:linear-gradient(180deg,#fff,#ffc4ec 55%,#ff2bd6);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,43,214,.6))}
-p{margin:0;color:#d9c8f0;font-weight:700;font-size:17px;line-height:1.4}</style></head><body><div class="b"><h1>WALD GAME</h1><p>${msg}</p></div></body></html>`);
+html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,Segoe UI,sans-serif;color:#fff;background:#0b0418}
+body{display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 20% 30%,rgba(255,43,214,.35),transparent 55%),radial-gradient(ellipse at 85% 80%,rgba(122,47,255,.4),transparent 55%),linear-gradient(135deg,#12051f,#0b0418 60%,#1a0628)}
+.w{display:flex;align-items:center;gap:56px;width:min(1100px,86vw)}
+.w img{width:clamp(150px,18vw,240px);height:auto;filter:drop-shadow(0 0 40px rgba(255,43,214,.55))}
+h1{margin:0;font-size:clamp(56px,7vw,96px);font-weight:900;letter-spacing:.04em;line-height:1;background:linear-gradient(180deg,#fff,#ffc4ec 55%,#ff2bd6);-webkit-background-clip:text;color:transparent}
+.s{margin:10px 0 28px;color:#d9c8f0;font-weight:700;font-size:20px}
+.bar{height:8px;border-radius:8px;background:rgba(255,255,255,.1);overflow:hidden;width:min(560px,50vw)}
+.bar i{display:block;height:100%;width:35%;border-radius:8px;background:linear-gradient(90deg,#ff2bd6,#7a2fff,#3dd6ff);animation:m 1.3s ease-in-out infinite}
+@keyframes m{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+.f{position:fixed;bottom:18px;left:0;right:0;text-align:center;color:rgba(255,255,255,.45);font-weight:700;font-size:13px;letter-spacing:.12em}
+</style></head><body><div class="w">${ic ? '<img src="' + ic + '">' : ''}<div><h1>WALD GAME</h1><div class="s">${msg}</div><div class="bar"><i></i></div></div></div><div class="f">WALD OFF GAMES · WALD ROYAL</div></body></html>`);
 }
 function readJSON(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return null; } }
 function installed() { const j = readJSON(path.join(GAME, 'version.json')); return j ? j.v : -1; }

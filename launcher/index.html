@@ -68,7 +68,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .price{display:inline-block;font:900 12px Inter;color:#1a0820;background:linear-gradient(180deg,#ffe36a,#ffb23d);border-radius:8px;padding:3px 8px;margin-left:6px}
 @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto}.brand{padding:0 6px}.brand small{display:none}nav{display:flex}nav button{padding:8px 10px;white-space:nowrap}nav button span.t{display:none}.acct{margin:0 0 0 auto;padding:4px 8px}.acct div{display:none}main{padding:14px}.hin h2{font-size:38px}.hero{min-height:280px}.top .search{display:none}}
 .svc{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.svc input{flex:1;min-width:200px;padding:11px 12px;border-radius:12px;border:2px solid rgba(255,43,214,.45);background:rgba(0,0,0,.35);color:#fff;font:800 14px inherit;letter-spacing:.06em}
-</style>
+.hlogo{display:block;width:clamp(120px,15vw,210px);border-radius:18px;box-shadow:0 0 30px rgba(255,43,214,.5);margin:4px 0}</style>
 </head>
 <body>
 <div id="auth" hidden><div class="ab"><img src="icon-192.png" alt=""><h2>Bienvenue sur Wald Game</h2><p class="note" style="text-align:center;margin:0">Crée ton compte pour jouer.</p>
@@ -118,7 +118,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
     <section class="page" data-p="lib">
       <div class="top"><h1>Bibliothèque</h1></div>
-      <div class="grid"><button class="card" id="libCard"><img src="../wald-royal/img/place.jpg" alt=""><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <div class="grid"><button class="card" id="libCard"><img src="../jeu/logo.jpg" alt="Wald Royal" style="object-fit:cover"><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
       <button class="btn2" id="libUn" type="button" hidden style="margin-top:10px">🗑 Désinstaller Wald Royal</button>
       <h3>Vidéos</h3><div class="grid">
         <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal · accès anticipé</small></div></button>
@@ -132,7 +132,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <div class="top"><h1>Boutique</h1></div>
       <h3 style="margin-top:0">Tous les jeux</h3>
       <div class="games">
-        <div class="gm"><img src="../wald-royal/img/capitale.jpg" alt=""><div><em>JEU · GRATUIT</em><b>Wald Royal</b><small>Battle Royale avec ou sans constructions, Partie rapide, Classé, Créatif et MAP 1V1.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
+        <div class="gm"><img src="../jeu/logo.jpg" alt="Wald Royal" style="object-fit:cover"><div><em>JEU · GRATUIT</em><b>Wald Royal</b><small>Battle Royale avec ou sans constructions, Partie rapide, Classé, Créatif et MAP 1V1.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
         <div class="gm"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><em>ÉDITION · 5,99 €</em><b>Wald Royal + Mode Histoire</b><small>Tout Wald Royal + le Mode Histoire : monde de 4 km, 32 créatures, mode histoire.</small><button class="btn2 off" type="button" data-buy>🔒 BIENTÔT · 5,99 €</button></div></div>
         <div class="gm"><img src="../wald-royal/img/creatif.jpg" alt=""><div><em>CRÉATIF · GRATUIT</em><b>Créatif · MAP 1V1 · PROP HUNT</b><small>Mon monde, MAP 1V1, Prop Hunt, Sol en lave (✔ Wald Game) et les jeux publiés par les joueurs. Tout le Créatif est gratuit.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
         <div class="gm soon"><img src="../wald-royal/img/lobby.jpg" alt=""><div><em>PROCHAIN JEU</em><b>??? · Wald Off Games</b><small>Le prochain jeu de Wald Off. Reste connecté…</small><button class="btn2 off" type="button" disabled>🔒 À VENIR</button></div></div>
@@ -311,7 +311,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   var CREA = LSg('wr_creator') === '1';
   var SL = [
     { bg: 'crea_boss.jpg', tag: 'NOUVEAU · DLC', t: 'WALD ROYAL<br>+ MODE HISTOIRE', p: 'La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer. 5,99 € · bientôt.', x: [['▶ Cinématique', 4], ['🛒 Accès boutique', 'shop']] },
-    { bg: 'capitale.jpg', tag: 'SAISON 1 · GRATUIT', t: 'WALD<br>ROYAL', p: 'Battle Royale avec ou sans constructions, Partie rapide ou Classé, Créatif avec MAP 1V1. Joue avec tes potes avec un code.', x: [['▶ Bande-annonce', 1], ['🎨 Créatif', 3]] },
+    { bg: 'capitale.jpg', tag: 'SAISON 1 · GRATUIT', t: '<img src="../jeu/logo.jpg" alt="WALD ROYAL" class="hlogo">', p: 'Battle Royale avec ou sans constructions, Partie rapide ou Classé, Créatif avec MAP 1V1. Joue avec tes potes avec un code.', x: [['▶ Bande-annonce', 1], ['🎨 Créatif', 3]] },
     { bg: 'collines.jpg', tag: 'MODE HISTOIRE', t: 'LA BRUME<br>VIOLETTE', p: 'Il y a trois ans, la Brume Violette est sortie de la terre. Retrouve les affiches, remplis le Livre des créatures… et trouve le Roi Violet.', x: [['▶ Cinématique', 2], ['🛒 Accès boutique', 'shop']] }];
   var SI = 0, sT = null;
   $('hDots').innerHTML = SL.map(function (q, i) { return '<i data-i="' + i + '"></i>'; }).join('');

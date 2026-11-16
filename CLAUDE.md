@@ -531,3 +531,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v84-v85
 - v84 : icône ESCALIER = rampe, noms des pièces sans doublon (`window.keyName` exposé pour survie.js `KN`), « ∞ » en Créatif.
 - v85 : **matériaux 500 max de chaque** (comme Fortnite) partout (`RMAX`, `give` affiche « MAX »). En Créatif : infinis par défaut, règle de partie `mats` (`RSOPT.mats` : ♾️ infinis / 🪵 500 max) dans ⚙️ Paramètres (libre, MAP 1V1) ; avec « 500 max » chacun commence la partie à 500 de chaque (`SV.setRes`) et récolte à la pioche. `INF()` dans survie.js remplace les tests `C.CREA` liés aux matériaux ; `C.mat500()`.
+
+## v86 : menu Échap façon Fortnite, logo Wald Royal, écran de démarrage PC
+- Salon (PC) : **Échap** (ou bouton ☰ `#escB` en haut à droite) = `escMenu(true)` : amis en grand à gauche (`#frM.big`) + colonne `#escM` à droite (⚙️ RÉGLAGES, 📊 STATS, 💬 COMMENTAIRES, ⬅ WALD GAME, ✕). L'onglet « Réglages » de la barre du haut est caché sur PC (`body.pcLobby`), il reste sur téléphone.
+- Launcher : le **logo `jeu/logo.jpg`** remplace les vieilles images pour Wald Royal (carte Bibliothèque, carte Boutique, titre de la diapo Battle Royale `.hlogo`). Images du site rafraîchies : `lobby.jpg` (salon ranch), `creatif.jpg` (Mes îles).
+- Appli PC (`app/desktop/main.js` `screen()`) : écran de démarrage en LARGE (icône Wald Game à gauche, titre, barre qui charge, « WALD OFF GAMES · WALD ROYAL ») au lieu du petit bloc façon téléphone. Il faut réinstaller WaldGame-Setup.exe pour l'avoir.
