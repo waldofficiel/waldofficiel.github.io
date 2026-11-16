@@ -73,7 +73,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 <div id="auth" hidden><div class="ab"><img src="icon-192.png" alt=""><h2>Bienvenue sur Wald Game</h2><p class="note" style="text-align:center;margin:0">Crée ton compte pour jouer.</p>
   <div class="tabs"><button type="button" class="on" data-at="new">Créer un compte</button><button type="button" data-at="log">J'ai un compte</button></div>
   <div id="aNew"><label>Pseudo</label><input id="aPs" maxlength="16" autocomplete="nickname" placeholder="Ton pseudo en jeu"><label>Adresse e-mail</label><input id="aEm" type="email" autocomplete="email" placeholder="toi@exemple.fr"><label>Mot de passe (8 caractères minimum)</label><input id="aPw" type="password" autocomplete="new-password"><label>Confirme le mot de passe</label><input id="aPw2" type="password" autocomplete="new-password"></div>
-  <div id="aLog" hidden><label>Adresse e-mail</label><input id="lEm" type="email" autocomplete="email"><label>Mot de passe</label><input id="lPw" type="password" autocomplete="current-password"></div>
+  <div id="aLog" hidden><label>Adresse e-mail</label><input id="lEm" type="email" autocomplete="email"><label>Mot de passe</label><input id="lPw" type="password" autocomplete="current-password"><button type="button" id="aForgot" style="background:none;border:0;color:#ffd23d;font:700 13px inherit;text-decoration:underline;cursor:pointer;padding:6px 0;text-align:left">Mot de passe oublié ?</button></div>
   <button class="go" id="aGo" type="button">CRÉER MON COMPTE</button><div class="err" id="aErr"></div>
   <p class="note" style="text-align:center">Ton compte est gardé sur cet appareil. Les comptes en ligne arrivent avec le serveur du jeu.</p></div></div>
 <div class="app">
@@ -345,6 +345,8 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     } else { var a = acc(), em2 = $('lEm').value.trim().toLowerCase();
       if (!a || a.email !== em2) return er.textContent = 'Aucun compte avec cette adresse sur cet appareil.';
       hx(a.salt + '|' + $('lPw').value).then(function (h) { if (h !== a.h) er.textContent = 'Mot de passe incorrect.'; else authOk(a); }); } };
+  $('aForgot').onclick = function () { var a = acc(); document.querySelector('#auth [data-at=new]').click(); if (a) { $('aPs').value = a.pseudo; $('aEm').value = a.email; }
+    $('aErr').textContent = '🔑 Choisis un nouveau mot de passe : ton compte et ta progression restent sur cet appareil.'; $('aPw').focus(); };
   $('logout').onclick = function () { setLS('wg_sess', '0'); authShow(); };
   $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
     hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie débloquée.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };

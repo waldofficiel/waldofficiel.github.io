@@ -184,7 +184,7 @@ body.inmenu .hud:not(#toast),body.inmenu .btn,body.inmenu #touch,body.inmenu .dm
 .pbR{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.pbR>div{display:flex;flex-direction:column;gap:4px}.pbK{display:flex;flex-wrap:wrap;gap:6px}.pbK label{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.06);border-radius:8px;padding:4px 8px;font:700 11px var(--body);color:#fff}.pbB{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.pbB .go{flex:1;font:900 15px var(--display);padding:10px}#wroom{position:fixed;right:max(12px,env(safe-area-inset-right));top:calc(60px + env(safe-area-inset-top,0px));z-index:40;width:min(300px,42vw)}#wroom[hidden],#rHud[hidden],#rBlind[hidden]{display:none}
 #wroom .wr{background:rgba(16,6,30,.9);border:2px solid #ff2bd6;border-radius:16px;padding:14px;box-shadow:0 0 30px rgba(255,43,214,.35);display:flex;flex-direction:column;gap:8px;color:#fff}#wroom small{font:900 10px var(--body);letter-spacing:.12em;color:#ffd23d}#wroom b{font:900 18px var(--display)}
 #wrL{display:flex;flex-direction:column;gap:4px;max-height:30vh;overflow:auto}#wrL span{font:800 13px var(--body);background:rgba(255,255,255,.07);border-radius:8px;padding:6px 8px}#wrMsg{margin:0;font:700 12px var(--body);color:#d9c8f0}#wrMsg.bad{color:#ff7a9a}
-#wroom .go{font:900 15px var(--display);padding:12px;border-radius:12px}#wrSet{font:700 11px var(--body);color:#c9b8e8;margin:0}#wrSet:empty{display:none}.rsG{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px}.rsG button{text-align:left;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,43,214,.35);color:#fff;font:800 12px var(--body)}.rsG button:active{background:rgba(255,43,214,.3)}#rSetM .pubc{max-height:86vh;overflow:auto}#wroom .ghost{padding:8px;font-size:12px}
+#wroom .go{font:900 15px var(--display);padding:12px;border-radius:12px}.gpf{outline:3px solid #ffd23d!important;outline-offset:2px;box-shadow:0 0 18px #ffd23d!important}body.gp #touch,body.gp .btn,body.gp #stick,body.gp #sEdit{display:none!important}.gpL{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;margin:4px 0 10px}.gpL span{display:flex;gap:8px;align-items:center;font:700 12px var(--body);background:rgba(255,255,255,.05);border-radius:8px;padding:6px 8px}.gpL b{min-width:92px;font:900 11px var(--body);color:#ffd23d}[data-sp=manette] h4{margin:8px 0 2px;font:900 14px var(--display)}#wrSet{font:700 11px var(--body);color:#c9b8e8;margin:0}#wrSet:empty{display:none}.rsG{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px}.rsG button{text-align:left;padding:7px 9px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,43,214,.35);color:#fff;font:800 12px var(--body)}.rsG button:active{background:rgba(255,43,214,.3)}#rSetM .pubc{max-height:86vh;overflow:auto}#wroom .ghost{padding:8px;font-size:12px}
 #rHud{position:fixed;left:50%;top:calc(46px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:12;font:800 14px var(--body);color:#fff;background:rgba(16,6,30,.8);border:1px solid #b44dff;border-radius:12px;padding:7px 14px;white-space:nowrap;pointer-events:none}#rHud b{color:#ffd23d}#rHud .big{font:900 18px var(--display);color:#fff}
 #rBlind{position:fixed;inset:0;z-index:38;background:radial-gradient(circle,#1a0630,#000 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;pointer-events:none}#rBlind b{font:900 28px var(--display);color:#ff2bd6}#rBlind span{font:700 15px var(--body);color:#d9c8f0}#rBlind i{font:900 80px var(--display);font-style:normal;color:#ffd23d}#mgrp .lock,.pmap.lock{filter:grayscale(.9);opacity:.55}#mgrp .lock small{display:block;font:800 10px var(--body);color:#ffd23d}#boot .bea{display:block;margin-top:14px;font:900 11px var(--body);font-style:normal;letter-spacing:.1em;color:#ffd23d;text-shadow:0 0 10px rgba(255,210,61,.5)}#eaB{position:absolute;left:50%;top:6px;transform:translateX(-50%);z-index:6;pointer-events:auto;font:900 11px var(--body);letter-spacing:.08em;color:#ffd23d;background:rgba(11,4,24,.75);border:1px solid rgba(255,210,61,.5);border-radius:10px;padding:5px 6px 5px 10px;white-space:nowrap}#eaB button{font:900 10px var(--body);color:#fff;background:linear-gradient(135deg,#ff2bd6,#7a2fff);border:0;border-radius:8px;padding:4px 8px;margin-left:6px;cursor:pointer}
 .ea{margin:10px 0 0;font:900 11px var(--body);letter-spacing:.1em;color:#ffd23d;text-align:center}.card.wide{position:relative;width:min(720px,94vw);max-height:90vh;overflow:auto;text-align:left}.mx{position:absolute;right:10px;top:8px;background:none;border:0;color:#fff;font-size:22px;cursor:pointer}
@@ -408,7 +408,7 @@ body:not(.touch) #bCrouch{display:none}
       </section>
       <section class="pane" data-p="reglages">
         <h3>Paramètres</h3>
-        <div class="stabs" id="stabs"><button type="button" data-st="jeu" class="on">🎮 JEU</button><button type="button" data-st="gfx">✨ GRAPHISMES</button><button type="button" data-st="pc">⌨️ COMMANDES PC</button><button type="button" data-st="tel">📱 COMMANDES TÉLÉPHONE</button></div>
+        <div class="stabs" id="stabs"><button type="button" data-st="jeu" class="on">🎮 JEU</button><button type="button" data-st="gfx">✨ GRAPHISMES</button><button type="button" data-st="pc">⌨️ COMMANDES PC</button><button type="button" data-st="tel">📱 COMMANDES TÉLÉPHONE</button><button type="button" data-st="manette">🎮 MANETTE</button></div>
         <div class="spane on" data-sp="jeu">
           <label class="set">Volume <input type="range" id="vol" min="0" max="100" value="80"><output id="volO">80</output></label>
           <label class="set">Sensibilité <input type="range" id="sens" min="30" max="250" value="100"><output id="sensO">100</output></label>
@@ -427,6 +427,7 @@ body:not(.touch) #bCrouch{display:none}
           <div class="binds" id="bindsA" hidden></div>
           <button type="button" class="ghost" id="bindR">↺ TOUCHES PAR DÉFAUT</button>
         </div>
+        <div class="spane" data-sp="manette"></div>
         <div class="spane" data-sp="tel">
           <div class="soon">📱<b>Bientôt</b><span>Les commandes téléphone personnalisables arrivent dans une prochaine mise à jour.</span></div>
         </div>
@@ -2279,9 +2280,66 @@ $('bPause').addEventListener('click', function () { pause(true); });
 /* ================= tir auto + aide à la visée ================= */
 var AUTO = isTouch && (SET.auto == null ? true : SET.auto);   // sur PC : pas de tir auto, on vise à la souris
 var ads = false, adsK = 0;   // VISER : zoom + caméra à l'épaule + tir plus précis ; lunette pour le sniper
-function adsSet(on) { var w0 = cur(me); if (on && (!w0 || me.veh || me.mode !== 'ground' || state !== 'play')) on = false; ads = on; $('bAim').classList.toggle('on', on); }
+/* ===== MANETTE (Xbox / PlayStation / Switch Pro, API Gamepad) =====
+   « Constructeur pro » (par défaut, comme le Builder Pro de Fortnite) : B = mode construction ; en construction RT mur, LT escalier, RB sol, LB toit (1 appui = choisit + pose), Y éditer.
+   « Combat simple » (comme les jeux de tir classiques) : pas de construction, B = s'accroupir/glisser, Y = changer d'arme. */
+var GP = { on: false, prev: [], mv: null, fi: -1, bh: 0 };
+var GPMAP = { pro: { combat: [['RT', 'Tirer'], ['LT', 'Viser'], ['A / ✕', 'Sauter'], ['B / ○', 'Mode construction'], ['X / □', 'Interagir · recharger'], ['Y / △', 'Pioche'], ['LB / RB', 'Arme précédente / suivante'], ['L3', 'Sprint'], ['R3', 'S\'accroupir · glisser'], ['Croix ↑', 'Sac'], ['Croix ↓', 'Danse'], ['Croix ←', 'Soin suivant'], ['Croix →', 'Utiliser le soin'], ['View / Share', 'Carte'], ['Menu / Options', 'Pause']],
+    build: [['RT', 'Mur'], ['LT', 'Escalier'], ['RB', 'Sol'], ['LB', 'Toit'], ['Y / △', 'Éditer (valider)'], ['B / ○', 'Retour au combat'], ['Croix ←', 'Changer de matériau'], ['A / ✕', 'Sauter'], ['R3', 'S\'accroupir']] },
+  simple: { combat: [['RT', 'Tirer'], ['LT', 'Viser'], ['A / ✕', 'Sauter'], ['B / ○', 'S\'accroupir · glisser'], ['X / □', 'Interagir · recharger'], ['Y / △', 'Changer d\'arme'], ['LB', 'Utiliser le soin'], ['RB', 'Arme suivante'], ['L3', 'Sprint'], ['R3', 'Pioche'], ['Croix ↑', 'Sac'], ['Croix ↓', 'Danse'], ['Croix ←', 'Soin suivant'], ['View / Share', 'Carte'], ['Menu / Options', 'Pause']], build: [] } };
+function gpMode() { return SET.gp === 'simple' ? 'simple' : 'pro'; }
+function gpKey(a, up) { var c = BIND[a]; if (c) dispatchEvent(new KeyboardEvent(up ? 'keyup' : 'keydown', { code: c, key: c, bubbles: true })); }
+function gpTap(a) { gpKey(a); setTimeout(function () { gpKey(a, true); }, 50); }
+function gpTool() { return SV && SV.tool ? SV.tool() : null; }
+function gpCycle(d) { for (var i = 1; i <= 3; i++) { var j = ((me.slot + d * i) % 3 + 3) % 3; if (me.inv[j]) { slotPress = j; return; } } }
+function gpOverlay() { var L = ['rSetM', 'pubM', 'devM', 'ruleM', 'pause', 'victory', 'end', 'lobby']; for (var i = 0; i < L.length; i++) { var e = $(L[i]); if (e && !e.hidden && e.getClientRects().length) return e; } if (state === 'play' && CREA && !ROUND && $('wroom') && !$('wroom').hidden) return null; return null; }
+function gpMenuNav(o, dn) { var bs = Array.from(o.querySelectorAll('button,input[type=range],select')).filter(function (b) { return !b.hidden && !b.disabled && b.getClientRects().length; }); if (!bs.length) return;
+  var f = bs.indexOf(document.activeElement); if (f < 0) f = Math.min(Math.max(GP.fi, 0), bs.length - 1);
+  var mv = dn(12) || dn(14) ? -1 : dn(13) || dn(15) ? 1 : 0; if (mv || GP.fi < 0) { f = (f + mv + bs.length) % bs.length; GP.fi = f; bs[f].focus({ preventScroll: false }); bs.forEach(function (b, i) { b.classList.toggle('gpf', i === f); }); }
+  if (dn(0)) bs[f].click();
+  if (dn(1)) { if (o.id === 'pause') pause(false); else if (o.id !== 'lobby' && o.id !== 'victory' && o.id !== 'end') o.hidden = true; GP.fi = -1; }
+  if (dn(9) && o.id === 'lobby') $('play').click(); else if (dn(9) && o.id === 'pause') pause(false); }
+function gpTick(dt) { var gps = navigator.getGamepads ? navigator.getGamepads() : null, g = null; if (!gps) return;
+  for (var i = 0; i < gps.length; i++) if (gps[i] && gps[i].connected) { g = gps[i]; break; }
+  if (!g) { if (GP.on) { GP.on = false; GP.mv = null; document.body.classList.remove('gp'); } return; }
+  var B = g.buttons.map(function (b) { return b.pressed || b.value > .45; }), P = GP.prev; GP.prev = B;
+  function dn(k) { return B[k] && !P[k]; } function rel(k) { return !B[k] && P[k]; }
+  function dz(v) { v = v || 0; var a = Math.abs(v); return a < .14 ? 0 : Math.sign(v) * Math.pow((a - .14) / .86, 1.5); }
+  var lx = dz(g.axes[0]), ly = dz(g.axes[1]), rx = dz(g.axes[2]), ry = dz(g.axes[3]);
+  if (!GP.on && (B.some(Boolean) || lx || ly || rx || ry)) { GP.on = true; document.body.classList.add('gp'); toast('🎮 MANETTE CONNECTÉE · ' + (gpMode() === 'pro' ? 'Constructeur pro' : 'Combat simple')); }
+  if (!GP.on) return;
+  var o = gpOverlay(); if (o) { GP.mv = null; if (fireHeld && GP.fire) { fireHeld = false; GP.fire = false; } gpMenuNav(o, dn); return; }
+  document.querySelectorAll('.gpf').forEach(function (b) { b.classList.remove('gpf'); }); GP.fi = -1;
+  if (state !== 'play') return;
+  if (dn(9)) { pause(true); return; }
+  GP.mv = lx || ly ? { x: lx, y: ly } : null;
+  var sp = (ads ? 1.6 : 3.2) * dt; lookDX += rx * sp; lookDY += ry * sp * .75;
+  var pro = gpMode() === 'pro', tl = gpTool(), bld = pro && (tl === 'build' || tl === 'edit');
+  if (dn(0)) jumpPress = true;
+  if (dn(2)) { if (me.prop) unProp(); else { actPress = true; relPress = true; } }
+  if (dn(10)) { SPRT = !SPRT; $('bSprint').classList.toggle('on', SPRT); }
+  if (dn(8)) toggleMap(); if (dn(12)) invToggle(); if (dn(13)) doDance();
+  if (bld) { var PC = { 7: 'mur', 6: 'escalier', 5: 'sol', 4: 'toit' }, held = false;
+    [7, 6, 5, 4].forEach(function (k) { if (dn(k)) { if (tl !== 'edit') gpTap(PC[k]); } if (B[k]) held = true; });
+    if (held !== !!GP.fire) { fireHeld = held; GP.fire = held; }
+    if (dn(1)) { if (tl === 'edit') gpTap('editer'); else gpTap('construire'); }
+    if (dn(3)) gpTap('editer'); if (dn(14)) gpTap('materiau'); if (dn(11)) toggleCrouch(); return; }
+  if (dn(7)) { fireHeld = true; GP.fire = true; } if (rel(7) && GP.fire) { fireHeld = false; GP.fire = false; }
+  if (dn(6)) adsSet(true); if (rel(6)) adsSet(false);
+  if (dn(14)) healCycle();
+  if (pro) { if (dn(1)) { if (!BUILD || (SVC && !SVC.BUILD)) toast('🧱 PAS DE CONSTRUCTION ICI'); else gpTap('construire'); } if (dn(3)) gpTap('pioche'); if (dn(4)) gpCycle(-1); if (dn(5)) gpCycle(1); if (dn(11)) toggleCrouch(); if (dn(15)) slotPress = 3; }
+  else { if (dn(1)) toggleCrouch(); if (dn(3) || dn(5)) gpCycle(1); if (dn(4)) slotPress = 3; if (dn(11)) gpTap('pioche'); if (dn(15)) toggleMap(); } }
+addEventListener('gamepadconnected', function (e) { toast('🎮 ' + (e.gamepad && e.gamepad.id ? 'MANETTE DÉTECTÉE' : 'MANETTE') + ' · appuie sur un bouton'); });
+addEventListener('pointerdown', function (e) { if (GP.on && e.pointerType === 'touch') { GP.on = false; document.body.classList.remove('gp'); } }, true);
+function gpPane() { var p = document.querySelector('[data-sp="manette"]'); if (!p) return; var m = gpMode(), M = GPMAP[m];
+  function tb(t, L) { return '<h4>' + t + '</h4><div class="gpL">' + L.map(function (q) { return '<span><b>' + q[0] + '</b>' + q[1] + '</span>'; }).join('') + '</div>'; }
+  p.innerHTML = '<div class="set">Disposition <div class="seg" id="gpSeg"><button type="button" data-g="pro"' + (m === 'pro' ? ' class="on"' : '') + '>🧱 Constructeur pro</button><button type="button" data-g="simple"' + (m === 'simple' ? ' class="on"' : '') + '>🎯 Combat simple</button></div></div>' +
+    '<p class="snote">' + (m === 'pro' ? 'Comme le « Builder Pro » de Fortnite : chaque gâchette pose sa pièce (1 appui = choisit + pose, garde appuyé pour en poser plusieurs).' : 'Comme les jeux de tir classiques : pas de construction à la manette, juste le combat.') + ' Branche ta manette (USB ou Bluetooth) et appuie sur un bouton.</p>' +
+    tb(m === 'pro' ? '⚔️ Mode combat' : '⚔️ Commandes', M.combat) + (M.build.length ? tb('🧱 Mode construction (après B)', M.build) : '') + '<p class="snote">Menus : croix pour choisir, A pour valider, B pour revenir.</p>';
+  p.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { SET.gp = b.dataset.g; saveSet(); gpPane(); toast('🎮 ' + (SET.gp === 'pro' ? 'CONSTRUCTEUR PRO' : 'COMBAT SIMPLE')); }; }); }
+function adsSet(on) { var w0 = cur(me); if (on && (!w0 || (SV && SV.tool && SV.tool()) || me.veh || me.mode !== 'ground' || state !== 'play')) on = false; ads = on; $('bAim').classList.toggle('on', on); }
 cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-cv.addEventListener('mousedown', function (e) { if (!isTouch && e.button === 2 && state === 'play') adsSet(true); });
+cv.addEventListener('mousedown', function (e) { if (!isTouch && e.button === 2 && state === 'play') { var tl = SV && SV.tool ? SV.tool() : null; if (tl === 'build') { gpTap('materiau'); adsSet(false); } else if (!tl) adsSet(true); } });   /* construction : clic droit = changer de matériau (comme sur Fortnite), jamais la visée */
 addEventListener('mouseup', function (e) { if (!isTouch && e.button === 2) adsSet(false); });
 $('bAim').addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); adsSet(!ads); });
 function autoToggle() { if (!isTouch) return; AUTO = !AUTO; SET.auto = AUTO; saveSet(); $('bAuto').setAttribute('aria-pressed', AUTO); $('bAuto').lastChild.textContent = AUTO ? 'ON' : 'OFF'; toast(AUTO ? 'TIR AUTO ACTIVÉ' : 'TIR AUTO COUPÉ'); }
@@ -2533,7 +2591,7 @@ function update(dt) {
   dropUpdate(dt);
   bus.t += dt; var bk = Math.min(1, bus.t / bus.dur); bus.x = bus.x0 + (bus.x1 - bus.x0) * bk; bus.z = bus.z0 + (bus.z1 - bus.z0) * bk;
   var fx = Math.cos(camA), fz = Math.sin(camA), rx = -fz, rz = fx;
-  var jx = 0, jy = 0; if (joy) { jx = joy.x; jy = joy.y; } else { if (kd('avancer') || keys.ArrowUp) jy -= 1; if (kd('reculer') || keys.ArrowDown) jy += 1; if (kd('gauche') || keys.ArrowLeft) jx -= 1; if (kd('droite') || keys.ArrowRight) jx += 1; }
+  var jx = 0, jy = 0; if (joy) { jx = joy.x; jy = joy.y; } else if (GP.mv) { jx = GP.mv.x; jy = GP.mv.y; } else { if (kd('avancer') || keys.ArrowUp) jy -= 1; if (kd('reculer') || keys.ArrowDown) jy += 1; if (kd('gauche') || keys.ArrowLeft) jx -= 1; if (kd('droite') || keys.ArrowRight) jx += 1; }
   var jl = Math.hypot(jx, jy); if (jl > 1) { jx /= jl; jy /= jl; }
   var mvx = fx * -jy + rx * jx, mvz = fz * -jy + rz * jx; if (PMENU) { mvx = mvz = 0; fireHeld = false; jumpPress = false; }
   pl.forEach(function (p) {
@@ -2567,7 +2625,7 @@ function update(dt) {
         if (jumpPress && p === me && CREA && flyJump()) jumpPress = false;
         if (jumpPress && p.y <= p.gy + .05 && climbUp(p)) jumpPress = false;   // grimper sur un mur / un rebord devant soi
         if (jumpPress && p.y <= p.gy + .05) { p.vy = JMPT > performance.now() || RCUR && RCUR.jump && rLive() ? 14 : 8; if (p.crouch) { p.crouch = false; $('bCrouch').classList.remove('act'); } p.danceT = 0; }
-        var tool = SV && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt);
+        var tool = SV && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt); if (GP.on) autoShoot = false;
         if (tool) SURVIE.use(fireHeld && !invOpen(), dt);
         if (fireHeld && p.useT > 0) cancelHeal(p);
         if ((fireHeld || autoShoot) && !invOpen() && !(p.useT > 0) && !tool) { var cp = cam.position, cd = cam.getWorldDirection(v1), tMin = cp.distanceTo(v2.set(p.x, p.y + 1.5, p.z)); fireGun(p, cp.x, cp.y, cp.z, cd.x, cd.y, cd.z, tMin); }
@@ -2784,7 +2842,7 @@ function renderLobby(t) { LOBT = t; R3.shadowMap.autoUpdate = true; if (lme) { v
 /* ================= boucle ================= */
 var tPrev = 0;
 function loop(now) {
-  var rawDt = (now - tPrev) / 1000 || 0, dt = Math.min(.05, rawDt); tPrev = now; var t = now / 1000; if (rawDt > 0 && rawDt < .5) dynRes(rawDt);
+  var rawDt = (now - tPrev) / 1000 || 0, dt = Math.min(.05, rawDt); tPrev = now; var t = now / 1000; try { gpTick(dt); } catch (e) {} if (rawDt > 0 && rawDt < .5) dynRes(rawDt);
   if (state === 'menu') renderLobby(t);
   else {
     if (state === 'play') update(dt); else if (state === 'end') { updParts(dt); updTracers(dt); }
@@ -2906,7 +2964,7 @@ addEventListener('keydown', function (e) { if (!REBIND) return; e.preventDefault
 $('sadv').addEventListener('click', function () { var h = $('bindsA').hidden = !$('bindsA').hidden; this.textContent = (h ? '▸' : '▾') + ' AVANCÉ'; });
 window.keyName = keyName;
 $('bindR').addEventListener('click', function () { Object.assign(BIND, BIND0); REBIND = null; bindSave(); bindDraw(); });
-$('stabs').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; REBIND = null; document.querySelectorAll('#stabs [data-st]').forEach(function (x) { x.classList.toggle('on', x === b); }); document.querySelectorAll('.spane').forEach(function (x) { x.classList.toggle('on', x.dataset.sp === b.dataset.st); }); bindDraw(); });
+gpPane(); $('stabs').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; REBIND = null; document.querySelectorAll('#stabs [data-st]').forEach(function (x) { x.classList.toggle('on', x === b); }); document.querySelectorAll('.spane').forEach(function (x) { x.classList.toggle('on', x.dataset.sp === b.dataset.st); }); bindDraw(); });
 bindDraw();
 function mapPrev() { var c = $('mapPrev'), g = c.getContext('2d'), k = TEX / (HALF * 2), m = HALF * .12; g.drawImage(terr, m * k, m * k, (HALF * 2 - m * 2) * k, (HALF * 2 - m * 2) * k, 0, 0, c.width, c.height); } mapPrev();
 addEventListener('resize', resize);

@@ -429,3 +429,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - `crKit()` donne l'équipement au lancement/réapparition (libre, bf). `freeTick()` gère chrono / objectif / dernier en vie pour libre et bf. Échap : « Terminer la partie » (message `re`).
 - Arbres lointains : plus de photos (imposteurs = taches noires), ce sont les arbres 3D légers à couleurs de sommets de index.html (`G.treeIM`) qui s'affichent au-delà du rayon des beaux arbres.
 - `WR.ev(code)` : outil de test (évalue dans le jeu).
+
+## Manette + clic droit matériau + mot de passe oublié (cache v63)
+- `gpTick(dt)` (appelé dans `loop`) lit l'API Gamepad. Disposition `SET.gp` : `pro` (défaut, Builder Pro Fortnite : B = construction, RT mur / LT escalier / RB sol / LB toit, Y éditer, croix ← matériau) ou `simple` (jeu de tir classique, pas de construction). Actions envoyées en faux événements clavier (`gpTap`). Menus : croix + A/B (`gpMenuNav`, classe `.gpf`). Onglet Paramètres « 🎮 MANETTE » (`gpPane`). `body.gp` cache les boutons tactiles.
+- En construction : clic droit = changer de matériau (plus jamais la visée), `adsSet` refuse de viser avec un outil.
+- Launcher : « Mot de passe oublié ? » → recrée le mot de passe du compte local (pseudo + e-mail pré-remplis, progression gardée).
