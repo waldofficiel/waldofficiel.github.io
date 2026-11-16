@@ -289,7 +289,7 @@
       if (kind === 'centre') { plaza(ctx, t[1], t[2]); }
       if (kind === 'centre') {   // abribus, panneaux pub
         (DES ? [[R * .45, -6], [-R * .45, -6], [0, -R * .55]] : [[R * .62, 0], [-R * .62, 0], [0, R * .62]]).forEach(function (q, k) { var x = t[1] + q[0], z = t[2] + q[1], ry = Math.atan2(q[0], q[1]); STOP.add(x, hgt(x, z), z, ry); col(x, z, 1.7, 1.7, 2.6); });
-        var ADS = [['WALD ROYAL', 'TÉLÉCHARGE-LE'], ['FLUBB', 'LÉGENDAIRE EN BOUTIQUE'], ['LA WALD', 'ARRIVE EN MONTGOLFIÈRE']], BGS = [['#7a1fff', '#ff2bd6'], ['#ffb800', '#ff6a1a'], ['#0a1a4a', '#2de2ff']];
+        var ADS = [['WALD ROYAL', 'TÉLÉCHARGE-LE'], ['FLUBB', 'LÉGENDAIRE EN BOUTIQUE'], ['LA WALD CAR', 'LA CAISSE DE WALD OFF']], BGS = [['#7a1fff', '#ff2bd6'], ['#ffb800', '#ff6a1a'], ['#0a1a4a', '#2de2ff']];
         ADS.forEach(function (ad, k) { var a = DES ? 3.5 + k * 1.1 : k / 3 * 6.283 + .5, x = t[1] + Math.cos(a) * (R * (DES ? .6 : .82)), z = t[2] + Math.sin(a) * (R * (DES ? .6 : .82)), y = hgt(x, z), g = new T.Group();
           var pole = new T.Mesh(GC8, dark); pole.scale.set(.3, 6, .3); pole.position.y = 3; g.add(pole); var bd = new T.Mesh(GB, dark); bd.scale.set(6.4, 3.4, .3); bd.position.y = 7.2; g.add(bd);
           var mat = new T.MeshBasicMaterial({ map: adTex(ad, BGS[k], '#fff') }); [-1, 1].forEach(function (sd) { var pl = new T.Mesh(new T.PlaneGeometry(6, 3), mat); pl.position.set(0, 7.2, sd * .16); if (sd < 0) pl.rotation.y = Math.PI; g.add(pl); });
