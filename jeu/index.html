@@ -232,9 +232,9 @@ body.buying #lobby>*:not(#buyPop){visibility:hidden}
 .dslot img{width:100%;flex:1;object-fit:cover;min-height:0}.dslot.sel{border:2px solid var(--sun);box-shadow:0 0 12px rgba(255,210,61,.6)}.dslot.full{border-style:solid;border-color:rgba(255,255,255,.4)}
 .dhelp{font-size:12px;opacity:.75;margin:0 0 8px}
 /* ÉCRAN PC façon Fortnite : carte en haut à droite avec la tempête / en vie / élim. dessous ; armes en bas à droite (pioche à gauche des cases), constructions puis matériaux au-dessus */
-body:not(.touch) #mini{width:170px;height:170px;top:calc(12px + env(safe-area-inset-top,0px));right:14px}
-body:not(.touch) #tl{left:auto;right:14px;top:calc(190px + env(safe-area-inset-top,0px));justify-content:flex-end}
-body:not(.touch) #storm{left:auto;right:14px;transform:none;top:calc(222px + env(safe-area-inset-top,0px));max-width:300px;overflow:hidden;text-overflow:ellipsis}
+body:not(.touch) #mini{width:min(170px,26vh);height:min(170px,26vh);top:calc(12px + env(safe-area-inset-top,0px));right:14px}
+body:not(.touch) #tl{left:auto;right:14px;top:calc(min(170px,26vh) + 20px + env(safe-area-inset-top,0px));justify-content:flex-end}
+body:not(.touch) #storm{left:auto;right:14px;transform:none;top:calc(min(170px,26vh) + 52px + env(safe-area-inset-top,0px));max-width:300px;overflow:hidden;text-overflow:ellipsis}
 body:not(.touch) #hotbar{left:auto;right:14px;transform:none;bottom:calc(14px + env(safe-area-inset-bottom,0px))}
 body:not(.touch) #hotbar #sTools{order:-1;margin:0 7px 0 0;padding:0 7px 0 0;border-left:0;border-right:2px solid rgba(255,255,255,.25)}
 body:not(.touch) #wname{left:auto;right:16px;transform:none;bottom:calc(72px + env(safe-area-inset-bottom,0px))}
@@ -2166,9 +2166,9 @@ function netMsg(m) { if (!m || !m.t) return; if (m.bid) { if (BOTS[m.bid]) retur
   if (m.t === 'bye') { netDrop(m.id); return; }
   if (m.t === 's') { var p = netPlayer(m); p.isBot = !!m.bid; if (m.gl != null && TPL === 'gg') GGTOP[m.n || 'Joueur'] = m.gl; p.seen = performance.now(); p.tx = m.x; p.ty = m.y; p.tz = m.z; p.ta = m.a; p.pt = m.pt || 0; p.hp = m.hp; p.sh = m.sh; p.crouch = !!m.c; p.name = m.n || p.name; p.pr = m.pr || null; p.alive = m.al !== 0; if (BRN) { p.mode = ['bus', 'fall', 'glide', 'ground'][m.md] || 'ground'; p.team = 0; if (!p.alive) p.model.root.visible = false; }
     var wk = WEAPONS[m.w] ? m.w : null; p.inv[0] = wk ? (p.inv[0] && p.inv[0].k === wk ? p.inv[0] : { k: wk, mag: 1, res: 0, rlT: 0 }) : null; p.slot = 0;
-    if (m.dz && ANIM.D[m.dz]) { if (p.dz !== m.dz || !(p.danceT > 0)) { p.dz = m.dz; p.danceT0 = performance.now() / 1000 - (m.dd || 0); } p.danceT = 30; } else p.danceT = 0; return; }
+    if (m.dz === 'dab') { p.dz = 'dab'; p.danceT = 1; } else if (m.dz && ANIM.D[m.dz]) { if (p.dz !== m.dz || !(p.danceT > 0)) { p.dz = m.dz; p.danceT0 = performance.now() / 1000 - (m.dd || 0); } p.danceT = 30; } else p.danceT = 0; return; }
   var q = NETP[m.id];
-  if (m.t === 'f' && m.k === 'patate' && m.v) { potLaunch({ x: m.a[0], z: m.a[2] }, m.a[0], m.a[1], m.a[2], 0, 0, 0, false, m.v.slice()); return; }
+  if (m.t === 'f' && (m.k === 'patate' || m.k === 'dabb') && m.v) { potLaunch({ x: m.a[0], z: m.a[2] }, m.a[0], m.a[1], m.a[2], 0, 0, 0, false, m.v.slice(), m.k); return; }
   if (m.t === 'f') { if (WEAPONS[m.k] && WEAPONS[m.k].boom) shot3d(m.k, m.a[0], m.a[1], m.a[2], m.b[0], m.b[1], m.b[2], true); else tracer(m.a[0], m.a[1], m.a[2], m.b[0], m.b[1], m.b[2], m.k === 'laser' ? '#ff2bd6' : '#fff6c2'); SFX.shot(m.k, Math.max(.05, 1 - dist(m.a[0], m.a[2], me.x, me.z) / 160) * .8); return; }
   if (m.t === 'h' && m.to === NETID && ROUND && TPL === 'prop' && ROUND.ph === 'hunt') { if (ROUND.dead[NETID] || ROUND.seek === NETID) return; ROUND.dead[NETID] = 1; unProp(true); netPub({ t: 'k', by: m.id }); toast('💥 ' + (q ? q.name : 'Le chercheur') + ' T\'A TROUVÉ !'); burst(me.x, me.y + 1, me.z, 30, ['#ff2bd6', '#ffffff'], 6, .2, .8); return; }
   if (m.t === 'h' && m.to === NETID && CREA && (!rLive() || ROUND.ids.indexOf(NETID) < 0)) return;
@@ -2185,7 +2185,7 @@ function netMsg(m) { if (!m || !m.t) return; if (m.bid) { if (BOTS[m.bid]) retur
 function netTick(p, dt) { var k = Math.min(1, dt * 10), ox = p.x, oz = p.z; p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k; p.z += (p.tz - p.z) * k; p.gy = p.y; var da = p.ta - p.a; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; p.a += da * k;
   p.vx = (p.x - ox) / Math.max(dt, .001); p.vz = (p.z - oz) / Math.max(dt, .001); if (performance.now() - p.seen > 8000) netDrop(p.id); }
 function netSend(dt) { if (!NETON) { if ((CREA || BRN) && !NETTRY) { NETTRY = true; netGo(); } return; } brStale(); brSendBots(dt); NETT -= dt; if (NETT > 0) return; NETT = .1; var w = cur(me);
-  netPub({ t: 's', md: ['bus', 'fall', 'glide', 'ground'].indexOf(me.mode), al: me.alive ? 1 : 0, n: netName(), sk: mySkin(), x: +me.x.toFixed(2), y: +me.y.toFixed(2), z: +me.z.toFixed(2), a: +me.a.toFixed(2), pt: +(camP + .22).toFixed(2), hp: Math.round(me.hp), sh: Math.round(me.sh), c: me.crouch ? 1 : 0, w: w && !(SV && SV.tool()) ? w.k : '', pr: me.prop || '', gl: GGLV, dz: me.danceT > 0 ? me.dz : '', dd: me.danceT > 0 ? +(performance.now() / 1000 - me.danceT0).toFixed(2) : 0 });
+  netPub({ t: 's', md: ['bus', 'fall', 'glide', 'ground'].indexOf(me.mode), al: me.alive ? 1 : 0, n: netName(), sk: mySkin(), x: +me.x.toFixed(2), y: +me.y.toFixed(2), z: +me.z.toFixed(2), a: +me.a.toFixed(2), pt: +(camP + .22).toFixed(2), hp: Math.round(me.hp), sh: Math.round(me.sh), c: me.crouch ? 1 : 0, w: w && !(SV && SV.tool()) ? w.k : '', pr: me.prop || '', gl: GGLV, dz: me.dabT > 0 ? 'dab' : me.danceT > 0 ? me.dz : '', dd: me.danceT > 0 ? +(performance.now() / 1000 - me.danceT0).toFixed(2) : 0 });
   if (Math.random() < .03) netBadge(); }
 /* LANCE-PATATE façon lance-grenade : la patate part en cloche (monte puis retombe), HURLE pendant le vol, puis EXPLOSE à l'impact (ou au bout de 3,5 s) */
 var POTS = [], POTG = null;
@@ -2203,11 +2203,22 @@ function potScream(dur, v) { if (!AC || v < .04) return; var t = AC.currentTime,
   gn.gain.setValueAtTime(.0001, t); gn.gain.exponentialRampToValueAtTime(.32 * v, t + .06); gn.gain.setValueAtTime(.32 * v, t + dur * .85); gn.gain.exponentialRampToValueAtTime(.001, t + dur);
   o.connect(f1); o2.connect(f2); f1.connect(gn); f2.connect(gn); gn.connect(OUT); [o, o2, vib].forEach(function (x) { x.start(t); x.stop(t + dur + .05); }); }
 function potBoomSfx(v) { if (v < .04) return; nz(.06, .8 * v, 5000, 'highpass'); nz(.5, .7 * v, 1300); nz(.8, .6 * v, 200, 'lowpass', .005, 1.5); tone('sine', 110, 30, .45, .6 * v); nz(.18, .35 * v, 700, 'bandpass', .02, 2); tone('triangle', 420, 90, .12, .15 * v); }   // BOUM + « splortch »
-function potLaunch(p, x, y, z, dx, dy, dz, local, v0) { var V = v0 || [dx * 30, dy * 30 + 4.5, dz * 30], m = potModel(); m.position.set(x, y, z); scene.add(m);
-  var q = { m: m, p: p, x: x, y: y, z: z, v: V, t: 0, local: local }; POTS.push(q); var fl = Math.min(2.6, Math.max(.7, 2 * (V[1] + Math.sqrt(Math.max(0, V[1] * V[1] + 2 * 20 * 1.4))) / 20));
+function discoMesh(r) { var g = new THREE.IcosahedronGeometry(r, 2).toNonIndexed(), n = g.attributes.position.count, col = new Float32Array(n * 3), C = new THREE.Color(), PAL = ['#ff2bd6', '#2de2ff', '#ffd23d', '#ffffff', '#c77dff', '#7dff6a', '#ffffff'];
+  for (var i = 0; i < n; i += 3) { C.set(PAL[(Math.random() * PAL.length) | 0]); for (var j = 0; j < 3; j++) { col[(i + j) * 3] = C.r; col[(i + j) * 3 + 1] = C.g; col[(i + j) * 3 + 2] = C.b; } } g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  var m = new THREE.Mesh(g, new THREE.MeshPhongMaterial({ vertexColors: true, flatShading: true, shininess: 140, specular: '#ffffff', emissive: '#2a0a3a' })); m.castShadow = true; return m; }
+var DABS = [];
+function dabBoom(q, x, y, z) { var R = 7, dm = dist(x, z, me.x, me.z), b = discoMesh(.5); b.position.set(x, Math.max(y, hgt(x, z)) + 1.6, z); scene.add(b); DABS.push({ m: b, t: 5 });
+  burst(x, y + 1, z, 40, ['#ff2bd6', '#2de2ff', '#ffd23d', '#ffffff', '#7dff6a'], 9, .3, 1.4); if (dm < 120) { var v = Math.max(.05, 1 - dm / 120); [523, 659, 784, 1047, 784, 659].forEach(function (f, i) { tone('square', f, f, .09, .06 * v, i * .1); }); }
+  function hitD(o) { return o.alive && o.mode === 'ground' && Math.hypot(o.x - x, o.y + .9 - y, o.z - z) < R; }
+  if (hitD(me) && !WIN) { me.dabT = 5; me.danceT = 0; toast('🪩 BOULE À DAB ! TU DABS PENDANT 5 SECONDES'); }
+  pl.forEach(function (o) { if (o !== me && !o.net && !o.remote && hitD(o)) { o.dabT = 5; o.vx = o.vz = 0; } }); Object.keys(BOTS).forEach(function (id) { var o = BOTS[id]; if (o && hitD(o) && (!ROUND || ROUND.by === NETID)) { o.dabT = 5; o.vx = o.vz = 0; } }); }
+function updDabs(dt) { for (var i = DABS.length - 1; i >= 0; i--) { var d = DABS[i]; d.t -= dt; d.m.rotation.y += dt * 2.5; d.m.position.y += Math.sin(d.t * 4) * .004; if (Math.random() < .5) burst(d.m.position.x, d.m.position.y, d.m.position.z, 1, ['#ff2bd6', '#2de2ff', '#ffd23d', '#fff'], 6, .12, .5); if (d.t <= 0) { scene.remove(d.m); DABS.splice(i, 1); } } }
+function dabPose(A, t) { var s = Math.floor(t / .7) % 2 === 0; return s ? A.P({ ra: .6, rb: 2.2, re: .1, rw: 0, la: .9, lb: -2.0, le: 1.5, lw: .2, hp: .5, hy: -.55, bp: .12 }) : A.P({ la: .6, lb: 2.2, le: .1, lw: 0, ra: .9, rb: -2.0, re: 1.5, rw: .2, hp: .5, hy: .55, bp: .12 }); }
+function potLaunch(p, x, y, z, dx, dy, dz, local, v0, kind) { var V = v0 || [dx * 30, dy * 30 + 4.5, dz * 30], m = kind === 'dabb' ? discoMesh(.2) : potModel(); m.position.set(x, y, z); scene.add(m);
+  var q = { m: m, p: p, x: x, y: y, z: z, v: V, t: 0, local: local, k: kind || 'patate' }; POTS.push(q); if (q.k === 'dabb') return V; var fl = Math.min(2.6, Math.max(.7, 2 * (V[1] + Math.sqrt(Math.max(0, V[1] * V[1] + 2 * 20 * 1.4))) / 20));
   potScream(fl, Math.max(0, 1 - dist(x, z, me.x, me.z) / 120)); q.scream = fl; return V; }
 function potDmg(o, d, p) { if (o.remote) { if (p === me) netPub({ t: 'h', to: 'b' + pl.indexOf(o), d: Math.round(d) }); } else if (o.net) { if (p === me || p.crbot || (BRN && p.bot)) netPub({ t: 'h', to: o.id, d: Math.round(d), bid: p.crbot ? p.id : undefined }); } else hurt(o, d, p); }
-function potBoom(q, x, y, z) { var W2 = WEAPONS.patate, R = W2.boom, p = q.p; scene.remove(q.m); var dm = dist(x, z, me.x, me.z);
+function potBoom(q, x, y, z) { if (q.k === 'dabb') { scene.remove(q.m); dabBoom(q, x, y, z); return; } var W2 = WEAPONS.patate, R = W2.boom, p = q.p; scene.remove(q.m); var dm = dist(x, z, me.x, me.z);
   burst(x, y, z, 26, ['#ffd23d', '#ff7a1a', '#ff2a1a', '#3a3a3a'], 9, .38, 1.1); burst(x, y, z, 16, ['#e8c890', '#b8864a', '#f4e2b0'], 6, .22, .9); potBoomSfx(Math.max(0, 1 - dm / 140)); if (dm < 14) camKick = Math.max(camKick, (14 - dm) / 14 * .25);
   if (!q.local) return;
   WALLS.forEach(function (w) { if (w.alive && Math.abs(w.x - x) < R + w.hw && Math.abs(w.z - z) < R + w.hd && y > w.y0 - 2 && y < w.y0 + w.h + 2) hitWall(w, W2.wall, p); });
@@ -2226,7 +2237,7 @@ function shot3d(k, ax, ay, az, bx, by, bz, boom) { if (!PGEO) PGEO = { patate: n
 function updProj(dt) { for (var i = PROJ.length - 1; i >= 0; i--) { var q = PROJ[i]; q.t += dt; var f = Math.min(1, q.t / q.T), x = q.a[0] + (q.b[0] - q.a[0]) * f, y = q.a[1] + (q.b[1] - q.a[1]) * f + (q.k === 'patate' ? Math.sin(f * Math.PI) * .6 : 0), z = q.a[2] + (q.b[2] - q.a[2]) * f;
     q.m.position.set(x, y, z); q.m.lookAt(q.b[0], q.b[1], q.b[2]); if (q.k === 'roquette') { q.m.rotateX(Math.PI / 2); q.sm -= dt; if (q.sm <= 0) { q.sm = .03; burst(x, y, z, 2, ['#d8d8d8', '#9a9a9a', '#ffb02a'], 1, .25, .9); } } else q.m.rotation.x += dt * 12;
     if (f >= 1) { scene.remove(q.m); PROJ.splice(i, 1); if (q.boom) { burst(x, y, z, q.k === 'roquette' ? 40 : 18, ['#ffd23d', '#ff7a1a', '#ff2a1a', '#3a3a3a'], q.k === 'roquette' ? 14 : 7, .35, 1.1); if (q.k === 'patate') burst(x, y, z, 10, ['#e8c890', '#b8864a'], 5, .2, .8); } } } }
-function updTracers(dt) { updProj(dt); updPots(dt); for (var i = 0; i < NT; i++) { var t = TS2[i]; if (t.l > 0) { t.l -= dt; v1.set(t.a[0], t.a[1], t.a[2]); v2.set(t.b[0], t.b[1], t.b[2]); var len = v1.distanceTo(v2); dummy.position.copy(v1).lerp(v2, .5); dummy.lookAt(v2); dummy.scale.set(.06, .06, len); } else dummy.scale.set(0, 0, 0); dummy.updateMatrix(); TIM.setMatrixAt(i, dummy.matrix); } TIM.instanceMatrix.needsUpdate = true; }
+function updTracers(dt) { updProj(dt); updPots(dt); updDabs(dt); for (var i = 0; i < NT; i++) { var t = TS2[i]; if (t.l > 0) { t.l -= dt; v1.set(t.a[0], t.a[1], t.a[2]); v2.set(t.b[0], t.b[1], t.b[2]); var len = v1.distanceTo(v2); dummy.position.copy(v1).lerp(v2, .5); dummy.lookAt(v2); dummy.scale.set(.06, .06, len); } else dummy.scale.set(0, 0, 0); dummy.updateMatrix(); TIM.setMatrixAt(i, dummy.matrix); } TIM.instanceMatrix.needsUpdate = true; }
 
 /* ================= armes ================= */
 var RAR = ['#b9bcc4', '#4dd65a', '#3d9bff', '#b05cff', '#ffb52e'], RARN = ['Commun', 'Peu commun', 'Rare', 'Épique', 'Légendaire'];
@@ -2241,15 +2252,17 @@ var WEAPONS = {
   laser:    { name: 'Lanceur laser', mag: 40, hs: 1.5, rl: 2.5, cd: .1, dmg: 15, range: 140, spread: .003, wall: 20, rar: 3 },   // À REVOIR : modèle 3D provisoire
   scar:     { name: 'Fusil Doré', mag: 30, hs: 1.5, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
   pmx:      { name: 'PM Fantôme', mag: 32, hs: 1.75, rl: 1.9, cd: .07, dmg: 17, range: 60, spread: .024, wall: 15, rar: 4 },   // légendaire : PM rapide et précis, rare
+  dabb:     { name: 'Boule à dab', mag: 1, rl: .1, cd: .8, dmg: 0, range: 40, spread: 0, wall: 0, rar: 3, thr: 1 },   // boule disco : ceux qui sont à côté font des DABS pendant 5 s
   sniper:   { name: 'Sniper lourd', mag: 1, hs: 2.5, rl: 2.6, cd: .6, dmg: 110, range: 320, spread: 0, wall: 120, rar: 3 }
 };
-var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'pmx', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompeS', 'pompeS', 'scar', 'scar', 'sniper', 'patate', 'roquette', 'laser'];
+var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'pmx', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompeS', 'pompeS', 'scar', 'scar', 'sniper', 'patate', 'roquette', 'laser', 'dabb', 'dabb'];
 function randWeapon() { return WLIST[Math.random() * WLIST.length | 0]; }
 function newSlot(k) { return { k: k, mag: WEAPONS[k].mag, res: WEAPONS[k].mag * 3, rlT: 0 }; }
 function cur(p) { var w = p.inv[p.slot]; return w && !w.h ? w : null; }
 function curH(p) { var w = p.inv[p.slot]; return w && w.h ? w.h : null; }
 var GUNSCALE = { pistolet: 1.1, smg: .92, pmx: 1.25, fusil: .76, scar: .76, pompe: .82, pompeS: .66, sniper: .6, patate: .9, roquette: .85, laser: 1 };
 function gunModel(k) {
+  if (k === 'dabb') { var gd = new THREE.Group(), bd = discoMesh(.17); bd.position.set(.12, 0, 0); gd.add(bd); return gd; }
   if (window.buildGun) { var gg = new THREE.Group(), inner = window.buildGun(THREE, k, RAR[WEAPONS[k].rar]); if (!inner.userData.real) inner.scale.setScalar(GUNSCALE[k] || .7); gg.add(inner); return gg; }
   var g = new THREE.Group(), c = RAR[WEAPONS[k].rar];
   if (k === 'pistolet') { box(g, .32, .1, .07, .1, 0, 0, '#3a3d44'); box(g, .08, .16, .06, -.02, -.1, 0, '#24262b'); box(g, .2, .03, .075, .1, .05, 0, c); }
@@ -2300,7 +2313,8 @@ function animChar(p, dt) {   // tout passe par le système de poses (anim.js) : 
   c.gunHold.visible = armed && p.mode === 'ground'; setHeld(c, w ? w.k : null); if (c.gun) c.gun.position.x = -(p.recoil || 0) * .6;
   c.glider.visible = p.mode === 'fall';
   if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { p.danceT -= dt; if (sp > .5 && p.danceT < 55) p.danceT = 0; }
-  if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { T = A.dance(p.dz || 'wald', now - (p.danceT0 || 0)); c.gunHold.visible = false; k = 16; }
+  if ((p.dabT > 0 || p.dz === 'dab' && p.danceT > 0) && p.mode === 'ground' && !p.veh) { T = dabPose(A, now); c.gunHold.visible = false; k = 14; }
+  else if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { T = A.dance(p.dz || 'wald', now - (p.danceT0 || 0)); c.gunHold.visible = false; k = 16; }
   else if (p.mode === 'fall') { T = A.glide(now); gr = false; }
   else if (p.swim) { var sw = Math.sin(now * (sp > .5 ? 5 : 2.2)), fl = Math.sin(now * 9); T = A.P({ la: 1.7 + sw * 1.3, ra: 1.7 - sw * 1.3, lb: .25, rb: .25, le: .4, re: .4, lt: .35 + fl * .3 * amp, rt: .35 - fl * .3 * amp, lk: .3, rk: .3, bp: sp > .5 ? .75 : .25, hp: sp > .5 ? -.5 : -.1 }); c.gunHold.visible = false; gr = false; }   /* nage : bras qui tournent, jambes qui battent */
   else { T = p.crouch ? A.crouch(p.step, amp) : amp > .05 ? A.walk(p.step, amp, sp > 6.5) : A.idle(now + (p.id || 0) * 1.7); if (armed) { A.gunArms(T, 0); var apt = Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))); T.ra += apt; T.la += apt * .95; T.hp = (T.hp || 0) + apt * .35; } }   /* l'arme suit le viseur (haut / bas) */
@@ -2914,8 +2928,8 @@ function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
   if (TPL === 'prop' && p === me && w0.k === 'laser') { var hp0 = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), T0 = (hp0.t || 30) + tMin;   // PROP HUNT : le laser transforme en objet
     tracer(p.x, p.y + 1.4, p.z, ox + dx * T0, oy + dy * T0, oz + dz * T0, '#ff2bd6'); if (ROUND && ROUND.ph !== 'end' && ROUND.dead[NETID]) { p.fireCd = .6; return true; } becomeProp(nearPropType(ox + dx * T0, oz + dz * T0) || pickDisguise(ox + dx * T0, oz + dz * T0)); p.fireCd = .6; return true; }
   var W2 = WEAPONS[w0.k], n = W2.pellets || 1, hitAny = false, ca = Math.cos(p.a), sa = Math.sin(p.a), mx = p.x + ca * .9 - sa * .25, mz = p.z + sa * .9 + ca * .25, my = p.y + 1.4;
-  if (w0.k === 'patate') { var th = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), tT = Math.min(isFinite(th.t) ? th.t : 45, 60) + tMin, tx = ox + dx * tT, ty = oy + dy * tT, tz = oz + dz * tT;   // la patate retombe pile où tu vises
-    if (p.bot) { tx += (Math.random() - .5) * 4; tz += (Math.random() - .5) * 4; } var hd = Math.hypot(tx - mx, tz - mz), ft = .45 + hd / 32, pv = potLaunch(p, mx, my, mz, 0, 0, 0, true, [(tx - mx) / ft, (ty - my) / ft + 10 * ft, (tz - mz) / ft]); w0.mag--; p.fireCd = W2.cd; p.recoil = .14; if (p === me || (BRN && BRLEAD && p.bot)) netPub({ t: 'f', k: 'patate', a: [+mx.toFixed(1), +my.toFixed(1), +mz.toFixed(1)], v: pv.map(function (v) { return +v.toFixed(2); }) });
+  if (w0.k === 'patate' || w0.k === 'dabb') { var th = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), tT = Math.min(isFinite(th.t) ? th.t : 45, 60) + tMin, tx = ox + dx * tT, ty = oy + dy * tT, tz = oz + dz * tT;   // la patate retombe pile où tu vises
+    if (p.bot) { tx += (Math.random() - .5) * 4; tz += (Math.random() - .5) * 4; } var hd = Math.hypot(tx - mx, tz - mz), ft = .45 + hd / 32, pv = potLaunch(p, mx, my, mz, 0, 0, 0, true, [(tx - mx) / ft, (ty - my) / ft + 10 * ft, (tz - mz) / ft], w0.k); w0.mag--; if (w0.k === 'dabb') { w0.res = 0; if (w0.mag <= 0) { p.inv[p.slot] = null; if (p === me) hbKey = ''; } } p.fireCd = W2.cd; p.recoil = .14; if (p === me || (BRN && BRLEAD && p.bot)) netPub({ t: 'f', k: w0.k, a: [+mx.toFixed(1), +my.toFixed(1), +mz.toFixed(1)], v: pv.map(function (v) { return +v.toFixed(2); }) });
     tone('sine', 180, 520, .12, .14 * (p === me ? 1 : .4)); nz(.12, .3 * (p === me ? 1 : .3), 900, 'bandpass', 0, 1.2); if (p === me) camKick = Math.max(camKick, .05); return true; }   // « POC ! » du tube
   for (var i = 0; i < n; i++) {
     var sp = p.bot ? W2.spread : (w0.k === 'sniper' ? (adsK > .85 ? 0 : .06) : W2.spread * (1.8 - adsK * 1.35)) * (Math.hypot(p.vx, p.vz) > 1 ? 1.6 : 1) * (p.y > (p.gy || 0) + .1 ? 2 : 1), ex = dx + (Math.random() - .5) * sp * 2, ey = dy + (Math.random() - .5) * sp * 2, ez = dz + (Math.random() - .5) * sp * 2, l = Math.hypot(ex, ey, ez); ex /= l; ey /= l; ez /= l;
@@ -3029,7 +3043,7 @@ function climbUp(p) { var fx = Math.cos(camA), fz = Math.sin(camA), best = null,
   if (!best) { var lt = SV && SV.ledge ? SV.ledge(p.x, p.y, p.z, fx, fz) : null; if (lt == null) return false; p.vy = Math.sqrt(2 * 25 * Math.max(.4, lt - p.y + .45)); p.climbT = .45; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }   /* agripper le bord d'un sol / d'une rampe */
   var top2 = best.y0 + best.h; p.vy = Math.sqrt(2 * 25 * (top2 - p.y + .55)); p.climbT = .55; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }
 function walk(p, dx, dz, dt, k) { var sp = 6.2 * (k == null ? 1 : k); if (p.swim) sp = 6.2 * .6; else if (inWater(p.x, p.z)) sp *= .45; p.vx += (dx * sp - p.vx) * Math.min(1, dt * 12); p.vz += (dz * sp - p.vz) * Math.min(1, dt * 12); p.x += p.vx * dt; p.z += p.vz * dt; }
-function botThink(p, dt) {
+function botThink(p, dt) { if (p.dabT > 0) { p.dabT -= dt; p.vx = p.vz = 0; return; }
   var ai = p.ai; ai.t -= dt; p.hurtT = Math.max(0, p.hurtT - dt);
   var st = stormTarget(), safe = dist(p.x, p.z, st[0], st[1]) < Math.max(6, st[2] * .8), armed = p.inv.some(function (w0) { return w0 && (w0.mag > 0 || w0.res > 0); });
   var foe = nearestEnemy(p, p.veh ? 60 : (armed ? 70 : 14) * (.6 + ai.ag * .6));
@@ -3106,6 +3120,7 @@ function update(dt) {
         if (nitroPress && v.nitro > 0) { v.nitro--; v.boostT = 1.5; SFX.boost(); toast('NITRO !'); }
         drive(v, thr, steer, kd('sauter'), dt);
       } else {
+        if (p.dabT > 0) { p.dabT -= dt; mvx = mvz = 0; jumpPress = false; fireHeld = false; }   // boule à dab : on ne bouge plus, on DAB
         healTick(p, dt); if (p.stam == null) p.stam = 1;
         var moving = Math.hypot(mvx, mvz) > .3, spr = (kd('sprint') || SPRT) && moving && !ads && !p.crouch && !(p.useT > 0) && !fireHeld && p.stam > 0 && !(p.slideT > 0); p.sprint = spr;   // SPRINT façon Fortnite : à fond, ~15 s d'endurance
         if (spr) { p.stam = Math.max(0, p.stam - dt / 5); p.stamCd = .9; } else if (p.slideT > 0) { p.stam = Math.max(0, p.stam - dt / 20); } else { p.stamCd = (p.stamCd || 0) - dt; if (p.stamCd <= 0) p.stam = Math.min(1, p.stam + dt / 4); }
@@ -3279,7 +3294,7 @@ function drawMini(full) {
 }
 var hc = {}; function setT(id, v) { if (hc[id] !== v) { hc[id] = v; $(id).textContent = v; } }
 /* VIGNETTES 3D : l'arme (ou le soin) de l'inventaire = photo du VRAI modèle 3D, le même que par terre et en main (comme dans les gros jeux) */
-var ICO3 = {}, SNAPR = null, GPROC = { patate: 1, roquette: 1, laser: 1, pmx: 1, fusil: 1, scar: 1, pompe: 1 };
+var ICO3 = {}, SNAPR = null, GPROC = { dabb: 1, patate: 1, roquette: 1, laser: 1, pmx: 1, fusil: 1, scar: 1, pompe: 1 };
 function snapR() { if (SNAPR) return SNAPR; try { var c = document.createElement('canvas'); c.width = 360; c.height = 180; var r = new THREE.WebGLRenderer({ canvas: c, alpha: true, antialias: true, preserveDrawingBuffer: true });
     r.outputEncoding = THREE.sRGBEncoding; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.2; r.setClearColor(0, 0); var sc = new THREE.Scene();
     sc.add(new THREE.HemisphereLight('#ffffff', '#3a2a4a', 1.1)); var d = new THREE.DirectionalLight('#ffffff', 1.9); d.position.set(1.5, 3, 4); sc.add(d); var d2 = new THREE.DirectionalLight('#ff8ae0', .9); d2.position.set(-3, 1.2, -1); sc.add(d2); var d3 = new THREE.DirectionalLight('#8ad8ff', .6); d3.position.set(2, -1, 3); sc.add(d3);
