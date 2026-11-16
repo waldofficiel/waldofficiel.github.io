@@ -422,3 +422,10 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## À REVOIR (rappeler à l'utilisateur)
 - (fait en v37) 3 nouvelles armes, anciens modèles provisoires refaits : `patate` Lance-patate (explosion 3 m), `roquette` Lance-roquette (1 roquette, explosion 6 m, casse les murs), `laser` Lanceur laser (rafale rose). Stats dans `WEAPONS`, modèles `B.patate/B.roquette/B.laser` dans weapons3d.js. Cache v36.
+
+## Paramètres de la partie (Créatif, façon Fortnite) + plus d'imposteurs d'arbres (cache v62)
+- Avant « Lancer la partie » : AUCUNE arme ni soin (`rDisarm()` à chaque image dans la salle d'attente, objets au sol retirés), générateurs d'armes en veille (`SVC.genOn()`), survie.js `reset` ne donne plus de kit en créatif.
+- `rSetOpen()` (bouton ⚙️ de la salle d'attente + menu Échap) : choix de la map/mode (recharge avec `wr_crGo` → la partie redémarre seule) et règles `RSET` (kit aucun/1v1/pompe/sniper/fun/perso, 100/200 PV, constructions, générateurs, réapparition, durée, objectif d'élim., bots, voler, super saut, vitesse). Sauvé dans `wr_rset_<pub>|<TPL>`, publié avec le jeu (`set`), envoyé dans le message `go` (`m.set` → `RCUR`).
+- `crKit()` donne l'équipement au lancement/réapparition (libre, bf). `freeTick()` gère chrono / objectif / dernier en vie pour libre et bf. Échap : « Terminer la partie » (message `re`).
+- Arbres lointains : plus de photos (imposteurs = taches noires), ce sont les arbres 3D légers à couleurs de sommets de index.html (`G.treeIM`) qui s'affichent au-delà du rayon des beaux arbres.
+- `WR.ev(code)` : outil de test (évalue dans le jeu).

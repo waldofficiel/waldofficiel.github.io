@@ -412,7 +412,7 @@
     document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + RES[MATK];
     el.tools.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === TOOL); }); el.build.hidden = TOOL !== 'build'; }
   function act() { if (!C.SURV) return false; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
-  function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast('PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
+  function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast(C.CREA ? 'CONSTRUCTIONS DÉSACTIVÉES DANS CETTE PARTIE' : 'PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
 
   /* ---------------- API ---------------- */
   /* ---------------- ambiance : papillons le jour (prés et forêts), lucioles la nuit et dans les forêts sombres ---------------- */
@@ -511,7 +511,7 @@
       var po = new T.Mesh(new T.BoxGeometry(.12, 2.3, .12), dk); po.position.set(x, y + 1.15, z + (IN ? -2.4 : BF ? 2.4 : -2.4)); g.add(po);
       ARM.push({ k: k, x: x, z: z, y: y + .6, it: null, t: 9, ring: ring, glow: glow }); });
     g.traverse(function (o) { o.userData.dyn = true; }); C.scene.add(g); }
-  function armoryTick(dt) { if (!ARM || !C.items) return; var L = C.items(), now = performance.now() / 1000; ARM.forEach(function (a) { a.ring.rotation.z = now * 1.5; a.glow.material.opacity = .6 + Math.sin(now * 4 + a.x) * .25; if (a.it && L.indexOf(a.it) >= 0) { a.it.m.position.y = a.y + .2 + Math.sin(now * 2 + a.x) * .12; a.it.m.rotation.y = now; return; } a.t += dt; if (a.t < 1.5) return; a.t = 0; C.dropItem(a.x, a.z, a.k); a.it = L[L.length - 1]; if (a.it) a.it.m.position.y = a.y; }); }
+  function armoryTick(dt) { if (!ARM || !C.items) return; var on = !C.genOn || C.genOn(); ARM.forEach(function (a) { a.glow.visible = on; }); if (!on) { ARM.forEach(function (a) { a.it = null; a.t = 0; }); return; } var L = C.items(), now = performance.now() / 1000; ARM.forEach(function (a) { a.ring.rotation.z = now * 1.5; a.glow.material.opacity = .6 + Math.sin(now * 4 + a.x) * .25; if (a.it && L.indexOf(a.it) >= 0) { a.it.m.position.y = a.y + .2 + Math.sin(now * 2 + a.x) * .12; a.it.m.rotation.y = now; return; } a.t += dt; if (a.t < 1.5) return; a.t = 0; C.dropItem(a.x, a.z, a.k); a.it = L[L.length - 1]; if (a.it) a.it.m.position.y = a.y; }); }
 
   /* ---------------- maisons à moitié détruites (la guerre contre les zombies) + gravats ---------------- */
   var RUINS = null;
@@ -578,7 +578,7 @@
       if (!GL || !L || !L.bake) { left = 1; done(); return; }
       NDEF.forEach(function (d, i) { GL.load('models/survie/' + d.f + '.glb', function (g) { try { tpl[i] = L.bake(T, g.scene, d); } catch (e) { console.error(e); } done(); }, null, done); });
       GL.load('models/nature/q_TreeStump.glb', function (g) { try { stp = L.bake(T, g.scene, { size: 1.3, col: {} }); } catch (e) { console.error(e); } done(); }, null, done); },
-    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.SURV && !C.CREA) BAG[1] = { t: 'livre' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; me().heals.shield = 2; if (C.BF) { BAG[1] = BAG[2] = BAG[3] = null; bfKit(); } if (C.PROPM) { var Pp = me(); Pp.inv = [C.newSlot('laser'), C.newSlot('pompe'), null]; Pp.slot = 0; } }   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
+    reset: function () { RES = { bois: 0, pierre: 0, metal: 0 }; TIME = 0; BED = null; bagInit(); if (C.SURV) BAG[0] = { t: 'lit' }; if (C.SURV && !C.CREA) BAG[1] = { t: 'livre' }; if (C.CREA) { BAG[1] = { t: 'coffre' }; BAG[2] = { t: 'coffre' }; BAG[3] = { t: 'coffre' }; if (C.BF) BAG[1] = BAG[2] = BAG[3] = null; var Pp = me(); Pp.inv = [null, null, null]; Pp.slot = 0; Pp.heals.shield = 0; }   /* créatif : AUCUNE arme avant « Lancer la partie » (l'équipement vient des Paramètres de la partie) */   // créatif : 2 shields de base, constructions illimitées STOR.slice().forEach(removeStor); bag(false); PIECES.slice().forEach(function (p) { removePiece(p, false); }); setTool(C.SURV ? 'pioche' : null); hudRes();
       if (el.tools) el.tools.hidden = false;
       NODES.forEach(function (n) { if (n.dead) { n.dead = false; if (C.PCOL.indexOf(n.col) < 0) C.PCOL.push(n.col); } n.hp = n.max; n.shk = 0; nodeSet(n); });
       STUMPL.forEach(function (t) { regrow(t); }); STUMPL = []; C.TREES.forEach(function (t) { t.hp = null; t.gone = false; t.shp = null; });
@@ -588,7 +588,7 @@
         if (window.ZOMB && ZOMB.on) ZOMB.reset(d ? d.zdead : []); showBed(); }
       stumpsRefresh(); hudRes(); hudBuild(); setTimeout(function () { if (C.state() === 'play') intro(); }, 60); saveT = 0; },
     respawn: function () { var P = me(); P.hp = 100; P.sh = 0; P.vx = P.vz = P.vy = 0; if (P.veh) return false;
-      if (C.CREA) { var A = C.BF && C.ARENA ? C.ARENA : C.TOWNS[0]; P.x = A[1] + (C.PROPM ? 17 : 3) + (Math.random() - .5) * 8; P.z = A[2] + (C.BF ? 0 : 6); P.y = P.gy = C.hgt(P.x, P.z); if (C.BF) bfKit(); C.toast(C.BF ? '⚔️ C\'EST REPARTI · 200 PV' : '🎨 RÉAPPARITION'); return true; }
+      if (C.CREA) { var A = C.BF && C.ARENA ? C.ARENA : C.TOWNS[0]; P.x = A[1] + (C.PROPM ? 17 : 3) + (Math.random() - .5) * 8; P.z = A[2] + (C.BF ? 0 : 6); P.y = P.gy = C.hgt(P.x, P.z); var kit = C.crKit && C.crKit(); if (!kit) { P.inv = [null, null, null]; P.slot = 0; } C.toast(kit ? '⚔️ C\'EST REPARTI · ' + (P.sh ? '200' : '100') + ' PV' : '🎨 RÉAPPARITION'); return true; }
       if (BED) { P.x = BED.x + Math.cos(BED.a + 1.57) * 1.4; P.z = BED.z + Math.sin(BED.a + 1.57) * 1.4; C.toast('🛏 TU TE RÉVEILLES DANS TON LIT'); }
       else { var T0 = C.TOWNS[0]; P.x = T0[1] + 3; P.z = T0[2] + 6; ['bois', 'pierre', 'metal'].forEach(function (k) { RES[k] = Math.floor(RES[k] / 2); }); hudRes(); C.toast('☠ TU ES MORT · PAS DE LIT : RETOUR AU CAMP (MOITIÉ DES MATÉRIAUX PERDUE)'); }
       P.y = P.gy = Math.max(C.hgt(P.x, P.z), groundAt(P.x, P.z, (BED ? BED.y : 0) + 1)); C.noise(.8, .2, 300); save(); return true; },

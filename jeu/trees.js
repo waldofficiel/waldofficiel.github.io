@@ -73,7 +73,7 @@
         var set = { sp: sp, mi: mi, ims: [] };
         parts(S, g).forEach(function (q) { var im = newIM(q[1], mat(q[2], q[3], true, q[4]), mine.length); im.count = 0; im.castShadow = true; if (q[3]) im.customDepthMaterial = depthMat(q[2]); im.instanceMatrix.setUsage(T.DynamicDrawUsage); C.scene.add(im); set.ims.push(im); });
         SETS.push(set);
-        (function retry(k) { var imp = impostor(n, S); if (imp) FAR.push(farIM(imp, mine)); else if (k < 6) setTimeout(function () { retry(k + 1); }, 1500); })(0); }); });
+        /* plus d'imposteurs (photos d'arbres = taches noires sur certains téléphones) : au loin, ce sont les arbres 3D légers de index.html qui prennent le relais */ }); });
   }
   // imposteur : on photographie le modèle de face (lumière du jeu) dans une petite texture, une fois pour toutes
   function impostor(n, S) {
@@ -158,7 +158,7 @@
       if (!T.GLTFLoader) return;
       load(function () { try { if (!C.DES) { buildTrees(); buildBushes(); buildFlowers(); } buildRocks(); buildCity(); READY = true; if (C.onReady) C.onReady(); } catch (e) { console.error('TREES3D', e); } }); },
     ready: function () { return READY; },
-    hasFar: function () { return FAR.length > 0; },
+    hasFar: function () { return false; },
     // appelé à chaque image : rayon des arbres détaillés selon les graphismes, et rechargement quand on s'est déplacé
     update: function (cx, cz, R, N, high) {
       if (!READY) return; var r = high ? Math.min(R, 40) : R;
