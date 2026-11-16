@@ -3043,15 +3043,16 @@ function update(dt) {
     pl.forEach(function (p) { if (!p.alive || p.veh || p.mode !== 'ground' || p.y > (p.gy || 0) + 1.5) return; var dx = p.x - v.x, dz = p.z - v.z; if (Math.abs(dx) > 3 || Math.abs(dz) > 3) return; var d = Math.hypot(dx, dz); if (d > v.r + .4) return;
       var now = performance.now(); if (p.hitCd > now) return; p.hitCd = now + 500; var dmg = sp * 1.7 * VT[v.k].dmgP; hurt(p, dmg, v.driver || v.lastBy);
       p.vx = dx / (d || 1) * 14; p.vz = dz / (d || 1) * 14; p.vy = 6; burst(p.x, 1, p.z, 10, '#ffd27a', 5, .15, .5); if (dist(p.x, p.z, me.x, me.z) < 80) SFX.crash(.4); if (v.driver === me) dmgNum(p.x, 2, p.z, dmg, false, false); }); });
-  openUI = 0;
+  openUI = 0; openHint = false;
   pl.forEach(function (p) {
     if (p.net || !p.alive || p.veh || p.mode !== 'ground') return;
     for (var n = chests.length - 1; n >= 0; n--) { var c = chests[n], near = Math.abs(c.x - p.x) < 1.8 && Math.abs(c.z - p.z) < 1.8;   // ouverture : rester 1 s à côté du coffre
       if (!near) { if (c.who === p) { c.who = null; c.pr = 0; c.m.scale.setScalar(1); c.m.rotation.z = 0; } continue; }
       if (c.who && c.who !== p) { if (c.who.alive && Math.abs(c.x - c.who.x) < 1.8 && Math.abs(c.z - c.who.z) < 1.8) continue; c.pr = 0; }
-      c.who = p; c.pr = (c.pr || 0) + dt; var k3 = c.pr / CHEST_T; c.m.rotation.z = Math.sin(c.pr * 40) * .05 * k3; c.m.scale.setScalar(1 + k3 * .12);
+      if (p === me && !isTouch && !kd('interagir')) { if (c.who === p) { c.who = null; c.pr = 0; c.m.scale.setScalar(1); c.m.rotation.z = 0; } openHint = true; continue; }   /* PC : maintenir E pour ouvrir, comme Fortnite */
+      var CT = p === me && !isTouch ? .5 : CHEST_T; c.who = p; c.pr = (c.pr || 0) + dt; var k3 = c.pr / CT; c.m.rotation.z = Math.sin(c.pr * 40) * .05 * k3; c.m.scale.setScalar(1 + k3 * .12);
       if (p === me) { openUI = k3; if (c.pr - dt <= 0) SFX.pick(); }
-      if (c.pr >= CHEST_T) { chests.splice(n, 1); lootGroup.remove(c.m); openChest(c, p); } }
+      if (c.pr >= CT) { chests.splice(n, 1); lootGroup.remove(c.m); openChest(c, p); } }
     for (n = items.length - 1; n >= 0; n--) { var it = items[n]; if (Math.abs(it.x - p.x) > 1.6 || Math.abs(it.z - p.z) > 1.6) continue;
       if (HEAL[it.t]) { if (p.bot) { if (it.t === 'bulle') { if (p.heals.bulle >= 2) continue; p.heals.bulle++; } else { if (!canHeal(p, it.t)) continue; applyHeal(p, it.t); } }
         else { if (p === me && !(p.heals[it.t] > 0) && p.inv.indexOf(null) < 0 && p.inv.length >= 5) { if (!(SURV && SV && SV.bagAdd({ t: 'soin', k: it.t, n: 1 }))) { if (performance.now() - (me.fullT || 0) > 3000) { me.fullT = performance.now(); toast('🎒 INVENTAIRE PLEIN (5 places)'); } continue; } removeItem(it); SFX.pick(); toast(HEAL[it.t].name.toUpperCase() + ' → SAC'); continue; }
@@ -3060,7 +3061,7 @@ function update(dt) {
       else if (WEAPONS[it.t]) { if (!giveWeapon(p, it)) continue; if (p === me) { SFX.pick(); toast(WEAPONS[it.t].name.toUpperCase() + ' · ' + RARN[WEAPONS[it.t].rar].toUpperCase()); } }
       removeItem(it); }
   });
-  showOpenUI(openUI);
+  showOpenUI(openUI || (openHint ? -1 : 0));
   var P = storm.plan[Math.min(storm.phase, storm.plan.length - 1)]; storm.t += dt;
   if (storm.mode === 'wait' && storm.t > P[0]) { storm.mode = 'shrink'; storm.t = 0; if (me.alive) toast('LA TEMPÊTE AVANCE'); }
   if (storm.mode === 'shrink') { var k2 = Math.min(1, storm.t / P[1]); storm.x = storm.ox + (storm.nx - storm.ox) * k2; storm.z = storm.oz + (storm.nz - storm.oz) * k2; storm.r = storm.or + (storm.nr - storm.or) * k2; if (k2 >= 1) { storm.phase++; pickNext(); } }
@@ -3069,9 +3070,9 @@ function update(dt) {
   updParts(dt); updTracers(dt);
   if (eng) { var spd = me.veh ? Math.hypot(me.veh.vx, me.veh.vz) : 0; eng.o.frequency.value = 55 + spd * 3.5 + (me.veh && me.veh.boostT > 0 ? 40 : 0); eng.g.gain.value = me.veh ? .025 + Math.min(.03, spd / 800) : 0; }
 }
-var CHEST_T = 1, openUI = 0, openEl = null;
+var CHEST_T = 1, openUI = 0, openEl = null, openHint = false;
 function showOpenUI(k) { if (!openEl) { openEl = document.createElement('div'); openEl.id = 'openUI'; openEl.innerHTML = '<svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="19" class="bg"/><circle cx="22" cy="22" r="19" class="fg"/></svg><b>OUVERTURE DU COFFRE</b>'; document.body.appendChild(openEl); }
-  openEl.style.display = k > 0 ? 'flex' : 'none'; if (k > 0) openEl.querySelector('.fg').style.strokeDashoffset = (119.4 * (1 - Math.min(1, k))).toFixed(1); }
+  openEl.style.display = k ? 'flex' : 'none'; var lb = openEl.querySelector('b'), tx = k < 0 ? 'MAINTIENS ' + keyName(BIND.interagir) + ' · OUVRIR LE COFFRE' : 'OUVERTURE DU COFFRE'; if (lb.textContent !== tx) lb.textContent = tx; openEl.querySelector('svg').style.display = k < 0 ? 'none' : ''; if (k > 0) openEl.querySelector('.fg').style.strokeDashoffset = (119.4 * (1 - Math.min(1, k))).toFixed(1); }
 function openChest(c, p) { var loot = [randWeapon(), ['heal', 'shield', 'mini', 'shield', 'bulle'][Math.random() * 5 | 0], 'ammo', Math.random() < .5 ? randWeapon() : Math.random() < .3 ? 'bulle' : 'mini'];
   loot.forEach(function (t, i) { var a = i / loot.length * 6.283 + .5; dropItem(c.x + Math.cos(a) * 2, c.z + Math.sin(a) * 2, t); }); burst(c.x, 1, c.z, 20, ['#ffd23d', '#fff2a0'], 6, .15, .8); if (p === me) { SFX.chest(); toast('COFFRE !'); if (SURV && SV && (c.broken || Math.random() < .35) && SV.bagAdd({ t: 'coffre' })) setTimeout(function () { toast('📦 TU RÉCUPÈRES LE COFFRE (DANS TON SAC)'); }, 900); } }
 function breakChest(c) { var i = chests.indexOf(c); if (i < 0) return; chests.splice(i, 1); lootGroup.remove(c.m); c.broken = true; openChest(c, me); }
