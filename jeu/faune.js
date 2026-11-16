@@ -47,7 +47,7 @@
   function hearts(x, y, z, ok) { C.burst(x, y, z, ok ? 14 : 8, ok ? ['#ff3a6a', '#ff7a9a', '#ffd0dc'] : ['#bbbbbb', '#888888', '#eeeeee'], ok ? 3 : 2, .18, .8); }
   function uiInit() { var b = document.createElement('button'); b.type = 'button'; b.id = 'fMeat'; b.style.cssText = 'position:fixed;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));z-index:22;font:900 13px Inter,system-ui,sans-serif;color:#fff;background:linear-gradient(180deg,#7a2a1a,#3a1208);border:2px solid #ff9a5a;border-radius:12px;padding:7px 10px;box-shadow:0 0 14px rgba(255,120,60,.45);cursor:pointer';
     b.addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); eat(); }); document.body.appendChild(b); UI = b; uiDraw(); }
-  function uiDraw() { if (!UI) return; UI.hidden = !ON; UI.innerHTML = '🍖 ' + SAVE.meat + (C.isTouch ? '' : ' <small style="opacity:.7">(V)</small>') + (SAVE.tamed ? ' · 🐺 ' + SAVE.tamed : ''); UI.style.opacity = SAVE.meat ? 1 : .6; }
+  function uiDraw() { if (!UI) return; UI.hidden = !ON; UI.innerHTML = '🍖 ' + SAVE.meat + (C.isTouch ? '' : ' <small style="opacity:.7">(N)</small>') + (SAVE.tamed ? ' · 🐺 ' + SAVE.tamed : ''); UI.style.opacity = SAVE.meat ? 1 : .6; }
   function eat() { var P = C.me(); if (!ON || !P.alive) return; if (!SAVE.meat) { C.toast('🍖 PAS DE VIANDE · chasse des animaux'); return; } if (P.hp >= 100) { C.toast('❤️ TU AS DÉJÀ TOUTE TA VIE'); return; }
     SAVE.meat--; P.hp = Math.min(100, P.hp + 20); C.tone('triangle', 300, 520, .12, .07); C.toast('🍖 MIAM · +20 PV'); if (C.hudRefresh) C.hudRefresh(); save(); }
   function die(a, by) { a.dead = true; a.dtT = 0; var D = K[a.k]; if (a.tame) { SAVE.tamed = Math.max(0, SAVE.tamed - 1); var ni = SAVE.names.indexOf(a.name); if (ni >= 0) SAVE.names.splice(ni, 1); C.toast('💔 ' + a.name.toUpperCase() + ' EST MORT'); save(); return; }
@@ -93,7 +93,7 @@
   window.FAUNE = {
     on: false,
     init: function (THREE, ctx, extra) { T = THREE; C = ctx; X = extra || {}; GB = new T.BoxGeometry(1, 1, 1); load(); ON = this.on = true; uiInit(); setTimeout(tamedSpawn, 1500);
-      addEventListener('keydown', function (e) { if (e.code === 'KeyV' && !e.repeat && C.state() === 'play' && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) eat(); }); },
+      addEventListener('keydown', function (e) { if (e.code === 'KeyN' && !e.repeat && C.state() === 'play' && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) eat(); }); },
     update: function (dt) { if (!ON) return; var P = C.me(); if (!P) return; var now = performance.now() / 1000, night = C.isNight && C.isNight();
       if ((SPAWNT -= dt) <= 0) { SPAWNT = 2; var wild = L.filter(function (a) { return !a.tame && !a.dead; }).length; if (wild < (night ? 18 : 14)) { var s = spot(P, 45, 110); if (s) { var k = pick(), n = k === 'loup' ? 2 + (Math.random() * 2 | 0) : k === 'poule' || k === 'mouton' || k === 'cochon' ? 2 : 1;
           for (var i = 0; i < n; i++) spawn(k, s.x + (Math.random() - .5) * 5, s.z + (Math.random() - .5) * 5, { pack: k === 'loup' ? s : null }); } } L = L.filter(function (a) { return !a.gone && !(a.dead && !a.m); }); }

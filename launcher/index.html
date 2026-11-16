@@ -67,6 +67,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .svg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.svg>div{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}.svg img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.svg b{display:block;padding:10px 12px 2px}.svg small{display:block;padding:0 12px 12px;color:var(--mute);font-size:12px;line-height:1.4}
 .price{display:inline-block;font:900 12px Inter;color:#1a0820;background:linear-gradient(180deg,#ffe36a,#ffb23d);border-radius:8px;padding:3px 8px;margin-left:6px}
 @media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}aside{flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto}.brand{padding:0 6px}.brand small{display:none}nav{display:flex}nav button{padding:8px 10px;white-space:nowrap}nav button span.t{display:none}.acct{margin:0 0 0 auto;padding:4px 8px}.acct div{display:none}main{padding:14px}.hin h2{font-size:38px}.hero{min-height:280px}.top .search{display:none}}
+.svc{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.svc input{flex:1;min-width:200px;padding:11px 12px;border-radius:12px;border:2px solid rgba(255,43,214,.45);background:rgba(0,0,0,.35);color:#fff;font:800 14px inherit;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -139,7 +140,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <h3>Wald Royal + Survie</h3>
       <div class="sv">
         <div class="svh"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · DLC</span><h2>MODE <em>SURVIE</em></h2><p>La Brume Violette a tout envahi. Un monde de 4 km, <b>32 créatures</b> à découvrir, des boss, ta base à construire, et des animations à débloquer.</p>
-          <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + SURVIE · 5,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p></div></div>
+          <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + SURVIE · 5,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p><div class="row svc"><input id="svCode" maxlength="20" placeholder="TU AS UN CODE ? SURVIE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="svGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="svCS"></p></div></div>
         <div class="svg"><div><img src="../wald-royal/img/crea_horde.jpg" alt=""><b>32 créatures</b><small>Communes, rares, épiques, légendaires. Certaines ne sortent que la nuit.</small></div>
           <div><img src="../wald-royal/img/crea_rares.jpg" alt=""><b>Le Livre des créatures</b><small>Chaque espèce tuée débloque sa fiche et son histoire.</small></div>
           <div><img src="../wald-royal/img/foret.jpg" alt=""><b>4 animations à débloquer</b><small>Danse du Zombie, La Rampante, Valse du Spectre, Danse du Roi Violet.</small></div>
@@ -154,7 +155,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
         <label>Code pour jouer avec tes potes (Créatif)</label><input id="codeI" maxlength="6" placeholder="Laisse vide = salon public" style="text-transform:uppercase;letter-spacing:.15em">
         <button class="btn2" id="codeNew">🎲 Créer un code</button>
         <label>Adresse e-mail du compte</label><div class="note" id="accEm">—</div>
-        <label>Code créateur ou code Survie</label><input id="crI" maxlength="20" placeholder="SURVIE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="crGo" type="button">✔ Valider le code</button><div class="note" id="crS"></div>
+        <label>Code créateur</label><input id="crI" maxlength="20" placeholder="CODE CRÉATEUR" style="text-transform:uppercase"><button class="btn2" id="crGo" type="button">✔ Valider le code</button><div class="note" id="crS"></div>
         <button class="btn2" id="logout" type="button" style="background:rgba(255,255,255,.1)">⎋ Se déconnecter</button>
         <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne arriveront avec le serveur du jeu.</p></div>
     </section>
@@ -349,15 +350,19 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('aForgot').onclick = function () { var a = acc(); document.querySelector('#auth [data-at=new]').click(); if (a) { $('aPs').value = a.pseudo; $('aEm').value = a.email; }
     $('aErr').textContent = '🔑 Choisis un nouveau mot de passe : ton compte et ta progression restent sur cet appareil.'; $('aPw').focus(); };
   $('logout').onclick = function () { setLS('wg_sess', '0'); authShow(); };
-  $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
+  function survRedeem(c, out) {
     hx('wg-survie|' + c).then(function (hs) { var SC = { '35bbbbbcd64ad34415b63c198faa02bbb4c3dad538484e30727397450788764b': 3 };   /* codes Survie : empreinte → nombre d'utilisations (le code lui-même n'est jamais écrit ici) */
-      if (!SC[hs]) { if (/^SURVIE-/.test(c)) $('crS').textContent = '✖ Code invalide.'; return; } var dev = LSg('wg_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); setLS('wg_dev', dev); }
-      $('crS').textContent = '⏳ Vérification du code…'; if (!window.NET || !NET.list) { $('crS').textContent = '✖ Pas de connexion, réessaie.'; return; }
+      if (!SC[hs]) { out('✖ Code invalide.'); return; } var dev = LSg('wg_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); setLS('wg_dev', dev); }
+      out('⏳ Vérification du code…'); if (!window.NET || !NET.list) { out('✖ Pas de connexion, réessaie.'); return; }
       NET.list('code/' + hs.slice(0, 16) + '/', function (L) { var devs = {}; (L || []).forEach(function (o) { if (o && o.d) devs[o.d] = 1; }); var n = Object.keys(devs).length;
-        if (!devs[dev] && n >= SC[hs]) { $('crS').textContent = '✖ Ce code a déjà été utilisé ' + SC[hs] + ' fois.'; return; }
-        var ok = function () { setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Survie débloquée ! (' + Math.min(SC[hs], n + (devs[dev] ? 0 : 1)) + '/' + SC[hs] + ' utilisations du code)'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 1400); };
-        if (devs[dev]) ok(); else NET.store('code/' + hs.slice(0, 16) + '/' + dev.slice(0, 12), { d: dev, t: Date.now() }, function (r) { if (r) ok(); else $('crS').textContent = '✖ Pas de connexion, réessaie.'; }); }); });
-    hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie débloquée.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else if (!/^SURVIE-/.test(c)) $('crS').textContent = '✖ Code invalide.'; }); };
+        if (!devs[dev] && n >= SC[hs]) { out('✖ Ce code a déjà été utilisé ' + SC[hs] + ' fois.'); return; }
+        var ok = function () { setLS('wr_survie_ok', '1'); out('✔ Survie débloquée ! (' + Math.min(SC[hs], n + (devs[dev] ? 0 : 1)) + '/' + SC[hs] + ' utilisations du code)'); if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 1400); };
+        if (devs[dev]) ok(); else NET.store('code/' + hs.slice(0, 16) + '/' + dev.slice(0, 12), { d: dev, t: Date.now() }, function (r) { if (r) ok(); else out('✖ Pas de connexion, réessaie.'); }); }); });
+  }
+  if (LSg('wr_survie_ok') === '1') { $('svBuy').textContent = '✔ SURVIE DÉBLOQUÉE'; $('svBuy').classList.remove('off'); $('svCS').textContent = '🎉 Le mode Survie est débloqué sur ce compte : lance Wald Royal et choisis SURVIE.'; document.querySelector('.svc').hidden = true; var ed = document.querySelector('[data-ed=wrs]'); if (ed) { ed.disabled = false; ed.classList.remove('off'); } }
+  $('svGo').onclick = function () { var c = $('svCode').value.trim().toUpperCase(); if (!c) return; survRedeem(c, function (m) { $('svCS').textContent = m; }); };
+  $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
+    hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie débloquée.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };
   if (CREA) $('crS').textContent = '✔ Compte créateur actif.';
   (function () { var a = acc(); if (!a || LSg('wg_sess') !== '1') authShow(); else authOk(a); })();
   try { if (!localStorage.getItem('wg_adSurv1')) { var adT = setInterval(function () { if (!$('auth').hidden) return; clearInterval(adT); localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { play(4); }, 800); }, 500); } } catch (e) {}

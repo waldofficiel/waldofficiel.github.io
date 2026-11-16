@@ -468,7 +468,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## v71 : faune de la Survie (`jeu/faune.js`, `window.FAUNE`)
 - Animaux en blocs façon Minecraft (`K` : loup, sanglier, cochon, mouton, poule, lapin, cerf), apparition autour du joueur (45-110 m, 14 le jour / 18 la nuit, plus de loups la nuit), modèles créés à < 95 m. Passifs = fuient, sanglier = attaque à < 9 m, loups = neutres en meute (un loup touché → toute la meute attaque).
-- Viande (`SAVE.meat`, `wr_faune`, seulement en Survie) : tuer un animal (balles via `castRay` kind `faune`, pioche via `FAUNE.melee`) ; manger = V ou bouton 🍖 (#fMeat) = +20 PV.
+- Viande (`SAVE.meat`, `wr_faune`, seulement en Survie) : tuer un animal (balles via `castRay` kind `faune`, pioche via `FAUNE.melee`) ; manger = N ou bouton 🍖 (#fMeat) = +20 PV.
 - Loup : Interagir près de lui avec de la viande → 34 % = apprivoisé (collier rouge, suit, attaque les zombies à < 16 m, téléporté si > 45 m, Interagir = assis / suis-moi), sauvegardé (`SAVE.tamed`, max 6 recréés).
 - Événements toutes les 2,5-4,5 min : 🌕 Lune des loups (meute qui chasse), 🌠 étoiles filantes (métal), 🦌 troupeau de cerfs, 📦 ravitaillement en parachute (2 armes, 4 viandes, métal, pierre).
 - Tests : node + mock (`/tmp/tfa.js`) car la Survie fait planter swiftshader.
