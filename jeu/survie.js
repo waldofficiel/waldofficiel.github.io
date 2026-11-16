@@ -22,7 +22,9 @@
     esc: SV('<path d="M6 42h36V8h-8v8h-8v9h-8v9H6z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/>'),
     toit: SV('<path d="M24 6 L44 34 L24 42 L4 34 Z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/><path d="M24 6v36" stroke="#4a2a14" stroke-width="1.6"/><path d="M24 6 L44 34 L24 42 Z" fill="#000" opacity=".22"/>'),
     lit: SV('<rect x="5" y="22" width="38" height="11" rx="3" fill="#e8e2f0" stroke="#3a2a4a" stroke-width="2"/><rect x="5" y="24" width="24" height="9" rx="2" fill="#c43a6a"/><rect x="31" y="17" width="12" height="9" rx="3" fill="#fff" stroke="#3a2a4a" stroke-width="1.6"/><path d="M5 14v28M43 18v24" stroke="#5a3a20" stroke-width="3.5" stroke-linecap="round"/>') };
-  var HPP = { bois: 150, pierre: 260, metal: 420 };
+  var HPP = { bois: 150, pierre: 300, metal: 500 };   // vie MAX comme Fortnite (mur) ; sols / escaliers / toits un peu moins
+  var HP0 = { bois: 90, pierre: 99, metal: 110 }, HPT = { bois: 4, pierre: 11.5, metal: 24.5 };   // vie au départ + temps pour finir de se construire (la vie monte petit à petit)
+  function hpMax(p) { var m = HPP[p.m] || 150; return p.t === 'mur' ? m : Math.round(m * (p.m === 'bois' ? 140 / 150 : p.m === 'pierre' ? 280 / 300 : 460 / 500)); }
   var NODES = [], NIM = {}, STUMPS = null, STUMPL = [], PIECES = [], PIM = {}, GEO = {}, GHOST = null, PICK = null, el = {};
   var SW = { t: -1, hit: false }, PLACE_CD = 0, popT = 0, ZERO, TICK = 0, saveT = 0, BED = null, BEDM = null, BEDTPL = null, RUBBLE = null, LOADED = null;
   function PLIST() { return ['mur', 'sol', 'esc', 'toit']; }
@@ -100,9 +102,8 @@
   function attachPick(c) { if (!PICK) PICK = buildPick(); if (PICK.parent !== c.aR) { if (PICK.parent) PICK.parent.remove(PICK); c.aR.add(PICK); } }
 
   /* ---------------- constructions ---------------- */
-  function rampGeo() {   // escalier = rampe pleine et lisse (comme un toit en pente), 4 m de long, 4 m de haut, avec une jupe dessous pour ne pas flotter
-    var s = new T.Shape(); s.moveTo(0, -1.2); s.lineTo(CELL, -1.2); s.lineTo(CELL, LH); s.lineTo(0, .02); s.lineTo(0, -1.2);   // pente continue de 0 à LH : la rampe suivante repart pile du haut, sans marche
-    var g = new T.ExtrudeGeometry(s, { depth: CELL - .06, bevelEnabled: false }); g.translate(-CELL / 2, 0, -(CELL - .06) / 2); g.computeVertexNormals(); return g; }
+  function rampGeo() {   // escalier = UNE planche en pente (comme Fortnite) : de 0 à LH sur une case, sans jupe ni bloc dessous
+    var L = Math.hypot(CELL, LH), th = .26, a = Math.atan2(LH, CELL), g = new T.BoxGeometry(L, th, CELL - .06); g.rotateZ(a); g.translate(Math.sin(a) * th / 2, LH / 2 - Math.cos(a) * th / 2, 0); g.computeVertexNormals(); return g; }
   function roofGeo() { var g = new T.ConeGeometry(CELL / Math.SQRT2, 2.4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, 1.2, 0); g.computeVertexNormals(); return g; }
   /* TEXTURES DES CONSTRUCTIONS façon Fortnite (dessinées une fois, 1024 × 716 = un panneau 5 × 3,5 m) :
      BOIS = cadre en poutres + planches clouées avec des jours entre elles et des petits trous (on voit à travers),
@@ -147,7 +148,6 @@
     }
     var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
   function bMat(mk, type) { var key = mk + (type === 'esc' ? 'e' : ''); if (BMAT[key]) return BMAT[key]; var tx = (BMAT['t' + mk] = BMAT['t' + mk] || bTex(mk)), m;
-    if (type === 'esc') { tx = tx.clone(); tx.needsUpdate = true; tx.repeat.set(1 / CELL, 1 / LH); }
     m = mk === 'metal' ? new T.MeshStandardMaterial({ map: tx, metalness: .55, roughness: .42, color: '#ffffff' }) : new T.MeshStandardMaterial({ map: tx, metalness: 0, roughness: mk === 'bois' ? .78 : .9, color: '#ffffff' });
     if (mk === 'bois') { m.alphaTest = .5; m.side = T.DoubleSide; }
     return BMAT[key] = m; }
@@ -180,8 +180,8 @@
     for (var hi = 0; hi < C.HOUSES.length; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(p.x - hs.x) > hs.hx + .6 || Math.abs(p.z - hs.z) > hs.hz + .6 || p.L < hs.y0 - 1.2 || p.L > hs.y0 + hs.h + 1.2) continue;
       p.L = hs.y0 + LH * Math.round((p.L - hs.y0) / LH); break; }   // dans un bâtiment : on se cale sur ses étages (mur cassé → ton mur prend exactement sa place)
     p.key += '|' + p.L.toFixed(1); return p; }
-  function planFree() {   /* case visée déjà prise : on essaie la case de la grille devant soi, puis un étage au-dessus (comme Fortnite qui pose toujours quelque part) */
-    var p = plan(); if (!p || p.t === 'lit' || !taken(p.key, p)) return p; var q = plan(true); if (q && !taken(q.key, q)) return q;
+  function planFree() {   /* case visée déjà prise : on essaie la case de la grille devant soi, puis un étage au-dessus (comme Fortnite qui pose toujours quelque part) — sauf l'escalier : UN seul à la fois */
+    var p = plan(); if (!p || p.t === 'lit' || !taken(p.key, p) || p.t === 'esc') return p; var q = plan(true); if (q && !taken(q.key, q)) return q;
     var up = Object.assign({}, p, { L: p.L + LH }); up.key = p.key.replace(/\|[-\d.]+$/, '|' + up.L.toFixed(1)); return taken(up.key, up) ? p : up; }
   function slotWalls(p, lin) { var ax = p.hw > p.hd; return C.WALLS.filter(function (w) { return w.alive && !w.build && !!w.lintel === lin && Math.abs(ax ? w.z - p.z : w.x - p.x) < .45 && Math.abs(ax ? w.x - p.x : w.z - p.z) < (ax ? w.hw : w.hd) + CELL / 2 - .3 && w.y0 < p.L + LH - .4 && w.y0 + w.h > p.L + .4; }); }
   /* CONSTRUIRE AU VISEUR : on suit le rayon de la caméra jusqu'au sol, à une pièce ou à un mur ; la pièce va dans la case visée,
@@ -226,11 +226,17 @@
       C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; }
   function wallFree(p) { (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
   function placePiece(p) { if (p.t === 'lit') return placeBed(p);
-    var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; p.hp = p.hp || HPP[p.m];
+    var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; if (!p.hp) { p.hmax = hpMax(p); p.hp = p.t === 'lit' || p.t === 'coffre' ? p.hmax : Math.round(p.hmax * (HP0[p.m] || 90) / (HPP[p.m] || 150)); p.grow = p.hp < p.hmax; }
     if (p.t === 'mur') { slotWalls(p, true).forEach(function (w) { w.alive = false; C.setWall(w, false); }); wallSegs(p, im); }
     else { p.ii = im.free.pop(); im.setMatrixAt(p.ii, pieceMatrix(p, O3 || (O3 = new T.Object3D()))); im.instanceMatrix.needsUpdate = true; }
     PIECES.push(p); return true; }
-  function removePiece(p, fx) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1); if (HOOK && !p._net) HOOK('r', { key: p.key });
+  /* SOLIDITÉ comme Fortnite : une pièce qui n'est plus reliée au sol (directement ou par d'autres pièces) TOMBE */
+  function grounded(p) { var g = C.hgt(p.x, p.z); if (window.INTERIORS && INTERIORS.groundAt) g = Math.max(g, INTERIORS.groundAt(p.x, p.z, p.L + .5)); return p.L <= g + .6; }
+  function linked(a, b) { var dl = Math.abs(a.L - b.L); if (dl > LH + .15) return false; var d = Math.hypot(a.x - b.x, a.z - b.z); return d <= CELL + .15 && (dl > .1 || d > .2); }
+  var SUPT = 0; function support() { SUPT = 0; var ok = new Set(), q = []; PIECES.forEach(function (p) { if (grounded(p)) { ok.add(p); q.push(p); } });
+    while (q.length) { var a = q.pop(); for (var i = 0; i < PIECES.length; i++) { var b = PIECES[i]; if (!ok.has(b) && linked(a, b)) { ok.add(b); q.push(b); } } }
+    var fall = PIECES.filter(function (p) { return !ok.has(p); }); fall.forEach(function (p, k) { setTimeout(function () { removePiece(p, true, true); }, 60 + k * 45); }); }
+  function removePiece(p, fx, noChk) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1); if (HOOK && !p._net) HOOK('r', { key: p.key }); if (!noChk && fx && !SUPT) { SUPT = 1; setTimeout(support, 120); }
     if (p.t === 'mur') wallFree(p);
     else { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.im.free.push(p.ii); }
     if (fx) { var c = C.MATS[MATW[p.m]].col; C.burst(p.x, p.L + 1.5, p.z, 16, [c, c, '#5a3a20'], 7, .5, 1.4); C.SFX.crack(); } }
@@ -462,6 +468,7 @@
       else if (a === 'editer' && C.BUILD) editWall(); });
   }
   function press(b, fn) { b.addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); fn(); }); }
+  function pickMat(cs) { if (C.CREA || RES[MATK] >= cs) return MATK; var L = ['bois', 'pierre', 'metal']; for (var i = 0; i < 3; i++) if (RES[L[i]] >= cs) return L[i]; return MATK; }   // plus assez de la matière choisie : on passe tout seul à une autre (bois, puis pierre, puis métal)
   function nextMat() { var L = ['bois', 'pierre', 'metal']; MATK = L[(L.indexOf(MATK) + 1) % 3]; hudBuild(); }
   function hudRes() { ['bois', 'pierre', 'metal'].forEach(function (k) { var b = el[k] && el[k].querySelector('b'), v = C.CREA ? '∞' : String(RES[k]); if (b && b.textContent !== v) { b.textContent = v; el[k].classList.remove('flash'); void el[k].offsetWidth; el[k].classList.add('flash'); setTimeout(function () { el[k].classList.remove('flash'); }, 250); } }); }
   function hudBuild() { if (!el.build) return; el.build.querySelectorAll('[data-p]').forEach(function (b) { b.classList.toggle('on', b.dataset.p === PIECE); });
@@ -654,7 +661,7 @@
     nowPlaying: function (n) { if (!el.now) return; el.now.textContent = '🎵 ' + n; el.now.classList.add('on'); setTimeout(function () { el.now.classList.remove('on'); }, 5000); },
     bag: function (on) { bag(on); }, bagOpen: function () { return BAGON; }, bagAdd: bagAdd, act: act,
     save: save, hasSave: function () { return !!loadSave(); }, wipe: function () { try { localStorage.removeItem(SKEY); localStorage.removeItem(SKEY + '_fog'); } catch (e) {} },
-    update: function (dt) { TIME += dt; if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
+    update: function (dt) { TIME += dt; for (var gi = 0; gi < PIECES.length; gi++) { var gp = PIECES[gi]; if (!gp.grow) continue; gp.hp = Math.min(gp.hmax, gp.hp + (gp.hmax * (1 - (HP0[gp.m] || 90) / (HPP[gp.m] || 150))) / (HPT[gp.m] || 4) * dt); if (gp.hp >= gp.hmax) gp.grow = false; if (gp.ws) gp.ws.forEach(function (w) { w.hp = gp.hp; }); } if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
       if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0);
       // arbres qui tremblent, rochers qui reviennent, arbres qui repoussent
       C.TREES.forEach(function (t) { if (t.shk > 0) { t.shk = Math.max(0, t.shk - dt); if (window.TREES3D && TREES3D.shake) TREES3D.shake(t, t.shk > 0 ? Math.sin(t.shk * 70) * t.shk * .5 : 0); } });
@@ -670,13 +677,13 @@
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
       if (TOOL === 'place' && P.alive && P.mode === 'ground') ghostShow(placePlan(), true);
-      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (C.CREA || RES[p.t === 'lit' ? 'bois' : MATK] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
+      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planFree(), ok = !taken(p.key, p) && (C.CREA || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
       if (SW.t >= 0) { SW.t += dt; if (!SW.hit && SW.t >= .27) { SW.hit = true; strike(); } if (SW.t >= .5) SW.t = -1; } },
     use: function (held, dt) {
       if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) { editTap(); EDRAG = 1; } else if (held && EDRAG) editDrag(); if (!held && ELAST && EDRAG && C.editRel && C.editRel()) { EDRAG = 0; ELAST = false; editWall(); return; } ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
       if (TOOL === 'pioche') { if (held && SW.t < 0) { SW.t = 0; SW.hit = false; C.noise(.12, .05, 1800); } }
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
-      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planFree(); if (taken(p.key, p)) return; var mk = p.t === 'lit' ? 'bois' : MATK, cs = cost(p.t);
+      else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planFree(); if (taken(p.key, p)) return; var cs = cost(p.t), mk = p.t === 'lit' ? 'bois' : pickMat(cs); if (p.t !== 'lit' && mk !== MATK) { MATK = mk; p.m = mk; hudBuild(); }
         if (!C.CREA && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
         if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!C.CREA) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
@@ -691,7 +698,7 @@
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
-    res: function () { return RES; }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
+    res: function () { return RES; }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }
 })();
