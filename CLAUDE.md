@@ -480,3 +480,6 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## v74 : MEURTRE MYSTÈRE (mode `mm`, map publique N°6, ✔ Wald Game, carte `propane`)
 - Comme Murder Mystery / TTT : rôles tirés au lancement (`mmRoles` → `go.mur`, `go.sher`), 3 joueurs min, 7 avec les bots. Tout le monde meurt en 1 coup (9999). Meurtrier : pompe après 15 s (`ROUND.armed`), shérif : pistolet. Le shérif qui tue un innocent meurt aussi ; à la mort du shérif, le pistolet passe au premier innocent vivant (`mmDeath`). Bots : le meurtrier vise tout le monde, le shérif seulement le meurtrier une fois démasqué (`ROUND.mrev`), les innocents ne tirent pas. Fin : meurtrier mort → innocents ; plus personne d'autre → meurtrier ; 4 min → innocents (`mmTick`). Miniature `#th6`.
+
+## v75 : ÎLE VIDE (Créatif, mode `ile`)
+- `VIDE` = mode `ile` (carte `propane`) : relief tout plat à 0,6 (= point 0 de la grille), aucune maison, arbre, route, véhicule, décor props ni ferme (`TOWNS` = une ville `vide` de rayon 1,5 au centre). Type de partie `libre` : on construit sa map de zéro, appareils, règles, publier. Bouton « 🟩 ÎLE VIDE » sous Mon monde au salon et dans ⚙️ Paramètres (MAPL). Message d'accueil dédié.

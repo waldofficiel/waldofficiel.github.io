@@ -371,6 +371,7 @@ body:not(.touch) #bCrouch{display:none}
         <div class="msub" id="subBR"><div class="seg2"><button type="button" data-mode="br">🧱 CONSTRUCTION</button><button type="button" data-mode="zb">🛡️ ZÉRO CONSTRUCTION</button></div><div class="seg2" id="segTm"><button type="button" data-tm="1">SOLO</button><button type="button" data-tm="2">DUO</button><button type="button" data-tm="3">TRIO</button><button type="button" data-tm="4">SECTION</button></div><div class="seg2" id="segRk"><button type="button" data-rk="1">🏆 CLASSÉ</button><button type="button" data-rk="0">⚡ PARTIE RAPIDE</button></div></div>
         <div class="msub" id="subCR" hidden>
           <button type="button" class="world" data-mode="creatif"><span>🌍</span><div><b>MON MONDE</b><small>Fais ce que tu veux · constructions illimitées · armurerie infinie</small></div></button>
+          <button type="button" class="world" data-mode="ile"><span>🟩</span><div><b>ÎLE VIDE</b><small>Comme Fortnite : une île plate sur la grille, rien dessus · tu crées ta map de zéro</small></div></button>
           <h4>MAPS PUBLIQUES</h4>
           <button type="button" class="pmap" data-mode="bf"><i class="n1">N°1</i><canvas class="pthumb" id="th1" width="224" height="184"></canvas><div><b>MAP 1V1</b><small class="ver">✔ Wald Game</small><small>Petite île · grande zone de build fight · 200 PV · générateurs d'armes sur le carré</small></div></button>
           <button type="button" class="pmap" data-mode="prop"><i class="n1 n2">N°2</i><canvas class="pthumb" id="th2" width="224" height="184"></canvas><div><b>PROP HUNT</b><small class="ver">✔ Wald Game</small><small>3 joueurs min. · 1 chercheur, les autres se transforment en objets au laser</small></div></button>
@@ -501,7 +502,7 @@ var isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window
 var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE', survie: 'TERRES SAUVAGES', propane: 'MINI-ÎLE' }, BRMAPS = ['campagne', 'desert'], ROT = 600000;
 function brMap(t) { return BRMAPS[Math.floor((t || Date.now()) / ROT) % BRMAPS.length]; }
 /* 4 modes : br (Battle Royale avec constructions), zb (Zéro Construction : pas de constructions, bulle bouclier), survie (zombies), creatif (terrain de jeu : constructions illimitées, armurerie) */
-var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROP HUNT', lave: 'SOL EN LAVE', obby: 'PARCOURS', gg: 'GUN GAME', mm: 'MEURTRE MYSTÈRE' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
+var MODES = { br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROP HUNT', lave: 'SOL EN LAVE', obby: 'PARCOURS', gg: 'GUN GAME', mm: 'MEURTRE MYSTÈRE', ile: 'ÎLE VIDE' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
 var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) MODE = mm; } catch (e) {}
 try { var mo = (location.search.match(/[?&]mode=(\w+)/) || [])[1]; if (MODES[mo]) MODE = mo; } catch (e) {}
 var IOSW = /iPhone|iPad|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);   // Wald Royal iOS (web) : pas de Survie (payant, PC + Android)
@@ -509,8 +510,8 @@ if (IOSW && MODE === 'survie') MODE = 'br';
 /* Survie (Wald Royal + Survie, 5,99 €) pas encore jouable, sauf compte créateur (code saisi dans Wald Game). Tout le Créatif est gratuit. */
 var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_creator') === '1'; SURVOK = CREATOR || localStorage.getItem('wr_survie_ok') === '1'; } catch (e) {}
 if (MODE === 'survie' && !SURVOK) MODE = 'br';
-var MAP = MODE === 'prop' || MODE === 'lave' || MODE === 'bf' || MODE === 'obby' || MODE === 'gg' || MODE === 'mm' ? 'propane' : MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
-var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', CREA = MODE === 'creatif' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg', MAPNAME = MAPS[MAP];
+var MAP = MODE === 'ile' || MODE === 'prop' || MODE === 'lave' || MODE === 'bf' || MODE === 'obby' || MODE === 'gg' || MODE === 'mm' ? 'propane' : MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
+var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile', CREA = MODE === 'creatif' || MODE === 'ile' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg', MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM ? 1 : 30, ISL = SURV ? 1720 : PROPM ? 240 : 420, HALF = SURV ? 2000 : PROPM ? 300 : 500;   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
@@ -938,12 +939,13 @@ var TOWNS = SURV ? [['Camp du Départ', 140, 120, 44, 'chalet'], ['Refuge des Lo
     ['Avant-poste', 1120, -520, 38, 'chalet'], ['Village Brûlé', -420, 280, 46, 'chalet'], ['Ferme Abandonnée', 440, -330, 40, 'chalet'], ['Col des Brumes', -1240, -160, 34, 'chalet'], ['Oasis Sèche', 960, 620, 36, 'chalet'],
     ['Plage des Naufragés', 1060, 1010, 56, 'plage'], ['Village du Sud', 120, 1060, 42, 'chalet'], ['Arène Build Fight', -60, -60, 34, 'arena']]
   : DES ? [['Mirage City', 120, 20, 88, 'centre'], ['Canyon Rouillé', -50, -310, 62, '2cv'], ['Oasis Chrome', 210, -210, 44, 'concess'], ['Puits Turbo', 40, 320, 40, 'garage'], ['Fort Cactus', -150, 280, 48, 'village'], ['Mine Rouge', 60, -150, 46, 'mine'], ['Motel Néon', 250, 170, 42, 'motel']]
+  : VIDE ? [['Île vide', 0, 0, 1.5, 'vide']]
   : PROPM ? [['Propane City', 20, -15, 46, 'centre'], ['Ranch Pétard', -140, -30, 46, '2cv'], ['Avenue Gaz', 100, -140, 36, 'concess'], ['Port Bouteille', 165, 50, 32, 'garage'], ['Village Flamme', -75, 130, 38, 'village'], ['Chalet Bonbonne', -40, -110, 32, 'chalet'], ['Mini Ranch', 80, 140, 30, 'chalet'], ['Hameau Briquet', -165, 95, 28, 'chalet']].concat(MODE === 'bf' ? [['Arène Build Fight', 160, -70, 52, 'arena']] : [])
   : [['Turbo Towers', 40, -30, 58, 'centre'], ['Rusty Ranch', -255, -55, 62, '2cv'], ['Chrome Avenue', 175, -255, 44, 'concess'], ['Piston Docks', 300, 85, 40, 'garage'], ['Golden Hollow', -130, 255, 48, 'village'], ['Lodge des Pins', -60, -175, 44, 'chalet']]; ARENA = TOWNS.filter(function (t) { return t[4] === 'arena'; })[0] || null; window.NOSPAWN = function (x, z) { var R = ARENA && ARENA[3] >= 50 ? 46 : 40; return !!ARENA && Math.abs(x - ARENA[1]) < R && Math.abs(z - ARENA[2]) < R; };   // zone build fight + générateurs : rien ne pousse   // zone build fight plate (map « 1v1 entre potes »)
-var ROADS = SURV ? [[0, 6], [0, 7], [0, 2], [6, 1], [1, 8], [1, 3], [6, 4], [4, 11], [0, 11], [2, 9], [9, 10], [7, 5], [11, 10]] : PROPM ? [[0, 1], [0, 2], [0, 3], [0, 4], [3, 6], [4, 7], ['y', 0, .4, 5]] : DES ? [[0, 2], [0, 3], [0, 5], [0, 6], [1, 5], [3, 4], [0, 4], [2, 6]] : [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], ['y', 0, .4, 5]];   // ['y', route, t, ville] : bifurcation propre depuis une route principale
+var ROADS = VIDE ? [] : SURV ? [[0, 6], [0, 7], [0, 2], [6, 1], [1, 8], [1, 3], [6, 4], [4, 11], [0, 11], [2, 9], [9, 10], [7, 5], [11, 10]] : PROPM ? [[0, 1], [0, 2], [0, 3], [0, 4], [3, 6], [4, 7], ['y', 0, .4, 5]] : DES ? [[0, 2], [0, 3], [0, 5], [0, 6], [1, 5], [3, 4], [0, 4], [2, 6]] : [[0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 3], ['y', 0, .4, 5]];   // ['y', route, t, ville] : bifurcation propre depuis une route principale
 /* relief à la Fortnite : une vraie montagne (campagne) / de grands plateaux rocheux (désert) */
-var PEAKS = SURV ? [[-660, -1080, 420, 150, 0], [760, -1120, 340, 125, 0], [-1380, 80, 300, 110, 0], [-160, -720, 180, 55, 0], [380, -800, 160, 50, 0], [-700, -180, 130, 38, 0], [-560, 1180, 220, 75, 0], [-40, 420, 120, 24, 0], [900, -120, 140, 34, 0]] : PROPM ? [[-20, -225, 40, 24, 0], [215, -85, 34, 16, 0], [0, 235, 36, 18, 0], [-220, -120, 30, 14, 0]] : DES ? [[-120, -120, 62, 24, 1], [170, 215, 55, 20, 1], [-70, 70, 42, 16, 1], [150, -300, 40, 18, 1]] : [[-10, -300, 95, 58, 0], [215, 175, 62, 30, 0], [-270, 120, 55, 22, 0]];
-var LAKE = SURV ? [520, 420, 150] : PROPM ? [45, 75, 20] : DES ? [-40, -40, 17] : [95, 150, 42];   // lac au milieu de la campagne / oasis dans le désert
+var PEAKS = VIDE ? [] : SURV ? [[-660, -1080, 420, 150, 0], [760, -1120, 340, 125, 0], [-1380, 80, 300, 110, 0], [-160, -720, 180, 55, 0], [380, -800, 160, 50, 0], [-700, -180, 130, 38, 0], [-560, 1180, 220, 75, 0], [-40, 420, 120, 24, 0], [900, -120, 140, 34, 0]] : PROPM ? [[-20, -225, 40, 24, 0], [215, -85, 34, 16, 0], [0, 235, 36, 18, 0], [-220, -120, 30, 14, 0]] : DES ? [[-120, -120, 62, 24, 1], [170, 215, 55, 20, 1], [-70, 70, 42, 16, 1], [150, -300, 40, 18, 1]] : [[-10, -300, 95, 58, 0], [215, 175, 62, 30, 0], [-270, 120, 55, 22, 0]];
+var LAKE = VIDE ? [0, 9000, 1] : SURV ? [520, 420, 150] : PROPM ? [45, 75, 20] : DES ? [-40, -40, 17] : [95, 150, 42];   // lac au milieu de la campagne / oasis dans le désert
 var DARKFS = SURV ? [[-840, -500, 330], [940, -700, 280], [-940, 780, 300], [-120, 760, 210], [-480, -1000, 250], [200, -480, 160]] : PROPM ? [] : DES ? [] : [[-150, -205, 95]], DARKF = DARKFS[0] || null;   // forêts sombres (campagne : une ; survie : quatre)
 // forme naturelle (pas un cercle) : rayon qui varie avec l'angle (lobes, échancrures), propre à chaque forêt
 function darkR(F, a) { var p = F[0] * .011 + F[1] * .017; return F[2] * (.78 + .16 * Math.sin(a * 2 + p) + .11 * Math.sin(a * 3 + p * 2.1) + .07 * Math.sin(a * 5 + p * 1.3) + .045 * Math.sin(a * 8 + p * .7) + .03 * Math.sin(a * 13 + p * 3.1)); }
@@ -1002,12 +1004,12 @@ function roadD(x, z) { var fx = (x + HALF) / RDS, fz = (z + HALF) / RDS; if (fx 
   return (RDG[k] * (1 - u) + RDG[k + 1] * u) * (1 - v) + (RDG[k + RDN] * (1 - u) + RDG[k + RDN + 1] * u) * v; }
 function nearRoad(x, z, m) { return roadD(x, z) < m; }
 /* la ferme (2e ville) : champs de maïs, blé, citrouilles, choux autour d'une cour ; coordonnées locales */
-var FARM = SURV ? { x: 1e5, z: 1e5, fields: [] } : { x: TOWNS[1][1], z: TOWNS[1][2], fields: [[-22, 18, 22, 16, 'mais'], [6, 22, 14, 12, 'citrouille'], [32, 24, 16, 14, 'ble'], [40, -6, 12, 16, 'mais'], [-38, 0, 10, 12, 'chou']] };
-FARM.paths = SURV ? [] : [[2, 6, -6, 30], [2, 6, 30, 14], [10, -4, 40, 4], [-14, 2, -36, 4]];
-ROADP.forEach(function (pts) { [pts[0], pts[pts.length - 1]].forEach(function (p) { var lx = p[0] - FARM.x, lz = p[1] - FARM.z; if (Math.hypot(lx, lz) < TOWNS[1][3] + 4) FARM.paths.push([lx, lz, 2, -4]); }); });
+var FARM = SURV || VIDE ? { x: 1e5, z: 1e5, fields: [] } : { x: TOWNS[1][1], z: TOWNS[1][2], fields: [[-22, 18, 22, 16, 'mais'], [6, 22, 14, 12, 'citrouille'], [32, 24, 16, 14, 'ble'], [40, -6, 12, 16, 'mais'], [-38, 0, 10, 12, 'chou']] };
+FARM.paths = SURV || VIDE ? [] : [[2, 6, -6, 30], [2, 6, 30, 14], [10, -4, 40, 4], [-14, 2, -36, 4]];
+ROADP.forEach(function (pts) { [pts[0], pts[pts.length - 1]].forEach(function (p) { var lx = p[0] - FARM.x, lz = p[1] - FARM.z; if (TOWNS[1] && Math.hypot(lx, lz) < TOWNS[1][3] + 4) FARM.paths.push([lx, lz, 2, -4]); }); });
 FARM.pp = FARM.paths.map(function (q) { var pts = [], cx = (q[0] + q[2]) / 2 + 3, cz = (q[1] + q[3]) / 2 - 2; for (var i = 0; i <= 16; i++) { var t = i / 16, u = 1 - t; pts.push([u * u * q[0] + 2 * u * t * cx + t * t * q[2], u * u * q[1] + 2 * u * t * cz + t * t * q[3]]); } return pts; });
 function onFarmPath(lx, lz, m) { return FARM.pp.some(function (pts) { for (var i = 0; i < pts.length - 1; i++) if (segD(lx, lz, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]) < m) return true; return false; }); }
-function farmGrass(x, z) { var lx = x - FARM.x, lz = z - FARM.z; if (Math.hypot(lx, lz) > TOWNS[1][3] - 2) return false; var ex = (lx - 2) / 36, ez = (lz + 6) / 21;
+function farmGrass(x, z) { if (!TOWNS[1]) return false; var lx = x - FARM.x, lz = z - FARM.z; if (Math.hypot(lx, lz) > TOWNS[1][3] - 2) return false; var ex = (lx - 2) / 36, ez = (lz + 6) / 21;
   return ex * ex + ez * ez > 1 && !inField(x, z, 1.2) && !onFarmPath(lx, lz, 2.6) && Math.hypot(lx + 4, lz - 38) > 4; }
 function inField(x, z, m) { m = m || 0; return FARM.fields.some(function (f) { return Math.abs(x - FARM.x - f[0]) < f[2] / 2 + m && Math.abs(z - FARM.z - f[1]) < f[3] / 2 + m; }); }
 function inTown(x, z, m) { return TOWNS.some(function (t) { return townD(t, x, z) < (m || 0); }); }
@@ -1018,6 +1020,7 @@ function vnoise(x, z) { var xi = Math.floor(x), zi = Math.floor(z), xf = x - xi,
 function baseH(x, z) {
   var d = Math.hypot(x, z), sr = shoreR(Math.atan2(z, x)), beach = (sr - d) * .05;
   if (d > sr) return Math.max(-3, beach);
+  if (VIDE) return Math.min(.6, beach);   /* ÎLE VIDE : tout plat, pile sur le point 0 de la grille */
   var n = vnoise(x / 115 + 3.1, z / 115 + 7.7) * .62 + vnoise(x / 42 + 11, z / 42 - 4) * .28 + vnoise(x / 13, z / 13) * .1, hh = Math.max(0, n - .36) * 40 + n * 1.5;
   if (DES) { var w = vnoise(x / 70 - 5, z / 70 + 2), rid = 1 - Math.abs(Math.sin((x * .8 + z * .55) / 19 + w * 6)); hh = Math.max(0, n - .4) * 30 + rid * rid * (3 + w * 6) + n * 2; if (n > .66) hh += Math.min(14, (n - .66) * 160); }   // dunes + mesas
   hh += Math.max(0, n - .5) * 22;   // collines plus marquées
@@ -1171,7 +1174,7 @@ function treesIn(x0, z0, x1, z1, f) { for (var j = Math.floor(z0 / TGC); j <= Ma
 function treeNear(x, z, d) { return treesIn(x - d, z - d, x + d, z + d, function (t) { return Math.abs(t.x - x) < d && Math.abs(t.z - z) < d; }); }
 (function () {
   var r = mulberry(19);
-  for (var n = 0; n < (SURV ? 110000 : 9000) && TREES.length < (SURV ? 6200 : DES ? 380 : 620); n++) { var a = r() * 6.283, d = 20 + r() * (ISLM - 20), x = Math.cos(a) * d, z = Math.sin(a) * d;
+  for (var n = 0; n < (VIDE ? 0 : SURV ? 110000 : 9000) && TREES.length < (SURV ? 6200 : DES ? 380 : 620); n++) { var a = r() * 6.283, d = 20 + r() * (ISLM - 20), x = Math.cos(a) * d, z = Math.sin(a) * d;
     if (!onLand(x, z) || inTown(x, z, 10) || nearRoad(x, z, SURV ? 5 : 9)) continue; if (SURV && (hgt(x, z) > 58 + vnoise(x / 20, z / 20) * 14 || darkIn(x, z) > .05)) continue;
     if (SURV) { var ad = aridK(x, z); if (ad > 0 && r() < ad * 1.15) { if (ad > .45 && r() < .05) ARIDX.push({ sp: hgt(x, z) < 3.5 && ad > .8 ? 'palm' : 'dead', x: x, z: z, y: hgt(x, z), h: 5 + r() * 3, a: r() * 6.283 }); continue; } } if (!DES && vnoise(x / 70 + 5, z / 70 - 3) < .42 && r() < .75) continue; if (treeNear(x, z, 5.5)) continue;
     tgAdd({ x: x, z: z, rock: r() < (DES ? .45 : .18), s: .8 + r() * .6 }); }
@@ -1223,7 +1226,8 @@ var CHEST0 = [], WMAT = {};
 (function () {
   // chaque ville est construite autour de sa position (TOWNS), plus rien n'est collé au centre de la carte
   var T0 = TOWNS[0], T1 = TOWNS[1], T2 = TOWNS[2], T3 = TOWNS[3], T4 = TOWNS[4], T5 = TOWNS[5], T6 = TOWNS[6];
-  if (SURV) {   // survie : petits camps de cabanes en rondins (tentes, feu de camp et tas de bois ajoutés par city.js)
+  if (VIDE) { }   /* île vide : aucun bâtiment */
+  else if (SURV) {   // survie : petits camps de cabanes en rondins (tentes, feu de camp et tas de bois ajoutés par city.js)
     // hameaux en ruine (les murs cassés sont choisis par survie.js) : maisons en bois, en brique et en béton, parfois à étage
     TOWNS.forEach(function (t, ti) { if (t[4] !== 'plage') return;   // la plage : vieilles cahutes en bois et restaurants colorés, attaqués (murs cassés par survie.js)
       var ax = -Math.SQRT1_2, az = Math.SQRT1_2, sx2 = Math.SQRT1_2, sz2 = Math.SQRT1_2, rc = mulberry(990);
@@ -1279,7 +1283,7 @@ var CHEST0 = [], WMAT = {};
   }
   var r = mulberry(5), placed = [];
   function spot(clear) { for (var k = 0; k < 400; k++) { var a = r() * 6.283, d = 40 + r() * (ISLM - 60), x = Math.cos(a) * d, z = Math.sin(a) * d; if (!onLand(x, z) || inTown(x, z, 14) || nearRoad(x, z, 9)) continue; if (treeNear(x, z, clear * .6) || placed.some(function (q) { return Math.hypot(q[0] - x, q[1] - z) < clear; })) continue; placed.push([x, z]); return [x, z]; } return null; }
-  for (var n = 0; n < (SURV ? 16 : 12); n++) { var s2 = spot(30); if (s2) { house(s2[0], s2[1], 9, 8, 'bois', H, 'nsew'[n % 4]); if (!SURV || n % 3 === 0) CHEST0.push(s2); } }
+  for (var n = 0; n < (VIDE ? 0 : SURV ? 16 : 12); n++) { var s2 = spot(30); if (s2) { house(s2[0], s2[1], 9, 8, 'bois', H, 'nsew'[n % 4]); if (!SURV || n % 3 === 0) CHEST0.push(s2); } }
   for (n = 0; n < (SURV ? 10 : 30); n++) { s2 = spot(14); if (s2) { if (r() < .5) W(s2[0], s2[1], GRID, .3, 'bois', H); else W(s2[0], s2[1], .3, GRID, 'bois', H); } }
   for (n = 0; n < (SURV ? 9 : 12); n++) { s2 = spot(14); if (s2) CHEST0.push(s2); }   // coffres cachés (survie : peu, au fond des bois)
   CHEST0.forEach(function (c) { for (var i = 0; i < HOUSES.length; i++) { var q = HOUSES[i]; if (Math.abs(c[0] - q.ox) > q.ohx + .3 || Math.abs(c[1] - q.oz) > q.ohz + .3) continue;   // les coffres suivent leur maison recalée sur la grille
@@ -1429,14 +1433,15 @@ if (window.OPT) OPT.scene = scene; var OPT_N0 = scene.children.length;
 if (window.CITY) try { CITY.build(THREE, { scene: scene, H: H, HOUSES: HOUSES, TOWNS: TOWNS, ROADS: ROADS, ROADP: SURV ? [] : ROADP, SURV: SURV, FARM: FARM, inField: inField, onFarmPath: onFarmPath, hgt: hgt, inTown: inTown, nearRoad: nearRoad, DES: DES, H: H, PCOL: PCOL }); } catch (e) { console.error('CITY', e); }
 if (window.INTERIORS) try { INTERIORS.build(THREE, { scene: scene, H: H, HOUSES: HOUSES, WALLS: WALLS, hgt: hgt, PCOL: PCOL, worldMat: worldMat, TX: TX, H: H }); } catch (e) { console.error('INTERIORS', e); }
 var PCTX = null;
-if (window.PROPS) try { PROPS.build(THREE, PCTX = { EXTRA: SURV ? ARIDX.slice() : undefined, aridK: aridK, lakeK: lakeK, BUSHES: DES ? GFX.bushList : null, onReady: function () { PCTX.done = true; }, scene: scene, hgt: hgt, onLand: onLand, inTown: inTown, nearRoad: nearRoad, HOUSES: HOUSES, inField: inField, TREES: TREES, LAKE: LAKE, DARKF: DARKF, DARKFS: DARKFS, SURV: SURV, DES: DES, ISLM: ISLM, PEBS: PROPCOL, shoreR: shoreR, PEAKS: PEAKS }); } catch (e) { console.error('PROPS', e); }
+if (window.PROPS && !VIDE) try { PROPS.build(THREE, PCTX = { EXTRA: SURV ? ARIDX.slice() : undefined, aridK: aridK, lakeK: lakeK, BUSHES: DES ? GFX.bushList : null, onReady: function () { PCTX.done = true; }, scene: scene, hgt: hgt, onLand: onLand, inTown: inTown, nearRoad: nearRoad, HOUSES: HOUSES, inField: inField, TREES: TREES, LAKE: LAKE, DARKF: DARKF, DARKFS: DARKFS, SURV: SURV, DES: DES, ISLM: ISLM, PEBS: PROPCOL, shoreR: shoreR, PEAKS: PEAKS }); } catch (e) { console.error('PROPS', e); }
 if (window.TREES3D) try { TREES3D.build(THREE, { scene: scene, renderer: R3, DES: DES, trees: DES ? [] : TREES.filter(function (t) { return !t.rock; }), bushes: DES ? [] : GFX.bushList || [], pebbles: GFX.pebList || [], uTime: GFX.wT, uR: GFX.treeR, uCam: GFX.treeC, extra: function () { return PCTX && PCTX.done ? PCTX.EXTRA || [] : null; },
   onReady: function () { var far = TREES3D.hasFar(); (GFX.treeIM || []).forEach(function (im) { im.castShadow = false; if (far) im.visible = false; im.children.forEach(function (c) { c.castShadow = false; }); }); } }); } catch (e) { console.error('TREES3D', e); }
 if (window.OPT) try { var OPTR = OPT.batch(scene.children.slice(OPT_N0)); console.log('OPT batch', JSON.stringify(OPTR)); } catch (e) { console.error('OPT', e); }
 /* mode survie (survie.js) : pioche, ressources (bois, pierre, métal) et constructions façon Fortnite */
 var SV = null, SVC = null; if (window.SURVIE) try { SURVIE.init(THREE, SVC = { snapY: snapY, creaIntro: function () { var esc = function (x) { return String(x || '').replace(/[<>&]/g, ''); }, gen = [['⚙️', 'Bouton PARAMÈTRES : choisis la map et les règles'], ['▶️', isTouch ? 'LANCER LA PARTIE quand tout le monde est prêt' : 'Maintiens ENTRÉE pour lancer la partie']];
     if (PUB) return { t: '🌐 ' + esc(PUB.name).toUpperCase(), d: PUB.msg ? esc(PUB.msg) : 'Un jeu créé par ' + esc(PUB.by) + '. Bonne partie !', r: [['👤', 'Créé par ' + esc(PUB.by)]].concat(gen) };
-    var M = { libre: ['🎨 MON MONDE', 'Ton terrain de jeu : construis, place des appareils, invente tes règles, puis publie ton jeu pour tout le monde.', [['🧩', 'Échap → Appareils et Règles pour créer ton mode'], ['📤', 'Échap → Publier le jeu quand c\'est prêt']]],
+    if (VIDE) return { t: '🟩 ÎLE VIDE', d: 'Une île toute plate, sur la grille, et rien d\'autre : construis ta map de zéro, place des appareils et des règles, puis publie ton jeu.', r: [['🧩', 'Échap → Appareils et Règles'], ['✈️', 'Double saut pour voler'], ['📤', 'Échap → Publier le jeu']].concat(gen) };
+  var M = { libre: ['🎨 MON MONDE', 'Ton terrain de jeu : construis, place des appareils, invente tes règles, puis publie ton jeu pour tout le monde.', [['🧩', 'Échap → Appareils et Règles pour créer ton mode'], ['📤', 'Échap → Publier le jeu quand c\'est prêt']]],
       bf: ['⚔️ MAP 1V1', 'Build fight : 200 PV, armes sur le carré, celui qui construit le mieux gagne.', []], prop: ['🎭 PROP HUNT', '1 chercheur tiré au hasard, les autres se transforment en objets. 3 joueurs minimum.', []],
       lave: ['🌋 SOL EN LAVE', 'La lave monte : construis vers le haut, le dernier en vie gagne.', []], obby: ['🏃 PARCOURS', 'Saute de plateforme en plateforme, les points verts te sauvegardent.', []], gg: ['🔫 GUN GAME', 'Chaque élimination te donne l\'arme suivante. Le premier au Fusil Doré gagne.', []], mm: ['🔪 MEURTRE MYSTÈRE', '1 meurtrier caché parmi vous, 1 shérif avec un pistolet. Tout le monde meurt en 1 coup. Observe… et survis.', []] }[TPL] || ['🎨 CRÉATIF', '', []];
     return { t: M[0], d: M[1], r: M[2].concat(gen) }; }, editRel: function () { return SET.editRel !== false; }, crKit: function () { return crKit(); }, genOn: function () { return !CREA || rLive() && (!RCUR || !!RCUR.gen); }, SURV: SURV, CREA: CREA, BF: BF, PROPM: PROPM, ARENA: ARENA, BUILD: BUILD, DES: DES, scene: scene, hgt: hgt, TREES: TREES, WALLS: WALLS, MATS: MATS, WMAT: WMAT, BOX: BOX, worldMat: worldMat, TX: TX, PCOL: PROPCOL, TOWNS: TOWNS, LAKE: LAKE, PEAKS: PEAKS, DARKFS: DARKFS, darkIn: darkIn, onLand: onLand, inTown: inTown, nearRoad: nearRoad, ISLM: ISLM, HALF: HALF,
@@ -1496,7 +1501,7 @@ function propTick() { pl.forEach(function (p) { if (p.net) { if ((p.pr || null) 
    PROP HUNT : 3 joueurs minimum. 1 chercheur tiré au hasard (pompe), les autres se cachent (laser = se transformer en objet).
    60 s pour se cacher (le chercheur est aveuglé), puis 4 min de chasse. Les tirs cassent les objets ; un joueur-objet touché est éliminé. Personne ne construit. */
 var ROUND = null, PROPOBJ = [], HIDE_T = 60, HUNT_T = 240, RSEEN = 0, RSPUB = 0, RLAST = 0, PUB = null, PUBKEY = '', PUBDONE = false, LAVA = null, LASTJ = 0;
-var TPL = MODE === 'prop' ? 'prop' : MODE === 'lave' ? 'lave' : MODE === 'obby' ? 'obby' : MODE === 'gg' ? 'gg' : MODE === 'mm' ? 'mm' : BF ? 'bf' : 'libre';   // type de partie : libre, bf (1v1), prop (prop hunt), lave (sol en lave) — une map publiée peut choisir son type
+var TPL = MODE === 'ile' ? 'libre' : MODE === 'prop' ? 'prop' : MODE === 'lave' ? 'lave' : MODE === 'obby' ? 'obby' : MODE === 'gg' ? 'gg' : MODE === 'mm' ? 'mm' : BF ? 'bf' : 'libre';   // type de partie : libre, bf (1v1), prop (prop hunt), lave (sol en lave) — une map publiée peut choisir son type
 function mrng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function propObjs() { if (TPL !== 'prop' || PROPOBJ.length) return; var R = mrng(4242), i = 0;   // objets cassables posés pareil chez tous les joueurs (même graine)
   (PROPM ? TOWNS : [[0, TOWNS[0][1], TOWNS[0][2], 45]]).forEach(function (t) { for (var k = 0; k < 16; k++) { var a = R() * 6.283, d = 5 + R() * t[3] * .85, x = t[1] + Math.cos(a) * d, z = t[2] + Math.sin(a) * d, ty = ['banc', 'poubelle', 'tonneau', 'caisse', 'cone', 'fleurs', 'buisson', 'caisse', 'tonneau'][R() * 9 | 0], ry = R() * 6.283;
@@ -1536,7 +1541,7 @@ function crKit() { if (!rLive() || !RCUR || (TPL !== 'libre' && TPL !== 'bf')) r
 function rSetLabel(k, v) { var o = (RSOPT[k] || []).filter(function (q) { return q[0] === v; })[0]; return o ? o[1] : k + ' : ' + v; }
 function rSetOpen() { var d = $('rSetM'); if (!d) { d = document.createElement('div'); d.id = 'rSetM'; d.className = 'modal'; document.body.appendChild(d); }
   if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock();
-  var S = rSetGet(), keys = rKeys(), MAPL = [['creatif', '🎨 Mon monde', 'Construire, tes règles'], ['bf', '⚔️ MAP 1V1', 'Build fight · ✔ Wald Game'], ['prop', '🎭 PROP HUNT', 'Cache-cache en objets'], ['lave', '🌋 SOL EN LAVE', 'La lave monte'], ['obby', '🏃 PARCOURS', 'Sauts et checkpoints'], ['gg', '🔫 GUN GAME', '10 armes à la suite'], ['mm', '🔪 MEURTRE MYSTÈRE', 'Trouve le meurtrier']];
+  var S = rSetGet(), keys = rKeys(), MAPL = [['creatif', '🎨 Mon monde', 'Grande map, tes règles'], ['ile', '🟩 ÎLE VIDE', 'Rien : tu construis tout'], ['bf', '⚔️ MAP 1V1', 'Build fight · ✔ Wald Game'], ['prop', '🎭 PROP HUNT', 'Cache-cache en objets'], ['lave', '🌋 SOL EN LAVE', 'La lave monte'], ['obby', '🏃 PARCOURS', 'Sauts et checkpoints'], ['gg', '🔫 GUN GAME', '10 armes à la suite'], ['mm', '🔪 MEURTRE MYSTÈRE', 'Trouve le meurtrier']];
   function draw() { d.innerHTML = '<div class="pubc"><h2>⚙️ PARAMÈTRES DE LA PARTIE</h2><p class="sm">Choisis la map et les règles, puis lance. Ce sont les réglages de celui qui appuie sur « Lancer » qui comptent pour tout le salon.</p>' +
       '<label>🗺️ Map / mode</label><div class="pbT">' + MAPL.map(function (q) { var on = q[0] === MODE && !PUB; return '<button type="button" data-mp="' + q[0] + '"' + (on ? ' class="on"' : '') + '><b>' + q[1] + '</b><small>' + q[2] + '</small></button>'; }).join('') + '</div>' +
       (keys.length ? '<label>📜 Règles (touche pour changer)</label><div class="rsG">' + keys.map(function (k) { return '<button type="button" data-rk="' + k + '">' + rSetLabel(k, S[k]) + '</button>'; }).join('') + '</div>' : '<p class="sm">Ce mode a ses propres règles (fixes) : il suffit de lancer.</p>') +
@@ -2038,7 +2043,7 @@ function carModel(k) {
   var sh = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.2), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .03; g.add(sh);
   return window.OPT ? OPT.mergeLocal(g) : g;
 }
-var VEH0 = SURV ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
+var VEH0 = SURV || VIDE ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
 var vehicles = VEH0.map(function (k) { return { k: k, m: null, x0: 0, z0: 0, a0: 0 }; });
 function vehSpot(placed) {
   for (var k = 0; k < 300; k++) { var x, z, a;
@@ -3156,7 +3161,7 @@ $('modeT').textContent = (BF || PROPM ? 'Créatif · Map publique' : CREA ? 'Cr�
 if (SURV && !CREA && SV && SV.hasSave()) (function () { var d = document.createElement('div'); d.className = 'savebox'; d.innerHTML = '💾 Monde sauvegardé sur ce téléphone · <button type="button" id="newWorld">🗑 Nouveau monde</button>'; $('subCR').after(d);
   $('newWorld').addEventListener('click', function () { if (!confirm('Effacer ta sauvegarde et recommencer un nouveau monde ?')) return; SV.wipe(); d.remove(); toast('NOUVEAU MONDE'); }); })(); if (BF) $('mapName').textContent = 'MAP 1V1'; $('mapSub').textContent = PROPM ? '✔ Wald Royal Creator · cache-cache : transforme-toi en objet' : BF ? '✔ Créateur Wald Royal · 200 PV · build fight' : CREA ? 'Mon monde · constructions illimitées · armurerie infinie' : SURV ? 'Seul contre les zombies · construis ta base' : 'Solo · 30 joueurs · ' + TOWNS.length + ' villes' + (ZB ? ' · sans constructions' : '');
 var MGRP = MODE === 'br' || MODE === 'zb' ? 'br' : MODE === 'survie' ? 'survie' : 'creatif';   // menu JOUER : Battle Royale (constru / zéro constru) · Créatif (mon monde / maps publiques) · Survie
-function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'prop' || nm === 'lave' || nm === 'bf' || nm === 'obby' || nm === 'gg' || nm === 'mm' ? 'propane' : nm === 'survie' || nm === 'creatif' ? 'survie' : brMap();
+function pickMode(nm, el) { if (nm === MODE) return; var nmap = nm === 'ile' || nm === 'prop' || nm === 'lave' || nm === 'bf' || nm === 'obby' || nm === 'gg' || nm === 'mm' ? 'propane' : nm === 'survie' || nm === 'creatif' ? 'survie' : brMap();
   if (nmap === MAP && !SURV) { try { localStorage.setItem('wr_mode', nm); } catch (e) {} location.reload(); return; } if (el) el.classList.add('load'); goMap(nmap, nm); }
 function mgrpDraw() { if (IOSW) { var sb0 = document.querySelector('#mgrp [data-g=survie]'); if (sb0) sb0.remove(); }
 document.querySelectorAll('#mgrp [data-g]').forEach(function (b) { b.classList.toggle('on', b.dataset.g === MGRP); }); $('subBR').hidden = MGRP !== 'br'; $('subCR').hidden = MGRP !== 'creatif';
