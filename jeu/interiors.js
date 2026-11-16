@@ -300,15 +300,15 @@
       L.forEach(function (p) { TPL[p.n].parts.forEach(function (pt) { nV += pt.g.attributes.position.count; }); });
       var nI = 0; L.forEach(function (p) { TPL[p.n].parts.forEach(function (pt) { nI += pt.g.index ? pt.g.index.count : pt.g.attributes.position.count; }); });
       var pos = new Float32Array(nV * 3), nor = new Float32Array(nV * 3), col = new Float32Array(nV * 3), idx = nV > 65535 ? new Uint32Array(nI) : new Uint16Array(nI), k = 0, ki = 0, cx = 0, cz = 0;
-      L.forEach(function (p) { o.position.set(p.x, p.y, p.z); o.rotation.set(0, p.ry, 0); o.scale.setScalar(1); o.updateMatrix(); cx += p.x; cz += p.z;
+      L.forEach(function (p) { o.position.set(p.x, p.y, p.z); o.rotation.set(0, p.ry, 0); o.scale.setScalar(1); o.updateMatrix(); cx += p.x; cz += p.z; p.v0 = k;
         TPL[p.n].parts.forEach(function (pt) { m4.multiplyMatrices(o.matrix, pt.m); nm.getNormalMatrix(m4); var P = pt.g.attributes.position, N = pt.g.attributes.normal, cc = pt.c;
           if (p.col && pt.main) cc = c.set(p.col).clone();
           var base = k, I = pt.g.index; if (I) for (var j = 0; j < I.count; j++) idx[ki++] = base + I.getX(j); else for (j = 0; j < P.count; j++) idx[ki++] = base + j;
           for (var i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i).applyMatrix4(m4); pos[k * 3] = v.x; pos[k * 3 + 1] = v.y; pos[k * 3 + 2] = v.z;
             if (N) { v.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nor[k * 3] = v.x; nor[k * 3 + 1] = v.y; nor[k * 3 + 2] = v.z; }
-            col[k * 3] = cc.r; col[k * 3 + 1] = cc.g; col[k * 3 + 2] = cc.b; k++; } }); });
+            col[k * 3] = cc.r; col[k * 3 + 1] = cc.g; col[k * 3 + 2] = cc.b; k++; } }); p.v1 = k; });
       var g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('normal', new T.BufferAttribute(nor, 3)); g.setAttribute('color', new T.BufferAttribute(col, 3)); g.setIndex(new T.BufferAttribute(idx, 1)); g.computeBoundingSphere();
-      var mesh = new T.Mesh(g, FIX.furnMat); mesh.receiveShadow = true; mesh.castShadow = false; ctx.scene.add(mesh); FIX.clusters.push({ m: mesh, x: cx / L.length, z: cz / L.length }); });
+      var mesh = new T.Mesh(g, FIX.furnMat); mesh.receiveShadow = true; mesh.castShadow = false; ctx.scene.add(mesh); L.forEach(function (p) { p.mesh = mesh; }); FIX.clusters.push({ m: mesh, x: cx / L.length, z: cz / L.length }); });
   }
   function loadModels(done) {
     if (!T.GLTFLoader) { done(); return; } var L = new T.GLTFLoader(), left = MODELS.length;
@@ -338,6 +338,15 @@
     groundAt: groundAt, ceilAt: ceilAt, setWall: setWall,
     update: function (cam, fog) { if (FIX.winMat && fog) { FIX.winMat.uniforms.fogColor.value.copy(fog.color); FIX.winMat.uniforms.fogNear.value = fog.near; FIX.winMat.uniforms.fogFar.value = fog.far; }
       var cx = cam.position.x, cz = cam.position.z; var R2 = cam.position.y > 60 ? 0 : (window.SET && SET.gfx >= 2 ? 80 : 60); FIX.clusters.forEach(function (q) { q.m.visible = Math.hypot(q.x - cx, q.z - cz) < R2; }); },
+    /* MEUBLES DESTRUCTIBLES (comme Fortnite) : petit meuble (chaise, lampe…) = 50 PV (1 coup de pioche), gros meuble (étagère, lit, armoire…) = 100 PV (2 coups) */
+    melee: function (ox, oy, oz, fx, fz, rng, dmg) { var best = null, bd = rng;
+      for (var i = 0; i < PLACED.length; i++) { var p = PLACED[i]; if (p.dead || !p.mesh || Math.abs(p.x - ox) > rng + 2 || Math.abs(p.z - oz) > rng + 2) continue; var t = TPL[p.n]; if (!t) continue;
+        if (oy + .6 < p.y || oy - 1.4 > p.y + t.s.y) continue; var dx = p.x - ox, dz = p.z - oz, r = Math.max(t.s.x, t.s.z) / 2, d = Math.hypot(dx, dz) - r * .7; if (d > bd) continue;
+        if ((dx * fx + dz * fz) / (Math.hypot(dx, dz) || 1) < .35 && d > .2) continue; bd = d; best = p; }
+      if (!best) return null; var tt = TPL[best.n], big = Math.max(tt.s.x, tt.s.y, tt.s.z) > 1.15 || tt.s.x * tt.s.y * tt.s.z > .6; if (best.hp == null) best.hmax = best.hp = big ? 100 : 50;
+      best.hp -= dmg; var out = { x: best.x, y: best.y + tt.s.y + .4, z: best.z, hp: Math.max(0, best.hp), max: best.hmax, big: big, dead: best.hp <= 0 };
+      if (best.hp <= 0) { best.dead = true; var P = best.mesh.geometry.attributes.position; for (var v = best.v0; v < best.v1; v++) P.setXYZ(v, best.x, best.y - 50, best.z); P.needsUpdate = true; }
+      return out; },
     stats: function () { var nv = 0; FIX.clusters.forEach(function (q) { nv += q.m.geometry.attributes.position.count; }); return { verts: nv, windows: FIX.win ? FIX.win.list.length : 0, furniture: PLACED.length, clusters: FIX.clusters.length, floors: FLOORED.length, ready: !!FIX.ready }; }
   };
 })();

@@ -368,6 +368,8 @@
     function cand(x, z, r, obj, kind) { var dx = x - ox, dz = z - oz, d = Math.hypot(dx, dz) - r; if (d > 2.2) return; var dot = (dx * fx + dz * fz) / (Math.hypot(dx, dz) || 1); if (dot < .45 && d > .3) return; if (d < bd) { bd = d; best = [kind, obj]; } }
     if (window.FAUNE && FAUNE.on && FAUNE.melee(P.x, P.y, P.z, fx, fz, 2.6, 30)) { C.tone('square', 170, 100, .08, .07); return; }
     if (window.ZOMB && ZOMB.on && ZOMB.melee(P.x, P.y, P.z, fx, fz, 2.6, 34)) { C.tone('square', 150, 90, .08, .08); return; }   // un coup de pioche sur un zombie
+    if (C.meleePl && C.meleePl(fx, fz, 10)) { C.tone('square', 200, 110, .08, .08); return; }   // coup de pioche sur un joueur : 10 dégâts (comme demandé, façon Fortnite)
+    if (window.INTERIORS && INTERIORS.melee) { var fh = INTERIORS.melee(ox, oy, oz, fx, fz, 2.1, 50); if (fh) { if (C.bhp) C.bhp(fh.x, fh.y, fh.z, fh.hp, fh.max); give('bois', fh.dead ? (fh.big ? 8 : 4) : 2); C.burst(fh.x, fh.y - .4, fh.z, fh.dead ? 18 : 6, ['#8a5a2e', '#c8955a', '#5a3a1e'], fh.dead ? 6 : 4, .14, fh.dead ? 1 : .5); C.tone('square', 260, 150, .07, .07); if (fh.dead) C.SFX.crack(); return; } }   // meubles : 50 / 100 PV
     NODES.forEach(function (n) { if (!n.dead && Math.abs(n.x - ox) < 6 && Math.abs(n.z - oz) < 6) cand(n.x, n.z, n.col.r, n, 'node'); });
     C.TREES.forEach(function (t) { if (!t.rock && t.d3 && !t.cut && Math.abs(t.x - ox) < 6 && Math.abs(t.z - oz) < 6 && P.y < t.y + 6) cand(t.x, t.z, (t.r || .5) * .8, t, 'tree'); });
     STUMPL.forEach(function (t) { if (Math.abs(t.x - ox) < 5 && Math.abs(t.z - oz) < 5) cand(t.x, t.z, .45, t, 'stump'); });

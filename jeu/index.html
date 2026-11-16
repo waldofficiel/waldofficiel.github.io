@@ -523,7 +523,7 @@ var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_cr
 if (MODE === 'survie' && !SURVOK) MODE = 'br';
 var MAP = MODE === 'ile' || MODE === 'cs' || MODE === 'prop' || MODE === 'lave' || MODE === 'bf' || MODE === 'obby' || MODE === 'gg' || MODE === 'mm' ? 'propane' : MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb') MODE = 'br'; } } catch (e) {}
 var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile' || MODE === 'cs', CREA = MODE === 'creatif' || MODE === 'ile' || MODE === 'cs' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg' && MODE !== 'cs', MAPNAME = MAPS[MAP];
-var NPL = SURV || PROPM ? 1 : 30, ISL = SURV ? 1720 : PROPM ? 240 : 420, HALF = SURV ? 2000 : PROPM ? 300 : 500;   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
+var NPL = SURV || PROPM ? 1 : 50, ISL = SURV ? 1720 : PROPM ? 240 : DES ? 465 : 420, HALF = SURV ? 2000 : PROPM ? 300 : DES ? 550 : 500;   // 50 joueurs par partie ; carte désert un peu plus grande   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
 /* ================= réglages ================= */
@@ -1458,7 +1458,8 @@ var SV = null, SVC = null; if (window.SURVIE) try { SURVIE.init(THREE, SVC = { s
       cs: ['🎯 CS WILD GO', 'Attaquants contre défenseurs : pose la bombe sur A ou B, ou désamorce-la. Achat avec B, poser/désamorcer en maintenant E. Map et vue FPS faites avec le Créatif.', []],
       lave: ['🌋 SOL EN LAVE', 'La lave monte : construis vers le haut, le dernier en vie gagne.', []], obby: ['🏃 PARCOURS', 'Saute de plateforme en plateforme, les points verts te sauvegardent.', []], gg: ['🔫 GUN GAME', 'Chaque élimination te donne l\'arme suivante. Le premier au Fusil Doré gagne.', []], mm: ['🔪 MEURTRE MYSTÈRE', '1 meurtrier caché parmi vous, 1 shérif avec un pistolet. Tout le monde meurt en 1 coup. Observe… et survis.', []] }[TPL] || ['🎨 CRÉATIF', '', []];
     return { t: M[0], d: M[1], r: M[2].concat(gen) }; }, editRel: function () { return SET.editRel !== false; }, crKit: function () { return crKit(); }, mat500: function () { return !!(rLive() && RCUR && RCUR.mats === '500'); }, genOn: function () { return !CREA || rLive() && (!RCUR || !!RCUR.gen); }, SURV: SURV, CREA: CREA, BF: BF, PROPM: PROPM, ARENA: ARENA, BUILD: BUILD, DES: DES, scene: scene, hgt: hgt, TREES: TREES, WALLS: WALLS, MATS: MATS, WMAT: WMAT, BOX: BOX, worldMat: worldMat, TX: TX, PCOL: PROPCOL, TOWNS: TOWNS, LAKE: LAKE, PEAKS: PEAKS, DARKFS: DARKFS, darkIn: darkIn, onLand: onLand, inTown: inTown, nearRoad: nearRoad, ISLM: ISLM, HALF: HALF,
-  setWall: function (w, on) { setWall(w, on); }, bhp: function (x, y, z, h, m) { bHp(x, y, z, h, m); }, hitWall: function (w, d, by) { hitWall(w, d, by); }, me: function () { return me; }, cam: function () { return cam; }, camA: function () { return camA; }, camP: function () { return camP; }, state: function () { return state; },
+  setWall: function (w, on) { setWall(w, on); }, bhp: function (x, y, z, h, m) { bHp(x, y, z, h, m); }, meleePl: function (fx, fz, dmg) { var best = null, bd = 2.5; pl.forEach(function (o) { if (o === me || !o.alive || o.mode !== 'ground' || o.veh) return; if (o.team != null && o.team === me.team && (TM() > 1 || TPL === 'cs')) return; if (Math.abs(o.y - me.y) > 1.8) return; var dx = o.x - me.x, dz = o.z - me.z, d = Math.hypot(dx, dz); if (d > bd || (dx * fx + dz * fz) / (d || 1) < .5) return; bd = d; best = o; });
+    if (!best) return false; potDmg(best, dmg, me); dmgNum(best.x, best.y + 2.1, best.z, dmg, best.sh > 0, false); return true; }, hitWall: function (w, d, by) { hitWall(w, d, by); }, me: function () { return me; }, cam: function () { return cam; }, camA: function () { return camA; }, camP: function () { return camP; }, state: function () { return state; },
   toast: function (t) { toast(t); }, burst: function () { burst.apply(null, arguments); }, tone: function () { tone.apply(null, arguments); }, noise: function () { noise.apply(null, arguments); }, SFX: SFX, isTouch: isTouch, rayBox: rayBox, hurt: function (p, d) { hurt(p, d, null); },
   cars: function () { return CART; }, makeChar: makeChar, ANIM: window.ANIM, pushCircle: pushCircle, dropItem: dropItem, randWeapon: randWeapon, dmgNum: dmgNum, PEBS: PEBS, HOUSES: HOUSES, ROADP: ROADP, get WEAPONS() { return WEAPONS; }, newSlot: newSlot, H: H,
   music: function (on, m) { music(on, m); }, initAudio: function () { initAudio(); }, inLake: inLake, POST: POST, PCOLB: PCOL, isNight: function () { return isNight(); }, fogData: fogData, fogLoad: fogLoad, chests: function () { return chests; }, items: function () { return items; }, breakChest: breakChest, icon: icon, healIcon: healIcon, get HEAL() { return HEAL; }, get HORDER() { return HORDER; }, lootModel: function (k) { return window.LOOT3D && LOOT3D.get(k); }, hudRefresh: function () { hbKey = ''; }, treeNear: treeNear, aridK: aridK, dayT: function () { return DAY.t; }, setDay: function (v) { DAY.t = v; } }); SV = SURVIE; } catch (e) { console.error('SURVIE', e); }
@@ -2182,17 +2183,17 @@ function updTracers(dt) { updProj(dt); updPots(dt); for (var i = 0; i < NT; i++)
 /* ================= armes ================= */
 var RAR = ['#b9bcc4', '#4dd65a', '#3d9bff', '#b05cff', '#ffb52e'], RARN = ['Commun', 'Peu commun', 'Rare', 'Épique', 'Légendaire'];
 var WEAPONS = {
-  pistolet: { name: 'Pistolet', mag: 16, rl: 1.2, cd: .28, dmg: 22, range: 70, spread: .018, wall: 20, rar: 0 },
-  smg:      { name: 'Mitraillette', mag: 30, rl: 1.8, cd: .08, dmg: 13, range: 45, spread: .035, wall: 12, rar: 1 },
-  fusil:    { name: 'Fusil d\'assaut', mag: 30, rl: 2.1, cd: .17, dmg: 21, range: 120, spread: .016, wall: 18, rar: 1 },
+  pistolet: { name: 'Pistolet', mag: 16, hs: 2, rl: 1.2, cd: .28, dmg: 22, range: 70, spread: .018, wall: 20, rar: 0 },
+  smg:      { name: 'Mitraillette', mag: 30, hs: 1.75, rl: 1.8, cd: .08, dmg: 13, range: 45, spread: .035, wall: 12, rar: 1 },
+  fusil:    { name: 'Fusil d\'assaut', mag: 30, hs: 1.5, rl: 2.1, cd: .17, dmg: 21, range: 120, spread: .016, wall: 18, rar: 1 },
   pompe:    { name: 'Pompe auto', mag: 8, rl: 3.6, cd: .55, dmg: 6.67, pellets: 10, hs: 1.5, range: 26, spread: .07, wall: 30, rar: 2 },   // max 150 à la tête (10 plombs à bout portant)
   pompeS:   { name: 'Pompe spécialisé', mag: 5, rl: 4.2, cd: 1.05, dmg: 8, pellets: 10, hs: 1.5, range: 28, spread: .048, wall: 36, rar: 3 },   // 180 à la tête, plus lent : tu tires, tu construis, tu tires
   patate:   { name: 'Lance-patate', mag: 6, rl: 2.4, cd: .75, dmg: 70, range: 60, spread: .02, wall: 60, rar: 2, boom: 3.5 },   // façon lance-grenade : patate en cloche qui crie puis explose
   roquette: { name: 'Lance-roquette', mag: 1, rl: 3, cd: 1, dmg: 90, range: 160, spread: .004, wall: 300, rar: 4, boom: 6 },   // À REVOIR : modèle 3D provisoire
-  laser:    { name: 'Lanceur laser', mag: 40, rl: 2.5, cd: .1, dmg: 15, range: 140, spread: .003, wall: 20, rar: 3 },   // À REVOIR : modèle 3D provisoire
-  scar:     { name: 'Fusil Doré', mag: 30, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
-  pmx:      { name: 'PM Fantôme', mag: 32, rl: 1.9, cd: .07, dmg: 17, range: 60, spread: .024, wall: 15, rar: 4 },   // légendaire : PM rapide et précis, rare
-  sniper:   { name: 'Sniper lourd', mag: 1, rl: 2.6, cd: .6, dmg: 110, range: 320, spread: 0, wall: 120, rar: 3 }
+  laser:    { name: 'Lanceur laser', mag: 40, hs: 1.5, rl: 2.5, cd: .1, dmg: 15, range: 140, spread: .003, wall: 20, rar: 3 },   // À REVOIR : modèle 3D provisoire
+  scar:     { name: 'Fusil Doré', mag: 30, hs: 1.5, rl: 2.2, cd: .16, dmg: 30, range: 140, spread: .009, wall: 26, rar: 4 },
+  pmx:      { name: 'PM Fantôme', mag: 32, hs: 1.75, rl: 1.9, cd: .07, dmg: 17, range: 60, spread: .024, wall: 15, rar: 4 },   // légendaire : PM rapide et précis, rare
+  sniper:   { name: 'Sniper lourd', mag: 1, hs: 2.5, rl: 2.6, cd: .6, dmg: 110, range: 320, spread: 0, wall: 120, rar: 3 }
 };
 var WLIST = ['pistolet', 'pistolet', 'smg', 'smg', 'pmx', 'fusil', 'fusil', 'fusil', 'pompe', 'pompe', 'pompeS', 'pompeS', 'scar', 'scar', 'sniper', 'patate', 'roquette', 'laser'];
 function randWeapon() { return WLIST[Math.random() * WLIST.length | 0]; }
@@ -2551,7 +2552,7 @@ function reset0() { WIN = false; document.body.classList.remove('won'); $('victo
   if (BRN && BRGO) Math.random = srand(BRGO.seed + 2);   /* même bus et même tempête */
   var ang = Math.random() * 6.283, off = (Math.random() - .5) * 160, nx = -Math.sin(ang), nz = Math.cos(ang);
   bus = { x0: -Math.cos(ang) * 520 + nx * off, z0: -Math.sin(ang) * 520 + nz * off, x1: Math.cos(ang) * 520 + nx * off, z1: Math.sin(ang) * 520 + nz * off, t: 0, dur: 32, a: ang, x: 0, z: 0, y: 110 };
-  storm = { x: 0, z: 0, r: 620, phase: 0, t: 0, mode: 'wait', plan: [[55, 20, 300, 1], [25, 18, 190, 2], [20, 15, 110, 4], [15, 12, 55, 7], [10, 10, 24, 10], [8, 8, 8, 14], [6, 6, 0, 20]] };
+  storm = { x: 0, z: 0, r: DES ? 680 : 620, phase: 0, t: 0, mode: 'wait', plan: [[70, 27, DES ? 330 : 300, 1], [34, 24, DES ? 205 : 190, 2], [27, 20, 115, 4], [20, 16, 58, 7], [14, 13, 25, 10], [11, 10, 8, 14], [8, 8, 0, 20]] };   /* parties ~35 % plus longues (≈ 5 min de tempête au lieu de ≈ 3 min 50) */
   var tmz = TM(); pl.forEach(function (p, i) { p.team = tmz > 1 ? Math.floor(i / tmz) : i; if (p !== me && p.model) { if (p.tag) { p.model.root.remove(p.tag); p.tag = null; } if (tmz > 1 && p.team === 0) { p.tag = teamTag(p.name); p.model.root.add(p.tag); } } });
   pickNext(); place = NPL; $('feed').innerHTML = ''; camA = ang; camP = -.55; hbKey = '';
   if (SURV || PROPM) { storm = { x: 0, z: 0, r: 1e6, phase: 0, t: 0, mode: 'off', plan: [[1e12, 1, 1e6, 0]] }; storm.nx = storm.nz = 0; storm.nr = 1e6;   // survie : pas de tempête, pas de bus, on démarre au camp
@@ -2825,7 +2826,9 @@ function castRay(ox, oy, oz, dx, dy, dz, maxT, skip, fat) {
   if (window.ZOMB && ZOMB.on) { var zh = ZOMB.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (zh) best = zh; }
   if (window.FAUNE && FAUNE.on) { var fh = FAUNE.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (fh) best = fh; }   /* animaux de la survie */   // zombies (mode survie)
   for (i = 0; i < vehicles.length; i++) { var v = vehicles[i]; if (!v.alive || (skip && skip.veh === v)) continue; t = rayBox(ox, oy, oz, dx, dy, dz, v.x - 1.9, v.y, v.z - 1.9, v.x + 1.9, v.y + 2, v.z + 1.9); if (t < best.t) best = { t: t, kind: 'veh', o: v }; }
-  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .4 }; } /* HITBOX COMMUNE à tous les skins */
+  for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0, ph = p.crouch ? 1.32 : 1.9, nk = ph - .4;   /* HITBOX COMMUNE à tous les skins : un corps + une TÊTE séparée, petite et centrée (comme les jeux de tir) */
+    var tb = rayBox(ox, oy, oz, dx, dy, dz, p.x - .36 - f, p.y, p.z - .36 - f, p.x + .36 + f, p.y + nk + f * .5, p.z + .36 + f), th = rayBox(ox, oy, oz, dx, dy, dz, p.x - .2 - f * .5, p.y + nk, p.z - .2 - f * .5, p.x + .2 + f * .5, p.y + ph + .03, p.z + .2 + f * .5);
+    t = Math.min(tb, th); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: th <= tb }; }
   return best;
 }
 var camKick = 0;

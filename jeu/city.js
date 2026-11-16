@@ -321,10 +321,26 @@
       if (kind === 'centre' && DES) {   // le mur de la favela (barbelés, tags), piscines et palmiers du quartier riche, héliport
         var wire = M('#3a3a40'), tagC = ['#ff2bd6', '#2de2ff', '#ffd23d', '#7dff6a', '#ff6a1a'];
         for (var wz = 27; wz < 86; wz += 1.5) { var wy = hgt(t[1], t[2] + wz) + 4.2; [[0, 0], [.25, .4]].forEach(function (q) { var m = new T.Mesh(GC8, wire); m.scale.set(.05, .9, .05); m.position.set(t[1] + q[0] - .1, wy + .45, t[2] + wz); S.add(m); }); }
-        var coil = new T.Mesh(new T.CylinderGeometry(.3, .3, 58, 6, 1, true), new T.MeshBasicMaterial({ color: '#555', wireframe: true })); coil.rotation.x = Math.PI / 2; coil.position.set(t[1], hgt(t[1], t[2] + 56) + 4.6, t[2] + 56.5); S.add(coil);
-        for (var tg = 0; tg < 6; tg++) { var tz = t[2] + 32 + tg * 9, cv = document.createElement('canvas'); cv.width = 256; cv.height = 128; var g2 = cv.getContext('2d'); g2.font = '900 54px Arial Black, Arial'; g2.textAlign = 'center'; g2.lineWidth = 8; g2.strokeStyle = '#111';
-          var txt = ['WALD', 'TOP 1', 'FAVELA', 'LIBRES', 'W', 'ROYAL'][tg]; g2.strokeText(txt, 128, 80); g2.fillStyle = tagC[tg % tagC.length]; g2.fillText(txt, 128, 80); var tx2 = new T.CanvasTexture(cv); tx2.encoding = T.sRGBEncoding;
-          var pl = new T.Mesh(new T.PlaneGeometry(4, 2), new T.MeshBasicMaterial({ map: tx2, transparent: true })); pl.position.set(t[1] - .37, hgt(t[1], tz) + 1.6, tz); pl.rotation.y = -Math.PI / 2; S.add(pl); }
+        /* fil barbelé en accordéon (concertina) sur tout le haut du mur : on voit vraiment la coupure entre la favela et le quartier riche */
+        var HX = new T.Curve(); HX.getPoint = function (u, o) { o = o || new T.Vector3(); var L = 59, a = u * L / .32 * 6.283; return o.set(Math.cos(a) * .36, Math.sin(a) * .36, u * L - L / 2); };
+        var steel = new T.MeshPhongMaterial({ color: '#8d9299', shininess: 90, specular: '#ffffff' });
+        [[0, 4.75], [.0, 5.35]].forEach(function (q, qi) { var tb = new T.Mesh(new T.TubeGeometry(HX, 1400, .022, 3, false), steel); tb.position.set(t[1] + q[0], hgt(t[1], t[2] + 56) + q[1] - (qi ? .1 : 0), t[2] + 56.5); tb.rotation.z = qi * .9; S.add(tb); });
+        for (var bz = 27.5; bz < 86; bz += 3) { var by = hgt(t[1], t[2] + bz) + 4.2; [-1, 1].forEach(function (sd) { var arm = new T.Mesh(GB, wire); arm.position.set(t[1] + sd * .35, by + .55, t[2] + bz); arm.scale.set(.05, 1.2, .05); arm.rotation.z = sd * .55; S.add(arm); }); }
+        /* TAGS façon graffitis de rue : lettres « bulles » avec contour, reflets, coulures et éclaboussures (noms de crews inventés) */
+        function graff(txt, c1, c2, seed) { var cv = document.createElement('canvas'); cv.width = 512; cv.height = 256; var g = cv.getContext('2d'), rr = ctx.mulberry ? ctx.mulberry(seed) : Math.random;
+          for (var k = 0; k < 260; k++) { g.fillStyle = 'rgba(' + (k % 2 ? '20,20,20' : '255,255,255') + ',' + (.04 + rr() * .07) + ')'; g.beginPath(); g.arc(rr() * 512, 40 + rr() * 180, rr() * 3, 0, 6.3); g.fill(); }
+          var fs = txt.length > 4 ? 118 : 150; g.font = '900 ' + fs + 'px Impact, Arial Black, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+          g.save(); g.translate(256, 128); g.rotate((rr() - .5) * .22); g.transform(1, 0, -.18, 1, 0, 0);
+          g.lineWidth = 34; g.strokeStyle = '#0c0c0c'; g.strokeText(txt, 0, 0); g.lineWidth = 18; g.strokeStyle = c2; g.strokeText(txt, 0, 0);
+          var gr = g.createLinearGradient(0, -fs / 2, 0, fs / 2); gr.addColorStop(0, '#ffffff'); gr.addColorStop(.25, c1); gr.addColorStop(1, c2); g.fillStyle = gr; g.fillText(txt, 0, 0);
+          g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.75)'; g.strokeText(txt, -3, -4); g.restore();
+          for (var d = 0; d < 9; d++) { var dx = 70 + rr() * 372, dl = 18 + rr() * 60, dy = 150 + rr() * 30; g.strokeStyle = c2; g.lineWidth = 4 + rr() * 4; g.beginPath(); g.moveTo(dx, dy); g.lineTo(dx, dy + dl); g.stroke(); g.fillStyle = c2; g.beginPath(); g.arc(dx, dy + dl, g.lineWidth * .75, 0, 6.3); g.fill(); }
+          g.fillStyle = '#fff'; [[40, 50], [470, 70], [455, 200]].forEach(function (p) { if (rr() < .6) { g.save(); g.translate(p[0], p[1]); g.rotate(rr()); g.beginPath(); for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4, R = i % 2 ? 6 : 16; g.lineTo(Math.cos(a) * R, Math.sin(a) * R); } g.fill(); g.restore(); } });
+          if (rr() < .5) { g.strokeStyle = c1; g.lineWidth = 7; g.beginPath(); g.moveTo(60, 220); g.lineTo(430, 228); g.lineTo(410, 210); g.moveTo(430, 228); g.lineTo(408, 244); g.stroke(); }
+          var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; return tx; }
+        var CREW = ['KRAZ', 'VNDL', 'ZKO', 'LOKO', 'DKZ', 'RUA', 'NOX', 'BRVZ', 'SKRT', 'OG13', 'MRK', 'TZK'], GC2 = [['#ff2bd6', '#7a0a5c'], ['#2de2ff', '#0a3a7a'], ['#ffd23d', '#a33a00'], ['#7dff6a', '#0a5a1a'], ['#ff6a1a', '#5a0a0a'], ['#c77dff', '#2a0a5a']];
+        for (var tg = 0; tg < 12; tg++) { var side = tg % 2 ? 1 : -1, tz = t[2] + 30 + (tg >> 1) * 9.5 + (side > 0 ? 4 : 0), cc = GC2[tg % GC2.length];
+          var pl = new T.Mesh(new T.PlaneGeometry(5.2, 2.6), new T.MeshBasicMaterial({ map: graff(CREW[tg], cc[0], cc[1], 900 + tg), transparent: true, depthWrite: false })); pl.position.set(t[1] + side * .37, hgt(t[1], tz) + 1.75, tz); pl.rotation.y = side * Math.PI / 2; S.add(pl); }
         var poolM = new T.MeshPhongMaterial({ color: '#2ab8f0', shininess: 140, specular: '#ffffff', transparent: true, opacity: .85 });
         [[26, 40], [58, 34], [34, 68]].forEach(function (v, i) { var px = t[1] + v[0], pz = t[2] + v[1] + 9.5, py = hgt(px, pz); var w = new T.Mesh(GB, poolM); w.position.set(px, py + .08, pz); w.scale.set(8, .1, 4); S.add(w);
           [[0, 2.2, 8.8, .5], [0, -2.2, 8.8, .5], [4.2, 0, .5, 4.4], [-4.2, 0, .5, 4.4]].forEach(function (q) { var m = new T.Mesh(GB, white); m.position.set(px + q[0], py + .1, pz + q[1]); m.scale.set(q[2], .2, q[3]); m.receiveShadow = true; S.add(m); });
