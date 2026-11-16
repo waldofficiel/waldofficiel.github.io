@@ -282,6 +282,7 @@
   function strike() {
     var P = me(), a = C.camA(), fx = Math.cos(a), fz = Math.sin(a), best = null, bd = 3.3, ox = P.x, oz = P.z, oy = P.y + 1.2;
     function cand(x, z, r, obj, kind) { var dx = x - ox, dz = z - oz, d = Math.hypot(dx, dz) - r; if (d > 2.2) return; var dot = (dx * fx + dz * fz) / (Math.hypot(dx, dz) || 1); if (dot < .45 && d > .3) return; if (d < bd) { bd = d; best = [kind, obj]; } }
+    if (window.FAUNE && FAUNE.on && FAUNE.melee(P.x, P.y, P.z, fx, fz, 2.6, 30)) { C.tone('square', 170, 100, .08, .07); return; }
     if (window.ZOMB && ZOMB.on && ZOMB.melee(P.x, P.y, P.z, fx, fz, 2.6, 34)) { C.tone('square', 150, 90, .08, .08); return; }   // un coup de pioche sur un zombie
     NODES.forEach(function (n) { if (!n.dead && Math.abs(n.x - ox) < 6 && Math.abs(n.z - oz) < 6) cand(n.x, n.z, n.col.r, n, 'node'); });
     C.TREES.forEach(function (t) { if (!t.rock && t.d3 && !t.cut && Math.abs(t.x - ox) < 6 && Math.abs(t.z - oz) < 6 && P.y < t.y + 6) cand(t.x, t.z, (t.r || .5) * .8, t, 'tree'); });
@@ -419,7 +420,7 @@
   function hudBuild() { if (!el.build) return; el.build.querySelectorAll('[data-p]').forEach(function (b) { b.classList.toggle('on', b.dataset.p === PIECE); });
     document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + RES[MATK];
     el.tools.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === TOOL); }); el.build.hidden = TOOL !== 'build'; }
-  function act() { if (!C.SURV) return false; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
+  function act() { if (!C.SURV) return false; if (window.FAUNE && FAUNE.on && FAUNE.act()) return true; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
   function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast(C.CREA ? 'CONSTRUCTIONS DÉSACTIVÉES DANS CETTE PARTIE' : 'PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
 
   /* ---------------- API ---------------- */
@@ -580,6 +581,7 @@
   window.SURVIE = {
     init: function (THREE, ctx) { T = THREE; C = ctx; ZERO = new T.Matrix4().makeScale(0, 0, 0); GEO.esc = rampGeo(); GEO.toit = roofGeo(); C.groundAt = groundAt;
       if (C.SURV) genNodes(); ui();
+      if (C.SURV && !C.CREA && window.FAUNE) FAUNE.init(T, C, { groundAt: groundAt, give: function (k, n, x, y, z) { give(k, n, x, y, z); } });
       if (C.SURV && !C.CREA && window.ZOMB) { ZOMB.init(T, C, onKill); posters(); var bb = document.createElement('button'); bb.type = 'button'; bb.id = 'sBookB'; bb.textContent = '📖 CRÉATURES'; document.body.appendChild(bb); press(bb, function () { book(!BOOKON); }); }
       if (C.SURV) { addEventListener('pagehide', save); document.addEventListener('visibilitychange', function () { if (document.hidden) save(); }); }
       if (C.SURV && T.GLTFLoader && window.LOOT3D) new T.GLTFLoader().load('models/bedSingle.glb', function (g) { try { BEDTPL = LOOT3D.bake(T, g.scene, { size: 2.3, col: {} }); showBed(); } catch (e) { console.error(e); } });
@@ -614,6 +616,7 @@
       HARV().forEach(function (it) { if (it.shk > 0) { it.shk = Math.max(0, it.shk - dt); if (!it.dead) PROPS.harvSet(it, true); } if (it.dead) { it.t = (it.t || 0) + dt; if (it.t > 300 && Math.hypot(it.x - P.x, it.z - P.z) > 60) PROPS.harvBack(it); } });
       if (!WRK && C.cars) WRK = buildWrecks(); if ((TICK += dt) > .5) { TICK = 0; wreckVis(); if (C.SURV) { saveT += .5; if (saveT > 20) { saveT = 0; save(); } } }
       if (window.ZOMB && ZOMB.on) ZOMB.update(dt, C.isNight && C.isNight());
+      if (window.FAUNE && FAUNE.on) FAUNE.update(dt);
       if (el.open) { var ns = C.SURV && P.alive && !BAGON ? nearStor() : null; if (!!ns === el.open.hidden) el.open.hidden = !ns; }
       if (C.CREA && (!C.PROPM || C.BF)) { if (!ARM) armory(); armoryTick(dt); }
       if (C.SURV) { if (!BUT) critters(); crittersTick(dt); if (NIM.MET && Math.hypot(P.x - PACKP.x, P.z - PACKP.z) > 40) nodePack(P.x, P.z); }

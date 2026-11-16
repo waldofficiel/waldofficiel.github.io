@@ -487,6 +487,7 @@ try { if (/WaldRoyalApp|Electron/.test(navigator.userAgent) && /[?&]jouer/.test(
 <script src="props.js"></script>
 <script src="trees.js"></script>
 <script src="zombies.js"></script>
+<script src="faune.js"></script>
 <script src="survie.js"></script>
 <script src="net.js"></script>
 <script>
@@ -2477,7 +2478,8 @@ function castRay(ox, oy, oz, dx, dy, dz, maxT, skip, fat) {
   treesIn(mnx, mnz, mxx, mxz, function (tr) { if (tr.x < mnx || tr.x > mxx || tr.z < mnz || tr.z > mxz) return; var rr = tr.rock ? tr.r : tr.r * 1.6, t3 = rayBox(ox, oy, oz, dx, dy, dz, tr.x - rr, tr.y, tr.z - rr, tr.x + rr, tr.y + tr.h, tr.z + rr); if (t3 < best.t) best = { t: t3, kind: 'tree' }; });
   for (i = 0; i < BUBBLES.length; i++) { var bb = BUBBLES[i], bx = ox - bb.x, by = oy - bb.y, bz = oz - bb.z, bq = bx * dx + by * dy + bz * dz, bc = bx * bx + by * by + bz * bz - bb.r * bb.r, disc = bq * bq - bc;   // la bulle arrête les balles (dans les deux sens)
     if (disc < 0) continue; var sq = Math.sqrt(disc), t1 = -bq - sq, t2 = -bq + sq; t = t1 > .05 ? t1 : t2 > .05 ? t2 : 1e9; if (t < best.t) best = { t: t, kind: 'bubble', o: bb }; }
-  if (window.ZOMB && ZOMB.on) { var zh = ZOMB.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (zh) best = zh; }   // zombies (mode survie)
+  if (window.ZOMB && ZOMB.on) { var zh = ZOMB.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (zh) best = zh; }
+  if (window.FAUNE && FAUNE.on) { var fh = FAUNE.ray(ox, oy, oz, dx, dy, dz, best.t, fat); if (fh) best = fh; }   /* animaux de la survie */   // zombies (mode survie)
   for (i = 0; i < vehicles.length; i++) { var v = vehicles[i]; if (!v.alive || (skip && skip.veh === v)) continue; t = rayBox(ox, oy, oz, dx, dy, dz, v.x - 1.9, v.y, v.z - 1.9, v.x + 1.9, v.y + 2, v.z + 1.9); if (t < best.t) best = { t: t, kind: 'veh', o: v }; }
   for (i = 0; i < pl.length; i++) { var p = pl[i]; if (!p.alive || p === skip || p.veh || p.mode === 'bus') continue; var f = fat || 0; var ph = p.crouch ? 1.35 : 1.95; t = rayBox(ox, oy, oz, dx, dy, dz, p.x - .4 - f, p.y, p.z - .4 - f, p.x + .4 + f, p.y + ph + f * .5, p.z + .4 + f); if (t < best.t) best = { t: t, kind: 'pl', o: p, head: oy + dy * t - p.y > ph - .4 }; } /* HITBOX COMMUNE à tous les skins */
   return best;
@@ -2499,6 +2501,7 @@ function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
     if (i === 0) { NETSHOT = [hx, hy, hz]; }
     if (h.kind === 'pl') { var dd = dmg * (h.head ? W2.hs || 1.6 : 1), shd = h.o.sh > 0; if (h.o.net) { if (p === me || p.crbot) netPub({ t: 'h', to: h.o.id, d: ROUND && TPL === 'prop' ? 9999 : Math.round(dd), hd: h.head ? 1 : 0, bid: p.crbot ? p.id : undefined }); } else hurt(h.o, ROUND && TPL === 'prop' && h.o.crbot ? 9999 : dd, p); burst(hx, hy, hz, 3, shd ? '#6fd0ff' : '#ff4d6d', 3, .12, .4); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, dd, shd, h.head); } }
     else if (h.kind === 'bubble') bubbleHit(h.o, hx, hy, hz);
+    else if (h.kind === 'faune') { FAUNE.hurt(h.o, dmg, p); burst(hx, hy, hz, 4, ['#c8202a', '#7a1010'], 3, .12, .4); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, dmg, false, false); } }
     else if (h.kind === 'zomb') { var zd = dmg * (h.head ? W2.hs || 1.8 : 1); ZOMB.hurt(h.o, zd, p); burst(hx, hy, hz, 4, ['#7aff4a', '#3a8a2a', '#1a3a12'], 3, .14, .45); if (p === me) { hitAny = true; dmgNum(hx, hy, hz, zd, false, h.head); } }
     else if (h.kind === 'wall') { hitWall(h.o, W2.wall, p); burst(hx, hy, hz, 2, MATS[h.o.m].col, 3, .14, .5); }
     else if (h.kind === 'veh') { hurtVeh(h.o, dmg, p); if (h.o.driver && Math.random() < .3) hurt(h.o.driver, dmg * .5, p); burst(hx, hy, hz, 2, '#ffd27a', 4, .1, .3); }
