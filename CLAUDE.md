@@ -483,3 +483,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 
 ## v75 : ÎLE VIDE (Créatif, mode `ile`)
 - `VIDE` = mode `ile` (carte `propane`) : relief tout plat à 0,6 (= point 0 de la grille), aucune maison, arbre, route, véhicule, décor props ni ferme (`TOWNS` = une ville `vide` de rayon 1,5 au centre). Type de partie `libre` : on construit sa map de zéro, appareils, règles, publier. Bouton « 🟩 ÎLE VIDE » sous Mon monde au salon et dans ⚙️ Paramètres (MAPL). Message d'accueil dédié.
+
+## v76 : amis par pseudo + cases « + » du salon
+- Ajouter un ami par PSEUDO (`frAddPseudo` → `nom/<pseudo>`) : demande `freq/<fid>` ; l'autre reçoit un bandeau « veut être ton ami · ACCEPTER » (`frReq`), l'acceptation revient par `freq` avec `ok:1` (`FR.rseen`, `wr_frSeen`). Le code ami reste possible (repliable).
+- Barre du salon `#grpBar` : « 👥 SALON n/4 », le chef 👑, les membres, et des cases ＋ qui ouvrent la liste d'amis (« 📨 INVITER AU SALON »).
