@@ -165,6 +165,10 @@
     m = mk === 'metal' ? new T.MeshStandardMaterial({ map: tx, metalness: .55, roughness: .42, color: '#ffffff' }) : new T.MeshStandardMaterial({ map: tx, metalness: 0, roughness: mk === 'bois' ? .78 : .9, color: '#ffffff' });
     if (mk === 'bois') { m.alphaTest = .5; m.side = T.DoubleSide; }
     return BMAT[key] = m; }
+  /* TEXTURES PERSO (Créatif) : un créateur peut remplacer la texture du bois, de la pierre ou du métal par une image à lui (ou d'origine avec null) */
+  function setTex(mk, src) { if (!/^(bois|pierre|metal)$/.test(mk)) return; var tx;
+    if (src) { tx = new T.CanvasTexture(src); tx.encoding = T.sRGBEncoding; tx.anisotropy = 8; tx.wrapS = tx.wrapT = T.RepeatWrapping; } else tx = bTex(mk);
+    var old = BMAT['t' + mk]; BMAT['t' + mk] = tx; [mk, mk + 'e'].forEach(function (k) { var m = BMAT[k]; if (!m) return; m.map = tx; if (mk === 'bois') { m.alphaTest = src ? 0 : .5; } m.needsUpdate = true; }); if (old && old !== tx) old.dispose(); }
   function pieceIM(type, mk) { var key = type + mk; if (PIM[key]) return PIM[key]; var mat = bMat(mk, type);
     var im = new T.InstancedMesh(type === 'mur' || type === 'sol' ? C.BOX : GEO[type], mat, 300); im.count = 300; for (var i = 0; i < 300; i++) im.setMatrixAt(i, ZERO); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true; im.free = []; for (i = 299; i >= 0; i--) im.free.push(i); C.scene.add(im); PIM[key] = im; return im; }
   function pieceMatrix(p, o) { o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
@@ -696,7 +700,7 @@
     clearBuilds: function () { PIECES.slice().forEach(function (p) { if (p.t === 'lit' || p.t === 'coffre') return; p._net = true; removePiece(p, false, true); }); },   // efface toutes les constructions (panneau RÉINITIALISER, nouvelle manche)
     save: save, hasSave: function () { return !!loadSave(); }, wipe: function () { try { localStorage.removeItem(SKEY); localStorage.removeItem(SKEY + '_fog'); } catch (e) {} },
     update: function (dt) { TIME += dt; for (var gi = 0; gi < PIECES.length; gi++) { var gp = PIECES[gi]; if (!gp.grow) continue; gp.hp = Math.min(gp.hmax, gp.hp + (gp.hmax * (1 - (HP0[gp.m] || 90) / (HPP[gp.m] || 150))) / (HPT[gp.m] || 4) * dt); if (gp.hp >= gp.hmax) gp.grow = false; if (gp.ws) gp.ws.forEach(function (w) { w.hp = gp.hp; }); } if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
-      if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0) && !P.swim; if (P.model && (TOOL === 'build' || TOOL === 'edit')) attachBook(P.model); if (BOOK) BOOK.visible = (TOOL === 'build' || TOOL === 'edit') && P.alive && !(P.danceT > 0) && P.mode === 'ground' && !P.swim;
+      if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0) && !P.swim && !P.ko; if (P.model && (TOOL === 'build' || TOOL === 'edit')) attachBook(P.model); if (BOOK) BOOK.visible = (TOOL === 'build' || TOOL === 'edit') && P.alive && !(P.danceT > 0) && P.mode === 'ground' && !P.swim && !P.ko;
       // arbres qui tremblent, rochers qui reviennent, arbres qui repoussent
       C.TREES.forEach(function (t) { if (t.shk > 0) { t.shk = Math.max(0, t.shk - dt); if (window.TREES3D && TREES3D.shake) TREES3D.shake(t, t.shk > 0 ? Math.sin(t.shk * 70) * t.shk * .5 : 0); } });
       NODES.forEach(function (n) { if (n.shk > 0) { n.shk = Math.max(0, n.shk - dt); nodeSet(n); } if (n.dead) { n.t += dt; if (n.t > 240 && Math.hypot(n.x - P.x, n.z - P.z) > 40) { n.dead = false; n.hp = n.max; C.PCOL.push(n.col); nodeSet(n); } } });
@@ -734,7 +738,7 @@
     time: function () { return TIME; },
     res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, editReset: editReset, ledge: function (x, y, z, fx, fz) { var best = null;   // bord d'un sol / d'une rampe juste devant, à portée de saut : on s'y agrippe
       [.7, 1.3].forEach(function (k) { var px = x + fx * k, pz = z + fz * k; PIECES.forEach(function (q) { if (q.t !== 'sol' && q.t !== 'esc' && q.t !== 'toit') return; if (Math.abs(px - q.x) > CELL / 2 + .05 || Math.abs(pz - q.z) > CELL / 2 + .05) return; var top = q.t === 'sol' ? q.L + .15 : groundAt(px, pz, y + 4); if (top > y + .7 && top < y + 4.3 && (best == null || top < best)) best = top; }); }); return best; },
-    _ev: function (s) { return eval(s); },
+    _ev: function (s) { return eval(s); }, setTex: setTex,
     nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }

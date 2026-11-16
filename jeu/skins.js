@@ -237,6 +237,17 @@
   };
 
 
+  /* ---------- CS WILD GO : tenues de soldats (originales) — attaquants (cagoule, treillis sable) et défenseurs (casque, lunettes, bleu marine) ---------- */
+  function soldier(R, o) { var cols = B.npc(R, { v: 2, skin: o.skin, shirt: o.shirt, pants: o.pants, shoes: o.shoes, hat: 'none' }), vest = M(o.vest, { shininess: 20 }), pouch = M(o.pouch, { shininess: 12 }), strap = M('#1a1a1a'), h = R.head;
+    C(R.body, .315, .3, .42, 0, 1.29, 0, vest).scale.set(1, 1, 1.06); eachSide(function (s2) { S(R.body, .035, .06, .06, .31, 1.16, s2 * .12, pouch); S(R.body, .035, .06, .06, .31, 1.31, s2 * .12, pouch); C(R.body, .025, .025, .5, 0, 1.3, s2 * .17, strap, 0, 0, s2 * .35); });
+    S(R.body, .04, .04, .22, .3, 1.45, 0, pouch); C(R.body, .2, .22, .06, 0, .96, 0, strap);
+    if (o.mask) { S(h, .3, .3, .29, -.01, .15, 0, M('#151515')); S(h, .03, .045, .2, .29, .17, 0, M(o.skin)); eachSide(function (s2) { S(h, .02, .026, .03, .31, .17, s2 * .085, M('#2a1a10')); }); }
+    if (o.helmet) { var hm = M(o.helmet, { shininess: 35 }); shell(h, .31, .3, .31, -.01, .13, 0, hm, 0, 6.283, 0, 1.6); TO(h, .3, .03, 0, -.01, .12, 0, hm, Math.PI / 2, 0, 0); S(h, .05, .06, .21, .27, .3, 0, M('#7ad8ff', { shininess: 120, specular: '#ffffff', transparent: true, opacity: .75 })); C(h, .02, .02, .5, .2, .36, 0, strap, Math.PI / 2, 0, 0); }
+    if (o.band) { TO(h, .27, .03, 0, -.01, .3, 0, M(o.band), Math.PI / 2, 0, 0); }
+    return { skin: o.skin, shirt: o.shirt, pants: o.pants }; }
+  B.csT = function (R) { return soldier(R, { skin: '#c68b5e', shirt: '#6b5a3a', pants: '#a08a5a', shoes: '#3a2a1a', vest: '#4a3f28', pouch: '#5a4a30', mask: 1, band: '#b8302a' }); };
+  B.csCT = function (R) { return soldier(R, { skin: '#e0ac85', shirt: '#2a3550', pants: '#3a4560', shoes: '#141414', vest: '#1f2a40', pouch: '#2c3a58', helmet: '#3a4458' }); };
+
   /* ---------- BOTS : même corps sculpté que les skins, tenues variées selon o.v ---------- */
   B.npc = function (R, o) {
     o = o || {}; var v = o.v || 0, skin = M(o.skin || '#e0ac85'), shirt = M('#fff', fabric(o.shirt || '#3dd6ff')), pants = M('#fff', fabric(o.pants || '#2b3a67')), sole = M('#1c1c22'), white = M('#f2f2f2'), dark = M('#151515');
