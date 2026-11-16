@@ -104,7 +104,54 @@
     var s = new T.Shape(); s.moveTo(0, -1.2); s.lineTo(CELL, -1.2); s.lineTo(CELL, LH); s.lineTo(0, .02); s.lineTo(0, -1.2);   // pente continue de 0 à LH : la rampe suivante repart pile du haut, sans marche
     var g = new T.ExtrudeGeometry(s, { depth: CELL - .06, bevelEnabled: false }); g.translate(-CELL / 2, 0, -(CELL - .06) / 2); g.computeVertexNormals(); return g; }
   function roofGeo() { var g = new T.ConeGeometry(CELL / Math.SQRT2, 2.4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, 1.2, 0); g.computeVertexNormals(); return g; }
-  function pieceIM(type, mk) { var key = type + mk; if (PIM[key]) return PIM[key]; var mat = C.WMAT[MATW[mk]] || new T.MeshLambertMaterial({ color: '#c8955a' });
+  /* TEXTURES DES CONSTRUCTIONS façon Fortnite (dessinées une fois, 1024 × 716 = un panneau 5 × 3,5 m) :
+     BOIS = cadre en poutres + planches clouées avec des jours entre elles et des petits trous (on voit à travers),
+     PIERRE = briquettes en quinconce dans un cadre de pierre, joints creusés, MÉTAL = tôle ondulée dans un cadre riveté. */
+  var BMAT = {};
+  function rng(sd) { return function () { sd = (sd * 16807) % 2147483647; return (sd - 1) / 2147483646; }; }
+  function bTex(mk) { var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(mk === 'bois' ? 7 : mk === 'pierre' ? 11 : 13);
+    function grain(x, y, w, h, base, dark, n) { g.fillStyle = base; g.fillRect(x, y, w, h); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+      for (var i = 0; i < n; i++) { g.strokeStyle = dark; g.globalAlpha = .12 + r() * .25; g.lineWidth = 1 + r() * 2.5; var yy = y + r() * h; g.beginPath(); g.moveTo(x, yy); for (var xx = x; xx <= x + w; xx += 24) g.lineTo(xx, yy + Math.sin(xx * .02 + i) * 3); g.stroke(); }
+      g.globalAlpha = 1; if (r() < .7) { var kx = x + r() * w, ky = y + h * (.3 + r() * .4); g.fillStyle = dark; g.globalAlpha = .55; g.beginPath(); g.ellipse(kx, ky, 9 + r() * 6, 4 + r() * 3, 0, 0, 7); g.fill(); g.globalAlpha = .3; g.beginPath(); g.ellipse(kx, ky, 18, 8, 0, 0, 7); g.stroke(); g.globalAlpha = 1; }
+      var hl = g.createLinearGradient(0, y, 0, y + h); hl.addColorStop(0, 'rgba(255,240,200,.35)'); hl.addColorStop(.18, 'rgba(255,240,200,0)'); hl.addColorStop(.82, 'rgba(0,0,0,0)'); hl.addColorStop(1, 'rgba(40,15,0,.45)'); g.fillStyle = hl; g.fillRect(x, y, w, h); g.restore(); }
+    function nail(x, y) { g.fillStyle = '#2a2a2e'; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); g.fillStyle = '#9aa0aa'; g.beginPath(); g.arc(x - 1.5, y - 1.5, 3, 0, 7); g.fill(); }
+    if (mk === 'bois') {
+      g.clearRect(0, 0, W, H); var F = 64, PL = 7, ph = (H - 2 * F) / PL;
+      for (var i = 0; i < PL; i++) { var y = F + i * ph + 5, hh = ph - 20 - (i % 3 === 1 ? 6 : 0), cut = r() < .5 ? W * (.3 + r() * .4) : -1, cols = [['#c98d4f', '#6a3c18'], ['#b97a3e', '#5a3010'], ['#d49a5c', '#7a4a20']][i % 3];
+        if (cut > 0) { grain(F - 10, y, cut - F + 6, hh, cols[0], cols[1], 14); grain(cut + 4, y + 2, W - F + 10 - cut - 4, hh - 2, cols[0], cols[1], 14); } else grain(F - 10, y, W - 2 * F + 20, hh, cols[0], cols[1], 18);
+        [F + 30, W - F - 30, W / 2].forEach(function (nx) { nail(nx, y + hh * .3); nail(nx, y + hh * .72); }); }
+      for (var h2 = 0; h2 < 12; h2++) { var hx = F + 40 + r() * (W - 2 * F - 80), hy = F + r() * (H - 2 * F); g.save(); g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.ellipse(hx, hy, 5 + r() * 9, 3 + r() * 6, r() * 3, 0, 7); g.fill(); g.restore(); }   // petits trous (on voit à travers)
+      [[0, 0, W, F], [0, H - F, W, F]].forEach(function (b) { grain(b[0], b[1], b[2], b[3], '#8a5228', '#3a1e08', 16); });   // poutres haut / bas
+      [[0, 0, F, H], [W - F, 0, F, H], [W / 2 - F / 2, F, F * .8, H - 2 * F]].forEach(function (b, k) { g.save(); g.translate(b[0] + b[2] / 2, b[1] + b[3] / 2); g.rotate(Math.PI / 2); grain(-b[3] / 2, -b[2] / 2, b[3], b[2], k === 2 ? '#a0642e' : '#8a5228', '#3a1e08', 16); g.restore(); });
+      g.save(); g.translate(W / 2, H / 2); g.rotate(Math.atan2(H - 2 * F, W - 2 * F)); grain(-W * .45, -F * .38, W * .9, F * .76, '#a86a34', '#4a2408', 12); g.restore();   // écharpe en diagonale
+      [[F / 2, F / 2], [W - F / 2, F / 2], [F / 2, H - F / 2], [W - F / 2, H - F / 2], [W / 2, H / 2]].forEach(function (q) { nail(q[0] - 12, q[1]); nail(q[0] + 12, q[1]); });
+    } else if (mk === 'pierre') {
+      g.fillStyle = '#5c4a44'; g.fillRect(0, 0, W, H); var F2 = 54, bh = 44, bw = 104;
+      for (var row = 0, yy2 = F2; yy2 < H - F2; row++, yy2 += bh) for (var xx2 = F2 - (row % 2 ? bw / 2 : 0); xx2 < W - F2; xx2 += bw) {
+        var x0 = Math.max(F2, xx2 + 4), x1 = Math.min(W - F2, xx2 + bw - 4), y0 = yy2 + 4, y1 = Math.min(H - F2, yy2 + bh - 4); if (x1 - x0 < 10 || y1 - y0 < 8) continue;
+        var hue = 8 + r() * 14, li = 36 + r() * 14; g.fillStyle = 'hsl(' + hue + ',' + (45 + r() * 15) + '%,' + li + '%)'; g.beginPath(); if (g.roundRect) g.roundRect(x0, y0, x1 - x0, y1 - y0, 6); else g.rect(x0, y0, x1 - x0, y1 - y0); g.fill();
+        g.fillStyle = 'rgba(255,220,190,.28)'; g.fillRect(x0 + 3, y0 + 2, x1 - x0 - 6, 5); g.fillStyle = 'rgba(30,8,0,.35)'; g.fillRect(x0 + 3, y1 - 6, x1 - x0 - 6, 5);
+        for (var sp = 0; sp < 10; sp++) { g.fillStyle = r() < .5 ? 'rgba(0,0,0,.18)' : 'rgba(255,230,200,.14)'; g.fillRect(x0 + r() * (x1 - x0), y0 + r() * (y1 - y0), 2 + r() * 4, 2 + r() * 3); }
+        if (r() < .12) { g.strokeStyle = 'rgba(20,5,0,.6)'; g.lineWidth = 2; g.beginPath(); var cx = x0 + r() * (x1 - x0); g.moveTo(cx, y0); g.lineTo(cx + 8, (y0 + y1) / 2); g.lineTo(cx - 4, y1); g.stroke(); } }
+      function stone(x, y, w, h) { var gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, '#9a948c'); gr.addColorStop(1, '#5e5852'); g.fillStyle = gr; g.fillRect(x, y, w, h); g.strokeStyle = 'rgba(30,26,22,.8)'; g.lineWidth = 4; for (var sx = x; sx < x + w; sx += 120 + r() * 60) { g.beginPath(); g.moveTo(sx, y); g.lineTo(sx + 6, y + h); g.stroke(); } g.strokeRect(x + 2, y + 2, w - 4, h - 4);
+        g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x + 4, y + 4, w - 8, 4); }
+      stone(0, 0, W, F2); stone(0, H - F2, W, F2); g.save(); g.translate(F2, 0); g.rotate(Math.PI / 2); stone(0, 0, H, F2); g.restore(); g.save(); g.translate(W, 0); g.rotate(Math.PI / 2); stone(0, 0, H, F2); g.restore();
+    } else {
+      var gr2 = g.createLinearGradient(0, 0, W, 0); for (var k2 = 0; k2 <= 24; k2++) { var t2 = k2 / 24; gr2.addColorStop(t2, k2 % 2 ? '#5a6474' : '#b8c2d0'); } g.fillStyle = gr2; g.fillRect(0, 0, W, H);   // tôle ondulée
+      for (var s3 = 0; s3 < 60; s3++) { g.strokeStyle = 'rgba(255,255,255,' + (.05 + r() * .12) + ')'; g.lineWidth = 1; var sx3 = r() * W, sy3 = r() * H; g.beginPath(); g.moveTo(sx3, sy3); g.lineTo(sx3 + 30 + r() * 60, sy3 + (r() - .5) * 10); g.stroke(); }   // rayures
+      for (var ru = 0; ru < 9; ru++) { var rx = r() * W, ry = r() * H, rg = g.createRadialGradient(rx, ry, 0, rx, ry, 30 + r() * 40); rg.addColorStop(0, 'rgba(150,70,20,.45)'); rg.addColorStop(1, 'rgba(150,70,20,0)'); g.fillStyle = rg; g.fillRect(rx - 80, ry - 80, 160, 160); }   // rouille
+      g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(0, H / 2 - 4, W, 8);
+      [[0, 0, W, 50], [0, H - 50, W, 50], [0, 0, 50, H], [W - 50, 0, 50, H], [0, H / 2 - 22, W, 44]].forEach(function (b) { var gb = g.createLinearGradient(b[0], b[1], b[0] + (b[2] < b[3] ? b[2] : 0), b[1] + (b[2] < b[3] ? 0 : b[3])); gb.addColorStop(0, '#d0d6de'); gb.addColorStop(.5, '#7a8494'); gb.addColorStop(1, '#3a404a'); g.fillStyle = gb; g.fillRect(b[0], b[1], b[2], b[3]); g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 3; g.strokeRect(b[0] + 1.5, b[1] + 1.5, b[2] - 3, b[3] - 3); });
+      function rivet(x, y) { var rg2 = g.createRadialGradient(x - 2, y - 2, 1, x, y, 7); rg2.addColorStop(0, '#ffffff'); rg2.addColorStop(.4, '#a8b0bc'); rg2.addColorStop(1, '#2a2e36'); g.fillStyle = rg2; g.beginPath(); g.arc(x, y, 7, 0, 7); g.fill(); }
+      for (var rx2 = 40; rx2 < W - 20; rx2 += 64) { rivet(rx2, 25); rivet(rx2, H - 25); rivet(rx2, H / 2); } for (var ry2 = 70; ry2 < H - 40; ry2 += 64) { rivet(25, ry2); rivet(W - 25, ry2); }
+    }
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
+  function bMat(mk, type) { var key = mk + (type === 'esc' ? 'e' : ''); if (BMAT[key]) return BMAT[key]; var tx = (BMAT['t' + mk] = BMAT['t' + mk] || bTex(mk)), m;
+    if (type === 'esc') { tx = tx.clone(); tx.needsUpdate = true; tx.repeat.set(1 / CELL, 1 / LH); }
+    m = mk === 'metal' ? new T.MeshStandardMaterial({ map: tx, metalness: .55, roughness: .42, color: '#ffffff' }) : new T.MeshStandardMaterial({ map: tx, metalness: 0, roughness: mk === 'bois' ? .78 : .9, color: '#ffffff' });
+    if (mk === 'bois') { m.alphaTest = .5; m.side = T.DoubleSide; }
+    return BMAT[key] = m; }
+  function pieceIM(type, mk) { var key = type + mk; if (PIM[key]) return PIM[key]; var mat = bMat(mk, type);
     var im = new T.InstancedMesh(type === 'mur' || type === 'sol' ? C.BOX : GEO[type], mat, 300); im.count = 300; for (var i = 0; i < 300; i++) im.setMatrixAt(i, ZERO); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true; im.free = []; for (i = 299; i >= 0; i--) im.free.push(i); C.scene.add(im); PIM[key] = im; return im; }
   function pieceMatrix(p, o) { o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
     if (p.t === 'sol') { o.position.set(p.x, p.L, p.z); o.scale.set(CELL, .3, CELL); }
@@ -503,7 +550,7 @@
   var ARM = null;
   /* GÉNÉRATEURS D'ARMES (comme dans les modes créatifs des gros jeux) : une dalle de 5 m (comme un sol construit) avec un plot futuriste
      bleu-violet au milieu ; l'arme ou la potion réapparaît dessus à l'infini ; une pancarte à côté dit ce que c'est. Toutes les armes + toutes les potions. */
-  function armory() { var BF = C.BF && C.ARENA, T0 = BF ? C.ARENA : C.TOWNS[0], K = ['pompeS', 'pompe', 'fusil', 'smg', 'scar', 'sniper', 'pistolet', 'roquette', 'laser', 'patate', 'mini', 'shield', 'heal'], n = K.length, ARM2 = [];
+  function armory() { var BF = C.BF && C.ARENA, T0 = BF ? C.ARENA : C.TOWNS[0], K = ['pompeS', 'pompe', 'fusil', 'smg', 'pmx', 'scar', 'sniper', 'pistolet', 'roquette', 'laser', 'patate', 'mini', 'shield', 'heal'], n = K.length, ARM2 = [];
     var cx0 = Math.round((T0[1] - n * CELL / 2) / CELL) * CELL, cz = Math.round((T0[2] + (BF ? (T0[3] >= 50 ? -30 : 32.5) : -22.5)) / CELL) * CELL + CELL / 2, IN = BF && T0[3] >= 50; ARM = [];   /* grande arène : la rangée de générateurs est SUR le carré, côté nord */
     var g = new T.Group(), slab = new T.MeshLambertMaterial({ color: '#3a3448' }), rim = new T.MeshBasicMaterial({ color: '#7a2fff' }), core = new T.MeshBasicMaterial({ color: '#3dd6ff', transparent: true, opacity: .85 }), dk = new T.MeshLambertMaterial({ color: '#1a1424' }), WN = C.WEAPONS, HN = C.HEAL;
     K.forEach(function (k, i) { var x = cx0 + i * CELL + CELL / 2, z = cz, y = Math.max(C.hgt(x, z), C.hgt(x - 2, z - 2), C.hgt(x + 2, z + 2)) + .02;
@@ -644,7 +691,7 @@
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
-    res: function () { return RES; }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
+    res: function () { return RES; }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] += n; hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }
 })();

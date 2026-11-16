@@ -4,7 +4,8 @@
    Les silhouettes sont des profils 2D extrudés avec biseau. */
 (function () {
   var MC = {}, T;
-  function M(col, o) { var k = col + JSON.stringify(o || {}); if (!MC[k]) MC[k] = new T.MeshPhongMaterial(Object.assign({ color: col, shininess: 40, specular: '#555555' }, o || {})); return MC[k]; }
+  function M(col, o) { var k = col + JSON.stringify(o || {}); if (MC[k]) return MC[k]; o = Object.assign({ shininess: 40 }, o || {}); var sh = o.shininess, q = { color: col, envMap: envTex(), metalness: o.metal != null ? o.metal : sh >= 80 ? .85 : sh >= 50 ? .35 : .08, roughness: o.rough != null ? o.rough : Math.max(.16, .8 - sh / 160), envMapIntensity: 1 };
+    ['map', 'emissive', 'emissiveIntensity', 'transparent', 'opacity', 'side'].forEach(function (n) { if (o[n] != null) q[n] = o[n]; }); return MC[k] = new T.MeshStandardMaterial(q); }
   var STEEL = function () { return M('#3a3e46', { shininess: 90, specular: '#9aa4b4' }); }, DARK = function () { return M('#1c1e23', { shininess: 30, specular: '#333' }); },
     POLY = function () { return M('#26282d', { shininess: 12, specular: '#222' }); }, WOOD = function () { return M('#fff', { map: woodTex(), shininess: 25, specular: '#3a2a1a' }); },
     GOLD = function () { return M('#f2c14a', { shininess: 120, specular: '#fff3c0', emissive: '#3a2600' }); };
@@ -98,29 +99,127 @@
   /* ---------- vraies armes 3D : Quaternius « Animated FPS Guns » (CC0), jeu/models/guns ----------
      Chaque arme est chargée une fois, chaque partie reçoit sa couleur (bois, acier, noir…), puis tout est fusionné en UN mesh
      à couleurs de sommets : un seul appel de dessin par arme. Canon vers +x, crosse vers -x, comme les anciens modèles. */
-  var GUN3 = { pistolet: ['g_Pistol', .36, 0], smg: ['g_P90', .66, -1], fusil: ['g_Rifle', 1.08, -1], scar: ['g_Rifle', 1.08, -1, 'gold'], pompe: ['g_Shotgun', 1.12, -1], pompeS: ['g_Shotgun', 1.04, -1, 'tac'], sniper: ['g_SniperRifle', 1.32, -1] };
+  var GUN3 = { pistolet: ['g_Pistol', .36, 0], smg: ['g_P90', .66, -1], pompeS: ['g_Shotgun', 1.04, -1, 'tac'], sniper: ['g_SniperRifle', 1.32, -1] };
   var GPAL = { LightWood: '#b9773e', DarkWood: '#6a3c1c', Wood: '#8a5428', Black: '#1d1f24', Metal: '#7d848e', DarkerMetal: '#3c4048', DarkMetal: '#3c4048', Barrels: '#2e3238', Barrel: '#2e3238', Magazine: '#26292f',
-    Muzzle: '#1a1a1c', BulletYellow: '#e8b830', BulletOrange: '#d87a2a', BulletRed: '#c8302a', BulletTip: '#c8902a', Trigger: '#141414', Green: '#4d6a3a', 'Material.001': '#2b2f36', 'Material.002': '#43484f', 'Material.003': '#1c1e22', 'Material.004': '#6e757e' };
-  var GOLDPAL = { LightWood: '#f2c14a', DarkWood: '#c9922a', Metal: '#ffe08a', Black: '#2a2418', Barrels: '#b8862a' };
-  var TACPAL = { LightWood: '#2a2a30', DarkWood: '#17171b', Wood: '#202026', Metal: '#9a7bd8', DarkerMetal: '#2c2638', DarkMetal: '#2c2638', Barrels: '#1a1820' };   // pompe spécialisé : noir et violet
+    Muzzle: '#1a1a1c', BulletYellow: '#e8b830', BulletOrange: '#d87a2a', BulletRed: '#c8302a', BulletTip: '#c8902a', Trigger: '#141414', Green: '#4d6a3a', 'Material.001': '#2b2f36', 'Material.002': '#43484f', 'Material.003': '#1c1e22', 'Material.004': '#4a515c' };
+  var GOLDPAL = { LightWood: '#ffcf4a', DarkWood: '#f0aa30', Metal: '#fff0b0', Black: '#3a2c14', Barrels: '#d8a23a' };
+  var TACPAL = { LightWood: '#2a2a30', DarkWood: '#17171b', Wood: '#202026', Metal: '#b08aff', DarkerMetal: '#7a4ad8', DarkMetal: '#8a5ae8', Black: '#1e1828', Barrels: '#2a2236', BulletRed: '#ff3a8a' };   // pompe spécialisé : noir et violet
+  var AUTOPAL = { DarkMetal: '#a8b0bc', Black: '#3a2a1c', Barrels: '#5a606a', BulletRed: '#d83030' };   // pompe auto : acier clair + polymère brun
   var GUNT = {}, GREADY = false;
   window.GUNS3D = { ready: function () { return GREADY; }, onReady: null,
     load: function (THREE) { if (!THREE.GLTFLoader || GREADY) return; T = THREE; var L = new THREE.GLTFLoader(), names = ['g_Pistol', 'g_P90', 'g_Rifle', 'g_Shotgun', 'g_SniperRifle'], left = names.length, raw = {};
       names.forEach(function (n) { L.load('models/guns/' + n + '.glb', function (g) { raw[n] = g.scene; if (--left === 0) done(); }, null, function () { if (--left === 0) done(); }); });
-      function done() { Object.keys(GUN3).forEach(function (k) { var q = GUN3[k], sc = raw[q[0]]; if (!sc) return; GUNT[k] = bake(sc, q[1], q[2], q[3] === 'gold' ? GOLDPAL : q[3] === 'tac' ? TACPAL : null); }); GREADY = true; if (window.GUNS3D.onReady) window.GUNS3D.onReady(); } } };
+      function done() { Object.keys(GUN3).forEach(function (k) { var q = GUN3[k], sc = raw[q[0]]; if (!sc) return; GUNT[k] = bake(sc, q[1], q[2], q[3] === 'gold' ? GOLDPAL : q[3] === 'tac' ? TACPAL : q[3] === 'auto' ? AUTOPAL : null); }); GREADY = true; if (window.GUNS3D.onReady) window.GUNS3D.onReady(); } } };
+  /* Rendu « vraie arme » : chaque partie est rangée par matière (métal, bois, polymère, laiton, lunette) et dessinée en matériau PBR
+     avec reflets d'un studio peint (ENV) : acier qui brille, bois mat, plastique satiné. Un mesh par matière (4-5 appels de dessin). */
+  var CLS = { Metal: 'm', DarkerMetal: 'm', DarkMetal: 'm', Barrels: 'm', Barrel: 'm', Muzzle: 'm', Trigger: 'm', Magazine: 'm', 'Material.001': 'p', 'Material.002': 'm', 'Material.003': 'p', 'Material.004': 'm',
+    LightWood: 'w', DarkWood: 'w', Wood: 'w', Black: 'p', Green: 'p', BulletYellow: 'b', BulletOrange: 'b', BulletRed: 'b', BulletTip: 'b' };
+  var ENVT = null;
+  function envTex() { if (ENVT) return ENVT; var c = document.createElement('canvas'); c.width = 512; c.height = 256; var g = c.getContext('2d');
+    var gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#ffffff'); gr.addColorStop(.35, '#b9c3d6'); gr.addColorStop(.5, '#8a8f9e'); gr.addColorStop(.62, '#4a4552'); gr.addColorStop(1, '#2a2630'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
+    g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(40, 40, 90, 46); g.fillRect(300, 30, 140, 30); g.fillStyle = 'rgba(255,120,200,.55)'; g.fillRect(200, 70, 60, 70); g.fillStyle = 'rgba(140,90,255,.5)'; g.fillRect(450, 80, 50, 60);
+    ENVT = new T.CanvasTexture(c); ENVT.mapping = T.EquirectangularReflectionMapping; ENVT.encoding = T.sRGBEncoding; return ENVT; }
+  function grainTex() { var c = document.createElement('canvas'); c.width = 256; c.height = 256; var g = c.getContext('2d'); g.fillStyle = '#808080'; g.fillRect(0, 0, 256, 256);
+    for (var i = 0; i < 90; i++) { g.strokeStyle = 'rgba(' + (Math.random() < .5 ? '40,40,40' : '200,200,200') + ',' + (.08 + Math.random() * .18) + ')'; g.lineWidth = .6 + Math.random() * 2; g.beginPath(); var y = Math.random() * 256; g.moveTo(0, y); for (var x = 0; x <= 256; x += 16) g.lineTo(x, y + Math.sin(x * .04 + i) * 4); g.stroke(); }
+    var t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
+  var GRAIN = null, MATS = {};
+  function gmat(cls, over) { var key = cls + (over === GOLDPAL ? 'G' : over === TACPAL ? 'T' : ''); if (MATS[key]) return MATS[key]; var env = envTex(), gold = over === GOLDPAL, tac = over === TACPAL, o = { vertexColors: true, envMap: env };
+    if (cls === 'm') Object.assign(o, { metalness: gold ? 1 : .88, roughness: gold ? .2 : tac ? .38 : .3, envMapIntensity: 1.25 });
+    else if (cls === 'w') { if (!GRAIN) GRAIN = grainTex(); Object.assign(o, gold ? { metalness: 1, roughness: .26, envMapIntensity: 1.2 } : { metalness: 0, roughness: .62, roughnessMap: GRAIN, envMapIntensity: .55 }); }
+    else if (cls === 'b') Object.assign(o, { metalness: 1, roughness: .22, envMapIntensity: 1.3 });
+    else Object.assign(o, { metalness: gold ? .9 : .15, roughness: gold ? .28 : .52, envMapIntensity: .8 });
+    if (gold) { o.metalness = Math.min(o.metalness, .75); o.emissive = new T.Color('#8a5c00'); o.emissiveIntensity = .55; } return MATS[key] = new T.MeshStandardMaterial(o); }
   function bake(scene, len, rotY, over) {
-    scene.updateMatrixWorld(true); var parts = [];
-    scene.traverse(function (o) { if (!o.isMesh) return; var g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld); var nm = (o.material.name || o.name || '').replace(/\.\d+$/, '') , key = o.material.name || '';
-      var c = new T.Color((over && over[nm]) || GPAL[key] || GPAL[nm] || '#555a62'); parts.push([g, c]); });
-    var n = 0; parts.forEach(function (p) { n += p[0].attributes.position.count; });
-    var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3), o2 = 0;
-    parts.forEach(function (p) { var g = p[0], c = g.attributes.position.count; pos.set(g.attributes.position.array, o2 * 3); nor.set(g.attributes.normal.array, o2 * 3); for (var i = 0; i < c; i++) { col[(o2 + i) * 3] = p[1].r; col[(o2 + i) * 3 + 1] = p[1].g; col[(o2 + i) * 3 + 2] = p[1].b; } o2 += c; });
-    var G = new T.BufferGeometry(); G.setAttribute('position', new T.BufferAttribute(pos, 3)); G.setAttribute('normal', new T.BufferAttribute(nor, 3)); G.setAttribute('color', new T.BufferAttribute(col, 3));
-    if (rotY) G.rotateY(rotY * Math.PI / 2);
-    G.computeBoundingBox(); var b = G.boundingBox, L = b.max.x - b.min.x, s = len / L; G.scale(s, s, s); G.computeBoundingBox(); b = G.boundingBox;
-    G.translate(-(b.min.x + b.max.x) / 2 + len * .12, -(b.min.y + b.max.y) / 2 - (b.max.y - b.min.y) * .08, -(b.min.z + b.max.z) / 2); G.computeBoundingSphere();
-    var m = new T.Mesh(G, new T.MeshPhongMaterial({ vertexColors: true, shininess: over ? 90 : 45, specular: over === TACPAL ? '#5a4a7a' : over ? '#8a6a20' : '#3a3a3a' })); m.castShadow = true; return m;
+    scene.updateMatrixWorld(true); var parts = {};
+    scene.traverse(function (o) { if (!o.isMesh) return; var g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone(); g.applyMatrix4(o.matrixWorld); var nm = (o.material.name || o.name || '').replace(/\.\d+$/, ''), key = o.material.name || '';
+      var c = new T.Color((over && over[nm]) || GPAL[key] || GPAL[nm] || '#555a62'), cls = CLS[key] || CLS[nm] || 'p'; (parts[cls] = parts[cls] || []).push([g, c]); });
+    var all = new T.Box3(), groups = [];
+    Object.keys(parts).forEach(function (cls) { var P = parts[cls], n = 0; P.forEach(function (p) { n += p[0].attributes.position.count; });
+      var pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3), uv = new Float32Array(n * 2), o2 = 0;
+      P.forEach(function (p) { var g = p[0], c = g.attributes.position.count, a = g.attributes.position.array; pos.set(a, o2 * 3); nor.set(g.attributes.normal.array, o2 * 3);
+        for (var i = 0; i < c; i++) { var j = (o2 + i) * 3, sh = .92 + .16 * ((Math.sin(a[i * 3] * 41.3 + a[i * 3 + 2] * 17.1) + 1) / 2); col[j] = p[1].r * sh; col[j + 1] = p[1].g * sh; col[j + 2] = p[1].b * sh; uv[(o2 + i) * 2] = a[i * 3] * 3 + a[i * 3 + 2] * 3; uv[(o2 + i) * 2 + 1] = a[i * 3 + 1] * 3; } o2 += c; });
+      var G = new T.BufferGeometry(); G.setAttribute('position', new T.BufferAttribute(pos, 3)); G.setAttribute('normal', new T.BufferAttribute(nor, 3)); G.setAttribute('color', new T.BufferAttribute(col, 3)); G.setAttribute('uv', new T.BufferAttribute(uv, 2));
+      if (rotY) G.rotateY(rotY * Math.PI / 2); G.computeBoundingBox(); all.union(G.boundingBox); groups.push([G, cls]); });
+    var L = all.max.x - all.min.x, s = len / L, out = new T.Group(); all.min.multiplyScalar(s); all.max.multiplyScalar(s);
+    var tx = -(all.min.x + all.max.x) / 2 + len * .12, ty = -(all.min.y + all.max.y) / 2 - (all.max.y - all.min.y) * .08, tz = -(all.min.z + all.max.z) / 2;
+    groups.forEach(function (q) { q[0].scale(s, s, s); q[0].translate(tx, ty, tz); q[0].computeBoundingSphere(); var m = new T.Mesh(q[0], gmat(q[1], over)); m.castShadow = true; out.add(m); });
+    return out;
   }
+  /* ===== Nouveaux modèles faits main (PBR) ===== */
+  function mag(g, x, y, w, h, curve, mt) { var s0 = new T.Shape(); s0.moveTo(x, y); s0.lineTo(x + w, y); s0.quadraticCurveTo(x + w + curve * .5, y - h * .5, x + w + curve, y - h); s0.lineTo(x + curve, y - h); s0.quadraticCurveTo(x + curve * .5, y - h * .5, x, y); var gg = new T.ExtrudeGeometry(s0, { depth: .022, bevelEnabled: true, bevelThickness: .005, bevelSize: .005, bevelSegments: 2 }); gg.translate(0, 0, -.011); var m = new T.Mesh(gg, mt); g.add(m); return m; }
+  /* FUSIL D'ASSAUT : carabine moderne (crosse télescopique, carcasse à rail, poignée de transport, garde-main à rails, guidon triangle, chargeur courbé) */
+  B.ar = function (g, c) {
+    var PL = M('#2b2e34', { rough: .55, metal: .15, shininess: 30 }), BK = M('#17181c', { rough: .4, metal: .6, shininess: 70 }), GR = M('#4a4f58', { rough: .35, metal: .8, shininess: 90 });
+    cyl(g, .018, .018, .24, -.33, .02, 0, GR, 12);   // tube de crosse
+    ext(g, [[-.56, -.07], [-.43, -.04], [-.36, -.01], [-.36, .05], [-.48, .055], [-.56, .045], [-.58, -.05]], .05, PL, 0, .01);   // crosse télescopique
+    boxm(g, .02, .12, .054, -.575, -.005, 0, BK);   // talon caoutchouc
+    ext(g, [[-.2, -.04], [.1, -.04], [.12, -.02], [.12, .02], [-.2, .02]], .056, BK, 0, .008);   // carcasse basse
+    ext(g, [[-.21, .02], [.15, .02], [.15, .072], [-.21, .072]], .052, GR, 0, .008);   // carcasse haute
+    rail(g, -.2, .14, .078, .03, BK);
+    ext(g, [[-.16, .09], [.05, .09], [.06, .15], [-.14, .15], [-.15, .12]], .022, BK, 0, .005, [[[-.12, .1], [.02, .1], [.02, .13], [-.12, .13]]]);   // poignée de transport
+    boxm(g, .03, .02, .024, .03, .155, 0, BK);
+    ext(g, [[.15, -.015], [.42, -.012], [.42, .07], [.15, .072]], .066, PL, 0, .012);   // garde-main
+    for (var i = 0; i < 6; i++) boxm(g, .028, .012, .07, .18 + i * .042, .028, 0, BK);   // fentes d'aération
+    cyl(g, .012, .012, .3, .55, .028, 0, BK, 12); ext(g, [[.6, .028], [.64, .028], [.63, .11], [.615, .11]], .016, BK, 0, .004);   // canon + guidon
+    cyl(g, .018, .016, .06, .72, .028, 0, BK, 10); for (var j = 0; j < 4; j++) boxm(g, .04, .004, .038, .72, .028 + Math.sin(j * 1.57) * .016, Math.cos(j * 1.57) * .016, M('#050505'));   // cache-flamme
+    mag(g, .03, -.03, .06, .2, .05, BK);   // chargeur courbé
+    ext(g, [[-.1, -.04], [-.04, -.04], [-.065, -.16], [-.125, -.15]], .046, PL, 0, .01); guard(g, -.01, -.04, .024, BK);   // poignée
+    boxm(g, .05, .014, .01, -.05, .045, .03, GR); cyl(g, .01, .01, .02, -.09, .05, .03, GR, 8); boxm(g, .04, .012, .02, -.2, .075, 0, BK);   // fenêtre d'éjection, assistance, levier d'armement
+    accent(g, -.18, .1, .0, c, .056);
+  };
+  /* FUSIL DORÉ façon « SCAR » : carcasse haute monobloc anguleuse, rail sur toute la longueur, crosse pliante à appui-joue, canon court + frein de bouche, chargeur droit */
+  B.scarx = function (g, c) {
+    var G = M('#f5c445', { metal: .8, rough: .26, shininess: 120, emissive: '#5a3a00', emissiveIntensity: .45 }), BK = M('#1a1a1e', { rough: .5, metal: .25, shininess: 40 }), GR = M('#3a3d44', { metal: .8, rough: .3, shininess: 90 });
+    ext(g, [[-.62, -.07], [-.5, -.05], [-.38, -.02], [-.25, -.02], [-.25, .06], [-.4, .07], [-.52, .085], [-.62, .07]], .052, G, 0, .012, [[[-.5, .0], [-.32, .01], [-.32, .04], [-.5, .045]]]);   // crosse pliante squelette
+    boxm(g, .16, .03, .046, -.47, .095, 0, BK);   // appui-joue
+    boxm(g, .025, .15, .056, -.625, .0, 0, BK);
+    ext(g, [[-.26, -.045], [.12, -.045], [.14, -.025], [.14, .02], [-.26, .02]], .06, BK, 0, .008);   // carcasse basse polymère
+    ext(g, [[-.27, .02], [.46, .02], [.48, .035], [.48, .08], [.4, .1], [-.27, .1]], .07, G, 0, .012);   // carcasse haute monobloc dorée
+    rail(g, -.25, .45, .105, .032, BK); [-1, 1].forEach(function (sd) { rail(g, .2, .44, .05, .012, BK); boxm(g, .24, .012, .006, .32, .05, sd * .038, BK); });
+    boxm(g, .03, .03, .012, -.08, .075, .042, GR);   // levier d'armement sur le côté
+    cyl(g, .015, .015, .2, .57, .05, 0, GR, 12); cyl(g, .024, .024, .08, .7, .05, 0, BK, 12); for (var i = 0; i < 3; i++) boxm(g, .012, .05, .056, .68 + i * .025, .05, 0, M('#0a0a0a'));   // canon + frein de bouche
+    ext(g, [[.02, -.045], [.1, -.045], [.105, -.2], [.03, -.205]], .03, BK, 0, .006);   // chargeur droit
+    ext(g, [[-.11, -.045], [-.05, -.045], [-.075, -.17], [-.14, -.16]], .046, BK, 0, .01); guard(g, .0, -.045, .024, BK);
+    ext(g, [[.28, .02], [.32, .02], [.31, -.08], [.28, -.08]], .03, BK, 0, .008);   // poignée avant
+    boxm(g, .08, .045, .036, .05, .135, 0, BK); cyl(g, .02, .02, .004, .092, .135, 0, M('#ff2b4a', { emissive: '#ff0020', emissiveIntensity: 1.2 }), 12);   // viseur point rouge
+    accent(g, -.24, .44, .062, '#fff3c0', .07);
+  };
+  /* POMPE AUTO, gros pompe à l'ancienne : crosse et pompe en bois, carcasse épaisse, gros canon + tube, porte-cartouches rouges, guidon perle */
+  B.pump = function (g, c) {
+    var W = WOOD(), ST2 = M('#5a606a', { metal: .85, rough: .32, shininess: 90 }), BK = M('#1c1d21', { metal: .6, rough: .4, shininess: 60 });
+    ext(g, [[-.66, -.12], [-.4, -.045], [-.24, -.03], [-.24, .045], [-.4, .055], [-.66, .045], [-.68, -.09]], .064, W, 0, .015);   // crosse bois
+    boxm(g, .03, .17, .068, -.68, -.035, 0, M('#141414', { rough: .9 }));   // plaque de couche
+    ext(g, [[-.26, -.045], [.1, -.045], [.12, -.02], [.12, .065], [-.26, .065]], .078, ST2, 0, .012);   // grosse carcasse
+    boxm(g, .1, .02, .01, -.06, .02, .042, BK);   // fenêtre d'éjection
+    cyl(g, .028, .028, .66, .44, .04, 0, BK, 18); cyl(g, .034, .034, .03, .77, .04, 0, ST2, 18);   // gros canon
+    cyl(g, .024, .024, .54, .38, -.018, 0, ST2, 16); cyl(g, .028, .028, .025, .66, -.018, 0, BK, 16);   // tube magasin
+    var pm = cyl(g, .045, .045, .24, .26, -.008, 0, W, 20); for (var i = 0; i < 8; i++) cyl(g, .047, .047, .01, .16 + i * .028, -.008, 0, M('#4a2a12', { rough: .8 }), 20);   // pompe rainurée
+    cyl(g, .009, .009, .012, .77, .075, 0, M('#ffd23d', { emissive: '#aa7700', emissiveIntensity: .7 }), 10);   // guidon perle
+    ext(g, [[-.18, -.045], [-.11, -.045], [-.14, -.17], [-.21, -.16]], .052, W, 0, .012); guard(g, -.07, -.045, .028, BK);
+    boxm(g, .12, .055, .012, -.5, .0, .036, BK); for (var s2 = 0; s2 < 4; s2++) cyl(g, .012, .012, .055, -.545 + s2 * .03, .0, .045, M('#d82a2a', { rough: .5 }), 10, 'y');   // porte-cartouches
+    accent(g, -.24, .1, .02, c, .078);
+  };
+  /* PM FANTÔME (légendaire) : carcasse anguleuse en carbone noir, plaques dorées, lignes d'énergie violettes qui brillent, chargeur latéral transparent, canon à ailettes */
+  B.pmx = function (g, c) {
+    var CB = M('#16151b', { shininess: 70, rough: .35, metal: .4 }), GD = M('#ffc23a', { shininess: 120, metal: 1, rough: .22 }), GL = M('#b44bff', { emissive: '#9a2bff', emissiveIntensity: 1.6, shininess: 60 }),
+      GL2 = M('#4ae0ff', { emissive: '#18b8ff', emissiveIntensity: 1.4, shininess: 60 }), ST = STEEL(), GLASS = M('#c9a3ff', { transparent: true, opacity: .45, shininess: 140, emissive: '#5a1a9a', emissiveIntensity: .5 });
+    ext(g, [[-.16, -.035], [.2, -.035], [.26, -.005], [.26, .045], [.14, .07], [-.12, .07], [-.18, .04]], .06, CB, 0, .01);   // carcasse
+    ext(g, [[-.1, .07], [.13, .07], [.1, .092], [-.08, .092]], .044, GD, 0, .006);   // capot doré
+    rail(g, -.08, .1, .1, .026, DARK());
+    ext(g, [[.26, .0], [.36, .006], [.36, .04], [.26, .045]], .05, CB, 0, .006);   // garde-main
+    cyl(g, .014, .014, .14, .41, .022, 0, ST, 14); for (var i = 0; i < 5; i++) boxm(g, .006, .04, .04, .37 + i * .016, .022, 0, CB);   // canon à ailettes
+    cyl(g, .019, .019, .03, .49, .022, 0, GD, 14);
+    ext(g, [[.04, -.035], [.1, -.035], [.12, -.19], [.06, -.2]], .03, CB, 0, .006); ext(g, [[.055, -.06], [.09, -.06], [.105, -.17], [.07, -.175]], .034, GLASS, 0, .003);   // chargeur transparent
+    for (var j = 0; j < 5; j++) cyl(g, .007, .007, .028, .07 + j * .006, -.08 - j * .018, 0, M('#ffd34a', { metal: 1, rough: .2, shininess: 120 }), 8, 'y');   // balles visibles
+    ext(g, [[-.07, -.035], [-.02, -.035], [-.045, -.16], [-.1, -.155]], .044, CB, 0, .01); guard(g, .01, -.035, .022, GD);   // poignée
+    ext(g, [[.18, -.035], [.22, -.035], [.21, -.11], [.18, -.11]], .03, CB, 0, .006);   // poignée avant
+    ext(g, [[-.16, .03], [-.36, .05], [-.38, -.06], [-.32, -.07], [-.3, -.01], [-.16, -.01]], .04, CB, 0, .008, [[[-.33, .02], [-.22, .015], [-.22, .0], [-.33, -.03]]]);   // crosse squelette
+    boxm(g, .1, .006, .004, -.27, .035, .022, GD); boxm(g, .1, .006, .004, -.27, .035, -.022, GD);
+    boxm(g, .06, .036, .036, .0, .125, 0, CB); cyl(g, .016, .016, .003, .031, .125, 0, GL2, 12);   // viseur holo
+    var ring = new T.Mesh(new T.TorusGeometry(.028, .004, 6, 20), GL); ring.position.set(.03, .148, 0); ring.rotation.y = Math.PI / 2; g.add(ring);
+    [-1, 1].forEach(function (sd) { boxm(g, .3, .007, .003, .05, .03, sd * .032, GL); boxm(g, .12, .007, .003, .3, .024, sd * .027, GL); boxm(g, .05, .022, .003, -.12, .04, sd * .032, GD); });   // lignes d'énergie
+    boxm(g, .02, .02, .07, .15, .045, 0, GL2);
+  };
   /* LANCE-PATATE : tube orange en PVC, chambre de combustion rouge, scotch gris, crosse en bois, bouton d'allumage, une patate au bout */
   B.patate = function (g, c) {
     var pvc = M('#ff7a1a', { shininess: 70, specular: '#ffd0a0' }), red = M('#d82a2a', { shininess: 60 }), tape = M('#8a8f98', { shininess: 20 });
@@ -159,7 +258,7 @@
   };
   window.buildGun = function (THREE, k, rc) { T = THREE; var g = new THREE.Group();
     if (GUNT[k]) { var m = GUNT[k].clone(); g.add(m); g.userData.real = true; g.userData.gscale = 1; return g; }   // vraie arme 3D (déjà à la bonne taille)
-    (B[k] || (k === 'pompeS' ? B.pompe : B.pistolet))(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };
+    ({ fusil: B.ar, scar: B.scarx, pompe: B.pump }[k] || B[k] || (k === 'pompeS' ? B.pompe : B.pistolet))(g, rc || '#ffffff'); g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; } }); return g; };
 
   /* ---------- planeur : aile delta tendue sur une armature, barre de contrôle ---------- */
   var GT = {};
