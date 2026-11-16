@@ -178,7 +178,7 @@
     o.updateMatrix(); return o.matrix; }
   // où va la pièce ? (cellule de 4 m, niveau aligné sur les pièces voisines)
   function plan(noAim) { var P0 = me(), onR = PIECES.some(function (q) { return q.t === 'esc' && Math.abs(P0.x - q.x) <= CELL / 2 + .1 && Math.abs(P0.z - q.z) <= CELL / 2 + .1 && P0.y > q.L - .2 && P0.y < q.L + LH + .5; });
-    if (!onR && !noAim) { var pa = planAim(); if (pa) return pa; }   // sur une rampe : on construit dans la foulée (règle d'avant)
+    if (!noAim) { var pa = planAim(); if (pa) return pa; }   // sur une rampe : on construit dans la foulée (règle d'avant)
     var P = me(), a = C.camA(), pitch = C.camP(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d];
     var ci = Math.floor(P.x / CELL), cj = Math.floor(P.z / CELL), b0 = null, bd = 14;
     PIECES.forEach(function (q) { var dd = Math.hypot(q.x - P.x, q.z - P.z); if (dd < bd && Math.abs(q.L - P.y) < 10) { bd = dd; b0 = q.L; } });
@@ -217,17 +217,20 @@
     for (var hi = 0; hi < C.HOUSES.length && base == null; hi++) { var hs = C.HOUSES[hi]; if (Math.abs(x - hs.x) < hs.hx + 3 && Math.abs(z - hs.z) < hs.hz + 3) base = hs.y0; }
     if (base == null) { var g0 = C.hgt(Math.floor(x / CELL) * CELL + CELL / 2, Math.floor(z / CELL) * CELL + CELL / 2); base = C.snapY ? C.snapY(g0) : g0; }   /* grille verticale commune à toute la map */
     return base + LH * Math.floor((y - base) / LH + .12); }
-  function planAim() { var t = PIECE; if (t === 'lit' || C.camP() > .9) return null; var h = aimHit(); if (!h) return null;
-    var a = C.camA(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d], P = me();
-    var hx = h.x - (h.wall ? dx * .3 : 0), hz = h.z - (h.wall ? dz * .3 : 0), ci = Math.floor(hx / CELL), cj = Math.floor(hz / CELL), L = lvl(hx, hz, h.y), p = { t: t, m: MATK, d: d };
-    if (t === 'mur') { var ex, ez; if (dx) { ex = Math.round(hx / CELL); p.x = ex * CELL; p.z = cj * CELL + CELL / 2; p.hw = .14; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + cj; } else { ez = Math.round(hz / CELL); p.z = ez * CELL; p.x = ci * CELL + CELL / 2; p.hw = CELL / 2; p.hd = .14; p.key = 'm|z|' + ci + '|' + ez; }
-      p.L = h.top && !h.wall ? L : lvl(hx, hz, h.y - .4); }
-    else { p.x = ci * CELL + CELL / 2; p.z = cj * CELL + CELL / 2; p.L = L;
-      if (t === 'toit' && h.top && Math.abs(h.y - L) < .3 && P.y < L + 1) p.L = L;
+  /* VISÉE DE CONSTRUCTION façon Fortnite (pour réussir les « 90 » facilement) : tout part de TES PIEDS et de la direction où tu regardes.
+     · regarde vers le bas → le SOL / la RAMPE se pose dans TA case, au niveau de tes pieds (même en plein saut : le sol apparaît sous toi)
+     · regarde devant → dans la case DEVANT toi, au niveau de tes pieds · regarde en haut → un étage au-dessus
+     · MUR : sur le bord de ta case, dans la direction où tu regardes · TOIT : au-dessus de ta case */
+  function planAim() { var t = PIECE; if (t === 'lit') return null; var P = me(), pt = C.camP(), a = C.camA(), d = ((Math.round(a / (Math.PI / 2)) % 4) + 4) % 4, dx = [1, 0, -1, 0][d], dz = [0, 1, 0, -1][d];
+    var down = pt < -.62, up = pt > .42, p = { t: t, m: MATK, d: d }, oi = Math.floor(P.x / CELL), oj = Math.floor(P.z / CELL);
+    var feet = lvl(oi * CELL + CELL / 2, oj * CELL + CELL / 2, P.y + .35);   // niveau de la grille sous tes pieds (avec un peu de marge pendant un saut)
+    PIECES.forEach(function (q) { if (q.t === 'esc' && Math.abs(P.x - q.x) <= CELL / 2 + .2 && Math.abs(P.z - q.z) <= CELL / 2 + .2 && P.y > q.L + LH * .35 && P.y < q.L + LH + 1.2) feet = Math.max(feet, q.L + LH); });   // sur une rampe (assez haut) : on compte le HAUT de la rampe
+    if (t === 'mur') { var lw = feet + (up ? LH : 0); if (dx) { var ex = oi + (dx > 0 ? 1 : 0); p.x = ex * CELL; p.z = oj * CELL + CELL / 2; p.hw = .14; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + oj; } else { var ez = oj + (dz > 0 ? 1 : 0); p.z = ez * CELL; p.x = oi * CELL + CELL / 2; p.hw = CELL / 2; p.hd = .14; p.key = 'm|z|' + oi + '|' + ez; } p.L = lw; }
+    else { var ci = oi, cj = oj; if (!down && t !== 'toit') { ci = oi + dx; cj = oj + dz; }   // devant toi, sauf si tu regardes en bas
+      p.x = ci * CELL + CELL / 2; p.z = cj * CELL + CELL / 2; p.L = feet + (up || t === 'toit' ? LH : 0);
       if (t === 'esc') { var back = PIECES.filter(function (q) { return q.t === 'esc' && q.d === d && Math.abs(q.x - (p.x - dx * CELL)) < .1 && Math.abs(q.z - (p.z - dz * CELL)) < .1 && Math.abs(q.L + LH - p.L) < LH * .8; })[0]; if (back) p.L = back.L + LH; }   // dans le prolongement : pile au bout
       p.key = t[0] + '|' + ci + '|' + cj; }
-    if (Math.abs(p.x - P.x) > CELL * 2.2 || Math.abs(p.z - P.z) > CELL * 2.2) return null;
-    p.key += '|' + p.L.toFixed(1); return p; }
+    p.L = +p.L.toFixed(2); p.key += '|' + p.L.toFixed(1); return p; }
   function taken(key, p) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) return true; return !!(p && p.t === 'mur' && (slotWalls(p, false).length || slotWalls(p, true).length)); }   // un mur de maison occupe la place — y compris une PORTE de maison : c'est un « edit » de la map (comme Fortnite), on ne peut pas la boucher
   function placeBed(p) { BED = { x: p.x, z: p.z, y: p.L, a: p.d }; showBed(); C.toast('LIT POSÉ : TU RÉAPPARAÎTRAS ICI'); save(); return true; }
   function showBed() { if (!BED) { if (BEDM) BEDM.visible = false; return; } if (!BEDM) { if (!BEDTPL) return; BEDM = new T.Mesh(BEDTPL.geo, BEDTPL.mat); BEDM.castShadow = true; BEDM.userData.dyn = true; C.scene.add(BEDM); }
