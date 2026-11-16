@@ -487,3 +487,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v76 : amis par pseudo + cases « + » du salon
 - Ajouter un ami par PSEUDO (`frAddPseudo` → `nom/<pseudo>`) : demande `freq/<fid>` ; l'autre reçoit un bandeau « veut être ton ami · ACCEPTER » (`frReq`), l'acceptation revient par `freq` avec `ok:1` (`FR.rseen`, `wr_frSeen`). Le code ami reste possible (repliable).
 - Barre du salon `#grpBar` : « 👥 SALON n/4 », le chef 👑, les membres, et des cases ＋ qui ouvrent la liste d'amis (« 📨 INVITER AU SALON »).
+
+## v77 : animaux de la Survie en vrais modèles 3D animés
+- Plus de blocs : **Quaternius Ultimate Animated Animals (CC0)** dans `jeu/models/animaux/` (Wolf, Bull, Cow, Alpaca, Fox, Deer, Stag + License.txt), récupérés depuis le dépôt public `Dustyluc123/goblo` (git sparse). `jeu/SkeletonUtils.js` (three r128) pour cloner les modèles à os.
+- faune.js : `K` = loup (Wolf), taureau (Bull, agressif), vache (Cow), lama (Alpaca), renard (Fox), biche (Deer), cerf (Stag). `loadAll()` charge les 7 au lancement de la Survie, `model()` clone + `AnimationMixer` (Walk, Gallop, Idle, Eating, Attack, Death, HitReact…), `play()` en fondu. Avant des modèles = face +Z → `rotation.y = π/2 − a`. Loup apprivoisé : collier rouge sur l'os `Neck2`. Animation mise à jour à chaque image < 70 m, 5×/s au-delà.
