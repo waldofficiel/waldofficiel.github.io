@@ -3791,7 +3791,7 @@ function frDraw() { var d = $('frM'); if (!d) return; var esc = function (x) { r
   d.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { var f = FR.list[+b.dataset.del]; if (FB() && f) WGF.remove(f.id); FR.list.splice(+b.dataset.del, 1); frSave(); frDraw(); }; });
   $('frX').onclick = function () { d.hidden = true; }; }
 function frOpen() { var d = $('frM'); if (!d) { d = document.createElement('div'); d.id = 'frM'; d.className = 'modal'; document.body.appendChild(d); } d.classList.remove('big'); frDraw(); d.hidden = false; frPoll(); }
-setTimeout(function () { frPresence(); frPoll(); grpPres(); grpPoll(); grpDraw(); }, 4000); setInterval(function () { frPresence(); grpPres(); }, 30000); setInterval(frPoll, 12000); setInterval(function () { if (state !== 'play' || PARTY.lead) grpPoll(); }, 4000);
+setTimeout(function () { frPresence(); frPoll(); grpPres(); grpPoll(); grpDraw(); }, 4000); setInterval(function () { frPresence(); grpPres(); }, 30000); setInterval(function () { frPoll(); }, 12000);   /* via la variable : avec un compte, frPoll est remplacé par la version Firebase (avant, l'ancienne version tournait encore et remettait tes amis « hors ligne » toutes les 12 s) */ setInterval(function () { if (state !== 'play' || PARTY.lead) grpPoll(); }, 4000);
 /* ===== GROUPE de 4 façon Fortnite : rejoindre un pote par son pseudo, le chef lance → tout le groupe part dans la même partie (n'importe quel mode) ===== */
 var PARTY = { lead: '', m: [], seen: 0, last: 0 };
 try { var g0 = JSON.parse(localStorage.getItem('wr_grp') || 'null'); if (g0 && g0.lead) PARTY.lead = g0.lead; PARTY.seen = +localStorage.getItem('wr_grpSeen') || 0; } catch (e) {}
