@@ -2561,16 +2561,16 @@ function pickNext() { var RN = storm.rng || Math.random, P = storm.plan[Math.min
 /* ================= entrées ================= */
 /* ===== touches PC réglables (onglet Réglages > Commandes PC). On garde la position physique de la touche (e.code) : marche en AZERTY comme en QWERTY ===== */
 var BIND0 = { avancer: 'KeyW', reculer: 'KeyS', gauche: 'KeyA', droite: 'KeyD', sauter: 'Space', sprint: 'ShiftLeft', accroupi: 'ControlLeft', interagir: 'KeyE', recharger: 'KeyR',
-  arme1: 'Digit1', arme2: 'Digit2', arme3: 'Digit3', arme4: 'Digit4', arme5: 'Digit5', soin: 'KeyC', soinSuivant: 'KeyH', sac: 'KeyI', carte: 'KeyM', danse: 'KeyP', pause: 'Escape',
+  arme1: 'Digit1', arme2: 'Digit2', arme3: 'Digit3', arme4: 'Digit4', arme5: 'Digit5', sac: 'KeyI', carte: 'KeyM', danse: 'KeyP', pause: 'Escape',
   siffler: 'KeyF', pioche: 'KeyX', construire: 'KeyV', mur: 'F1', sol: 'F2', escalier: 'F3', toit: 'F4', editer: 'KeyG', materiau: 'KeyT' };
-var SPRT = false, REBIND = null, BIND = Object.assign({}, BIND0); try { Object.assign(BIND, JSON.parse(localStorage.getItem('wr_bind') || '{}')); } catch (e) {}
+var SPRT = false, REBIND = null, BIND = Object.assign({}, BIND0); try { Object.assign(BIND, JSON.parse(localStorage.getItem('wr_bind') || '{}')); } catch (e) {} for (var bk0 in BIND) if (!(bk0 in BIND0)) delete BIND[bk0];   // anciennes touches retirées (soins)
 function bindAct(code) { for (var k in BIND) if (BIND[k] === code) return k; return null; }
 function kd(a) { return !!keys[BIND[a]]; }
 window.BIND = BIND; window.bindAct = bindAct; window.keyName = keyName;
 var FIREP = false, keys = {}, joy = null, lookPtr = null, fireLook = null, fireHeld = false, jumpPress = false, actPress = false, relPress = false, nitroPress = false, slotPress = -1, lookDX = 0, lookDY = 0;
 addEventListener('keydown', function (e) { if (e.repeat || REBIND) return; if (TPL === 'cs' && CS && e.code === 'KeyB' && state === 'play') { var cd0 = $('csShop'); csShop(!cd0 || cd0.hidden); return; } keys[e.code] = true; if (SCR.on && state === 'play') scrEv('key', e.code); var a = bindAct(e.code); if (e.code === 'Tab') a = 'sac';
   if (state === 'play' && a === 'accroupi') toggleCrouch(); if ((state === 'play' || state === 'menu') && a === 'danse') doDance(); if (a === 'sauter') { e.preventDefault(); jumpPress = true; } if (a === 'interagir') { if (me.prop) unProp(); else actPress = true; } if (a === 'siffler') whistle(); if (a === 'recharger') relPress = true;
-  if (a === 'sprint') nitroPress = true; if (a === 'arme1') slotPress = 0; if (a === 'arme2') slotPress = 1; if (a === 'arme3') slotPress = 2; if (a === 'arme4') slotPress = 3; if (a === 'arme5') slotPress = 4; if (a === 'soin') slotPress = 'h'; if (a === 'soinSuivant') healCycle(); if (a === 'sac') { e.preventDefault(); invToggle(); } if (a === 'tirAuto') autoToggle(); if (a === 'carte' && !e.repeat) toggleMap();
+  if (a === 'sprint') nitroPress = true; if (a === 'arme1') slotPress = 0; if (a === 'arme2') slotPress = 1; if (a === 'arme3') slotPress = 2; if (a === 'arme4') slotPress = 3; if (a === 'arme5') slotPress = 4;   if (a === 'sac') { e.preventDefault(); invToggle(); } if (a === 'tirAuto') autoToggle(); if (a === 'carte' && !e.repeat) toggleMap();
   if (/^F[1-9]$/.test(e.code)) e.preventDefault(); if ((a === 'pause' || e.code === 'Escape') && state === 'play') pause(!PMENU); });
 addEventListener('keydown', function (e) { if (e.code !== 'Enter' && e.code !== 'NumpadEnter' || REBIND) return; var t = e.target; if (t && /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
   var si = $('sIntro'); if (si && !si.hidden) { si.hidden = true; e.preventDefault(); return; }
@@ -3423,10 +3423,10 @@ if (isTouch) $('keys').innerHTML = '<b>Gauche</b><span>joystick : marcher / cond
 else $('keys').innerHTML = '<b>Souris</b><span>tourner, clic gauche tirer / frapper / poser, clic droit viser · en construction : changer de matériau · en édition : réinitialiser la pièce</span><b>Touches</b><span>toutes réglables dans ⌨️ COMMANDES PC</span>';
 /* ===== Paramètres : sous-onglets + réassignation des touches PC ===== */
 var BLAB = { avancer: 'Avancer', reculer: 'Reculer', gauche: 'Gauche', droite: 'Droite', sauter: 'Sauter / grimper', sprint: 'Sprinter', accroupi: 'S’accroupir', interagir: 'Interagir / prendre', recharger: 'Recharger',
-  arme1: 'Case 1', arme2: 'Case 2', arme3: 'Case 3', arme4: 'Case 4', arme5: 'Case 5', soin: 'Soin', soinSuivant: 'Soin suivant', sac: 'Sac / inventaire', carte: 'Carte', danse: 'Danse', pause: 'Pause',
+  arme1: 'Case 1', arme2: 'Case 2', arme3: 'Case 3', arme4: 'Case 4', arme5: 'Case 5', sac: 'Sac / inventaire', carte: 'Carte', danse: 'Danse', pause: 'Pause',
   siffler: 'Siffler (déguisé)', pioche: 'Pioche', construire: 'Construire', mur: 'Mur', sol: 'Sol', escalier: 'Escalier', toit: 'Toit', editer: 'Éditer', materiau: 'Changer de matière' };
-var BGRP = [['DÉPLACEMENT', ['avancer', 'reculer', 'gauche', 'droite', 'sauter', 'sprint']], ['COMBAT', ['interagir', 'recharger', 'arme1', 'arme2', 'arme3', 'arme4', 'arme5', 'soin', 'sac']], ['CONSTRUCTION', ['pioche', 'construire', 'mur', 'sol', 'escalier', 'toit', 'editer', 'materiau']]];
-var BADV = [['MOUVEMENT AVANCÉ', ['accroupi']], ['ARMES & SOINS', ['soinSuivant']], ['INTERFACE', ['carte', 'danse', 'pause']], ['PROP HUNT', ['siffler']]];
+var BGRP = [['DÉPLACEMENT', ['avancer', 'reculer', 'gauche', 'droite', 'sauter', 'sprint']], ['COMBAT', ['interagir', 'recharger', 'arme1', 'arme2', 'arme3', 'arme4', 'arme5', 'sac']], ['CONSTRUCTION', ['pioche', 'construire', 'mur', 'sol', 'escalier', 'toit', 'editer', 'materiau']]];
+var BADV = [['MOUVEMENT AVANCÉ', ['accroupi']], ['INTERFACE', ['carte', 'danse', 'pause']], ['PROP HUNT', ['siffler']]];
 var KMAP = null; try { navigator.keyboard && navigator.keyboard.getLayoutMap && navigator.keyboard.getLayoutMap().then(function (m) { KMAP = m; bindDraw(); }); } catch (e) {}
 window.keyName = function (c) { return keyName(c); }; window.BIND = BIND;
 function keyName(c) { if (!c) return '—'; var n = { Space: 'ESPACE', ShiftLeft: 'MAJ', ShiftRight: 'MAJ D', ControlLeft: 'CTRL', ControlRight: 'CTRL D', AltLeft: 'ALT', AltRight: 'ALT GR', Escape: 'ÉCHAP', Tab: 'TAB', Enter: 'ENTRÉE', Backspace: 'RETOUR', CapsLock: 'VERR MAJ', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' }[c]; if (n) return n;
