@@ -19,7 +19,7 @@
       '<g><rect x="22" y="26" width="23" height="18" rx="1.5" fill="#c9653a" stroke="#4a2414" stroke-width="1.6"/><path d="M22 32h23M22 38h23M30 26v6M39 26v6M26 32v6M35 32v6M30 38v6M39 38v6" stroke="#4a2414" stroke-width="1.3"/></g>'),
     mur: SV('<rect x="8" y="6" width="32" height="36" rx="2" fill="#c98a4a" stroke="#4a2a14" stroke-width="2"/><path d="M8 18h32M8 30h32M24 6v12M16 18v12M32 18v12M24 30v12" stroke="#4a2a14" stroke-width="1.6"/>'),
     sol: SV('<path d="M4 30 L18 20 L44 20 L30 30 Z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/><path d="M4 30v5h26v-5M30 35l14-10v-5" fill="#8a5a2e" stroke="#4a2a14" stroke-width="1.6" stroke-linejoin="round"/>'),
-    esc: SV('<path d="M6 42h36V8h-8v8h-8v9h-8v9H6z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/>'),
+    esc: SV('<path d="M4 40 L36 10 L44 16 L12 44 Z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/><path d="M10 34 L40 13 M16 39 L43 18 M7 37 L38 11" stroke="#4a2a14" stroke-width="1.2" opacity=".6"/><path d="M12 44 L44 16 L44 20 L13 47 Z" fill="#8a5a2e" stroke="#4a2a14" stroke-width="1.4"/>'),
     toit: SV('<path d="M24 6 L44 34 L24 42 L4 34 Z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/><path d="M24 6v36" stroke="#4a2a14" stroke-width="1.6"/><path d="M24 6 L44 34 L24 42 Z" fill="#000" opacity=".22"/>'),
     lit: SV('<rect x="5" y="22" width="38" height="11" rx="3" fill="#e8e2f0" stroke="#3a2a4a" stroke-width="2"/><rect x="5" y="24" width="24" height="9" rx="2" fill="#c43a6a"/><rect x="31" y="17" width="12" height="9" rx="3" fill="#fff" stroke="#3a2a4a" stroke-width="1.6"/><path d="M5 14v28M43 18v24" stroke="#5a3a20" stroke-width="3.5" stroke-linecap="round"/>') };
   var HPP = { bois: 150, pierre: 300, metal: 500 };   // vie MAX comme Fortnite (mur) ; sols / escaliers / toits un peu moins
@@ -472,7 +472,7 @@
   function nextMat() { var L = ['bois', 'pierre', 'metal']; MATK = L[(L.indexOf(MATK) + 1) % 3]; hudBuild(); }
   function hudRes() { ['bois', 'pierre', 'metal'].forEach(function (k) { var b = el[k] && el[k].querySelector('b'), v = C.CREA ? '∞' : String(RES[k]); if (b && b.textContent !== v) { b.textContent = v; el[k].classList.remove('flash'); void el[k].offsetWidth; el[k].classList.add('flash'); setTimeout(function () { el[k].classList.remove('flash'); }, 250); } }); }
   function hudBuild() { if (!el.build) return; el.build.querySelectorAll('[data-p]').forEach(function (b) { b.classList.toggle('on', b.dataset.p === PIECE); });
-    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + RES[MATK];
+    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + (C.CREA ? '∞' : RES[MATK]);
     el.tools.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === TOOL); }); el.build.hidden = TOOL !== 'build'; }
   function act() { if (!C.SURV) return false; if (window.FAUNE && FAUNE.on && FAUNE.act()) return true; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
   function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast(C.CREA ? 'CONSTRUCTIONS DÉSACTIVÉES DANS CETTE PARTIE' : 'PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
@@ -631,7 +631,7 @@
 
   function bfKit() {   // 1v1 entre potes : 100 vie + 100 bouclier (200 PV), AR, pompe spécialisé, PM, 2 shields
     var P = me(); P.hp = 100; P.sh = 100; P.inv = [C.newSlot('fusil'), C.newSlot('pompeS'), C.newSlot('smg')]; P.slot = 1; P.heals.shield = 2; P.heals.mini = 0; P.heals.heal = 0; if (C.hudRefresh) C.hudRefresh(); }
-  function KN(a) { try { return window.keyName(window.BIND[a]); } catch (e) { return a; } }
+  function KN(a) { try { return window.keyName(window.BIND[a]); } catch (e) { return ''; } }
   window.SURVIE = {
     init: function (THREE, ctx) { T = THREE; C = ctx; ZERO = new T.Matrix4().makeScale(0, 0, 0); GEO.esc = rampGeo(); GEO.toit = roofGeo(); C.groundAt = groundAt;
       if (C.SURV) genNodes(); ui();

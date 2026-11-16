@@ -3407,6 +3407,7 @@ var BLAB = { avancer: 'Avancer', reculer: 'Reculer', gauche: 'Gauche', droite: '
 var BGRP = [['DÉPLACEMENT', ['avancer', 'reculer', 'gauche', 'droite', 'sauter', 'sprint']], ['COMBAT', ['interagir', 'recharger', 'arme1', 'arme2', 'arme3', 'arme4', 'arme5', 'soin', 'sac']], ['CONSTRUCTION', ['pioche', 'construire', 'mur', 'sol', 'escalier', 'toit', 'editer', 'materiau']]];
 var BADV = [['MOUVEMENT AVANCÉ', ['accroupi']], ['ARMES & SOINS', ['soinSuivant']], ['INTERFACE', ['carte', 'danse', 'pause']], ['PROP HUNT', ['siffler']]];
 var KMAP = null; try { navigator.keyboard && navigator.keyboard.getLayoutMap && navigator.keyboard.getLayoutMap().then(function (m) { KMAP = m; bindDraw(); }); } catch (e) {}
+window.keyName = function (c) { return keyName(c); }; window.BIND = BIND;
 function keyName(c) { if (!c) return '—'; var n = { Space: 'ESPACE', ShiftLeft: 'MAJ', ShiftRight: 'MAJ D', ControlLeft: 'CTRL', ControlRight: 'CTRL D', AltLeft: 'ALT', AltRight: 'ALT GR', Escape: 'ÉCHAP', Tab: 'TAB', Enter: 'ENTRÉE', Backspace: 'RETOUR', CapsLock: 'VERR MAJ', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' }[c]; if (n) return n;
   if (KMAP && KMAP.get(c)) return KMAP.get(c).toUpperCase(); return c.replace(/^Key|^Digit/, '').replace(/^Numpad/, 'PAVÉ ').toUpperCase(); }
 function bindDraw() { var used = {}; for (var k in BIND) used[BIND[k]] = (used[BIND[k]] || 0) + 1;
