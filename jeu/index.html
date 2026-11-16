@@ -493,6 +493,7 @@ try { if (/WaldRoyalApp|Electron/.test(navigator.userAgent) && /[?&]jouer/.test(
 <script src="faune.js"></script>
 <script src="survie.js"></script>
 <script src="net.js"></script>
+<script src="wgfire.js"></script>
 <script>
 window.__WRMAIN = (function () {
 'use strict';
@@ -3185,7 +3186,7 @@ function frMode() { return { br: 'Battle Royale', zb: 'Zéro construction', crea
 function frPresence() { if (!window.NET || !NET.store) return; NET.store('pres/' + FR.id, { n: frName(), t: Date.now(), m: MODE, s: state === 'play' ? 'en partie' : 'au salon' }, function () {}); }
 function frReq(o) { var d = $('frInv'); if (!d) { d = document.createElement('div'); d.id = 'frInv'; document.body.appendChild(d); } var esc = function (x) { return String(x || '').replace(/[<>&"]/g, ''); };
   d.innerHTML = '<b>👋 ' + esc(o.n) + ' veut être ton ami</b><span>Accepte pour voir quand il est en ligne et l\'inviter au salon</span><div><button type="button" class="go" id="frYes">✔ ACCEPTER</button><button type="button" class="ghost" id="frNo">Ignorer</button></div>'; d.hidden = false; tone('triangle', 660, 990, .15, .08);
-  $('frNo').onclick = function () { d.hidden = true; }; $('frYes').onclick = function () { d.hidden = true; if (!FR.list.some(function (f) { return f.id === o.f; })) { FR.list.push({ id: o.f, n: String(o.n).slice(0, 16) }); frSave(); } NET.store('freq/' + o.f, { f: FR.id, n: frName(), t: Date.now(), ok: 1 }, function () {}); toast('👥 ' + esc(o.n).toUpperCase() + ' EST TON AMI'); frDraw(); }; }
+  $('frNo').onclick = function () { d.hidden = true; }; $('frYes').onclick = function () { d.hidden = true; if (o.fb) { WGF.accept(o.f).then(function () { toast('👥 ' + esc(o.n).toUpperCase() + ' EST TON AMI'); }, function () { toast('❌ Pas de connexion'); }); return; } if (!FR.list.some(function (f) { return f.id === o.f; })) { FR.list.push({ id: o.f, n: String(o.n).slice(0, 16) }); frSave(); } NET.store('freq/' + o.f, { f: FR.id, n: frName(), t: Date.now(), ok: 1 }, function () {}); toast('👥 ' + esc(o.n).toUpperCase() + ' EST TON AMI'); frDraw(); }; }
 function frAddPseudo(ps) { var k = grpNorm(ps); if (!k) { toast('Tape le pseudo de ton pote'); return; } if (k === grpNorm(frName())) { toast('C\'est ton pseudo 😄'); return; } if (!window.NET || !NET.fetch) { toast('❌ Pas de connexion'); return; }
   toast('🔎 RECHERCHE DE ' + ps.toUpperCase() + '…'); NET.fetch('nom/' + k, function (o) { if (!o || !o.f) { toast('❌ Pseudo introuvable (il doit avoir ouvert le jeu une fois)'); return; }
     if (!FR.list.some(function (f) { return f.id === o.f; })) { FR.list.push({ id: o.f, n: o.n }); frSave(); } NET.store('freq/' + o.f, { f: FR.id, n: frName(), t: Date.now() }, function (ok) { toast(ok ? '📨 DEMANDE D\'AMI ENVOYÉE À ' + String(o.n).toUpperCase() : '❌ Pas de connexion'); }); frDraw(); frPoll(); }); }
@@ -3203,9 +3204,9 @@ function frInvite(o) { var d = $('frInv'); if (!d) { d = document.createElement(
 function frSend(f) { var room = netCode(); if (!room || room.charAt(0) === 'P') { room = ''; for (var i = 0; i < 4; i++) room += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0]; try { localStorage.setItem('wr_room', room); } catch (e) {} if ($('codeI')) $('codeI').value = room; }
   NET.store('inv/' + f.id, { n: frName(), fid: FR.id, g: grpLead(), room: room, m: MODE, mn: frMode(), t: Date.now() }, function (ok) { toast(ok ? '📨 INVITATION ENVOYÉE À ' + f.n.toUpperCase() + ' · code ' + room : '❌ Pas de connexion'); }); }
 function frDraw() { var d = $('frM'); if (!d) return; var esc = function (x) { return String(x || '').replace(/[<>&"]/g, ''); };
-  d.innerHTML = '<div class="pubc"><h2>👥 MES AMIS</h2><p class="sm">Ton code ami : <b class="frc">' + FR.id + '</b> · donne-le à tes potes pour qu\'ils t\'ajoutent.</p>' +
+  d.innerHTML = '<div class="pubc"><h2>👥 MES AMIS</h2>' + (FB() ? '<p class="sm">🟢 Compte en ligne · ton pseudo : <b class="frc">' + esc(frName()) + '</b> · tes potes t\'ajoutent avec ton pseudo.</p>' : '<p class="sm">Ton code ami : <b class="frc">' + FR.id + '</b> · donne-le à tes potes pour qu\'ils t\'ajoutent.</p>') +
     '<label>➕ Ajouter un ami (son pseudo)</label><div class="frow2"><input id="frPs" maxlength="16" placeholder="Pseudo de ton pote" style="grid-column:span 2"><button type="button" class="go" id="frAddP">➕</button></div>' +
-    '<details class="frCd"><summary>…ou avec son code ami</summary><div class="frow2"><input id="frCode" maxlength="6" placeholder="CODE AMI" style="text-transform:uppercase"><input id="frNick" maxlength="16" placeholder="Son pseudo"><button type="button" class="go" id="frAdd">➕</button></div></details>' +
+    (FB() ? (FR.sent && FR.sent.length ? '<p class="sm">⏳ Demandes envoyées : ' + FR.sent.map(esc).join(', ') + '</p>' : '') : '') + '<details class="frCd"' + (FB() ? ' hidden' : '') + '><summary>…ou avec son code ami</summary><div class="frow2"><input id="frCode" maxlength="6" placeholder="CODE AMI" style="text-transform:uppercase"><input id="frNick" maxlength="16" placeholder="Son pseudo"><button type="button" class="go" id="frAdd">➕</button></div></details>' +
     '<div class="frL">' + (FR.list.length ? FR.list.map(function (f, i) { var pr = FR.pres[f.id], on = pr && Date.now() - pr.t < 90000; return '<div class="frI"><i class="' + (on ? 'on' : '') + '"></i><span><b>' + esc(f.n) + '</b><small>' + (on ? '🟢 ' + esc(pr.s) + ' · ' + esc({ br: 'Battle Royale', creatif: 'Créatif', bf: 'MAP 1V1', prop: 'PROP HUNT', lave: 'Sol en lave', obby: 'Parcours', gg: 'Gun Game', survie: 'Survie', zb: 'Zéro construction' }[pr.m] || '') : '⚪ hors ligne') + '</small></span><button type="button" class="go" data-inv="' + i + '">📨 INVITER AU SALON</button><button type="button" class="ghost" data-del="' + i + '">✕</button></div>'; }).join('') : '<p class="sm">Pas encore d\'amis : ajoute-les avec leur code ami.</p>') + '</div>' +
     '<label>👥 Rejoindre le salon d\'un pote (son pseudo)</label><div class="frow2"><input id="grpPs" maxlength="16" placeholder="Pseudo de ton pote"><button type="button" class="go" id="grpJ" style="grid-column:span 2">👥 REJOINDRE</button></div>' +
     '<p class="sm">📨 Inviter = ton pote entre dans ton groupe (4 max). Quand le chef appuie sur JOUER, tout le groupe part dans la même partie, dans n\'importe quel mode.</p><div class="pbB"><button type="button" class="ghost" id="frX">Fermer</button></div></div>';
@@ -3213,7 +3214,7 @@ function frDraw() { var d = $('frM'); if (!d) return; var esc = function (x) { r
   ['frCode', 'frNick'].forEach(function (id) { ['keydown', 'keyup'].forEach(function (ev) { $(id).addEventListener(ev, function (e) { e.stopPropagation(); }); }); });
   $('frAdd').onclick = function () { var c = $('frCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''), n = $('frNick').value.trim() || c; if (c.length !== 6) { toast('Le code ami fait 6 caractères'); return; } if (c === FR.id) { toast('C\'est ton propre code 😄'); return; } if (FR.list.some(function (f) { return f.id === c; })) { toast('Déjà dans tes amis'); return; } FR.list.push({ id: c, n: n.slice(0, 16) }); frSave(); frDraw(); frPoll(); toast('👥 ' + n.toUpperCase() + ' AJOUTÉ'); };
   d.querySelectorAll('[data-inv]').forEach(function (b) { b.onclick = function () { frSend(FR.list[+b.dataset.inv]); }; });
-  d.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { FR.list.splice(+b.dataset.del, 1); frSave(); frDraw(); }; });
+  d.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { var f = FR.list[+b.dataset.del]; if (FB() && f) WGF.remove(f.id); FR.list.splice(+b.dataset.del, 1); frSave(); frDraw(); }; });
   $('frX').onclick = function () { d.hidden = true; }; }
 function frOpen() { var d = $('frM'); if (!d) { d = document.createElement('div'); d.id = 'frM'; d.className = 'modal'; document.body.appendChild(d); } frDraw(); d.hidden = false; frPoll(); }
 setTimeout(function () { frPresence(); frPoll(); grpPres(); grpPoll(); grpDraw(); }, 4000); setInterval(function () { frPresence(); grpPres(); }, 30000); setInterval(frPoll, 12000); setInterval(function () { if (state !== 'play' || PARTY.lead) grpPoll(); }, 4000);
@@ -3256,6 +3257,43 @@ function grpDraw() { var b = $('grpBar'); if (!b) return; var esc = function (x)
   b.innerHTML = '<b>👥 GROUPE ' + n + '/4</b>' + (PARTY.m.length > 1 ? PARTY.m.map(function (q, i) { return '<span' + (i === 0 ? ' class="ld"' : '') + '>' + (i === 0 ? '👑 ' : '') + esc(q.n) + '</span>'; }).join('') : '<small>seul · invite tes potes</small>') +
     (grpIsLead() ? '' : '<small>le chef lance la partie</small><button type="button" id="grpQ">Quitter</button>');
   if ($('grpQ')) $('grpQ').onclick = function () { grpLeave(); }; }
+/* ===== AMIS + SALON EN TEMPS RÉEL (Firebase, comptes Wald Game) : instantané comme Fortnite. Sans compte en ligne → relais MQTT au-dessus ===== */
+function FB() { return !!(window.WGF && WGF.user); }
+(function () { if (!window.WGF) return;
+  var O = { frAddPseudo: frAddPseudo, frSend: frSend, frPoll: frPoll, frPresence: frPresence, grpJoin: grpJoin, grpLeave: grpLeave, grpByPseudo: grpByPseudo, grpPres: grpPres, grpPoll: grpPoll, grpHook: grpHook }, RQ = {};
+  function fbParty() { WGF.party(grpLead(), function (d) { var M = d.m || {}, lead = grpLead(), L = Object.keys(M).filter(function (u) { return u !== lead; }).sort(function (a, b) { return (M[a].t || 0) - (M[b].t || 0); });
+      var m = [{ f: lead, n: (M[lead] && M[lead].n) || (lead === FR.id ? frName() : 'Chef') }].concat(L.map(function (u) { return { f: u, n: M[u].n }; })).slice(0, 4);
+      var ch = JSON.stringify(m) !== JSON.stringify(PARTY.m); PARTY.m = m; if (ch) { grpDraw(); if (m.length > 1) tone('triangle', 600, 900, .12, .06); }
+      if (!grpIsLead() && d.go && d.go.t > PARTY.seen && Date.now() - d.go.t < 45000) { PARTY.seen = d.go.t; grpSave(); grpGo(d.go); }
+      if (!grpIsLead() && !M[FR.id] && WGF.user && PARTY.joined) { PARTY.joined = false; WGF.partyJoin(lead); } }); }
+  frAddPseudo = function (ps) { if (!FB()) return O.frAddPseudo(ps); ps = String(ps || '').trim(); if (!ps) { toast('Tape le pseudo de ton pote'); return; }
+    WGF.addFriend(ps).then(function (n) { toast(n === 'ok' ? '👥 VOUS ÊTES AMIS !' : '📨 DEMANDE D\'AMI ENVOYÉE À ' + String(n).toUpperCase()); }, function (e) { toast('❌ ' + e); }); };
+  frSend = function (f) { if (!FB()) return O.frSend(f); var room = netCode(); if (!room || room.charAt(0) === 'P') { room = ''; for (var i = 0; i < 4; i++) room += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0]; try { localStorage.setItem('wr_room', room); } catch (e) {} if ($('codeI')) $('codeI').value = room; }
+    WGF.send(f.id, { k: 'inv', g: grpLead(), room: room, m: MODE, mn: frMode() }).then(function () { toast('📨 INVITATION ENVOYÉE À ' + String(f.n).toUpperCase()); }, function () { toast('❌ Pas de connexion'); }); };
+  frPoll = function () { if (!FB()) return O.frPoll(); };
+  frPresence = function () { if (!FB()) return O.frPresence(); WGF.presence({ m: MODE, s: state === 'play' ? 'en partie' : 'au salon', g: grpLead() }); };
+  grpPres = function () { if (!FB()) return O.grpPres(); };
+  grpPoll = function () { if (!FB()) return O.grpPoll(); };
+  grpJoin = function (lead, nm) { if (!FB()) return O.grpJoin(lead, nm); if (!lead || lead === FR.id) { toast('C\'est déjà ton groupe'); return; }
+    if (PARTY.lead && PARTY.lead !== lead) WGF.partyLeave(PARTY.lead); WGF.partyLeave(FR.id); PARTY.lead = lead; PARTY.m = []; PARTY.joined = true; grpSave(); WGF.partyJoin(lead); fbParty(); frPresence();
+    toast('👥 TU AS REJOINT LE SALON' + (nm ? ' DE ' + String(nm).toUpperCase() : '') + ' · le chef lance la partie'); };
+  grpLeave = function (quiet) { if (!FB()) return O.grpLeave(quiet); if (!PARTY.lead) return; WGF.partyLeave(PARTY.lead); PARTY.lead = ''; PARTY.m = []; PARTY.joined = false; grpSave(); WGF.partyJoin(FR.id); fbParty(); frPresence(); if (!quiet) toast('👋 TU AS QUITTÉ LE SALON'); };
+  grpByPseudo = function (ps) { if (!FB()) return O.grpByPseudo(ps); ps = String(ps || '').trim(); if (!ps) return; toast('🔎 RECHERCHE DE ' + ps.toUpperCase() + '…');
+    WGF.findPseudo(ps).then(function (o) { if (!o) { toast('❌ Pseudo introuvable'); return; } if (o.uid === FR.id) { toast('C\'est ton pseudo 😄'); return; }
+      WGF.presOf(o.uid).then(function (p) { if (!p || !p.on) { toast('❌ ' + o.n + ' n\'est pas en ligne'); return; } grpJoin(p.g || o.uid, o.n); }); }, function () { toast('❌ Pas de connexion'); }); };
+  grpHook = function () { if (!FB()) return O.grpHook(); if (GRPSTART) { GRPSTART = false; return false; } frPresence(); if (!grpIsLead() || PARTY.m.length < 2) return false;
+    var room = ''; for (var i = 0; i < 4; i++) room += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0];
+    var go = { t: Date.now(), at: Date.now() + 4000, mode: MODE, mn: frMode(), room: room, seed: (Math.random() * 1e9) | 0, tm: TEAMSZ, n: PARTY.m.length, lead: FR.id };
+    try { localStorage.setItem('wr_room', room); localStorage.setItem('wr_brGo', JSON.stringify(go)); } catch (e) {} WGF.partyGo(go);
+    var k = 4; toast('🚀 LANCEMENT DU SALON DANS 4…'); var iv = setInterval(function () { k--; if (k > 0) toast('🚀 LANCEMENT DU SALON DANS ' + k + '…'); else { clearInterval(iv); GRPSTART = true; start(); } }, 1000); return true; };
+  WGF.sub('auth', function (u) { if (!u) return; FR.id = u.uid; try { localStorage.setItem('wr_name', WGF.pseudo); } catch (e) {}
+    if (PARTY.lead && PARTY.lead.length < 20) PARTY.lead = ''; if (PARTY.lead === FR.id) PARTY.lead = '';
+    if (PARTY.lead) { PARTY.joined = true; WGF.partyJoin(PARTY.lead); } else WGF.partyJoin(FR.id); grpSave(); fbParty(); frPresence(); });
+  WGF.sub('friends', function (F) { FR.list = []; FR.sent = []; Object.keys(F).forEach(function (u) { var f = F[u]; if (f.st === 'ok') { var p = WGF.pres[u]; FR.list.push({ id: u, n: f.n }); FR.pres[u] = p && p.on ? { n: p.n, t: 9e15, s: p.s || 'en ligne', m: p.m } : null; } else if (f.st === 'sent') FR.sent.push(f.n); });
+    if ($('frM') && !$('frM').hidden) frDraw(); });
+  WGF.sub('request', function (r) { if (RQ[r.uid]) return; RQ[r.uid] = 1; frReq({ f: r.uid, n: r.n, fb: 1 }); });
+  WGF.sub('inbox', function (m) { if (m.k === 'inv') frInvite({ n: m.n, g: m.g, room: m.room, m: m.m, mn: m.mn }); });
+  WGF.init(); })();
 /* BR en groupe : même graine (bus, tempête, butin, véhicules), le chef simule les bots et les envoie aux autres */
 var BRGO = null; try { BRGO = JSON.parse(localStorage.getItem('wr_brGo') || 'null'); if (BRGO && Date.now() - BRGO.at > 120000) BRGO = null; } catch (e) { BRGO = null; }
 var BRN = false, BRLEAD = false, BRT = 0;

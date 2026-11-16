@@ -76,7 +76,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   <div id="aNew"><label>Pseudo</label><input id="aPs" maxlength="16" autocomplete="nickname" placeholder="Ton pseudo en jeu"><label>Adresse e-mail</label><input id="aEm" type="email" autocomplete="email" placeholder="toi@exemple.fr"><label>Mot de passe (8 caractères minimum)</label><input id="aPw" type="password" autocomplete="new-password"><label>Confirme le mot de passe</label><input id="aPw2" type="password" autocomplete="new-password"></div>
   <div id="aLog" hidden><label>Adresse e-mail</label><input id="lEm" type="email" autocomplete="email"><label>Mot de passe</label><input id="lPw" type="password" autocomplete="current-password"><button type="button" id="aForgot" style="background:none;border:0;color:#ffd23d;font:700 13px inherit;text-decoration:underline;cursor:pointer;padding:6px 0;text-align:left">Mot de passe oublié ?</button></div>
   <button class="go" id="aGo" type="button">CRÉER MON COMPTE</button><div class="err" id="aErr"></div>
-  <p class="note" style="text-align:center">Ton compte est gardé sur cet appareil. Les comptes en ligne arrivent avec le serveur du jeu.</p></div></div>
+  <p class="note" style="text-align:center">Compte en ligne : tu te connectes sur n'importe quel appareil, tes amis te trouvent par ton pseudo.</p></div></div>
 <div class="app">
   <aside>
     <div class="brand"><img src="icon-192.png" alt=""><div><b>WALD <span>GAME</span></b><small>WALD OFF GAMES</small></div></div>
@@ -163,6 +163,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 </div>
 <div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="4">🧟 Pub Survie</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">🧟 Survie</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
 <script src="../jeu/net.js"></script>
+<script src="../jeu/wgfire.js"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); }, LS = function (k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } };
@@ -336,20 +337,33 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   document.querySelectorAll('#auth [data-at]').forEach(function (b) { b.onclick = function () { AT = b.dataset.at; document.querySelectorAll('#auth [data-at]').forEach(function (x) { x.classList.toggle('on', x === b); }); $('aNew').hidden = AT !== 'new'; $('aLog').hidden = AT !== 'log'; $('aGo').textContent = AT === 'new' ? 'CRÉER MON COMPTE' : 'SE CONNECTER'; $('aErr').textContent = ''; }; });
   function authShow() { var a = acc(); $('auth').hidden = false; if (a) document.querySelector('#auth [data-at=log]').click(); }
   function authOk(a) { $('auth').hidden = true; setLS('wg_sess', '1'); setLS('wr_name', a.pseudo); $('accName').textContent = a.pseudo; $('accEm').textContent = a.email; if (window.WGsyncOut) WGsyncOut(); }
-  $('aGo').onclick = function () { var er = $('aErr');
+  /* Comptes EN LIGNE (Firebase) ; secours = compte local si Firebase ne charge pas */
+  var FBON = function () { return window.WGF && !WGF.fail; };
+  function fbOk(u) { authOk({ pseudo: WGF.pseudo, email: u.email }); $('nameI').readOnly = true; $('nameI').title = 'Ton pseudo est unique et lié à ton compte'; }
+  function busy(b) { $('aGo').disabled = b; $('aGo').style.opacity = b ? .6 : 1; }
+  $('aGo').onclick = function () { var er = $('aErr'); er.textContent = '';
     if (AT === 'new') { var ps = $('aPs').value.trim(), em = $('aEm').value.trim().toLowerCase(), pw = $('aPw').value;
-      if (ps.length < 3) return er.textContent = 'Pseudo : 3 caractères minimum.';
+      if (ps.length < 3 || !/^[A-Za-z0-9_\-]{3,16}$/.test(ps)) return er.textContent = 'Pseudo : 3 à 16 caractères (lettres, chiffres, _ ou -).';
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return er.textContent = 'Adresse e-mail invalide.';
       if (pw.length < 8) return er.textContent = 'Mot de passe : 8 caractères minimum.';
       if (pw !== $('aPw2').value) return er.textContent = 'Les deux mots de passe ne sont pas pareils.';
+      if (FBON()) { busy(true); er.textContent = '⏳ Création du compte…'; WGF.signUp(ps, em, pw).then(function (u) { busy(false); fbOk(u); }, function (e) { busy(false); er.textContent = '✖ ' + e; }); return; }
       var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
       hx(salt + '|' + pw).then(function (h) { var a = { pseudo: ps, email: em, salt: salt, h: h, t: Date.now() }; setLS('wg_acc', JSON.stringify(a)); authOk(a); });
-    } else { var a = acc(), em2 = $('lEm').value.trim().toLowerCase();
+    } else { var a = acc(), em2 = $('lEm').value.trim().toLowerCase(), pw2 = $('lPw').value;
+      if (FBON()) { busy(true); er.textContent = '⏳ Connexion…';
+        WGF.signIn(em2, pw2).then(function () { busy(false); }, function (e) {
+          /* ancien compte local (avant les comptes en ligne) : on le transforme en compte en ligne avec le même pseudo */
+          if (a && a.email === em2) hx(a.salt + '|' + pw2).then(function (h) { if (h !== a.h) { busy(false); er.textContent = '✖ ' + e; return; } er.textContent = '⏳ Passage de ton compte en ligne…';
+            WGF.signUp(a.pseudo, em2, pw2).then(function (u) { busy(false); fbOk(u); }, function (e2) { busy(false); er.textContent = '✖ ' + e2; }); });
+          else { busy(false); er.textContent = '✖ ' + e; } }); return; }
       if (!a || a.email !== em2) return er.textContent = 'Aucun compte avec cette adresse sur cet appareil.';
-      hx(a.salt + '|' + $('lPw').value).then(function (h) { if (h !== a.h) er.textContent = 'Mot de passe incorrect.'; else authOk(a); }); } };
-  $('aForgot').onclick = function () { var a = acc(); document.querySelector('#auth [data-at=new]').click(); if (a) { $('aPs').value = a.pseudo; $('aEm').value = a.email; }
+      hx(a.salt + '|' + pw2).then(function (h) { if (h !== a.h) er.textContent = 'Mot de passe incorrect.'; else authOk(a); }); } };
+  $('aForgot').onclick = function () { var em = $('lEm').value.trim().toLowerCase(), a = acc();
+    if (FBON()) { if (!em) { $('aErr').textContent = 'Tape ton adresse e-mail au-dessus, puis reclique.'; return; } WGF.reset(em).then(function () { $('aErr').textContent = '📧 E-mail envoyé à ' + em + ' : clique le lien pour choisir un nouveau mot de passe (regarde les spams).'; }, function (e) { $('aErr').textContent = '✖ ' + e; }); return; }
+    document.querySelector('#auth [data-at=new]').click(); if (a) { $('aPs').value = a.pseudo; $('aEm').value = a.email; }
     $('aErr').textContent = '🔑 Choisis un nouveau mot de passe : ton compte et ta progression restent sur cet appareil.'; $('aPw').focus(); };
-  $('logout').onclick = function () { setLS('wg_sess', '0'); authShow(); };
+  $('logout').onclick = function () { setLS('wg_sess', '0'); if (window.WGF && WGF.user) WGF.signOut(); authShow(); };
   function survRedeem(c, out) {
     hx('wg-survie|' + c).then(function (hs) { var SC = { '35bbbbbcd64ad34415b63c198faa02bbb4c3dad538484e30727397450788764b': 3 };   /* codes Survie : empreinte → nombre d'utilisations (le code lui-même n'est jamais écrit ici) */
       if (!SC[hs]) { out('✖ Code invalide.'); return; } var dev = LSg('wg_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); setLS('wg_dev', dev); }
@@ -364,7 +378,10 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('crGo').onclick = function () { var c = $('crI').value.trim().toUpperCase();
     hx('wg-createur|' + c).then(function (h) { if (h === '690274b5b3953f4c518d91c6b363dc7e9fc3d4d2f1e6a6236dac7363fcdf55b2') { setLS('wr_creator', '1'); setLS('wr_survie_ok', '1'); $('crS').textContent = '✔ Compte créateur activé : Survie débloquée.'; if (window.WGsyncOut) WGsyncOut(); setTimeout(function () { location.reload(); }, 900); } else $('crS').textContent = '✖ Code invalide.'; }); };
   if (CREA) $('crS').textContent = '✔ Compte créateur actif.';
-  (function () { var a = acc(); if (!a || LSg('wg_sess') !== '1') authShow(); else authOk(a); })();
+  (function () { var a = acc(), done = false;
+    function local() { if (done) return; done = true; if (!a || LSg('wg_sess') !== '1') authShow(); else authOk(a); }
+    if (!window.WGF) return local(); WGF.sub('fail', local); setTimeout(function () { if (!WGF.ready) local(); }, 8000);
+    WGF.sub('auth', function (u) { if (u) { done = true; fbOk(u); return; } if (done && !$('auth').hidden) return; done = true; authShow(); if (a) $('lEm').value = a.email; }); WGF.init(); })();
   try { if (!localStorage.getItem('wg_adSurv1')) { var adT = setInterval(function () { if (!$('auth').hidden) return; clearInterval(adT); localStorage.setItem('wg_adSurv1', '1'); setTimeout(function () { play(4); }, 800); }, 500); } } catch (e) {}
 })();
 </script>
