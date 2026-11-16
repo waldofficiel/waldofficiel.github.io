@@ -82,10 +82,12 @@ app.whenReady().then(async () => {
   });
   Menu.setApplicationMenu(null);
   win = new BrowserWindow({
-    width: 1600, height: 900, fullscreen: true, backgroundColor: '#0b0418', title: 'Wald Game',
+    width: 1280, height: 760, minWidth: 960, minHeight: 600, center: true, fullscreen: false, resizable: true, maximizable: true, frame: true, autoHideMenuBar: true, backgroundColor: '#0b0418', title: 'Wald Game',
     icon: path.join(__dirname, 'icon.png'),
     webPreferences: { backgroundThrottling: false, preload: path.join(__dirname, 'preload.js'), contextIsolation: true }
   });
+  /* comme Epic Games : le launcher est une fenêtre normale (réduire / agrandir / fermer) ; le jeu passe en plein écran (F11 pour basculer) */
+  win.webContents.on('did-navigate', (e, url) => { try { const game = /^app:\/\/jeu/.test(url) || /\/jeu\//.test(url); if (win.isFullScreen() !== game) win.setFullScreen(game); } catch (x) {} });
   win.webContents.setUserAgent(win.webContents.getUserAgent() + ' WaldGame/2');
   win.webContents.on('before-input-event', (e, input) => {
     if (input.type === 'keyDown' && input.key === 'F11') win.setFullScreen(!win.isFullScreen());

@@ -442,3 +442,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 - Jouabilité avancée (Paramètres > Jeu) : éditer en un clic (`SET.editRel`, valide au relâchement, glisser = enlever plusieurs cases), FPS affichés (`SET.fps`, #fpsC), limite FPS (`SET.fpsMax`).
 - Entrée valide les fenêtres ; maintenir Entrée 1 s (ou X manette) dans la salle d'attente = lancer (`enterHold`).
 - Construction : `planFree()` (si la case visée est prise : case de la grille, puis étage au-dessus), aperçu bleu clair + contour.
+
+## v65
+- Miniatures dessinées pour PARCOURS (th4) et GUN GAME (th5), style néon/chrome comme 1V1 et PROP HUNT.
+- Wald Game PC : fenêtre normale (1280×760, réduire/agrandir/fermer) comme Epic ; plein écran auto quand le jeu est lancé (`did-navigate`), F11 bascule.
+- Codes Survie (launcher > Mon compte) : empreinte SHA-256 `wg-survie|CODE` dans `SC` (hash → nb d'utilisations). Utilisations comptées par appareil (`wg_dev`) via messages retenus MQTT `wr4pub/v1/code/<hash16>/<dev>`. Le code en clair n'est JAMAIS dans le dépôt.
