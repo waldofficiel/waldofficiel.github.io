@@ -3577,7 +3577,8 @@ function settle(win) {
 }
 
 /* ================= menus ================= */
-function start() { if (grpHook()) return; if (mmWant()) { mmQueue(); return; } BRGO = null; try { BRGO = JSON.parse(localStorage.getItem('wr_brGo') || 'null'); if (BRGO && (Date.now() - BRGO.at > 60000 || BRGO.mode !== MODE)) BRGO = null; } catch (e) { BRGO = null; } BRN = !!BRGO && !CREA && !SURV; BRLEAD = BRN && BRGO.lead === FR.id; BRGONE = []; WARMI = false; if (WMESH) WMESH.visible = false; if ($('warmB')) $('warmB').hidden = true; gfxAniso.a = null; gfxAniso(GQ('tex')); NETTRY = false;
+var MMBLOCK = false;
+function start() { if (grpHook()) return; MMBLOCK = false; if (mmWant()) { mmQueue(); return; } if (MMBLOCK) return; BRGO = null; try { BRGO = JSON.parse(localStorage.getItem('wr_brGo') || 'null'); if (BRGO && (Date.now() - BRGO.at > 60000 || BRGO.mode !== MODE)) BRGO = null; } catch (e) { BRGO = null; } BRN = !!BRGO && !CREA && !SURV; BRLEAD = BRN && BRGO.lead === FR.id; BRGONE = []; WARMI = false; if (WMESH) WMESH.visible = false; if ($('warmB')) $('warmB').hidden = true; gfxAniso.a = null; gfxAniso(GQ('tex')); NETTRY = false;
   initAudio(); music(false); tBefore = ST.t; lastCost = SURV || !RANKED ? 0 : entryCost(ST.t); ST.t = Math.max(0, ST.t - lastCost); saveST(); showStats();
   WAIT0 = performance.now(); reset(); state = 'play'; if (BRN && BRGO && BRGO.wend) warmStart(); $('lobby').hidden = true; $('end').hidden = true; $('pause').hidden = true; toast(MAPNAME);
   try { var v0 = vehicles[0], bv = balloon.visible, mv = v0 && v0.m.visible, gv = me.model.glider.visible; balloon.visible = true; if (v0) v0.m.visible = true; me.model.glider.visible = true; R3.compile(scene, cam); balloon.visible = bv; if (v0) v0.m.visible = mv; me.model.glider.visible = gv; } catch (e) {}   // pré-compile les shaders (montgolfière, La Wald, planeur) : plus de saccade quand ils apparaissent
@@ -3874,13 +3875,15 @@ var BRN = false, BRLEAD = false, BRT = 0, BRGONE = [], BRSEEN = 0;
 /* ===== MATCHMAKING BATTLE ROYALE (comme Fortnite) : 1 min pour réunir de VRAIS joueurs (même mode, même map), les bots complètent jusqu'à 50,
    puis 20 s sur une petite ÎLE D'ATTENTE (on peut se battre, on réapparaît) : ceux qui lancent une partie pendant ces 20 s arrivent directement dessus. ===== */
 var MMQ = null, MMWAIT = 60000, MMWARM = 20000;
-function mmWant() { return !CREA && !SURV && !PROPM && (MODE === 'br' || MODE === 'zb') && !!window.NET && !BRGO_FRESH() && !(PARTY && PARTY.m && PARTY.m.length > 1); }
+function mmWant() { if (PARTY && PARTY.m && PARTY.m.length > 1 && !grpIsLead() && !GRPSTART && !BRGO_FRESH()) { toast('👥 C\'EST LE CHEF DU GROUPE QUI LANCE LA PARTIE'); MMBLOCK = true; return false; } return !CREA && !SURV && !PROPM && (MODE === 'br' || MODE === 'zb') && !!window.NET && !BRGO_FRESH() && !(PARTY && PARTY.m && PARTY.m.length > 1); }
 function BRGO_FRESH() { try { var g = JSON.parse(localStorage.getItem('wr_brGo') || 'null'); return !!g && g.mode === MODE && Date.now() - g.at < 15000 && Date.now() < (g.wend || g.at + 5000); } catch (e) { return false; } }
-function mmKey() { return 'mmq-' + MODE + '-' + TEAMSZ + '-' + (MAP || 'x'); }
+function mmKey() { return 'mmq2-' + MODE; }   // tous ceux qui lancent le même mode se retrouvent ; la carte et la taille d'équipe sont celles du chef
 function mmUI() { var d = $('mmq'); if (!d) { d = document.createElement('div'); d.id = 'mmq'; d.innerHTML = '<div class="mq"><small>' + (MODES[MODE] || '') + ' · ' + (typeof MAPNAME !== 'undefined' ? MAPNAME : '') + '</small><b id="mqT">RECHERCHE DE JOUEURS…</b><i><u id="mqB"></u></i><p id="mqN"></p><p id="mqC" class="sm"></p><button type="button" id="mqX" class="ghost">ANNULER</button></div>'; document.body.appendChild(d); $('mqX').onclick = mmCancel; } d.hidden = false; return d; }
 function mmCancel() { if (!MMQ) return; clearInterval(MMQ.iv); MMQ = null; try { NET.leave(); } catch (e) {} var d = $('mmq'); if (d) d.hidden = true; }
 function mmGo(go) { if (!MMQ) return; go = goLocal(go); clearInterval(MMQ.iv); MMQ = null; try { NET.leave(); } catch (e) {} var d = $('mmq'); if (d) d.hidden = true;
-  try { localStorage.setItem('wr_room', go.room); localStorage.setItem('wr_brGo', JSON.stringify(go)); } catch (e) {} setTimeout(function () { if (state !== 'play') { GRPSTART = true; start(); } }, Math.max(0, go.at - Date.now())); }
+  try { localStorage.setItem('wr_room', go.room); localStorage.setItem('wr_brGo', JSON.stringify(go)); if (go.tm) { localStorage.setItem('wr_team', go.tm); TEAMSZ = +go.tm || TEAMSZ; } } catch (e) {}
+  if (go.map && go.map !== MAP && MAPS[go.map]) { try { localStorage.setItem('wr_crGo', '1'); } catch (e) {} toast('🗺️ LE GROUPE JOUE SUR ' + MAPS[go.map] + ' : CHARGEMENT…'); goMap(go.map, MODE); return; }   // le chef est sur l'autre carte : on la charge et on le rejoint
+  setTimeout(function () { if (state !== 'play') { GRPSTART = true; start(); } }, Math.max(0, go.at - Date.now())); }
 function mmQueue() { if (MMQ) return; initAudio(); var me0 = { t0: Date.now() }, Q = {}; MMQ = { Q: Q, t0: me0.t0 }; mmUI();
   NET.fetch('mm/' + mmKey(), function (g) { if (!MMQ || !g || !g.room || Date.now() > g.wend - 4000) return;   // une partie est sur son île d'attente : on la rejoint direct
     g = Object.assign({}, g, { late: 1, ls: g.n + 1 + (Math.random() * 14 | 0), at: Date.now() + 500 }); toast('🏝️ UNE PARTIE COMMENCE : TU LA REJOINS !'); mmGo(g); });
@@ -3889,10 +3892,10 @@ function mmQueue() { if (MMQ) return; initAudio(); var me0 = { t0: Date.now() },
     Object.keys(Q).forEach(function (k) { if (now - Q[k].seen > 5000) delete Q[k]; });
     var ids = Object.keys(Q).sort(function (a, b) { return Q[a].t0 - Q[b].t0 || (a < b ? -1 : 1); }), lead = ids[0], end = Q[lead].t0 + MMWAIT, left = Math.max(0, end - now);
     $('mqT').textContent = 'RECHERCHE DE JOUEURS… ' + Math.ceil(left / 1000) + ' s'; $('mqB').style.width = Math.min(100, (1 - left / MMWAIT) * 100) + '%';
-    $('mqN').textContent = '👥 ' + ids.length + ' joueur' + (ids.length > 1 ? 's' : '') + ' trouvé' + (ids.length > 1 ? 's' : '') + ' · les bots complètent jusqu\'à ' + NPL;
+    $('mqN').textContent = '👥 ' + ids.length + ' joueur' + (ids.length > 1 ? 's' : '') + ' : ' + ids.map(function (k) { return Q[k].n || '?'; }).join(', ') + ' · les bots complètent jusqu\'à ' + NPL;
     $('mqC').textContent = NET.up() ? '🟢 connecté au serveur de jeu' : (now - me0.t0 > 6000 ? '🔴 pas de connexion au serveur de jeu : tu joueras avec des bots' : '⏳ connexion au serveur…');
     if (left <= 0 && lead === NETID) { var room = 'M'; for (var i = 0; i < 5; i++) room += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0];
-      var at = now + 3000, go = { t: now, at: at, wend: at + MMWARM, mode: MODE, mn: MODE, room: room, seed: (Math.random() * 1e9) | 0, tm: TEAMSZ, n: ids.length, lead: FR.id, pub: 1 };
+      var at = now + 3000, go = { t: now, at: at, wend: at + MMWARM, mode: MODE, mn: MODE, map: MAP, room: room, seed: (Math.random() * 1e9) | 0, tm: TEAMSZ, n: ids.length, lead: FR.id, pub: 1 };
       NET.pub({ t: 'go', go: go }); NET.store('mm/' + mmKey(), go); mmGo(go); } }, 1500); }
 /* île d'attente : petite île au large (hors de la carte), sol plat ; bus et tempête en pause pendant 20 s */
 var WARMI = false, WX = 0, WZ = 0, WY = 2, WR0 = 30, WMESH = null;
