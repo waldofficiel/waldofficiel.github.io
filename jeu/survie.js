@@ -7,7 +7,7 @@
 (function () {
   var T, C, READY = false, CELL = 5, LH = 3.5, COST = 10;   // pièces 5 m × 3,5 m (proportions 4 × 2,8 demandées ; Fortnite = 5,12 × 3,84)
   var RES = { bois: 0, pierre: 0, metal: 0 }, TOOL = null, PIECE = 'mur', MATK = 'bois', TIME = 0;
-  var MATW = { bois: 'bois', pierre: 'brique', metal: 'metal' };   // matériau de mur (MATS d'index.html)
+  var MATW = { bois: 'bois', pierre: 'brique', metal: 'metal' }, WTH = .07;   // demi-épaisseur des murs : 14 cm comme Fortnite (avant 28 cm)   // matériau de mur (MATS d'index.html)
   var ICON = { bois: '🪵', pierre: '🧱', metal: '⛓' }, NAME = { bois: 'BOIS', pierre: 'PIERRE', metal: 'MÉTAL' };
   var PNAME = { mur: 'MUR', sol: 'SOL', esc: 'ESCALIER', toit: 'TOIT', lit: 'LIT' };
   // icônes dessinées (SVG) : pioche, construire (plan + petit mur), pièces
@@ -23,7 +23,9 @@
     toit: SV('<path d="M24 6 L44 34 L24 42 L4 34 Z" fill="#c98a4a" stroke="#4a2a14" stroke-width="2" stroke-linejoin="round"/><path d="M24 6v36" stroke="#4a2a14" stroke-width="1.6"/><path d="M24 6 L44 34 L24 42 Z" fill="#000" opacity=".22"/>'),
     lit: SV('<rect x="5" y="22" width="38" height="11" rx="3" fill="#e8e2f0" stroke="#3a2a4a" stroke-width="2"/><rect x="5" y="24" width="24" height="9" rx="2" fill="#c43a6a"/><rect x="31" y="17" width="12" height="9" rx="3" fill="#fff" stroke="#3a2a4a" stroke-width="1.6"/><path d="M5 14v28M43 18v24" stroke="#5a3a20" stroke-width="3.5" stroke-linecap="round"/>') };
   var HPP = { bois: 150, pierre: 300, metal: 500 };   // vie MAX comme Fortnite (mur) ; sols / escaliers / toits un peu moins
-  var HP0 = { bois: 90, pierre: 99, metal: 110 }, HPT = { bois: 4, pierre: 11.5, metal: 24.5 };   // vie au départ + temps pour finir de se construire (la vie monte petit à petit)
+  var HP0 = { bois: 90, pierre: 99, metal: 110 }, HPT = { bois: 4, pierre: 11.5, metal: 24.5 };
+  /* PEINTURES de la favela (outil « Maison favela » du Créatif) : murs en crépi peint, solides comme la pierre */
+  var FAVC = ['#e85a4a', '#f2b33a', '#4ab0d8', '#7acb5a', '#e87ab8', '#9a6ae0', '#f08a3a', '#3ac8b0']; FAVC.forEach(function (c, i) { var k = 'pc' + i; MATW[k] = 'peint'; HPP[k] = 300; HP0[k] = 99; HPT[k] = 11.5; });   // vie au départ + temps pour finir de se construire (la vie monte petit à petit)
   function hpMax(p) { var m = HPP[p.m] || 150; return p.t === 'mur' ? m : Math.round(m * (p.m === 'bois' ? 140 / 150 : p.m === 'pierre' ? 280 / 300 : 460 / 500)); }
   var NODES = [], NIM = {}, STUMPS = null, STUMPL = [], PIECES = [], PIM = {}, GEO = {}, GHOST = null, PICK = null, el = {};
   var SW = { t: -1, hit: false }, PLACE_CD = 0, popT = 0, ZERO, TICK = 0, saveT = 0, BED = null, BEDM = null, BEDTPL = null, RUBBLE = null, LOADED = null;
@@ -117,14 +119,21 @@
 
   /* ---------------- constructions ---------------- */
   function rampGeo() {   // escalier = UNE planche en pente (comme Fortnite) : de 0 à LH sur une case, sans jupe ni bloc dessous
-    var L = Math.hypot(CELL, LH), th = .26, a = Math.atan2(LH, CELL), g = new T.BoxGeometry(L, th, CELL - .06); g.rotateZ(a); g.translate(Math.sin(a) * th / 2, LH / 2 - Math.cos(a) * th / 2, 0); g.computeVertexNormals(); return g; }
+    var L = Math.hypot(CELL, LH), th = .15, a = Math.atan2(LH, CELL), g = new T.BoxGeometry(L, th, CELL - .06); g.rotateZ(a); g.translate(Math.sin(a) * th / 2, LH / 2 - Math.cos(a) * th / 2, 0); g.computeVertexNormals(); return g; }
   function roofGeo() { var g = new T.ConeGeometry(CELL / Math.SQRT2, 2.4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, 1.2, 0); g.computeVertexNormals(); return g; }
   /* TEXTURES DES CONSTRUCTIONS façon Fortnite (dessinées une fois, 1024 × 716 = un panneau 5 × 3,5 m) :
      BOIS = cadre en poutres + planches clouées avec des jours entre elles et des petits trous (on voit à travers),
      PIERRE = briquettes en quinconce dans un cadre de pierre, joints creusés, MÉTAL = tôle ondulée dans un cadre riveté. */
   var BMAT = {};
   function rng(sd) { return function () { sd = (sd * 16807) % 2147483647; return (sd - 1) / 2147483646; }; }
-  function bTex(mk) { var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(mk === 'bois' ? 7 : mk === 'pierre' ? 11 : 13);
+  function favTex(mk) { var W = 512, H = 358, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(31 + (+mk.slice(2) || 0)), col = FAVC[+mk.slice(2) || 0];
+    g.fillStyle = col; g.fillRect(0, 0, W, H); for (var i = 0; i < 900; i++) { g.fillStyle = r() < .5 ? 'rgba(0,0,0,' + (r() * .08) + ')' : 'rgba(255,255,255,' + (r() * .1) + ')'; g.fillRect(r() * W, r() * H, 1 + r() * 3, 1 + r() * 3); }   // crépi
+    for (var k = 0; k < 4; k++) { var x = r() * W, y = r() * H, gr = g.createRadialGradient(x, y, 0, x, y, 30 + r() * 60); gr.addColorStop(0, 'rgba(60,40,20,.22)'); gr.addColorStop(1, 'rgba(60,40,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, W, H); }   // taches
+    if (r() < .8) { var bx = r() * W * .7, by = r() * H * .6, bw = 40 + r() * 90, bh = 30 + r() * 50; g.fillStyle = '#b5684a'; g.fillRect(bx, by, bw, bh); g.strokeStyle = 'rgba(240,220,200,.5)'; g.lineWidth = 2; for (var yy = by; yy < by + bh; yy += 10) { g.beginPath(); g.moveTo(bx, yy); g.lineTo(bx + bw, yy); g.stroke(); } }   // crépi tombé : briques visibles
+    var dg = g.createLinearGradient(0, H * .78, 0, H); dg.addColorStop(0, 'rgba(70,45,20,0)'); dg.addColorStop(1, 'rgba(70,45,20,.45)'); g.fillStyle = dg; g.fillRect(0, 0, W, H);   // terre en bas du mur
+    g.strokeStyle = 'rgba(30,20,10,.35)'; g.lineWidth = 1.5; for (var cr = 0; cr < 3; cr++) { var cx = r() * W, cy = r() * H; g.beginPath(); g.moveTo(cx, cy); for (var s2 = 0; s2 < 5; s2++) { cx += (r() - .5) * 40; cy += 10 + r() * 20; g.lineTo(cx, cy); } g.stroke(); }
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
+  function bTex(mk) { if (/^pc\d$/.test(mk)) return favTex(mk); var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(mk === 'bois' ? 7 : mk === 'pierre' ? 11 : 13);
     function grain(x, y, w, h, base, dark, n) { g.fillStyle = base; g.fillRect(x, y, w, h); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
       for (var i = 0; i < n; i++) { g.strokeStyle = dark; g.globalAlpha = .12 + r() * .25; g.lineWidth = 1 + r() * 2.5; var yy = y + r() * h; g.beginPath(); g.moveTo(x, yy); for (var xx = x; xx <= x + w; xx += 24) g.lineTo(xx, yy + Math.sin(xx * .02 + i) * 3); g.stroke(); }
       g.globalAlpha = 1; if (r() < .7) { var kx = x + r() * w, ky = y + h * (.3 + r() * .4); g.fillStyle = dark; g.globalAlpha = .55; g.beginPath(); g.ellipse(kx, ky, 9 + r() * 6, 4 + r() * 3, 0, 0, 7); g.fill(); g.globalAlpha = .3; g.beginPath(); g.ellipse(kx, ky, 18, 8, 0, 0, 7); g.stroke(); g.globalAlpha = 1; }
@@ -172,7 +181,7 @@
   function pieceIM(type, mk) { var key = type + mk; if (PIM[key]) return PIM[key]; var mat = bMat(mk, type);
     var im = new T.InstancedMesh(type === 'mur' || type === 'sol' ? C.BOX : GEO[type], mat, 300); im.count = 300; for (var i = 0; i < 300; i++) im.setMatrixAt(i, ZERO); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true; im.free = []; for (i = 299; i >= 0; i--) im.free.push(i); C.scene.add(im); PIM[key] = im; return im; }
   function pieceMatrix(p, o) { o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
-    if (p.t === 'sol') { o.position.set(p.x, p.L, p.z); o.scale.set(CELL, .3, CELL); }
+    if (p.t === 'sol') { o.position.set(p.x, p.L, p.z); o.scale.set(CELL, .16, CELL); }
     else if (p.t === 'esc') { o.position.set(p.x, p.L, p.z); o.rotation.y = -p.d * Math.PI / 2; }
     else if (p.t === 'toit') { o.position.set(p.x, p.L, p.z); }
     o.updateMatrix(); return o.matrix; }
@@ -189,7 +198,7 @@
         p.L = t === 'toit' && pitch <= 0 ? L0 : t === 'toit' ? L0 : L0; p.x = i0 * CELL + CELL / 2; p.z = j0 * CELL + CELL / 2; p.key = t[0] + '|' + i0 + '|' + j0 + '|' + p.L.toFixed(1); if (t === 'lit') p = null; if (p) return p; p = { t: t, m: MATK, d: d }; }
       else L = R.L + (pitch > .2 ? LH : 0); }
     if (t === 'mur') { p.L = L + (pitch > .45 ? LH : 0); var ex = d === 0 ? ci + 1 : d === 2 ? ci : null, ez = d === 1 ? cj + 1 : d === 3 ? cj : null;
-      if (ex != null) { p.x = ex * CELL; p.z = cj * CELL + CELL / 2; p.hw = .14; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + cj; } else { p.z = ez * CELL; p.x = ci * CELL + CELL / 2; p.hw = CELL / 2; p.hd = .14; p.key = 'm|z|' + ci + '|' + ez; } }
+      if (ex != null) { p.x = ex * CELL; p.z = cj * CELL + CELL / 2; p.hw = WTH; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + cj; } else { p.z = ez * CELL; p.x = ci * CELL + CELL / 2; p.hw = CELL / 2; p.hd = WTH; p.key = 'm|z|' + ci + '|' + ez; } }
     else if (t === 'lit') { var bx = P.x + Math.cos(a) * 2.4, bz = P.z + Math.sin(a) * 2.4; p.x = bx; p.z = bz; p.L = Math.max(C.hgt(bx, bz), groundAt(bx, bz, P.y + .5)); p.d = a; p.key = 'lit|' + Math.round(bx) + '|' + Math.round(bz); return p; }
     else { var i = ci, j = cj, LL = L; if (t === 'sol') { if (pitch > .35) LL = L + LH; else { i += dx; j += dz; } }
       else if (t === 'esc') { i += dx; j += dz; if (pitch > .55) LL = L + LH; }
@@ -225,7 +234,7 @@
     var down = pt < -.62, up = pt > .42, p = { t: t, m: MATK, d: d }, oi = Math.floor(P.x / CELL), oj = Math.floor(P.z / CELL);
     var feet = lvl(oi * CELL + CELL / 2, oj * CELL + CELL / 2, P.y + .35);   // niveau de la grille sous tes pieds (avec un peu de marge pendant un saut)
     PIECES.forEach(function (q) { if (q.t === 'esc' && Math.abs(P.x - q.x) <= CELL / 2 + .2 && Math.abs(P.z - q.z) <= CELL / 2 + .2 && P.y > q.L + LH * .35 && P.y < q.L + LH + 1.2) feet = Math.max(feet, q.L + LH); });   // sur une rampe (assez haut) : on compte le HAUT de la rampe
-    if (t === 'mur') { var lw = feet + (up ? LH : 0); if (dx) { var ex = oi + (dx > 0 ? 1 : 0); p.x = ex * CELL; p.z = oj * CELL + CELL / 2; p.hw = .14; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + oj; } else { var ez = oj + (dz > 0 ? 1 : 0); p.z = ez * CELL; p.x = oi * CELL + CELL / 2; p.hw = CELL / 2; p.hd = .14; p.key = 'm|z|' + oi + '|' + ez; } p.L = lw; }
+    if (t === 'mur') { var lw = feet + (up ? LH : 0); if (dx) { var ex = oi + (dx > 0 ? 1 : 0); p.x = ex * CELL; p.z = oj * CELL + CELL / 2; p.hw = WTH; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + oj; } else { var ez = oj + (dz > 0 ? 1 : 0); p.z = ez * CELL; p.x = oi * CELL + CELL / 2; p.hw = CELL / 2; p.hd = WTH; p.key = 'm|z|' + oi + '|' + ez; } p.L = lw; }
     else { var ci = oi, cj = oj; if (!down && t !== 'toit') { ci = oi + dx; cj = oj + dz; }   // devant toi, sauf si tu regardes en bas
       p.x = ci * CELL + CELL / 2; p.z = cj * CELL + CELL / 2; p.L = feet + (up || t === 'toit' ? LH : 0);
       if (t === 'esc') { var back = PIECES.filter(function (q) { return q.t === 'esc' && q.d === d && Math.abs(q.x - (p.x - dx * CELL)) < .1 && Math.abs(q.z - (p.z - dz * CELL)) < .1 && Math.abs(q.L + LH - p.L) < LH * .8; })[0]; if (back) p.L = back.L + LH; }   // dans le prolongement : pile au bout
@@ -251,13 +260,32 @@
     var C4 = { bl: [0, 0], br: [W, 0], tl: [0, H], tr: [W, H] }[tri[0]], sx = tri[0].charAt(1) === 'l' ? 1 : -1, sy = tri[0].charAt(0) === 'b' ? 1 : -1, P1 = [C4[0] + sx * a, C4[1]], P2 = [C4[0], C4[1] + sy * b];
     var ring = [[0, 0], [W, 0], [W, H], [0, H]], out = []; ring.forEach(function (q) { if (q[0] === C4[0] && q[1] === C4[1]) { if (sx * sy > 0) out.push(P2, P1); else out.push(P1, P2); } else out.push(q); });
     var sh = new T.Shape(); out.forEach(function (q, i) { if (i) sh.lineTo(q[0] - W / 2, q[1]); else sh.moveTo(q[0] - W / 2, q[1]); });
-    var th = .28, g = new T.ExtrudeGeometry(sh, { depth: th, bevelEnabled: false }); g.translate(0, 0, -th / 2); var uv = g.attributes.uv; for (var v = 0; v < uv.count; v++) uv.setXY(v, (uv.getX(v) + W / 2) / W, uv.getY(v) / H);
+    var th = WTH * 2, g = new T.ExtrudeGeometry(sh, { depth: th, bevelEnabled: false }); g.translate(0, 0, -th / 2); var uv = g.attributes.uv; for (var v = 0; v < uv.count; v++) uv.setXY(v, (uv.getX(v) + W / 2) / W, uv.getY(v) / H);
     var m = new T.Mesh(g, p.im.material); m.castShadow = m.receiveShadow = true; m.userData.dyn = true; m.position.set(p.x, p.L, p.z); if (!(p.hw > p.hd)) m.rotation.y = -Math.PI / 2; C.scene.add(m); return m; }
+  /* MUR ÉDITÉ PROPRE (fenêtres, portes, arches) : un seul objet fait des cases restantes, la texture garde sa place (plus de texture
+     écrasée dans chaque morceau), + un ENCADREMENT autour des trous (bois foncé, appui en pierre, cadre en acier, crépi blanc) */
+  var FRM = {}; function frameMat(mk) { var c = mk === 'bois' ? '#5a3418' : mk === 'pierre' ? '#d8d2c4' : mk === 'metal' ? '#3a3f48' : '#f4efe4'; return FRM[c] || (FRM[c] = new T.MeshStandardMaterial({ color: c, roughness: mk === 'metal' ? .4 : .85, metalness: mk === 'metal' ? .5 : 0 })); }
+  function maskMesh(p, mk, ext) { var W = CELL, H = LH, cw = W / 3, rh = H / 3, th = WTH * 2, P = [], N = [], U = [], I = [], FP = [], FN = [], FU = [], FI = [];
+    function quad(A, B, C2, D, n, pa, na, ua, ia) { var b = pa.length / 3; [A, B, C2, D].forEach(function (q) { pa.push(q[0], q[1], q[2]); na.push(n[0], n[1], n[2]); ua.push((q[0] + W / 2) / W, q[1] / H); }); ia.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+    function box(x0, x1, y0, y1, z0, z1, pa, na, ua, ia) {
+      quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1], [0, 0, 1], pa, na, ua, ia); quad([x1, y0, z0], [x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [0, 0, -1], pa, na, ua, ia);
+      quad([x0, y1, z1], [x1, y1, z1], [x1, y1, z0], [x0, y1, z0], [0, 1, 0], pa, na, ua, ia); quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [0, -1, 0], pa, na, ua, ia);
+      quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], pa, na, ua, ia); quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], pa, na, ua, ia); }
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) if (!mk[r * 3 + c]) box(-W / 2 + c * cw, -W / 2 + (c + 1) * cw, r ? r * rh : -ext, (r + 1) * rh, -th / 2, th / 2, P, N, U, I);
+    var fw = .09, fd = th / 2 + .035;   // encadrement : un peu plus épais que le mur, déborde des deux côtés
+    for (r = 0; r < 3; r++) for (c = 0; c < 3; c++) { if (!mk[r * 3 + c]) continue; var x0 = -W / 2 + c * cw, x1 = x0 + cw, y0 = r * rh, y1 = y0 + rh;
+      if (c > 0 && !mk[r * 3 + c - 1]) box(x0, x0 + fw, y0, y1, -fd, fd, FP, FN, FU, FI); if (c < 2 && !mk[r * 3 + c + 1]) box(x1 - fw, x1, y0, y1, -fd, fd, FP, FN, FU, FI);
+      if (r < 2 && !mk[(r + 1) * 3 + c]) box(x0, x1, y1 - fw, y1, -fd, fd, FP, FN, FU, FI);
+      if (r > 0 && !mk[(r - 1) * 3 + c]) box(x0 - (c > 0 && !mk[r * 3 + c - 1] ? 0 : .06), x1 + (c < 2 && !mk[r * 3 + c + 1] ? 0 : .06), y0, y0 + fw * 1.3, -fd - .06, fd + .06, FP, FN, FU, FI); }   // appui de fenêtre
+    function mesh(pa, na, ua, ia, mat) { var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pa, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(na, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(ua, 2)); g.setIndex(ia); var m = new T.Mesh(g, mat); m.castShadow = m.receiveShadow = true; return m; }
+    var grp = new T.Group(); grp.userData.dyn = true; if (P.length) grp.add(mesh(P, N, U, I, p.im.material)); if (FP.length) grp.add(mesh(FP, FN, FU, FI, frameMat(p.m)));
+    grp.geometry = { dispose: function () { grp.children.forEach(function (q) { q.geometry.dispose(); }); } };
+    grp.position.set(p.x, p.L, p.z); if (!(p.hw > p.hd)) grp.rotation.y = -Math.PI / 2; C.scene.add(grp); return grp; }
   function wallSegs(p, im) { var below = PIECES.some(function (q) { return q !== p && Math.abs(q.L - (p.L - LH)) < .2 && Math.hypot(q.x - p.x, q.z - p.z) < 3; }), gr = Math.min(C.hgt(p.x - (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z - (p.hw > p.hd ? 0 : CELL / 2 - .3)), C.hgt(p.x + (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z + (p.hw > p.hd ? 0 : CELL / 2 - .3))),
       ext = below || p.L - gr > 1.2 ? 0 : Math.max(0, p.L - gr + .05), alongX = p.hw > p.hd;   /* le bas du mur ne descend que jusqu'au sol (avant : 1 m dans le vide → « petit mur » sous les escaliers) */
-    var TRI0 = triOf(p.mask); p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
+    var TRI0 = triOf(p.mask), HOLE = !TRI0 && p.mask && p.mask.some(Boolean); p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
       var w = { x: p.x + (alongX ? cu : 0), z: p.z + (alongX ? 0 : cu), y0: y0, hw: alongX ? hu : p.hw, hd: alongX ? p.hd : hu, m: MATW[p.m], h: y1 - y0, house: null, im: im, ii: im.free.pop(), alive: true, hp: p.hp, build: p };
-      if (TRI0) w.cut = true; C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; if (TRI0) p.tri = triMesh(p, TRI0); }
+      if (TRI0 || HOLE) w.cut = true; C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; if (TRI0) p.tri = triMesh(p, TRI0); else if (HOLE) p.tri = maskMesh(p, p.mask, ext); }
   function wallFree(p) { if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
   function placePiece(p) { if (p.t === 'lit') return placeBed(p);
     var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; if (!p.hp) { p.hmax = hpMax(p); p.hp = p.t === 'lit' || p.t === 'coffre' ? p.hmax : Math.round(p.hmax * (HP0[p.m] || 90) / (HPP[p.m] || 150)); p.grow = p.hp < p.hmax; }
@@ -374,7 +402,7 @@
   function groundAt(x, z, y) { var g = -1e9, lim = y + .75;   // les rampes se montent sans sauter (on « accroche » jusqu'à 1,3 m)
     for (var wi = 0; wi < C.WALLS.length; wi++) { var w = C.WALLS[wi]; if (!w.alive || Math.abs(x - w.x) > w.hw + .22 || Math.abs(z - w.z) > w.hd + .22) continue; var wt = w.y0 + w.h; if (wt <= lim && wt > g) g = wt; }   // on peut tenir debout sur le haut des murs
     for (var i = 0; i < PIECES.length; i++) { var p = PIECES[i]; if (p.t === 'mur') continue; var dx = x - p.x, dz = z - p.z; if (Math.abs(dx) > CELL / 2 + .05 || Math.abs(dz) > CELL / 2 + .05) continue; var h;
-      if (p.t === 'sol') h = p.L + .15;
+      if (p.t === 'sol') h = p.L + .08;
       else if (p.t === 'esc') { var u = (p.d === 0 ? dx : p.d === 1 ? dz : p.d === 2 ? -dx : -dz) + CELL / 2; h = p.L + .02 + Math.max(0, Math.min(CELL, u)) * LH / CELL; if (h <= y + 1.3 && h > g) { g = h; continue; } }
       else if (p.t === 'lit') continue;
       else h = p.L + 2.4 * (1 - Math.max(Math.abs(dx), Math.abs(dz)) / (CELL / 2));
