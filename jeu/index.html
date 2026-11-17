@@ -506,6 +506,7 @@ try { if (/WaldRoyalApp|Electron/.test(navigator.userAgent) && /[?&]jouer/.test(
 <script src="nature.js"></script>
 <script src="weapons3d.js"></script>
 <script src="bus3d.js"></script>
+<script src="moto3d.js"></script>
 <script src="loot3d.js"></script>
 <script src="signs.js"></script>
 <script src="optimize.js"></script>
@@ -2674,8 +2675,10 @@ var VT = {
   polo:  { name: 'La Wald', vmax: 30, acc: 15, hp: 500, dmgP: 1.7, dmgV: .9, res: .55, smash: 1.6, r: 2 },
   golf:  { name: 'Bolide Jaune', vmax: 31, acc: 19, hp: 320, dmgP: 1.15, dmgV: .95, res: .85, smash: 1.2, r: 2 },
   '2cv': { name: 'Rouillarde', vmax: 20, acc: 10, hp: 220, dmgP: .95, dmgV: .8, res: 1, smash: .9, r: 1.9 },
-  van:   { name: 'Fourgon', vmax: 21, acc: 9, hp: 420, dmgP: 1.05, dmgV: 1.25, res: .75, smash: 1.5, r: 2.3 }
+  van:   { name: 'Fourgon', vmax: 21, acc: 9, hp: 420, dmgP: 1.05, dmgV: 1.25, res: .75, smash: 1.5, r: 2.3 },
+  moto:  { name: 'Moto Néon', vmax: 44, acc: 24, hp: 180, dmgP: .7, dmgV: .5, res: 1.3, smash: .5, r: 1.1, moto: 1 }   /* sportive originale (moto3d.js), on la voit pencher dans les virages */
 };
+var MOTOI = 0;
 function wheels(g, x1, x2, z, r) { [[x1, z], [x2, z], [x1, -z], [x2, -z]].forEach(function (w) { cyl(g, r, .3, w[0], r, w[1], '#151518', Math.PI / 2); cyl(g, r * .55, .32, w[0], r, w[1], '#9aa0aa', Math.PI / 2, 0, true); }); }
 function txt(text, col, bg, w, h) { var c = document.createElement('canvas'); c.width = w || 256; c.height = h || 64; var x = c.getContext('2d'); if (bg) { x.fillStyle = bg; x.fillRect(0, 0, c.width, c.height); } x.fillStyle = col; x.font = '900 ' + (c.height * .62) + 'px Arial Black, Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, c.width / 2, c.height / 2 + 2); var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; }
 function decal(g, tex, w, h, x, y, z, ry) { var m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); m.position.set(x, y, z); m.rotation.y = ry || 0; g.add(m); return m; }
@@ -2706,6 +2709,7 @@ function carModel(k) {
   if (CART[k]) { var T3 = CART[k], g3 = new THREE.Group(), bm = new THREE.Mesh(T3.body, T3.mat); bm.castShadow = true; g3.add(bm); g3.userData.wh = [];
     T3.wheels.forEach(function (w) { var wm = new THREE.Mesh(w.g, T3.mat); wm.position.copy(w.p); wm.castShadow = true; wm.userData.r = Math.max(.2, w.r); g3.add(wm); g3.userData.wh.push(wm); });
     var sh3 = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.2), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); sh3.rotation.x = -Math.PI / 2; sh3.position.y = .03; g3.add(sh3); return g3; }
+  if (k === 'moto' && window.buildMoto) { var gm = window.buildMoto(THREE, MOTOI++); return window.OPT ? OPT.mergeLocal(gm) : gm; }
   var g = new THREE.Group(), glass = mat('#20283a'); g.userData.fb = k !== 'polo';
   if (k === 'polo') {   // La Wald : le cabriolet détaillé (polo3d.js)
     g.add(window.buildPolo(THREE, { lite: true }));
@@ -2736,7 +2740,7 @@ function carModel(k) {
   var sh = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.2), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .03; g.add(sh);
   return window.OPT ? OPT.mergeLocal(g) : g;
 }
-var VEH0 = MODE === 'city' ? ['golf', 'golf', 'van', 'golf', '2cv', 'van', 'golf', '2cv', 'golf', 'van', 'golf', 'van', 'golf', '2cv', 'golf', 'golf'] : SURV || VIDE ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
+var VEH0 = MODE === 'city' ? ['golf', 'moto', 'golf', 'van', 'moto', 'golf', '2cv', 'moto', 'van', 'golf', 'moto', '2cv', 'golf', 'van', 'moto', 'golf', 'van', 'moto', 'golf', '2cv', 'golf', 'moto'] : SURV || VIDE ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
 var vehicles = VEH0.map(function (k) { return { k: k, m: null, x0: 0, z0: 0, a0: 0 }; });
 function vehSpot(placed) { if (MODE === 'city' && window.CITY6 && CITY6.spots.length) { for (var q = 0; q < 60; q++) { var cs = CITY6.spots[Math.random() * CITY6.spots.length | 0]; if (!placed.some(function (p) { return Math.hypot(p[0] - cs[0], p[1] - cs[1]) < 8; })) { placed.push([cs[0], cs[1]]); return [cs[0], cs[1], cs[2]]; } } }
   for (var k = 0; k < 300; k++) { var x, z, a;
@@ -3376,13 +3380,13 @@ function drive(v, thr, steer, drifting, dt) {
   fwd += thr * (thr > 0 ? T.acc : 22) * dt; if (v.boostT > 0) fwd += 22 * dt;
   fwd *= Math.exp(-(thr === 0 ? 1.1 : .35) * dt); fwd = Math.max(-9, Math.min(maxS, fwd));
   lat *= Math.exp(-(drifting ? 1.5 : 8) * dt);
-  v.a += steer * 1.9 * Math.min(1, Math.abs(fwd) / 7) * (fwd < 0 ? -1 : 1) * (drifting ? 1.45 : 1) * dt;
+  v.st = steer; v.thr = thr; v.a += steer * (T.moto ? 2.5 : 1.9) * Math.min(1, Math.abs(fwd) / (T.moto ? 4 : 7)) * (fwd < 0 ? -1 : 1) * (drifting ? 1.45 : 1) * dt;
   v.vx = fx * fwd + rx * lat; v.vz = fz * fwd + rz * lat; v.boostT = Math.max(0, v.boostT - dt);
   if (drifting && Math.abs(fwd) > 8) { v.driftT += dt; if (Math.random() < .5) burst(v.x - fx * 1.8, .3, v.z - fz * 1.8, 1, '#e8e8ee', 1.5, .5, .7, -.1); }
   else { if (v.driftT > .6) { v.boostT = Math.min(1.1, .35 + v.driftT * .5); if (v.driver === me) { SFX.boost(); toast('TURBO !'); } } v.driftT = 0; }
   if (v.boostT > 0 && Math.random() < .7) burst(v.x - fx * 2.1, .6, v.z - fz * 2.1, 1, ['#ff8a00', '#ffd23d'], 2, .3, .3, -.2);
 }
-function enter(p, v) { if (v.driver || !v.alive) return; v.driver = p; p.veh = v; if (p === me) { SFX.door(); toast(VT[v.k].name.toUpperCase()); if (v.k === 'polo') { rupteur(.45); setTimeout(function () { voice('polo', .9); }, 1050); } camA = v.a; } }
+function enter(p, v) { if (v.driver || !v.alive) return; v.driver = p; p.veh = v; p.mtK = 0; p.mtX = p.x; p.mtZ = p.z; if (p === me) { SFX.door(); toast(VT[v.k].name.toUpperCase()); if (v.k === 'polo') { rupteur(.45); setTimeout(function () { voice('polo', .9); }, 1050); } camA = v.a; } }
 function leave(p) { var v = p.veh; if (!v) return; v.driver = null; p.veh = null; var a = v.a + Math.PI / 2; p.x = v.x + Math.cos(a) * 2.6; p.z = v.z + Math.sin(a) * 2.6; p.y = p.gy = hgt(p.x, p.z); p.vx = p.vz = 0; if (p === me) SFX.door(); }
 function nearVeh(p) { var best = null, bd = 4.2; vehicles.forEach(function (v) { if (!v.alive || v.driver) return; var d = dist(v.x, v.z, p.x, p.z); if (d < bd) { bd = d; best = v; } }); return best; }
 /* E sur un objet au sol quand le sac est plein (comme Fortnite) : on LÂCHE ce qu'on a en main (arme, ou ses soins) et on prend l'objet visé (arme ou soin) */
@@ -3836,6 +3840,8 @@ function syncModels(t, dt) {
   var far = scene.fog.far;
   pl.forEach(function (p) { var c = p.model;
     if (RAFTM && RF && RF.built && (p === me || p.net)) { c.root.visible = false; return; }   /* radeau : on voit les PÉTEURS à la place */
+    if (p.alive && p.veh && VT[p.veh.k] && VT[p.veh.k].moto) { c.root.visible = dist(p.veh.x, p.veh.z, cam.position.x, cam.position.z) < Math.min(far, 260) && !(p === me && FPSV); c.ride = 1; return; }   /* pilote de moto : posé après la moto (plus bas) */
+    if (c.ride) { c.ride = 0; c.root.rotation.set(0, c.root.rotation.y, 0); c.body.position.y = 0; c.body.rotation.x = 0; if (window.MOTOOFF) MOTOOFF(c); }
     if (p.alive && p.veh && p.veh.k === 'polo') {   // cabriolet : on voit le pilote
       var v = p.veh, ca = Math.cos(v.a), sa = Math.sin(v.a); c.root.visible = true; c.root.position.set(v.x + ca * -.12 + sa * .36, v.y + .1, v.z + sa * -.12 - ca * .36); c.root.rotation.y = -v.a;
       window.ANIM.apply(c, window.ANIM.blend(c, window.ANIM.drive(), dt, 10), false); c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false; c.body.position.y = -.38; return; }
@@ -3846,7 +3852,9 @@ function syncModels(t, dt) {
     c.root.position.set(p.x, p.y, p.z); c.root.rotation.y = -p.a; animChar(p, dt); c.shadow.position.y = (p.gy || 0) + .03 - p.y; c.shadow.visible = p.mode === 'ground' && !R3.shadowMap.enabled; });
   vehicles.forEach(function (v) { var ca = Math.cos(v.a), sa = Math.sin(v.a), sf = (hgt(v.x + ca * 1.6, v.z + sa * 1.6) - hgt(v.x - ca * 1.6, v.z - sa * 1.6)) / 3.2, sr2 = (hgt(v.x - sa * .9, v.z + ca * .9) - hgt(v.x + sa * .9, v.z - ca * .9)) / 1.8;
     var wh = v.m.userData.wh; if (wh) { var dd = (v.x - (v.lx == null ? v.x : v.lx)) * ca + (v.z - (v.lz == null ? v.z : v.lz)) * sa; wh.forEach(function (w) { w.rotation.z -= dd / w.userData.r; }); } v.lx = v.x; v.lz = v.z;   // les roues tournent
-    v.m.position.set(v.x, v.y, v.z); v.m.rotation.y = -v.a; v.m.rotation.z += (Math.atan(sf) - v.m.rotation.z) * .3; v.m.rotation.x += (-Math.atan(sr2) - v.m.rotation.x) * .3; });
+    var lean = 0; if (VT[v.k] && VT[v.k].moto) { var spd = Math.hypot(v.vx, v.vz); lean = v.driver ? (v.st || 0) * Math.min(1, spd / 14) * .52 : -.17; v.lean = (v.lean || 0) + (lean - (v.lean || 0)) * Math.min(1, dt * 7); lean = v.lean; }   /* moto : elle penche dans les virages, béquille à l'arrêt */
+    v.m.position.set(v.x, v.y, v.z); v.m.rotation.y = -v.a; v.m.rotation.z += (Math.atan(sf) - v.m.rotation.z) * .3; v.m.rotation.x += (-Math.atan(sr2) * (lean ? .4 : 1) + lean - v.m.rotation.x) * .3; });
+  pl.forEach(function (p) { var c = p.model; if (!c || !c.ride || !p.veh) return; motoRider(p, c, p.veh, dt); });
   busM.visible = !CREA && !SURV && !PROPM && !WARMI && bus.t < bus.dur + 3;   /* le bus n'existe QUE en Battle Royale (plus de bus qui vole en CS / Créatif) */ busM.position.set(bus.x, bus.y, bus.z); busM.rotation.y = -bus.a; busM.children.forEach(function (o) { if (o.userData.prop) o.rotation.x = t * 30; if (o.userData.flame) { var fk = .8 + Math.sin(t * 47) * .15 + Math.sin(t * 23) * .1; o.scale.set(1, fk, 1); } });
   if (busM.visible && state === 'play' && Math.random() < .6) burst(bus.x - Math.cos(bus.a) * 8, bus.y + 1.4, bus.z - Math.sin(bus.a) * 8, 1, ['#ff8a00', '#ffd23d'], 3, .6, .4, -.3);
   lootGroup.children.forEach(function (m) { m.visible = dist(m.position.x, m.position.z, cam.position.x, cam.position.z) < 110; if (m.visible && m.userData.spin) m.userData.spin.rotation.y = t * 1.6; });
@@ -3855,6 +3863,18 @@ function syncModels(t, dt) {
   nextRing.visible = false; nextRing.position.set(storm.nx, .2, storm.nz); nextRing.scale.setScalar(Math.max(.1, storm.nr));
 }
 function castRayStatic(ox, oy, oz, dx, dy, dz, maxT) { var best = maxT; for (var i = 0; i < WALLS.length; i++) { var w = WALLS[i]; if (!w.alive || Math.abs(w.x - ox) > maxT + w.hw || Math.abs(w.z - oz) > maxT + w.hd) continue; var t = rayBox(ox, oy, oz, dx, dy, dz, w.x - w.hw, w.y0 + wallBottom(w), w.z - w.hd, w.x + w.hw, w.y0 + w.h, w.z + w.hd); if (t < best) best = t; } return best; }
+/* PILOTE DE MOTO : il monte (enjambe la selle), s'assoit, mains aux poignées, pieds aux repose-pieds, se penche avec la moto */
+var MQ = new THREE.Quaternion(), MV = new THREE.Vector3(), MV2 = new THREE.Vector3();
+function motoRider(p, c, v, dt) { var m = v.m; m.updateMatrixWorld(true); p.mtK = Math.min(1, (p.mtK == null ? 1 : p.mtK) + dt / .55); var k = p.mtK, e = k * k * (3 - 2 * k);
+  var spd = Math.hypot(v.vx, v.vz), ln = (v.thr > 0 ? .1 : v.thr < 0 ? -.12 : 0) + Math.min(.12, spd / 300);
+  m.userData.seatM.getWorldPosition(MV); m.getWorldQuaternion(MQ); c.root.quaternion.copy(MQ); c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false;
+  var sc = c.root.scale.y || 1, hip = c.cm ? (c.rideR && c.rideR.cm === c.cm ? c.rideR.pelY : 1.1) * sc - .05 : .87 * sc - .06; MV2.set(0, -hip, 0).applyQuaternion(MQ); MV.add(MV2);
+  if (k < 1 && p.mtX != null) { var sx = p.mtX + (MV.x - p.mtX) * e, sz = p.mtZ + (MV.z - p.mtZ) * e; MV.x = sx; MV.z = sz; MV.y += Math.sin(k * Math.PI) * .12; }
+  c.root.position.copy(MV); c.root.updateMatrixWorld(true);   /* d'abord placer le perso, ensuite l'IK (sinon les mains visent les poignées de l'image d'avant) */
+  var real = c.cm && window.MOTORIDE && MOTORIDE(c, m, k, ln, v.st || 0);
+  if (!real) { var P = window.ANIM.P({ lt: 1.05 * e, rt: 1.05 * e, lk: 1.75 * e, rk: 1.75 * e, lo: .18 * e, ro: .18 * e, bp: (.58 + ln) * e, la: 1.2 * e, ra: 1.2 * e, lb: .05, rb: .05, le: .55 * e, re: .55 * e, lw: .2, rw: .2, hp: -.42 * e, hy: -(v.st || 0) * .3 });
+    if (k < 1) P.rt = (1.05 + Math.sin(Math.min(1, k * 1.3) * Math.PI) * .5) * e;   /* la jambe passe par-dessus la selle */
+    window.ANIM.apply(c, window.ANIM.blend(c, P, dt, 12), false); } }
 function updCam(dt) {
   if (ads && (me.veh || me.mode !== 'ground' || !me.alive || !cur(me))) adsSet(false);
   adsK += ((ads ? 1 : 0) - adsK) * Math.min(1, dt * 12); var aw = cur(me), zf = aw && aw.k === 'sniper' ? 16 : aw && (aw.k === 'scar' || aw.k === 'fusil') ? 46 : 55, fov = 70 + (zf - 70) * adsK;
@@ -3866,7 +3886,7 @@ function updCam(dt) {
   var tx, ty, tz, dd = 4.2, sh = .85, h = 1.75;
   if (me.mode === 'bus') { tx = bus.x; ty = bus.y; tz = bus.z; dd = 34; sh = 0; h = 6; }
   else if (me.mode === 'fall') { tx = me.x; ty = me.y; tz = me.z; dd = 9; sh = 0; h = 3; }
-  else if (me.veh) { tx = me.veh.x; ty = me.veh.y; tz = me.veh.z; dd = 9; sh = 0; h = 2.6; if (!lookPtr && !fireLook && document.pointerLockElement !== cv) camA += angD(me.veh.a, camA) * Math.min(1, dt * 2.5); }
+  else if (me.veh) { var mo = VT[me.veh.k] && VT[me.veh.k].moto; tx = me.veh.x; ty = me.veh.y; tz = me.veh.z; dd = mo ? 5.2 : 9; sh = 0; h = mo ? 2.1 : 2.6; if (!lookPtr && !fireLook && document.pointerLockElement !== cv) camA += angD(me.veh.a, camA) * Math.min(1, dt * 2.5); }
   else if (SPECT && ROUND) { tx = SPECT.x; ty = SPECT.y; tz = SPECT.z; dd = 4.6; sh = .5; }   // spectateur (Fin de zone)
   else if (!me.alive) { tx = me.x; ty = me.y; tz = me.z; dd = 9; sh = 0; camA += dt * .3; }
   else if (RAFTM && RF && RF.built) { tx = RF.x; ty = RF.y; tz = RF.z; dd = 9; sh = 0; h = 3.6; }   /* radeau : caméra derrière tout le radeau */
