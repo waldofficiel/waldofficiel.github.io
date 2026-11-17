@@ -286,11 +286,30 @@
     var TRI0 = triOf(p.mask), HOLE = !TRI0 && p.mask && p.mask.some(Boolean); p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
       var w = { x: p.x + (alongX ? cu : 0), z: p.z + (alongX ? 0 : cu), y0: y0, hw: alongX ? hu : p.hw, hd: alongX ? p.hd : hu, m: MATW[p.m], h: y1 - y0, house: null, im: im, ii: im.free.pop(), alive: true, hp: p.hp, build: p };
       if (TRI0 || HOLE) w.cut = true; C.WALLS.push(w); C.setWall(w, true); p.ws.push(w); }); p.w = p.ws[0]; if (TRI0) p.tri = triMesh(p, TRI0); else if (HOLE) p.tri = maskMesh(p, p.mask, ext); }
+  /* SOLS / ESCALIERS / TOITS SOLIDES (comme Fortnite) : des « plats » invisibles dans C.WALLS → les balles s'arrêtent dessus (et les cassent),
+     la tête cogne dessous en sautant ; on ne passe plus à travers par en dessous. Sol édité = 4 quarts (on enlève 1 à 3 cases). */
+  function flatSegs(p) { p.ws = []; var Q = CELL / 4, out = [];
+    if (p.t === 'sol') { for (var i = 0; i < 4; i++) { if (p.mask && p.mask[i]) continue; out.push([p.x + (i % 2 ? Q : -Q), p.z + (i > 1 ? Q : -Q), Q, Q, p.L - .08, .16]); } }
+    else if (p.t === 'esc') { var ax = p.d % 2 === 0, sg = p.d < 2 ? 1 : -1; for (var k = 0; k < 4; k++) { var u = (k + .5) * Q - CELL / 2; out.push([p.x + (ax ? sg * u : 0), p.z + (ax ? 0 : sg * u), ax ? Q / 2 + .02 : CELL / 2, ax ? CELL / 2 : Q / 2 + .02, p.L + LH * k / 4 - .12, LH / 4 + .12]); } }
+    else if (p.t === 'toit') { out.push([p.x, p.z, CELL / 2 - .2, CELL / 2 - .2, p.L, 1.1]); }
+    out.forEach(function (q) { var w = { x: q[0], z: q[1], hw: q[2], hd: q[3], y0: q[4], h: q[5], m: MATW[p.m] || 'bois', house: null, alive: true, hp: p.hp, build: p, flat: p.t === 'esc' ? 2 : 1, cut: true }; C.WALLS.push(w); p.ws.push(w); }); }
+  function flatFree(p) { (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); }); p.ws = []; }
+  function floorMesh(p) { var P = [], N = [], U = [], I = [], H2 = CELL / 2, t = .08;
+    function quad(A, B, C2, D, n) { var b = P.length / 3; [A, B, C2, D].forEach(function (q) { P.push(q[0], q[1], q[2]); N.push(n[0], n[1], n[2]); U.push((n[1] ? q[0] : n[0] ? q[2] : q[0]) / CELL + .5, (n[1] ? q[2] : q[1] * 4) / CELL + .5); }); I.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+    for (var i = 0; i < 4; i++) { if (p.mask[i]) continue; var x0 = i % 2 ? 0 : -H2, x1 = x0 + H2, z0 = i > 1 ? 0 : -H2, z1 = z0 + H2;
+      quad([x0, t, z1], [x1, t, z1], [x1, t, z0], [x0, t, z0], [0, 1, 0]); quad([x0, -t, z0], [x1, -t, z0], [x1, -t, z1], [x0, -t, z1], [0, -1, 0]);
+      quad([x0, -t, z1], [x1, -t, z1], [x1, t, z1], [x0, t, z1], [0, 0, 1]); quad([x1, -t, z0], [x0, -t, z0], [x0, t, z0], [x1, t, z0], [0, 0, -1]);
+      quad([x1, -t, z1], [x1, -t, z0], [x1, t, z0], [x1, t, z1], [1, 0, 0]); quad([x0, -t, z0], [x0, -t, z1], [x0, t, z1], [x0, t, z0], [-1, 0, 0]); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(N, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(U, 2)); g.setIndex(I);
+    var m = new T.Mesh(g, p.im.material); m.castShadow = m.receiveShadow = true; m.userData.dyn = true; m.position.set(p.x, p.L, p.z); C.scene.add(m); return m; }
+  function pieceShow(p) { var cut = p.t === 'sol' && p.mask && p.mask.some(Boolean); p.im.setMatrixAt(p.ii, cut ? ZERO : pieceMatrix(p, O3 || (O3 = new T.Object3D()))); p.im.instanceMatrix.needsUpdate = true; if (cut) p.tri = floorMesh(p); p._cp = null; if (p.t !== 'lit' && p.t !== 'coffre') flatSegs(p); }
+  function pieceHide(p) { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } flatFree(p); }
+  function ceilAt(x, z, y0, y1) { var c = null; for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (!w.flat || !w.alive || Math.abs(x - w.x) > w.hw + .25 || Math.abs(z - w.z) > w.hd + .25) continue; if (w.y0 >= y0 - .05 && w.y0 < y1 && (c == null || w.y0 < c)) c = w.y0; } return c; }
   function wallFree(p) { if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
   function placePiece(p) { if (p.t === 'lit') return placeBed(p);
     var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; if (!p.hp) { p.hmax = hpMax(p); p.hp = p.t === 'lit' || p.t === 'coffre' ? p.hmax : Math.round(p.hmax * (HP0[p.m] || 90) / (HPP[p.m] || 150)); p.grow = p.hp < p.hmax; }
     if (p.t === 'mur') { slotWalls(p, true).forEach(function (w) { w.alive = false; C.setWall(w, false); }); wallSegs(p, im); }
-    else { p.ii = im.free.pop(); im.setMatrixAt(p.ii, pieceMatrix(p, O3 || (O3 = new T.Object3D()))); im.instanceMatrix.needsUpdate = true; }
+    else { p.ii = im.free.pop(); if (p.d0 == null) p.d0 = p.d; pieceShow(p); }
     PIECES.push(p); return true; }
   /* SOLIDITÉ comme Fortnite : une pièce qui n'est plus reliée au sol (directement ou par d'autres pièces) TOMBE */
   function grounded(p) { if (p.t === 'mur' && p.mask && p.mask[0] && p.mask[1] && p.mask[2]) return false;   /* rangée du bas enlevée : le mur ne touche plus le sol */
@@ -311,7 +330,7 @@
     var fall = PIECES.filter(function (p) { return !ok.has(p); }); fall.forEach(function (p, k) { setTimeout(function () { removePiece(p, true, true); }, 60 + k * 45); }); }
   function removePiece(p, fx, noChk) { var i = PIECES.indexOf(p); if (i < 0) return; PIECES.splice(i, 1); if (HOOK && !p._net) HOOK('r', { key: p.key }); if (!noChk && fx && !SUPT) { SUPT = 1; setTimeout(support, 120); }
     if (p.t === 'mur') wallFree(p);
-    else { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.im.free.push(p.ii); }
+    else { pieceHide(p); p.im.free.push(p.ii); }
     if (fx) { var c = C.MATS[MATW[p.m]].col; C.burst(p.x, p.L + 1.5, p.z, 16, [c, c, '#5a3a20'], 7, .5, 1.4); C.SFX.crack(); } }
   /* ÉDITER (façon Fortnite) : on vise un de ses murs → grille de 9 cases bleues ; on tire/clique sur les cases à enlever ; ÉDITER à nouveau = valider */
   /* ===== HISTOIRE DE LA SURVIE : la Brume Violette, le LIVRE DES CRÉATURES et les AFFICHES à découvrir ===== */
@@ -361,34 +380,67 @@
   function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, p.mask ? p.mask.map(Number).join('') : '']; }
   function netPlace(a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null, _net: true }; placePiece(p); }
   function netRemove(key) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) { var p = PIECES[i]; p._net = true; removePiece(p, true); return; } }
-  function netEdit(key, mk) { PIECES.forEach(function (p) { if (p.key !== key || p.t !== 'mur') return; wallFree(p); p.mask = mk ? String(mk).split('').map(function (c) { return c === '1'; }) : null; p._cp = null; wallSegs(p, p.im); }); support(); }
+  function netEdit(key, mk) { mk = mk == null ? '' : String(mk); PIECES.forEach(function (p) { if (p.key !== key) return;
+      if (p.t === 'esc') { if (/^d[0-3]$/.test(mk)) editApply(p, +mk.charAt(1)); } else if (p.t === 'mur' || p.t === 'sol') editApply(p, mk ? mk.split('').map(function (c) { return c === '1'; }) : null); }); support(); }
   var EDW = null, EMK = null, EGRID = null, ELAST = false;
-  function aimWall() { var P = me(), cm = C.cam(), d = new T.Vector3(); cm.getWorldDirection(d); var o = cm.position, best = null, bt = 15;
-    PIECES.forEach(function (p) { if (p.t !== 'mur' || Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1); if (t < bt) { bt = t; best = p; } });
+  /* ÉDITION façon Fortnite de TOUTES les pièces : MUR = grille 3×3, SOL = 2×2 (on enlève 1 à 3 cases), ESCALIER = 2×2 (on choisit 2 cases
+     côte à côte, du bas vers le haut → l'escalier tourne dans ce sens). Les cases sont un hologramme bleu transparent ; les cases choisies s'éteignent. */
+  function rayRamp(p, o, d) { var ax = p.d % 2 === 0, sg = p.d < 2 ? 1 : -1, ou = (ax ? o.x - p.x : o.z - p.z) * sg + CELL / 2, du = (ax ? d.x : d.z) * sg, k = LH / CELL, den = d.y - k * du; if (Math.abs(den) < 1e-6) return Infinity;
+    var t = (p.L + k * ou - o.y) / den; if (t < 0) return Infinity; var x = o.x + d.x * t, z = o.z + d.z * t; return Math.abs(x - p.x) <= CELL / 2 + .05 && Math.abs(z - p.z) <= CELL / 2 + .05 ? t : Infinity; }
+  function aimWall(any) { var P = me(), cm = C.cam(), d = new T.Vector3(); cm.getWorldDirection(d); var o = cm.position, best = null, bt = 15;
+    PIECES.forEach(function (p) { if (Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t;
+      if (p.t === 'mur') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1);
+      else if (any && p.t === 'sol') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - CELL / 2, p.L - .12, p.z - CELL / 2, p.x + CELL / 2, p.L + .12, p.z + CELL / 2);
+      else if (any && p.t === 'esc') t = rayRamp(p, o, d); else return;
+      if (t < bt) { bt = t; best = p; } });
     return best ? { p: best, t: bt, o: o, d: d } : null; }
-  function gridDraw() { if (!EGRID) { EGRID = new T.Group(); EGRID.userData.dyn = true; for (var i = 0; i < 9; i++) { var m = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: '#3ab0ff', transparent: true, opacity: .5, depthWrite: false })); EGRID.add(m);
-        var e = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1, 1, 1)), new T.LineBasicMaterial({ color: '#bfe8ff' })); m.add(e); } C.scene.add(EGRID); }
-    EGRID.visible = !!EDW; if (!EDW) return; var p = EDW, ax = p.hw > p.hd, cw = CELL / 3, rh = LH / 3;
-    EGRID.children.forEach(function (m, i) { var r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .08 : .36, rh - .08, ax ? .36 : cw - .08);
-      m.material.color.set(EMK[i] ? '#ff3b6b' : '#3ab0ff'); m.material.opacity = EMK[i] ? .18 : .5; }); }
+  function aimEdit() { return aimWall(true); }
+  function NT(p) { return p.t === 'mur' ? 9 : 4; }
+  function rampY(p, x, z) { var u = (p.d === 0 ? x - p.x : p.d === 1 ? z - p.z : p.d === 2 ? p.x - x : p.z - z) + CELL / 2; return p.L + Math.max(0, Math.min(CELL, u)) * LH / CELL; }
+  function gridDraw() { if (!EGRID) { EGRID = new T.Group(); EGRID.userData.dyn = true; EGRID.renderOrder = 6; for (var i = 0; i < 9; i++) { var m = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: '#4fb8ff', transparent: true, opacity: .34, depthWrite: false })); m.renderOrder = 6; EGRID.add(m);
+        var e = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1, 1, 1)), new T.LineBasicMaterial({ color: '#dff4ff', transparent: true, opacity: .95 })); e.renderOrder = 7; m.add(e); } C.scene.add(EGRID); }
+    EGRID.visible = !!EDW; if (!EDW) return; var p = EDW, n = NT(p);
+    EGRID.children.forEach(function (m, i) { m.visible = i < n; if (i >= n) return; m.rotation.set(0, 0, 0); var on = EMK[i], e = m.children[0];
+      if (p.t === 'mur') { var ax = p.hw > p.hd, cw = CELL / 3, rh = LH / 3, r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .06 : WTH * 2 + .12, rh - .06, ax ? WTH * 2 + .12 : cw - .06); }
+      else { var Q = CELL / 4, x = p.x + (i % 2 ? Q : -Q), z = p.z + (i > 1 ? Q : -Q), y = p.t === 'sol' ? p.L + .02 : rampY(p, x, z) + .03; m.position.set(x, y, z); m.scale.set(CELL / 2 - .08, .2, CELL / 2 - .08);
+        if (p.t === 'esc') { var a = Math.atan2(LH, CELL); if (p.d === 0) m.rotation.z = a; else if (p.d === 2) m.rotation.z = -a; else if (p.d === 1) m.rotation.x = -a; else m.rotation.x = a; m.scale.x = p.d % 2 ? CELL / 2 - .08 : (CELL / 2 - .08) / Math.cos(a); m.scale.z = p.d % 2 ? (CELL / 2 - .08) / Math.cos(a) : CELL / 2 - .08; } }
+      m.material.color.set(on ? '#ffb02e' : '#4fb8ff'); m.material.opacity = on ? .1 : .34; e.material.color.set(on ? '#ffd27a' : '#dff4ff'); }); }
   /* ÉDITS DE MUR AUTORISÉS (comme Fortnite) — cases enlevées, numérotées de bas en haut (0 1 2 / 3 4 5 / 6 7 8). Tout le reste est refusé (pas de formes en Z…) */
   var EDOK = {}; ['4', '3,4', '4,5', '3,4,5', '7', '1,4', '0,3', '2,5', '1,4,7', '0,3,6', '2,5,8', '0,1,3,4', '1,2,4,5', '0,1,2,4', '0,1,2,3,4,5', '0,1,2', '6,7,8', '3,4,5,6,7,8', '6,7', '7,8',
     '0,1,3,4,6,7', '1,2,4,5,7,8', '0,3,6,1,4,7', '3,6,7', '5,7,8', '0,1,3', '1,2,5', '0,3,4,6,7,8', '2,4,5,6,7,8', '0,1,2,3,4,6', '0,1,2,4,5,8', '4,7', '1,4,6,7,8', '3,4,5,7'].forEach(function (k) { EDOK[k.split(',').map(Number).sort(function (a, b) { return a - b; }).join(',')] = 1; });
+  var ESEL = [];
+  function rampDir(a, b) { var ra = a > 1 ? 1 : 0, ca = a % 2, rb = b > 1 ? 1 : 0, cb = b % 2; if (ra === rb && ca !== cb) return cb > ca ? 0 : 2; if (ca === cb && ra !== rb) return rb > ra ? 1 : 3; return -1; }
+  function editApply(p, mk) {   // applique un édit (local ou reçu du réseau)
+    if (p.t === 'mur') { wallFree(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); }
+    else if (p.t === 'sol') { pieceHide(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; pieceShow(p); }
+    else if (p.t === 'esc') { pieceHide(p); p.d = mk; pieceShow(p); } }
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
-    if (EDW && EMK.some(Boolean) && !EDOK[EMK.map(function (b, i) { return b ? i : -1; }).filter(function (i) { return i >= 0; }).join(',')]) { C.toast('❌ CET ÉDIT N\'EXISTE PAS · comme Fortnite : fenêtre, porte, arche, demi-mur, triangle…'); C.tone('square', 220, 160, .12, .06); return; }   // on garde la grille ouverte pour corriger
-    if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); support(); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
-    var h = aimWall(); if (!h) { C.toast('VISE UN DE TES MURS POUR L\'ÉDITER'); return; }
-    EDRAG = 0; ELASTI = -1; EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast(C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
+    if (EDW) { var p = EDW, sel = EMK.map(function (b, i) { return b ? i : -1; }).filter(function (i) { return i >= 0; }), msg = null;
+      if (p.t === 'mur' && sel.length && !EDOK[sel.join(',')]) msg = '❌ CET ÉDIT N\'EXISTE PAS · comme Fortnite : fenêtre, porte, arche, demi-mur, triangle…';
+      if (p.t === 'sol' && sel.length === 4) msg = '❌ GARDE AU MOINS UNE CASE DU SOL';
+      if (p.t === 'esc' && sel.length && (sel.length !== 2 || rampDir(ESEL[0], ESEL[1]) < 0)) msg = '❌ ESCALIER : choisis 2 cases côte à côte, du BAS vers le HAUT';
+      if (msg) { C.toast(msg); C.tone('square', 220, 160, .12, .06); return; }   // on garde la grille ouverte pour corriger
+      EDW = null; var net;
+      if (p.t === 'esc') { if (sel.length) { var nd = rampDir(ESEL[0], ESEL[1]); editApply(p, nd); net = 'd' + nd; } }
+      else { editApply(p, EMK); net = p.mask ? p.mask.map(Number).join('') : ''; }
+      support(); if (HOOK && net != null) HOOK('e', { key: p.key, mask: net }); gridDraw(); editPop(p); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
+    var h = aimEdit(); if (!h) { C.toast('VISE UNE DE TES CONSTRUCTIONS POUR L\'ÉDITER'); return; }
+    EDRAG = 0; ELASTI = -1; ESEL = []; EDW = h.p; var n = NT(h.p); EMK = (h.p.t !== 'esc' && h.p.mask && h.p.mask.length === n ? h.p.mask : new Array(n).fill(false)).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw();
+    C.toast(h.p.t === 'esc' ? '✏️ ESCALIER : glisse du bas vers le haut sur 2 cases' : C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
+  function editPop(p) { C.burst(p.x, p.L + (p.t === 'mur' ? LH / 2 : .4), p.z, 12, ['#4fb8ff', '#dff4ff', '#ffffff'], 3, .12, .45); }   // petites étincelles bleues à la validation
   var EPREV = null;
-  function editTap() { if (!EDW) return; var h = aimWall(); if (!h || h.p !== EDW) return; var o = h.o, d = h.d, p = EDW, ax = p.hw > p.hd, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
-    var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))), i = r * 3 + c; EMK[i] = !EMK[i]; ELASTI = i; gridDraw(); C.tone('square', EMK[i] ? 520 : 760, 0, .05, .04); }
+  function editCell() { if (!EDW) return -1; var h = aimEdit(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
+    if (p.t !== 'mur') return (x > p.x ? 1 : 0) + (z > p.z ? 2 : 0);
+    var ax = p.hw > p.hd, u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
+  function editSet(i, on) { EMK[i] = on; var k = ESEL.indexOf(i); if (on && k < 0) ESEL.push(i); if (!on && k >= 0) ESEL.splice(k, 1); }
+  function editTap() { var i = editCell(); if (i < 0) return; editSet(i, !EMK[i]); ELASTI = i; gridDraw(); C.tone('square', EMK[i] ? 520 : 760, 0, .05, .04); }
   var EDRAG = 0, ELASTI = -1;
-  function editCell() { if (!EDW) return -1; var h = aimWall(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, ax = p.hw > p.hd, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
-    var u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
-  function editDrag() { var i = editCell(); if (i < 0 || i === ELASTI) return; ELASTI = i; if (!EMK[i]) { EMK[i] = true; gridDraw(); C.tone('square', 520, 0, .05, .04); } }   /* on glisse en gardant appuyé : chaque case survolée s'enlève */
-  function editReset() {   // clic droit en édition (comme Fortnite) : la pièce redevient d'origine (plus de fenêtre / porte), sans recliquer les cases
-    var p = EDW; if (!p) { var h = aimWall(); if (!h) return false; p = h.p; } EDW = null; wallFree(p); p.mask = null; p.v = null; p._cp = null; wallSegs(p, p.im); if (HOOK) HOOK('e', { key: p.key, mask: '' }); gridDraw();
-    if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ MUR RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
+  function editDrag() { var i = editCell(); if (i < 0 || i === ELASTI) return; ELASTI = i; if (!EMK[i]) { editSet(i, true); gridDraw(); C.tone('square', 520, 0, .05, .04); } }   /* on glisse en gardant appuyé : chaque case survolée est choisie */
+  function editReset() {   // clic droit en édition (comme Fortnite) : la pièce redevient d'origine, sans recliquer les cases
+    var p = EDW; if (!p) { var h = aimEdit(); if (!h) return false; p = h.p; } EDW = null; var net = '';
+    if (p.t === 'esc') { editApply(p, p.d0 != null ? p.d0 : p.d); net = 'd' + p.d; } else editApply(p, null);
+    support(); if (HOOK) HOOK('e', { key: p.key, mask: net }); gridDraw();
+    if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ ' + { mur: 'MUR', sol: 'SOL', esc: 'ESCALIER' }[p.t] + ' RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
   function editCancel() { if (!EDW) return; EDW = null; gridDraw(); TOOL = EPREV === 'edit' ? null : EPREV; }
   function ghostShow(p, ok) {
     if (!GHOST) { GHOST = {}; var gm = new T.MeshBasicMaterial({ color: '#7fd4ff', transparent: true, opacity: .42, depthWrite: false, depthTest: true }); GHOST.mat = gm; var gl = new T.LineBasicMaterial({ color: '#e8f8ff', transparent: true, opacity: .9, depthWrite: false }); GHOST.lm = gl;
@@ -400,9 +452,9 @@
     else if (p.t === 'lit' || p.t === 'coffre') { m.position.set(p.x, p.L, p.z); m.rotation.set(0, -p.d + Math.PI / 2, 0); m.scale.set(1, 1, 1); }
     else { var o = O3 || (O3 = new T.Object3D()); pieceMatrix(p, o); m.position.copy(o.position); m.rotation.copy(o.rotation); m.scale.copy(o.scale); if (p.t === 'sol') m.scale.y = .32; } }
   function groundAt(x, z, y) { var g = -1e9, lim = y + .75;   // les rampes se montent sans sauter (on « accroche » jusqu'à 1,3 m)
-    for (var wi = 0; wi < C.WALLS.length; wi++) { var w = C.WALLS[wi]; if (!w.alive || Math.abs(x - w.x) > w.hw + .22 || Math.abs(z - w.z) > w.hd + .22) continue; var wt = w.y0 + w.h; if (wt <= lim && wt > g) g = wt; }   // on peut tenir debout sur le haut des murs
+    for (var wi = 0; wi < C.WALLS.length; wi++) { var w = C.WALLS[wi]; if (!w.alive || w.flat || Math.abs(x - w.x) > w.hw + .22 || Math.abs(z - w.z) > w.hd + .22) continue; var wt = w.y0 + w.h; if (wt <= lim && wt > g) g = wt; }   // on peut tenir debout sur le haut des murs
     for (var i = 0; i < PIECES.length; i++) { var p = PIECES[i]; if (p.t === 'mur') continue; var dx = x - p.x, dz = z - p.z; if (Math.abs(dx) > CELL / 2 + .05 || Math.abs(dz) > CELL / 2 + .05) continue; var h;
-      if (p.t === 'sol') h = p.L + .08;
+      if (p.t === 'sol') { if (p.mask && p.mask[(dx > 0 ? 1 : 0) + (dz > 0 ? 2 : 0)]) continue; h = p.L + .08; }
       else if (p.t === 'esc') { var u = (p.d === 0 ? dx : p.d === 1 ? dz : p.d === 2 ? -dx : -dz) + CELL / 2; h = p.L + .02 + Math.max(0, Math.min(CELL, u)) * LH / CELL; if (h <= y + 1.3 && h > g) { g = h; continue; } }
       else if (p.t === 'lit') continue;
       else h = p.L + 2.4 * (1 - Math.max(Math.abs(dx), Math.abs(dz)) / (CELL / 2));
@@ -777,7 +829,7 @@
         o.ra = th; o.rb = -.06; o.rw = 0; o.re = 0; o.la = th - .12; o.lb = -.62; o.lw = .35; o.le = .55; /* pioche bien DROITE dans l'axe, main gauche qui vient aider */ o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); }   // pioche à DEUX mains (main gauche plus haut sur le manche), comme Fortnite
       else { o.ra = 1.3; o.rb = .05; o.re = .15; o.rw = .25; o.la = 1.0; o.lb = -.5; o.le = .75; o.lw = .45; } },   // plan de construction tenu dans la main gauche, main droite qui vise
     blendK: function () { return TOOL === 'pioche' ? 30 : 12; },
-    tool: function () { return TOOL; }, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
+    tool: function () { return TOOL; }, ceil: ceilAt, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
     toolName: function () { if (TOOL === 'place') return 'Poser ' + (PLACEK === 'lit' ? 'le LIT 🛏' : 'le COFFRE 📦') + ' · tire pour poser'; return TOOL === 'pioche' ? 'Pioche ⛏ · arbres = bois, rochers = pierre, carcasses = métal' : PIECE === 'lit' ? 'Construire 🔨 · LIT (30 bois) = réapparition' : 'Construire 🔨 · ' + PNAME[PIECE] + ' en ' + NAME[MATK].toLowerCase() + ' (' + COST + ')'; },
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
