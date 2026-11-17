@@ -1,0 +1,1 @@
+venice_sunset_1k.hdr : Poly Haven (https://polyhaven.com), licence CC0. Récupéré dans le dépôt three.js (examples/textures/equirectangular, tag r128).

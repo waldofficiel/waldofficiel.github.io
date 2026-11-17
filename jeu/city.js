@@ -285,7 +285,7 @@
           var tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; return tx; }
     ctx.TOWNS.forEach(function (t, ti) {
       var R = t[3], kind = t[4];
-      for (var n = 0; n < (kind === 'arena' ? 0 : kind === 'centre' ? 60 : 32); n++) {
+      for (var n = 0; n < (kind === 'arena' || window.MODE === 'city' ? 0 : kind === 'centre' ? 60 : 32); n++) {
         var a = r() * 6.283, d = R * (.35 + r() * .55), x = t[1] + Math.cos(a) * d, z = t[2] + Math.sin(a) * d, y = hgt(x, z);
         if (ctx.HOUSES.some(function (h) { return Math.abs(h.x - x) < h.hx + 2 && Math.abs(h.z - z) < h.hz + 2; })) continue; if (kind === 'centre' && Math.hypot(x - t[1], z - t[2]) < 11.5) continue; if (kind === 'centre' && DES && z - t[2] > 20) continue;
         var q = r(), ry = a + Math.PI / 2;
