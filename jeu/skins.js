@@ -323,7 +323,9 @@
   window.SKIN_IDS = ['wald', 'flubb', 'lea', 'stan', 'rico', 'nova'];
   window.buildSkin = function (THREE, id, opts) {
     init(THREE); var R = rig(), cols = (B[id] || B.wald)(R, opts); if (id !== 'zombie') gear(R, id === 'flubb' ? .55 : 1);
-    if (id !== 'zombie' && id !== 'flubb') { R.head.scale.setScalar(.52); R.head.position.y -= .095; }   /* v114 : tête nettement plus petite (≈ 1/7 de la taille, entre Roblox et Fortnite) */   /* MANNEQUIN commun : même squelette pour tous les skins, tête plus petite (proportions plus réalistes, comme Fortnite) */
+    if (id !== 'zombie' && id !== 'flubb') { R.head.scale.setScalar(.52); R.head.position.y -= .095; }
+    else if (id === 'flubb') { R.head.scale.setScalar(.66); R.head.position.y -= .06; }   /* Flubb aussi : tête plus petite comme les autres */
+    if (id !== 'zombie') { R.body.scale.set(.9, 1, .84); R.head.scale.x /= .9; R.head.scale.z /= .84; }   /* corps plus fin (épaules, torse, bras et jambes resserrés) ; la tête garde sa forme */   /* v114 : tête nettement plus petite (≈ 1/7 de la taille, entre Roblox et Fortnite) */   /* MANNEQUIN commun : même squelette pour tous les skins, tête plus petite (proportions plus réalistes, comme Fortnite) */
     R.cols = cols; return skinify(R);
   };
   /* ---------- SQUELETTE COMMUN : tous les persos passent par ici ----------
@@ -336,7 +338,7 @@
     root.updateMatrixWorld(true);
     var names = ['body', 'lL', 'lR', 'aL', 'aR', 'head'], groupsP = names.map(function (n) { return R[n]; });
     function bone(par, v) { var b = new T3.Bone(); b.position.copy(v); if (par) par.add(b); return b; }
-    var P = function (n) { return R[n].position.clone(); };
+    var P = function (n) { return root.worldToLocal(R[n].getWorldPosition(new T3.Vector3())); };   // position réelle (le corps peut être resserré)
     var bB = bone(null, new T3.Vector3()), bLL = bone(bB, P('lL')), bKL = bone(bLL, new T3.Vector3(0, KY, 0)), bLR = bone(bB, P('lR')), bKR = bone(bLR, new T3.Vector3(0, KY, 0)),
         bAL = bone(bB, P('aL')), bEL = bone(bAL, new T3.Vector3(0, EY, 0)), bAR = bone(bB, P('aR')), bER = bone(bAR, new T3.Vector3(0, EY, 0)), bH = bone(bB, P('head'));
     var bones = [bB, bLL, bKL, bLR, bKR, bAL, bEL, bAR, bER, bH];

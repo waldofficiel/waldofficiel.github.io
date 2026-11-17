@@ -21,11 +21,12 @@
     ['male_adult_12', 'm', 'Marco', 1559600], ['female_adult_17', 'f', 'Léa', 2129088], ['male_adult_16', 'm', 'Diego', 1562428], ['female_party_01', 'f', 'Maya', 2535320],
     ['male_adult_17', 'm', 'Yanis', 1562248], ['female_party_02', 'f', 'Nina', 2463928], ['business_male_02', 'm', 'Tony', 1811828], ['business_female_01', 'f', 'Clara', 2133276]];
   RB.forEach(function (r, i) { SRC['c' + i] = 'models/rb/' + r[0] + '.glb'; SIZE['c' + i] = r[3]; });
-  function prep(g) { g.scene.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; o.frustumCulled = false; if (o.material && o.material.roughness != null) o.material.roughness = Math.max(.45, o.material.roughness || .6); } }); }
+  function prep(g, civ) { g.scene.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; o.frustumCulled = false;
+      if (civ && o.geometry) { o.geometry.computeBoundingSphere(); o.geometry.boundingSphere.radius *= 1.35; o.frustumCulled = true; }   /* citadins (pose de base debout, animations sur place) : pas dessinés quand ils sont hors de l'écran */ if (o.material && o.material.roughness != null) o.material.roughness = Math.max(.45, o.material.roughness || .6); } }); }
   function busyEnd(k) { delete BUSY[k]; if (!Object.keys(BUSY).length) { PROG = {}; ui(1); } else ui(Math.min(.99, prog())); }
   /* téléchargement À LA DEMANDE : chaque modèle est chargé la première fois qu'un perso en a besoin (barre « ⬇ TÉLÉCHARGEMENT ») */
   function need(k) { if (G[k] || BUSY[k] || !SRC[k] || !T || !T.GLTFLoader) return; BUSY[k] = 1; PROG[k] = [0, SIZE[k] || 2e6]; ui(prog());
-    new T.GLTFLoader().load(SRC[k], function (g) { G[k] = g; prep(g); PROG[k][0] = PROG[k][1]; busyEnd(k); WAIT.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); },
+    new T.GLTFLoader().load(SRC[k], function (g) { G[k] = g; prep(g, /^c\d+$/.test(k)); PROG[k][0] = PROG[k][1]; busyEnd(k); WAIT.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); },
       function (e) { PROG[k] = [e.loaded, e.total || SIZE[k]]; ui(Math.min(.99, prog())); },
       function (e) { console.warn('REAL ' + k, e && (e.message || e)); G[k] = null; busyEnd(k); }); }
   function needAnims() { if (ANIMS || ANIMB || !T) return; ANIMB = true; BUSY.anims = 1; PROG.anims = [0, 910963];

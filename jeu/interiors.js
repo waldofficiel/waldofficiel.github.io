@@ -325,6 +325,15 @@
         if (--left === 0) done(); }, undefined, function () { if (--left === 0) done(); }); });
   }
 
+  function boxT(ox, oy, oz, dx, dy, dz, x0, y0, z0, x1, y1, z1) { var tn = 0, tf = 1e9, O = [ox, oy, oz], D = [dx, dy, dz], A = [x0, y0, z0], B = [x1, y1, z1];
+    for (var k = 0; k < 3; k++) { if (Math.abs(D[k]) < 1e-9) { if (O[k] < A[k] || O[k] > B[k]) return 1e9; continue; } var a = (A[k] - O[k]) / D[k], b = (B[k] - O[k]) / D[k]; if (a > b) { var c = a; a = b; b = c; } if (a > tn) tn = a; if (b < tf) tf = b; if (tn > tf) return 1e9; } return tn; }
+  /* meubles REGROUPÉS : un objet posé sur un autre (ordi sur le bureau, lampe sur la table…) forme un seul bloc : même vie, ils cassent ensemble */
+  function baseOf(p) { for (var k = 0; k < 4; k++) { var up = null; for (var i = 0; i < PLACED.length; i++) { var q = PLACED[i]; if (q === p || q.dead || !TPL[q.n]) continue; var tq = TPL[q.n]; if (Math.abs(p.y - (q.y + tq.s.y)) < .25 && Math.abs(p.x - q.x) < tq.s.x / 2 + .1 && Math.abs(p.z - q.z) < tq.s.z / 2 + .1) { up = q; break; } } if (!up) break; p = up; } return p; }
+  function onTop(b) { var t = TPL[b.n], L = []; PLACED.forEach(function (q) { if (q === b || q.dead || !TPL[q.n]) return; if (q.y > b.y + t.s.y * .5 && q.y < b.y + t.s.y + .3 && Math.abs(q.x - b.x) < t.s.x / 2 + .1 && Math.abs(q.z - b.z) < t.s.z / 2 + .1) L.push(q); }); return L; }
+  function killPlaced(p) { p.dead = true; var P = p.mesh.geometry.attributes.position; for (var v = p.v0; v < p.v1; v++) P.setXYZ(v, p.x, p.y - 50, p.z); P.needsUpdate = true; }
+  function hitPlaced(best, dmg) { best = baseOf(best); var tt = TPL[best.n], grp = onTop(best), big = grp.length > 0 || Math.max(tt.s.x, tt.s.y, tt.s.z) > 1.15 || tt.s.x * tt.s.y * tt.s.z > .6; if (best.hp == null) best.hmax = best.hp = big ? 100 : 50;
+    best.hp -= dmg; var out = { x: best.x, y: best.y + tt.s.y + .4, z: best.z, hp: Math.max(0, best.hp), max: best.hmax, big: big, dead: best.hp <= 0 };
+    if (best.hp <= 0) { killPlaced(best); grp.forEach(killPlaced); } return out; }
   window.INTERIORS = {
     build: function (THREE, c) { T = THREE; ctx = c;
       ctx.HOUSES.forEach(function (hs) { hs.ty = houseType(hs); });
@@ -343,10 +352,12 @@
       for (var i = 0; i < PLACED.length; i++) { var p = PLACED[i]; if (p.dead || !p.mesh || Math.abs(p.x - ox) > rng + 2 || Math.abs(p.z - oz) > rng + 2) continue; var t = TPL[p.n]; if (!t) continue;
         if (oy + .6 < p.y || oy - 1.4 > p.y + t.s.y) continue; var dx = p.x - ox, dz = p.z - oz, r = Math.max(t.s.x, t.s.z) / 2, d = Math.hypot(dx, dz) - r * .7; if (d > bd) continue;
         if ((dx * fx + dz * fz) / (Math.hypot(dx, dz) || 1) < .35 && d > .2) continue; bd = d; best = p; }
-      if (!best) return null; var tt = TPL[best.n], big = Math.max(tt.s.x, tt.s.y, tt.s.z) > 1.15 || tt.s.x * tt.s.y * tt.s.z > .6; if (best.hp == null) best.hmax = best.hp = big ? 100 : 50;
-      best.hp -= dmg; var out = { x: best.x, y: best.y + tt.s.y + .4, z: best.z, hp: Math.max(0, best.hp), max: best.hmax, big: big, dead: best.hp <= 0 };
-      if (best.hp <= 0) { best.dead = true; var P = best.mesh.geometry.attributes.position; for (var v = best.v0; v < best.v1; v++) P.setXYZ(v, best.x, best.y - 50, best.z); P.needsUpdate = true; }
-      return out; },
+      return best ? hitPlaced(best, dmg) : null; },
+    /* tir sur un meuble (balles) : boîte du meuble touchée par le rayon → dégâts */
+    ray: function (ox, oy, oz, dx, dy, dz, T, dmg) { var best = null, bt = T;
+      for (var i = 0; i < PLACED.length; i++) { var p = PLACED[i]; if (p.dead || !p.mesh) continue; var t = TPL[p.n]; if (!t) continue; var hx = t.s.x / 2 + .05, hz = t.s.z / 2 + .05, hr = Math.max(hx, hz);
+        if (Math.abs(p.x - ox) > T + hr || Math.abs(p.z - oz) > T + hr) continue; var tt = boxT(ox, oy, oz, dx, dy, dz, p.x - hr, p.y, p.z - hr, p.x + hr, p.y + t.s.y, p.z + hr); if (tt < bt) { bt = tt; best = p; } }
+      if (!best) return null; var o = hitPlaced(best, dmg); o.t = bt; return o; },
     stats: function () { var nv = 0; FIX.clusters.forEach(function (q) { nv += q.m.geometry.attributes.position.count; }); return { verts: nv, windows: FIX.win ? FIX.win.list.length : 0, furniture: PLACED.length, clusters: FIX.clusters.length, floors: FLOORED.length, ready: !!FIX.ready }; }
   };
 })();
