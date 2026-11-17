@@ -529,7 +529,15 @@ var isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window
 /* modes : BATTLE ROYALE (la carte change toute seule toutes les 10 min : Los Campagnes / Sable Rouge) et SURVIE (Terres Sauvages, monde 2x plus grand, seul).
    La page se recharge pour construire la carte ; ?map=xxx force une carte (tests). */
 var MAPS = { campagne: 'LOS CAMPAGNES', desert: 'SABLE ROUGE', survie: 'TERRES SAUVAGES', propane: 'MINI-ÎLE' }, BRMAPS = ['campagne', 'desert'], ROT = 600000;
-function brMap(t) { return BRMAPS[Math.floor((t || Date.now()) / ROT) % BRMAPS.length]; }
+/* HEURE DU SERVEUR : la rotation des cartes (toutes les 10 min) se cale sur l'heure d'internet, pas sur l'horloge du téléphone / du PC
+   → même carte et même compte à rebours pour TOUT LE MONDE au même moment (avant : un appareil pas à l'heure pouvait être sur l'autre carte) */
+var SRVOFF = 0, SRVSRC = ''; try { var so0 = JSON.parse(localStorage.getItem('wr_srvoff') || 'null'); if (so0 && Date.now() - so0.t < 864e5) SRVOFF = so0.o; } catch (e) {}
+function NOW() { return Date.now() + SRVOFF; }
+window.SRVSET = function (o, src) { if (!isFinite(o)) return; if (SRVSRC === 'fb' && src !== 'fb') return; SRVOFF = o; SRVSRC = src; try { localStorage.setItem('wr_srvoff', JSON.stringify({ o: o, t: Date.now() })); } catch (e) {} };
+(function () { var t0 = Date.now();   /* 1) même site : en-tête Date de la page ; 2) sinon une horloge publique ; 3) Firebase (wgfire.js) quand le compte est en ligne */
+  fetch(location.origin + location.pathname + '?t=' + t0, { method: 'HEAD', cache: 'no-store' }).then(function (r) { var d = Date.parse(r.headers.get('date') || ''), t1 = Date.now(); if (isFinite(d) && /^https?:/.test(location.protocol) && !/localhost|127\.0\.0\.1|appassets/.test(location.host)) window.SRVSET(d + 500 - (t0 + t1) / 2, 'http'); else throw 0; })
+    .catch(function () { var t2 = Date.now(); fetch('https://worldtimeapi.org/api/timezone/Etc/UTC', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) { var t3 = Date.now(), u = j && (j.unixtime * 1000 || Date.parse(j.utc_datetime)); if (isFinite(u) && u > 1e12) window.SRVSET(u - (t2 + t3) / 2, 'wta'); }).catch(function () {}); }); })();
+function brMap(t) { return BRMAPS[Math.floor((t || NOW()) / ROT) % BRMAPS.length]; }
 /* 4 modes : br (Battle Royale avec constructions), zb (Zéro Construction : pas de constructions, bulle bouclier), survie (zombies), creatif (terrain de jeu : constructions illimitées, armurerie) */
 var MODES = { cs: 'CS WILD GO', br: 'BATTLE ROYALE', zb: 'ZÉRO CONSTRUCTION', survie: 'SURVIE', creatif: 'CRÉATIF', bf: 'MAP 1V1', prop: 'PROP HUNT', lave: 'SOL EN LAVE', obby: 'PARCOURS', gg: 'GUN GAME', mm: 'MEURTRE MYSTÈRE', ile: 'ÎLE VIDE', zw: 'FIN DE ZONE', city: 'WALD CITY' };   // bf / prop = maps publiques n°1 et n°2 du mode créatif   // bf = map publique n°1 du mode créatif
 var MODE = 'br'; try { var mm = localStorage.getItem('wr_mode'); if (MODES[mm]) MODE = mm; } catch (e) {}
@@ -4393,8 +4401,8 @@ document.querySelectorAll('#subST [data-st]').forEach(function (b) { b.addEventL
 setTimeout(pubList, 1200); document.querySelectorAll('#mgrp [data-g=creatif]').forEach(function (b) { b.addEventListener('click', function () { setTimeout(pubList, 100); }); });
 mgrpDraw();
 // rotation des cartes du Battle Royale : toutes les 10 minutes ; au menu, la nouvelle carte se charge toute seule
-setInterval(function () { if (SURV || PROPM || MODE === 'zw') { $('rotT').textContent = ''; return; } var CURM = MODE; var left = ROT - Date.now() % ROT, sec = Math.ceil(left / 1000);
-  $('rotT').textContent = '⏱ ' + MAPS[brMap(Date.now() + left + 1000)] + ' dans ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+setInterval(function () { if (SURV || PROPM || MODE === 'zw') { $('rotT').textContent = ''; return; } var CURM = MODE; var left = ROT - NOW() % ROT, sec = Math.ceil(left / 1000);
+  $('rotT').textContent = '⏱ ' + MAPS[brMap(NOW() + left + 1000)] + ' dans ' + Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
   if (state === 'menu' && !$('lobby').hidden && brMap() !== MAP && !/[?&]map=/.test(location.search) && !document.body.classList.contains('buying')) goMap(brMap(), CURM); }, 1000);
 
 /* ================= installation ================= */
