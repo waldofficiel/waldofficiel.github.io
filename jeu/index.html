@@ -1675,6 +1675,13 @@ function crBotsTick(dt) { if (!ROUND || ROUND.by !== NETID) return; var now = pe
   Object.keys(BOTS).forEach(function (id) { var p = BOTS[id];
     if ((TPL === 'bf' || TPL === 'libre') && !p.alive && now - p.deadT > 4000 && (!RCUR || RCUR.resp) && rLive()) crBotPlace(p);   /* Fin de zone : jamais de réapparition pendant la manche */
     if (TPL === 'gg' && !p.alive && now - p.deadT > 2500) { p.noai = false; ggSpawn(p); }
+    if (TPL === 'mm' && p.alive && p.noai && ROUND.ph !== 'end') {   /* MEURTRE MYSTÈRE : les bots sans arme se baladent dans le village (et fuient le meurtrier démasqué) au lieu de rester plantés */
+      var mz = ROUND.mrev && ROUND.mur !== id ? (ROUND.mur === NETID ? me : NETP[ROUND.mur] || BOTS[ROUND.mur]) : null;
+      if (mz && mz.alive !== false && dist(mz.x, mz.z, p.x, p.z) < 18) { var fa = Math.atan2(p.z - mz.z, p.x - mz.x); p.wx = p.x + Math.cos(fa) * 14; p.wz = p.z + Math.sin(fa) * 14; p.wT = now + 1500; p.run = 1; }
+      if (!p.wT || now > p.wT || p.wx == null) { var c0m = TOWNS[0], am = Math.random() * 6.283, rm = 6 + Math.random() * 34; p.wx = c0m[1] + Math.cos(am) * rm; p.wz = c0m[2] + Math.sin(am) * rm; p.wT = now + 4000 + Math.random() * 6000; p.run = 0; p.wait = Math.random() < .35 ? now + 1500 + Math.random() * 2500 : 0; }
+      var wdx = p.wx - p.x, wdz = p.wz - p.z, wd = Math.hypot(wdx, wdz);
+      if (wd > 1.2 && !(p.wait > now)) { var sp = p.run ? 6 : 3.1; p.vx = wdx / wd * sp; p.vz = wdz / wd * sp; p.x += p.vx * dt; p.z += p.vz * dt; p.a = Math.atan2(wdz, wdx); pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV && SV.groundAt) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y) || -1e9); p.y += (p.gy - p.y) * Math.min(1, dt * 10); }
+      else { p.vx = p.vz = 0; } }
     if (TPL === 'prop') { if (id === ROUND.seek) { p.noai = true; p.inv = [newSlot('pompe'), null, null];
         if (ROUND.ph === 'hide') { p.x = ISL + 40; p.z = ISL + 50; p.y = p.gy = 140; }
         else if (ROUND.ph === 'hunt' && p.alive) { if (!p.tg || p.tgT < now) { var c0 = TOWNS[0]; if (p.y > 100) { p.x = c0[1]; p.z = c0[2] + 4; p.y = p.gy = hgt(p.x, p.z); }
@@ -1802,14 +1809,31 @@ function devMesh(d) { if (CITYD[d.k] && window.CITY6) { wallsDrop(d.walls); var 
   if (d.off) g.visible = false;
   g.position.set(d.x, d.y, d.z); g.traverse(function (o) { o.userData.dyn = true; }); return g; }
 function devBuild() { if (DEVG) scene.remove(DEVG); DEVG = new THREE.Group(); DEVG.userData.dyn = true; DEV.forEach(function (d) { if (d.x0 == null) d.x0 = d.x; d.g = devMesh(d); DEVG.add(d.g); }); scene.add(DEVG); }
-function obbyGen() { var R = mrng(777), T0 = TOWNS[0], x = T0[1] + 24, z = T0[2] + 18, y = hgt(x, z) + .6, a = R() * 6.283, L = [];
-  L.push({ k: 'cp', x: x, y: y, z: z, s: 4.5 });
-  for (var st = 0; st < 5; st++) {
-    for (var i = 0; i < 8; i++) { a += (R() - .5) * 1.1; var gap = 1.2 + R() * (.9 + st * .18), sz = Math.max(1.8, 3.2 - st * .25 - R() * .6), prev = L[L.length - 1], dd = (prev.s || 3.2) / 2 + gap + sz / 2;
-      x = prev.x + Math.cos(a) * dd; z = prev.z + Math.sin(a) * dd; y = prev.y + .2 + R() * .5; var r = R(), k = r < .2 + st * .05 ? 'mv' : 'pf';
-      L.push({ k: k, x: x, y: y, z: z, s: sz });
-      if (r > .8) { var sa = a + Math.PI / 2, kd = sz + .5; L.push({ k: 'kill', x: x + Math.cos(sa) * kd, y: y, z: z + Math.sin(sa) * kd, s: sz }); L.push(L.splice(L.length - 2, 1)[0]); } }   // un bloc mortel à côté (le chemin reste le dernier élément)
-    var p2 = L[L.length - 1]; a += (R() - .5) * .6; var d2 = (p2.s || 3.2) / 2 + 2 + 2.25; L.push({ k: st === 4 ? 'fin' : 'cp', x: p2.x + Math.cos(a) * d2, y: p2.y + .3, z: p2.z + Math.sin(a) * d2, s: 4.5 }); }
+/* PARCOURS façon « deathrun » Fortnite : 8 ÉPREUVES enchaînées (≈ 130 blocs), chacune un vrai module avec son point de passage :
+   escalier en spirale, poteaux, couloir piégé, plateformes qui bougent, damier de lave, tour en zigzag, grands sauts, pont final */
+function obbyGen() { var R = mrng(777), T0 = TOWNS[0], x = T0[1] + 20, z = T0[2] + 14, y = hgt(x, z) + 2, a = 0, L = [];
+  function add(k, dx, dy, dz, sz) { var p = L[L.length - 1]; L.push({ k: k, x: p.x + dx, y: p.y + dy, z: p.z + dz, s: sz }); return L[L.length - 1]; }
+  function fwd(d) { return [Math.cos(a) * d, Math.sin(a) * d]; }
+  function cp(k) { var p = L[L.length - 1], f = fwd((p.s || 3) / 2 + 3.6); L.push({ k: k || 'cp', x: p.x + f[0], y: p.y + .4, z: p.z + f[1], s: 5 }); a += (R() - .5) * .8; }
+  L.push({ k: 'cp', x: x, y: y, z: z, s: 6 });
+  // 1. escalier en spirale qui monte
+  var cx = L[0].x + 9, cz = L[0].z, y0 = L[0].y; for (var i = 0; i < 14; i++) { var t = i / 14 * Math.PI * 2.4; L.push({ k: 'pf', x: cx + Math.cos(t + Math.PI) * 7, y: y0 + 1 + i * .9, z: cz + Math.sin(t + Math.PI) * 7, s: 2.6 }); } a = Math.PI * 2.4 + Math.PI / 2; cp();
+  // 2. poteaux : petits blocs espacés, un peu de travers
+  for (i = 0; i < 12; i++) { var f = fwd(2.9 + R() * .9), sd = (R() - .5) * 2.2; add('pf', f[0] - Math.sin(a) * sd, (R() - .4) * .6, f[1] + Math.cos(a) * sd, 1.3); } cp();
+  // 3. couloir piégé : chemin étroit avec des blocs mortels qui alternent sur les côtés
+  for (i = 0; i < 10; i++) { var f3 = fwd(2.2), p3 = add('pf', f3[0], 0, f3[1], 2); if (i % 2 === 0) { var s3 = i % 4 ? 1 : -1; L.push({ k: 'kill', x: p3.x - Math.sin(a) * 2 * s3, y: p3.y + .01, z: p3.z + Math.cos(a) * 2 * s3, s: 2 }); L.push(L.splice(L.length - 2, 1)[0]); } } cp();
+  // 4. plateformes qui bougent
+  for (i = 0; i < 8; i++) { var f4 = fwd(4.2 + R()); add('mv', f4[0], .3, f4[1], 2.6); } cp();
+  // 5. damier de lave : 5 rangées de 4, une seule case sûre change à chaque rangée (les autres = mortelles)
+  var b5 = L[L.length - 1], safe = R() * 4 | 0; for (var r5 = 0; r5 < 5; r5++) { safe = Math.max(0, Math.min(3, safe + (R() * 3 | 0) - 1)); for (var c5 = 0; c5 < 4; c5++) { var fx = Math.cos(a), fz = Math.sin(a), u = (c5 - 1.5) * 2.6, v = (b5.s / 2 + 2) + r5 * 2.6; L.push({ k: c5 === safe ? 'pf' : 'kill', x: b5.x + fx * v - fz * u, y: b5.y, z: b5.z + fz * v + fx * u, s: 2.5 }); }
+    if (r5 === 4) { var last = L.filter(function (q, qi) { return qi >= L.length - 4 && q.k === 'pf'; })[0]; L.push(L.splice(L.indexOf(last), 1)[0]); } } cp();
+  // 6. tour en zigzag (on monte vite)
+  for (i = 0; i < 12; i++) { var zz = (i % 2 ? 1 : -1) * 2.6, f6 = fwd(1.2); add('pf', f6[0] - Math.sin(a) * zz, 1.15, f6[1] + Math.cos(a) * zz, 2.2); } cp();
+  // 7. grands sauts (prends de l'élan) au-dessus du vide
+  for (i = 0; i < 7; i++) { var f7 = fwd(5.6 + R() * .8); add(i % 3 === 2 ? 'mv' : 'pf', f7[0], -.2, f7[1], 3); } cp();
+  // 8. pont final : planches étroites, blocs mortels qui bougent pas, puis l'arrivée
+  for (i = 0; i < 14; i++) { var f8 = fwd(1.9), p8 = add('pf', f8[0], .05, f8[1], 1.6); if (i % 3 === 1) { L.push({ k: 'kill', x: p8.x - Math.sin(a) * 1.7, y: p8.y + .01, z: p8.z + Math.cos(a) * 1.7, s: 1.6 }); L.push({ k: 'kill', x: p8.x + Math.sin(a) * 1.7, y: p8.y + .01, z: p8.z - Math.cos(a) * 1.7, s: 1.6 }); L.push(L.splice(L.length - 3, 1)[0]); } }
+  cp('fin');
   L.forEach(function (d, i) { d.x0 = d.x; d.id = i + 1; }); DEVID = L.length + 1; return L; }
 function devTop(px, pz, py) { var best = -1e9, hit = null; for (var i = 0; i < DEV.length; i++) { var d = DEV[i], h2 = (d.s || 3.2) / 2 + .3; if (d.off || d.k === 'zn' || CITYD[d.k]) continue;
     if (DECO[d.k]) { var DK = DECO[d.k]; if (!DK[1]) continue; var hw0 = d.k === 'rocher' ? 1.1 * (d.s || 1) : d.k === 'baril' ? .45 : .65, top0 = d.y + DK[0] * (d.k === 'rocher' ? (d.s || 1) : 1); if (Math.abs(px - d.x) > hw0 || Math.abs(pz - d.z) > hw0) continue; if (py >= top0 - 1.2 && top0 > best) { best = top0; hit = { y: top0, k: d.k, d: d }; } continue; }
