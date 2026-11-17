@@ -3788,6 +3788,40 @@ var RANCH = new THREE.Group(); lscene.add(RANCH);
   var lamp = new THREE.PointLight('#ffb070', 1.2, 22); lamp.position.set(-6, 4, -8); lscene.add(lamp); var lamp2 = new THREE.PointLight('#ff4fd8', .9, 16); lamp2.position.set(5, 2.5, -1); lscene.add(lamp2);
   lsun.color.set('#ffd0a0'); lsun.intensity = 1.1; lsun.position.set(-6, 5, 6); lsun.castShadow = true;
   RANCH.userData.dyn = true; })();
+/* SALON plus vivant : vrais arbres 3D (au lieu des cônes), papillons qui volent autour du perso, poussières de lumière dans le soleil couchant,
+   rayons de soleil, fleurs dans l'herbe, lucioles qui s'allument doucement */
+var LFX = { bf: [], mote: null, rays: [], trees: false, tt: 0 };
+(function () { var R = mulberry(77);
+  /* fleurs dans l'herbe (instanciées) */
+  var fg = new THREE.SphereGeometry(.07, 6, 4), fcol = ['#ff4fa8', '#ffd23d', '#ffffff', '#c77dff', '#ff7a2a', '#7ad8ff'], fim = new THREE.InstancedMesh(fg, new THREE.MeshLambertMaterial({ color: '#ffffff' }), 260), so = new THREE.Object3D(), cc = new THREE.Color();
+  var stem = new THREE.InstancedMesh(new THREE.CylinderGeometry(.012, .012, .3, 4), new THREE.MeshLambertMaterial({ color: '#3f8a34' }), 260);
+  for (var i = 0; i < 260; i++) { var a = R() * 6.283, d = 4 + R() * 16, x = .5 + Math.cos(a) * d, z = .5 + Math.sin(a) * d * .7 - 3; if (Math.hypot(x - .5, z - .5) < 9.5 && z > -2) { i--; continue; }
+    so.position.set(x, -.3 + .3, z); so.scale.setScalar(.8 + R() * .7); so.updateMatrix(); fim.setMatrixAt(i, so.matrix); cc.set(fcol[i % fcol.length]); fim.setColorAt(i, cc); so.position.y = -.3 + .15; so.updateMatrix(); stem.setMatrixAt(i, so.matrix); }
+  fim.frustumCulled = stem.frustumCulled = false; RANCH.add(fim); RANCH.add(stem);
+  /* papillons : 2 ailes qui battent, trajet en boucle autour de l'estrade */
+  var wg = new THREE.PlaneGeometry(.3, .22); wg.translate(.15, 0, 0);
+  ['#ff4fd8', '#ffd23d', '#3de0ff', '#ff8a2a', '#b47dff', '#ffffff', '#7dff6a', '#ff4f6a', '#ffd23d', '#3de0ff', '#ff4fd8', '#ff8a2a'].forEach(function (c, i) {
+    var g = new THREE.Group(), m = new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, transparent: true, opacity: .95 }), wl = new THREE.Mesh(wg, m), wr = new THREE.Mesh(wg, m), bd = new THREE.Mesh(new THREE.CylinderGeometry(.012, .012, .12, 4), new THREE.MeshBasicMaterial({ color: '#2a1a20' }));
+    bd.rotation.x = Math.PI / 2; wr.scale.x = -1; g.add(wl, wr, bd); g.userData = { wl: wl, wr: wr, ph: R() * 6.283, sp: .25 + R() * .35, rx: 1.5 + R() * 4.5, rz: 1.2 + R() * 3, cx: R() * 3, cz: 1 - R() * 3, h: .5 + R() * 1.8, fl: 14 + R() * 8 }; RANCH.add(g); LFX.bf.push(g); });
+  /* poussières de lumière (points additifs qui flottent dans le soleil) */
+  var N = 140, pp = new Float32Array(N * 3); for (i = 0; i < N; i++) { pp[i * 3] = -12 + R() * 26; pp[i * 3 + 1] = R() * 6; pp[i * 3 + 2] = -14 + R() * 16; }
+  var pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
+  var dc = document.createElement('canvas'); dc.width = dc.height = 64; var dg = dc.getContext('2d'), rg = dg.createRadialGradient(32, 32, 0, 32, 32, 32); rg.addColorStop(0, 'rgba(255,240,200,1)'); rg.addColorStop(.35, 'rgba(255,190,120,.55)'); rg.addColorStop(1, 'rgba(255,150,120,0)'); dg.fillStyle = rg; dg.fillRect(0, 0, 64, 64);
+  LFX.mote = new THREE.Points(pg, new THREE.PointsMaterial({ size: .22, map: new THREE.CanvasTexture(dc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: '#ffd8a0' })); LFX.mote.frustumCulled = false; RANCH.add(LFX.mote);
+  /* rayons du soleil couchant (plans additifs qui partent du soleil) */
+  var rc = document.createElement('canvas'); rc.width = 16; rc.height = 256; var rgx = rc.getContext('2d'), lg = rgx.createLinearGradient(0, 0, 0, 256); lg.addColorStop(0, 'rgba(255,220,170,.0)'); lg.addColorStop(.25, 'rgba(255,200,150,.55)'); lg.addColorStop(1, 'rgba(255,140,170,0)'); rgx.fillStyle = lg; rgx.fillRect(0, 0, 16, 256);
+  var rtx = new THREE.CanvasTexture(rc); for (i = 0; i < 6; i++) { var ray = new THREE.Mesh(new THREE.PlaneGeometry(2.5 + R() * 3, 70), new THREE.MeshBasicMaterial({ map: rtx, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
+    ray.position.set(-30 + 30 * .5, 4, -82 + 82 * .5); ray.lookAt(0, 4, 0); ray.rotateZ(Math.PI / 2 + (i - 2.5) * .09); ray.rotateX((R() - .5) * .2); ray.userData.ph = R() * 6.283; RANCH.add(ray); LFX.rays.push(ray); } })();
+function lobbyFX(t) { var dt = Math.min(.05, t - (LFX.tt || t)); LFX.tt = t;
+  LFX.bf.forEach(function (g) { var u = g.userData, a = t * u.sp + u.ph, x = u.cx + Math.cos(a) * u.rx, z = u.cz + Math.sin(a * 1.3) * u.rz, y = -.3 + u.h + Math.sin(a * 3.1) * .35, f = Math.sin(t * u.fl + u.ph) * 1.1;
+    g.lookAt(x + -Math.sin(a) * u.rx, y, z + Math.cos(a * 1.3) * u.rz * 1.3); g.position.set(x, y, z); u.wl.rotation.z = .2 + f; u.wr.rotation.z = -.2 - f; });
+  if (LFX.mote) { var P = LFX.mote.geometry.attributes.position, A = P.array; for (var i = 0; i < A.length; i += 3) { A[i] += Math.sin(t * .3 + i) * dt * .25; A[i + 1] += dt * (.12 + (i % 7) * .02); if (A[i + 1] > 6) A[i + 1] = 0; } P.needsUpdate = true; LFX.mote.material.opacity = .65 + Math.sin(t * .7) * .25; }
+  LFX.rays.forEach(function (r) { r.material.opacity = .16 + .1 * Math.sin(t * .35 + r.userData.ph); });
+  if (!LFX.trees && window.TREES3D && TREES3D.disguise && TREES3D.ready && TREES3D.ready() && Math.floor(t) % 2 === 0) { LFX.trees = true;   /* vrais arbres 3D à la place des cônes */
+    var spots = [[-16, -10, 'pine'], [-13, -20, 'oak'], [15, -11, 'maple'], [19, -22, 'pine'], [-22, -26, 'pine'], [24, -6, 'oak'], [-9, -15, 'birch'], [12, -26, 'oak']], got = 0;
+    spots.forEach(function (q, i) { var g = null; for (var mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(q[2], mi, 1, [1, 1, 1]); if (!g) for (var s2 = 0, L = ['pine', 'oak', 'maple', 'birch']; s2 < 4 && !g; s2++) for (mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(L[s2], mi, 1, [1, 1, 1]); if (!g) return;
+      var bb = new THREE.Box3().setFromObject(g), hh = Math.max(.1, bb.max.y - bb.min.y); g.scale.setScalar((7 + (i % 3) * 2) / hh); g.position.set(q[0], -.3, q[1]); g.rotation.y = i * 1.7; RANCH.add(g); got++; });
+    if (got) RANCH.children.forEach(function (o) { if (o.isGroup && o.children.length === 4 && o.children[1] && o.children[1].geometry && o.children[1].geometry.type === 'ConeGeometry') o.visible = false; }); } }
 var lme = null;
 function lobbyChar() { if (lme) lscene.remove(lme.root); lme = makeChar({ sk: me.look.sk }); lscene.add(lme.root); lme.root.position.set(.8, 0, 1.4); lme.root.rotation.y = -Math.PI * .5 + .55;
   setHeld(lme, 'scar'); lme.gunHold.rotation.z = -.5; window.ANIM.apply(lme, window.ANIM.blend(lme, window.ANIM.lobbyGun(0), 1, 1), true); }
@@ -3825,7 +3859,7 @@ addEventListener('keydown', function (e) { if (e.code !== 'Escape' || state !== 
   var open = Array.from(document.querySelectorAll('.modal')).some(function (q) { return !q.hidden; }); if (open) { document.querySelectorAll('.modal').forEach(function (q) { if (q.id === 'frM') { q.hidden = true; q.classList.remove('big'); } }); return; } escMenu(true); });
 if (!isTouch) { document.body.classList.add('pcLobby'); var hb0 = document.createElement('button'); hb0.type = 'button'; hb0.id = 'escB'; hb0.textContent = '☰'; hb0.title = 'Menu (Échap)'; hb0.style.cssText = 'position:absolute;top:12px;right:18px;z-index:5;width:44px;height:40px;border-radius:12px;border:2px solid rgba(255,255,255,.2);background:rgba(11,4,24,.7);color:#fff;font:900 22px var(--body);cursor:pointer'; hb0.onclick = function () { escMenu(true); }; $('lobby').appendChild(hb0); }
 var LOBT = 0;
-function renderLobby(t) { LOBT = t; R3.shadowMap.autoUpdate = true; if (lme) { var dz = lme.danceT > 0; if (dz) lme.danceT -= 1 / 60; var LT = dz ? window.ANIM.dance(lme.dz || curDance(), t - lme.danceT0) : window.ANIM.lobbyGun(t); if (!dz) LT.hy = Math.sin(t * .8) * .25; window.ANIM.apply(lme, window.ANIM.blend(lme, LT, 1 / 60, dz ? 16 : 8), true); lme.gunHold.visible = !dz; } if (lDrag == null) { lRot += lVel; lVel *= .94; } if (lme) lme.root.rotation.y = -Math.PI * .5 + .55 + lRot; lcam.position.set(3.4, 2.15, 10.2); lcam.lookAt(lcam.aspect < 1.5 ? 2.2 : 3.2, 1.35, 0); lobbySlots(t); if (PREV) { prevTick(t);   // fiche d'achat : caméra rapprochée, l'objet à gauche de l'écran
+function renderLobby(t) { LOBT = t; try { lobbyFX(t); } catch (e) {} R3.shadowMap.autoUpdate = true; if (lme) { var dz = lme.danceT > 0; if (dz) lme.danceT -= 1 / 60; var LT = dz ? window.ANIM.dance(lme.dz || curDance(), t - lme.danceT0) : window.ANIM.lobbyGun(t); if (!dz) LT.hy = Math.sin(t * .8) * .25; window.ANIM.apply(lme, window.ANIM.blend(lme, LT, 1 / 60, dz ? 16 : 8), true); lme.gunHold.visible = !dz; } if (lDrag == null) { lRot += lVel; lVel *= .94; } if (lme) lme.root.rotation.y = -Math.PI * .5 + .55 + lRot; lcam.position.set(3.4, 2.15, 10.2); lcam.lookAt(lcam.aspect < 1.5 ? 2.2 : 3.2, 1.35, 0); lobbySlots(t); if (PREV) { prevTick(t);   // fiche d'achat : caméra rapprochée, l'objet à gauche de l'écran
     var gl2 = !!PREV.gm, D2 = gl2 ? 11 : 6.4, ty = gl2 ? 1.5 : 1.0, cx2 = .8 + 3.6 / 5.3 * D2, cz2 = 1.4 + 3.6 / 5.3 * D2 * .75; lcam.position.set(cx2, ty + (gl2 ? 2.2 : .7), cz2);
     var fx = .8 - cx2, fz = 1.4 - cz2, fl = Math.hypot(fx, fz), rx = -fz / fl, rz = fx / fl, off = (lcam.aspect > 1.3 ? .42 : .2) * D2 * .5; lcam.lookAt(.8 + rx * off, ty, 1.4 + rz * off); }
   drawScene(lscene, lcam, true); }
