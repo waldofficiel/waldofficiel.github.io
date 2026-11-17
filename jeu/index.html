@@ -2425,7 +2425,9 @@ function animChar(p, dt) {   // tout passe par le système de poses (anim.js) : 
   c.gunHold.visible = armed && p.mode === 'ground'; setHeld(c, w ? w.k : null); if (c.gun) c.gun.position.x = -(p.recoil || 0) * .6;
   c.glider.visible = p.mode === 'fall';
   if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { p.danceT -= dt; if (sp > .5 && p.danceT < 55) p.danceT = 0; }
-  if (p.ko && p.mode === 'ground') { var wg = Math.sin(now * 5 + (p.id || 0)), wg2 = Math.sin(now * 3.1); T = A.P({ bp: 1.42, by: -.62, la: 2.7 + wg * .35, ra: 2.7 - wg * .35, lb: -.25, rb: -.25, le: .5 + wg2 * .3, re: .5 - wg2 * .3, lt: .15 + wg * .25, rt: .15 - wg * .25, lk: .4 + wg2 * .3, rk: .4 - wg2 * .3, hp: -.9, hy: wg2 * .3 }); c.gunHold.visible = false; gr = false; k = 10; }   /* KO : couché par terre, il gigote */
+  if (p.mtl && p.mode === 'ground') { var mk = Math.min(1, p.mtl.t / p.mtl.dur), kick = Math.sin(now * 14); var ar = mk < .3 ? 2.95 : mk < .8 ? 2.95 - (mk - .3) / .5 * 2.3 : .65 - (mk - .8) * 1.5;
+    T = A.P({ la: ar + kick * .06, ra: ar - kick * .06, lb: -.18, rb: -.18, le: mk < .3 ? .15 : .9, re: mk < .3 ? .15 : .9, bp: mk < .3 ? -.05 : .45, lt: mk < .8 ? .35 + kick * .45 : 1.3, rt: mk < .8 ? .35 - kick * .45 : .2, lk: mk < .8 ? .6 + kick * .3 : 1.6, rk: mk < .8 ? .6 - kick * .3 : .3, hp: mk < .3 ? .35 : -.15 }); c.gunHold.visible = false; gr = false; k = 14; }   /* escalade : mains sur le bord, il se hisse, jambes qui pédalent */
+  else if (p.ko && p.mode === 'ground') { var wg = Math.sin(now * 5 + (p.id || 0)), wg2 = Math.sin(now * 3.1); T = A.P({ bp: 1.42, by: -.62, la: 2.7 + wg * .35, ra: 2.7 - wg * .35, lb: -.25, rb: -.25, le: .5 + wg2 * .3, re: .5 - wg2 * .3, lt: .15 + wg * .25, rt: .15 - wg * .25, lk: .4 + wg2 * .3, rk: .4 - wg2 * .3, hp: -.9, hy: wg2 * .3 }); c.gunHold.visible = false; gr = false; k = 10; }   /* KO : couché par terre, il gigote */
   else if ((p.dabT > 0 || p.dz === 'dab' && p.danceT > 0) && p.mode === 'ground' && !p.veh) { T = dabPose(A, now); c.gunHold.visible = false; k = 14; }
   else if (p.danceT > 0 && p.mode === 'ground' && !p.veh) { T = A.dance(p.dz || 'wald', now - (p.danceT0 || 0)); c.gunHold.visible = false; k = 16; }
   else if (p.mode === 'fall') { T = A.glide(now); gr = false; }
@@ -3155,8 +3157,12 @@ function onG(p) { return p.y <= p.gy + .05 || (p.cyT > 0 && p.vy <= 0); }   // a
 function climbUp(p) { var fx = Math.cos(camA), fz = Math.sin(camA), best = null, bt = 1.1;
   for (var i = 0; i < WALLS.length; i++) { var w = WALLS[i]; if (!w.alive || Math.abs(w.x - p.x) > 6 || Math.abs(w.z - p.z) > 6) continue; var top = w.y0 + w.h; if (top < p.y + .9 || top > p.y + 4.3) continue;
     var t = rayBox(p.x, p.y + .9, p.z, fx, 0, fz, w.x - w.hw, w.y0, w.z - w.hd, w.x + w.hw, top, w.z + w.hd); if (t < bt) { bt = t; best = w; } }
-  if (!best) { var lt = SV && SV.ledge ? SV.ledge(p.x, p.y, p.z, fx, fz) : null; if (lt == null) return false; p.vy = Math.sqrt(2 * 25 * Math.max(.4, lt - p.y + .45)); p.climbT = .45; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }   /* agripper le bord d'un sol / d'une rampe */
-  var top2 = best.y0 + best.h; p.vy = Math.sqrt(2 * 25 * (top2 - p.y + .55)); p.climbT = .55; p.climbFx = fx; p.climbFz = fz; SFX.jump(); return true; }
+  if (!best) { var lt = SV && SV.ledge ? SV.ledge(p.x, p.y, p.z, fx, fz) : null; if (lt == null) return false; mantleGo(p, lt, fx, fz); return true; }   /* agripper le bord d'un sol / d'une rampe */
+  mantleGo(p, best.y0 + best.h, fx, fz); return true; }
+/* ESCALADE lente façon Fortnite : il s'accroche au bord avec les deux mains, se hisse en galérant (les jambes pédalent), puis passe par-dessus */
+function mantleGo(p, top, fx, fz) { var hgt0 = Math.max(.4, top - p.y); p.mtl = { t: 0, dur: .75 + hgt0 * .17, y0: p.y, y1: top + .05, fx: fx, fz: fz }; p.vx = p.vz = p.vy = 0; SFX.jump(); }
+function mantleTick(p, dt) { var M = p.mtl; M.t += dt; var k = Math.min(1, M.t / M.dur), e = k < .25 ? k / .25 * .12 : k < .8 ? .12 + .83 * Math.pow((k - .25) / .55, 1.4) : .95 + (k - .8) / .2 * .05;
+  p.y = M.y0 + (M.y1 - M.y0) * e; p.vy = 0; p.vx = p.vz = 0; if (k > .7) { p.x += M.fx * 2.4 * dt; p.z += M.fz * 2.4 * dt; } if (k >= 1) { p.mtl = null; p.vy = 0; } }
 function walk(p, dx, dz, dt, k) { var sp = 6.2 * (k == null ? 1 : k); if (p.swim) sp = 6.2 * .6; else if (inWater(p.x, p.z)) sp *= .45; p.vx += (dx * sp - p.vx) * Math.min(1, dt * 12); p.vz += (dz * sp - p.vz) * Math.min(1, dt * 12); p.x += p.vx * dt; p.z += p.vz * dt; }
 function botThink(p, dt) { if (p.dabT > 0) { p.dabT -= dt; p.vx = p.vz = 0; return; } if (p.ko) { p.vx = p.vz = 0; return; } if (TM() > 1 && botRevive(p, dt)) return;
   var ai = p.ai; ai.t -= dt; p.hurtT = Math.max(0, p.hurtT - dt);
@@ -3237,7 +3243,7 @@ function update(dt) {
         drive(v, thr, steer, kd('sauter'), dt);
       } else {
         if (p.dabT > 0) { p.dabT -= dt; mvx = mvz = 0; jumpPress = false; fireHeld = false; }
-        if (p.ko) { mvx = mvz = 0; jumpPress = false; fireHeld = false; } else reviveTick(p, dt);   // boule à dab : on ne bouge plus, on DAB
+        if (p.ko || p.mtl) { mvx = mvz = 0; jumpPress = false; fireHeld = false; } if (!p.ko) reviveTick(p, dt);   // boule à dab : on ne bouge plus, on DAB
         healTick(p, dt); if (p.stam == null) p.stam = 1;
         var moving = Math.hypot(mvx, mvz) > .3, spr = (kd('sprint') || SPRT) && moving && !ads && !p.crouch && !(p.useT > 0) && !fireHeld && p.stam > 0 && !(p.slideT > 0); p.sprint = spr;   // SPRINT façon Fortnite : à fond, ~15 s d'endurance
         if (spr) { p.stam = Math.max(0, p.stam - dt / 5); p.stamCd = .9; } else if (p.slideT > 0) { p.stam = Math.max(0, p.stam - dt / 20); } else { p.stamCd = (p.stamCd || 0) - dt; if (p.stamCd <= 0) p.stam = Math.min(1, p.stam + dt / 4); }
@@ -3246,7 +3252,7 @@ function update(dt) {
         else walk(p, mvx, mvz, dt, (p.useT > 0 ? .45 : ads ? .55 : spr ? 1.62 : 1) * (p.crouch ? .5 : 1) * (SPDT > performance.now() || RCUR && RCUR.speed && rLive() ? 1.7 : 1) * (SCR.spd || 1)); p.a = camA; if (ads && (!cur(p) || cur(p).rlT > 0)) adsSet(false);
         if (jumpPress && p === me && CREA && flyJump()) jumpPress = false;
         if (jumpPress && (onG(p) || !p.mant) && climbUp(p)) { jumpPress = false; p.mant = 1; p.cyT = 0; }   // grimper sur un mur / un rebord devant soi
-        if (jumpPress && onG(p)) { p.cyT = 0; p.vy = (JMPT > performance.now() || RCUR && RCUR.jump && rLive() ? 14 : 8) * Math.sqrt(SCR.jmp || 1); if (p.crouch) { p.crouch = false; $('bCrouch').classList.remove('act'); } p.danceT = 0; }
+        if (jumpPress && onG(p)) { p.cyT = 0; p.vy = (JMPT > performance.now() || RCUR && RCUR.jump && rLive() ? 14 : 8.9) * Math.sqrt(SCR.jmp || 1); /* saut un peu plus haut (~1,6 m) */ if (p.crouch) { p.crouch = false; $('bCrouch').classList.remove('act'); } p.danceT = 0; }
         var tool = SV && !p.swim && !p.ko && SV.tool(); aimPull(dt); var autoShoot = invOpen() || tool ? false : aimAssist(dt); if (GP.on) autoShoot = false;
         if (tool) SURVIE.use(fireHeld && !invOpen(), dt);
         if (fireHeld && p.useT > 0 && !curH(p)) cancelHeal(p);
@@ -3256,6 +3262,7 @@ function update(dt) {
       if (actPress) { if (p.veh) leave(p); else { var nv = nearVeh(p), sw = nearSwap(p); if (nv) enter(p, nv); else if (sw) { var old = p.inv[p.slot]; p.inv[p.slot] = sw.slot; removeItem(sw); if (old) dropItem(p.x + 1.4, p.z, old.k, old); SFX.pick(); toast(WEAPONS[sw.t].name.toUpperCase()); } } }
     }
     if (p.veh) { p.x = p.veh.x; p.z = p.veh.z; p.y = p.gy = p.veh.y; p.vx = p.veh.vx; p.vz = p.veh.vz; }
+    else if (p.mtl) { mantleTick(p, dt); p.gy = Math.min(p.gy, p.y); p.wasG = false; }
     else { if (p.climbT > 0) { p.climbT -= dt; p.x += p.climbFx * 2.6 * dt; p.z += p.climbFz * 2.6 * dt; } pushCircle(p, .45); p.gy = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y) : hgt(p.x, p.z); if (SV) p.gy = Math.max(p.gy, SV.groundAt(p.x, p.z, p.y)); if (DEV.length) p.gy = Math.max(p.gy, devGround(p.x, p.z, p.y)); if (WARMI) warmGround(p); p.swim = p.mode === 'ground' && !p.fly && p.gy < SWIMY - .05 && hgt(p.x, p.z) < SWIMY - .05; if (p.swim) { p.gy = SWIMY; p.ftop = null; }   /* eau trop profonde : on NAGE (tête hors de l'eau) */ if (p === me && p.fly) { var fu = (kd('sauter') || keys.Space ? 1 : 0) - (p.crouch || kd('accroupi') ? 1 : 0); p.vy = fu * 11; p.y = Math.min(400, p.y + p.vy * dt); if (p.y <= p.gy) { p.y = p.gy; p.vy = 0; } } else { if (p.wasG && p.vy <= 0 && p.y > p.gy && p.y - p.gy < .6) p.y = p.gy;   /* on colle à la rampe en descendant (sinon on « flotte » et on ne peut plus sauter) */
  p.vy -= 25 * dt; if (p.y > p.gy + .05) p.ftop = Math.max(p.ftop == null ? p.y : p.ftop, p.y); p.y += p.vy * dt; if (p.y <= p.gy) { if (p.ftop != null) { var fdr = p.ftop - p.gy; p.ftop = null; if (fdr > 10.5 && !p.fly && !WIN && p.alive && p.mode === 'ground') { var fdm = Math.round(10 + (fdr - 10.5) * 5.2); hurt(p, fdm, null); if (p === me) { dmgNum(p.x, p.y + 2, p.z, fdm, false, false); tone('sine', 140, 50, .25, .25); camKick = Math.max(camKick, .12); } } } p.y = p.gy; p.vy = 0; } p.wasG = p.y <= p.gy + .05; if (p.wasG) { p.cyT = .15; p.mant = 0; } else p.cyT = (p.cyT || 0) - dt; } }   /* dégâts de chute comme Fortnite (au-delà de 3 étages) */
   });

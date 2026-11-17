@@ -343,7 +343,11 @@
     EGRID.visible = !!EDW; if (!EDW) return; var p = EDW, ax = p.hw > p.hd, cw = CELL / 3, rh = LH / 3;
     EGRID.children.forEach(function (m, i) { var r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .08 : .36, rh - .08, ax ? .36 : cw - .08);
       m.material.color.set(EMK[i] ? '#ff3b6b' : '#3ab0ff'); m.material.opacity = EMK[i] ? .18 : .5; }); }
+  /* ÉDITS DE MUR AUTORISÉS (comme Fortnite) — cases enlevées, numérotées de bas en haut (0 1 2 / 3 4 5 / 6 7 8). Tout le reste est refusé (pas de formes en Z…) */
+  var EDOK = {}; ['4', '3,4', '4,5', '3,4,5', '7', '1,4', '0,3', '2,5', '1,4,7', '0,3,6', '2,5,8', '0,1,3,4', '1,2,4,5', '0,1,2,4', '0,1,2,3,4,5', '0,1,2', '6,7,8', '3,4,5,6,7,8', '6,7', '7,8',
+    '0,1,3,4,6,7', '1,2,4,5,7,8', '0,3,6,1,4,7', '3,6,7', '5,7,8', '0,1,3', '1,2,5', '0,3,4,6,7,8', '2,4,5,6,7,8', '0,1,2,3,4,6', '0,1,2,4,5,8', '4,7', '1,4,6,7,8', '3,4,5,7'].forEach(function (k) { EDOK[k.split(',').map(Number).sort(function (a, b) { return a - b; }).join(',')] = 1; });
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
+    if (EDW && EMK.some(Boolean) && !EDOK[EMK.map(function (b, i) { return b ? i : -1; }).filter(function (i) { return i >= 0; }).join(',')]) { C.toast('❌ CET ÉDIT N\'EXISTE PAS · comme Fortnite : fenêtre, porte, arche, demi-mur, triangle…'); C.tone('square', 220, 160, .12, .06); return; }   // on garde la grille ouverte pour corriger
     if (EDW) { var p = EDW; EDW = null; if (EMK.every(Boolean)) EMK[1] = false; wallFree(p); p.mask = EMK.some(Boolean) ? EMK.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); support(); if (HOOK) HOOK('e', { key: p.key, mask: p.mask ? p.mask.map(Number).join('') : '' }); gridDraw(); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
     var h = aimWall(); if (!h) { C.toast('VISE UN DE TES MURS POUR L\'ÉDITER'); return; }
     EDRAG = 0; ELASTI = -1; EDW = h.p; EMK = (h.p.mask || [0, 0, 0, 0, 0, 0, 0, 0, 0].map(function () { return false; })).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw(); C.toast(C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
@@ -742,7 +746,7 @@
     pose: function (o, c, ok) {   // bras qui tiennent la pioche / le plan de construction
       if (!TOOL || !ok) return; var th;
       if (TOOL === 'pioche') { var t = SW.t; th = t < 0 ? .55 : t < .2 ? .55 + (2.2 - .55) * (t / .2) : t < .3 ? 2.2 - (2.2 + .1) * ((t - .2) / .1) : -.1 + (.65) * ((t - .3) / .2);
-        var g = pickGrip(th); o.ra = th; o.rb = g[0]; o.rw = g[1]; o.re = 0; o.la = g[2]; o.lb = g[3]; o.lw = g[4]; o.le = g[5]; o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); o.byw = (o.byw || 0) - .25; }   // pioche à DEUX mains (main gauche plus haut sur le manche), comme Fortnite
+        o.ra = th; o.rb = -.06; o.rw = 0; o.re = 0; o.la = th - .12; o.lb = -.62; o.lw = .35; o.le = .55; /* pioche bien DROITE dans l'axe, main gauche qui vient aider */ o.bp = (o.bp || 0) + (t >= .2 && t < .36 ? .18 : t >= 0 && t < .2 ? -.06 : 0); }   // pioche à DEUX mains (main gauche plus haut sur le manche), comme Fortnite
       else { o.ra = 1.3; o.rb = .05; o.re = .15; o.rw = .25; o.la = 1.0; o.lb = -.5; o.le = .75; o.lw = .45; } },   // plan de construction tenu dans la main gauche, main droite qui vise
     blendK: function () { return TOOL === 'pioche' ? 30 : 12; },
     tool: function () { return TOOL; }, setTool: setTool, hook: function (f) { HOOK = f; }, netPlace: netPlace, netRemove: netRemove, netEdit: netEdit, myPieces: function () { return PIECES.filter(function (p) { return p.mine; }).map(ser); }, _edit: function () { editWall(); }, _etap: function () { editTap(); },
