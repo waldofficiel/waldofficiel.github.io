@@ -3566,15 +3566,41 @@ function rfFart(seat, dx, dz, mine) { if (!RF) return; var l = Math.hypot(dx, dz
   else if (mine) netPub({ t: 'pf', s: seat, d: [+dx.toFixed(2), +dz.toFixed(2)] });
   burst(sp.x - dx * .5, sp.y + .55, sp.z - dz * .5, 14, ['#9fdc5a', '#c8f07a', '#7ab83a', '#e8ffb0'], 2.4, .32, .9, -.6);   /* nuage vert */
   var near = Math.hypot(sp.x - cam.position.x, sp.z - cam.position.z); if (near < 60) { var v0 = Math.max(.05, 1 - near / 60) * .16; noise(.32, v0, 140 + Math.random() * 60); tone('sawtooth', 95 + Math.random() * 40, 48, .32, v0 * .7); tone('square', 70, 40, .2, v0 * .4, .05); }
-  if (seat >= 0 && RFB[seat]) RFB[seat].sq = .35; if (mine) me.rfSq = .35; }
+  if (seat >= 0) { RFSQ[seat] = .45; RFDIR[seat] = Math.atan2(dz, dx); } if (mine) me.rfSq = .35; }
 function rfCrash(why) { if (!RF || performance.now() < RF.inv) return; RFCRASH++; burst(RF.x, RF.y + .6, RF.z, 40, ['#ffffff', '#8fd8ff', '#ff7a1a'], 6, .3, 1, .4); noise(.5, .2, 600); tone('sawtooth', 300, 60, .5, .12); toast('💥 ' + why + ' · retour au point de passage'); rfReset(RFCP); if (rfHost()) rfSend(true); }
 function rfSend(force) { if (!NETON || !RF) return; var now = performance.now(); if (!force && now - RFNET < 100) return; RFNET = now; netPub({ t: 'rf', x: +RF.x.toFixed(2), z: +RF.z.toFixed(2), a: +RF.a.toFixed(3), vx: +RF.vx.toFixed(2), vz: +RF.vz.toFixed(2), va: +RF.va.toFixed(2), cp: RFCP, c: RFCRASH, w: RF.won ? 1 : 0, t0: RFT0 }); }
-function rfMsg(m) { if (m.t === 'pf') { if (rfHost() && RF) rfFart(m.s, m.d[0], m.d[1], false); else if (RF) { var sp = rfSeatPos(m.s); burst(sp.x, sp.y + .55, sp.z, 10, ['#9fdc5a', '#c8f07a'], 2, .3, .8, -.6); } return true; }
+function rfMsg(m) { if (m.t === 'pf') { if (rfHost() && RF) rfFart(m.s, m.d[0], m.d[1], false); else if (RF) { var sp = rfSeatPos(m.s); RFSQ[m.s] = .45; RFDIR[m.s] = Math.atan2(m.d[1], m.d[0]); burst(sp.x - m.d[0] * .5, sp.y + .55, sp.z - m.d[1] * .5, 10, ['#9fdc5a', '#c8f07a'], 2, .3, .8, -.6); } return true; }
   if (m.t === 'rf') { if (rfHost() || !RF) return true; RF.tx = m.x; RF.tz = m.z; RF.ta = m.a; RF.vx = m.vx; RF.vz = m.vz; RF.va = m.va; if (m.cp > RFCP) { RFCP = m.cp; toast('🛟 POINT DE PASSAGE ' + m.cp + ' / ' + (RFCPS.length - 1)); } if (m.c > RFCRASH) { RFCRASH = m.c; burst(RF.x, RF.y + .6, RF.z, 30, ['#ffffff', '#8fd8ff', '#ff7a1a'], 6, .3, 1, .4); noise(.4, .15, 600); RF.x = m.x; RF.z = m.z; RF.a = m.a; } if (m.t0 && Math.abs(m.t0 - RFT0) > 50) RFT0 = m.t0; if (m.w && !RF.won) rfWin(); return true; }
   return false; }
 function rfWin() { if (!RF || RF.won) return; RF.won = true; var tt = (performance.now() - RFT0) / 1000; try { var b = +localStorage.getItem('wr_raft_best') || 0; if (!b || tt < b) localStorage.setItem('wr_raft_best', tt.toFixed(1)); } catch (e) {} toast('🏁 ARRIVÉE EN ' + Math.floor(tt / 60) + ':' + ('0' + Math.floor(tt % 60)).slice(-2) + ' · 💥 ' + RFCRASH + ' crash'); burst(RF.x, RF.y + 1, RF.z, 60, ['#ffd23d', '#ff2bd6', '#3dd6ff'], 8, .3, 1.2); victory(); if (rfHost()) rfSend(true); }
 /* bots du radeau : ils pètent pour viser un point de la rivière devant eux */
-function rfBots() { var ids = rfSeats(); for (var i = 0; i < 4; i++) { var human = i < ids.length; if (human && RFB[i]) { scene.remove(RFB[i].m.root); RFB[i] = null; } if (!human && !RFB[i]) { var m = makeChar({ sk: 'npc', v: 1 + i * 3 }); scene.add(m.root); RFB[i] = { m: m, cd: 1 + Math.random(), sq: 0 }; } } }
+/* PÉTEURS du radeau : persos dessinés exprès (pas les skins du jeu) : gros ventre, GROSSES FESSES en maillot de bain, tongs, chacun son style
+   (bonnet de bain, lunettes de soleil, moustache, couronne de fleurs). Ils ne marchent pas : ils tournent le dos à la direction où ils poussent
+   et quand ils pètent, ils se penchent en avant et les fesses gonflent. */
+var FSTY = [{ sk: '#f1c6a0', tr: '#ff3b6a', top: null, hat: 'bonnet', hc: '#3dd6ff' }, { sk: '#8a5a3a', tr: '#ffd23d', top: '#ffffff', hat: 'lunettes', hc: '#111111' }, { sk: '#e8b08a', tr: '#3dd6ff', top: null, hat: 'moustache', hc: '#4a2a14' }, { sk: '#c8906a', tr: '#7dff6a', top: '#ff7ab8', hat: 'fleurs', hc: '#ff4fa8' }];
+function farter(i) { var S = FSTY[i % 4], g = new THREE.Group(), L = function (c) { return new THREE.MeshLambertMaterial({ color: c }); }, sk = L(S.sk), tr = L(S.tr);
+  function add(par, geo, mat, x, y, z) { var m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; par.add(m); return m; }
+  [-1, 1].forEach(function (e) { add(g, new THREE.CylinderGeometry(.1, .085, .62, 10), sk, 0, .36, e * .14); var f = add(g, new THREE.BoxGeometry(.32, .04, .14), L('#2a2a2e'), .06, .03, e * .14); f.userData.k = 1; add(g, new THREE.BoxGeometry(.05, .05, .1), L(S.tr), .1, .07, e * .14); });   /* jambes + tongs */
+  var hip = new THREE.Group(); hip.position.y = .72; g.add(hip); g.userData.hip = hip;
+  var cheeks = []; [-1, 1].forEach(function (e) { var c = add(hip, new THREE.SphereGeometry(.24, 16, 12), tr, -.16, .02, e * .13); c.scale.set(1.05, .95, 1); cheeks.push(c); });   /* LES FESSES (maillot) */
+  add(hip, new THREE.CylinderGeometry(.33, .3, .2, 18), tr, 0, .02, 0); add(hip, new THREE.TorusGeometry(.33, .03, 6, 22), L('#ffffff'), 0, .13, 0).rotation.x = Math.PI / 2;
+  g.userData.cheeks = cheeks;
+  var tor = new THREE.Group(); tor.position.y = .14; hip.add(tor); g.userData.tor = tor;
+  var belly = add(tor, new THREE.SphereGeometry(.4, 18, 14), S.top ? L(S.top) : sk, .04, .38, 0); belly.scale.set(1, 1.08, .95);
+  add(tor, new THREE.SphereGeometry(.22, 12, 10), sk, .26, .3, 0).scale.set(.6, .9, 1.1);   /* gros ventre qui dépasse */
+  [-1, 1].forEach(function (e) { var a = add(tor, new THREE.CylinderGeometry(.075, .065, .55, 8), sk, .06, .4, e * .47); a.rotation.x = -e * .3; add(tor, new THREE.SphereGeometry(.08, 8, 6), sk, .06, .15, e * .55); });   /* bras le long du corps */
+  var hd = new THREE.Group(); hd.position.y = .95; tor.add(hd); g.userData.head = hd; add(hd, new THREE.SphereGeometry(.24, 18, 14), sk, 0, 0, 0);
+  [-1, 1].forEach(function (e) { add(hd, new THREE.SphereGeometry(.045, 8, 6), L('#ffffff'), .2, .05, e * .08); add(hd, new THREE.SphereGeometry(.024, 6, 5), L('#111111'), .235, .05, e * .08); });
+  add(hd, new THREE.SphereGeometry(.05, 8, 6), L('#e08070'), .24, -.03, 0); var mo = add(hd, new THREE.TorusGeometry(.06, .015, 6, 12, Math.PI), L('#6a1a1a'), .21, -.1, 0); mo.rotation.set(0, Math.PI / 2, Math.PI);
+  if (S.hat === 'bonnet') add(hd, new THREE.SphereGeometry(.255, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), L(S.hc), 0, .02, 0);
+  if (S.hat === 'lunettes') [-1, 1].forEach(function (e) { add(hd, new THREE.BoxGeometry(.03, .07, .1), L(S.hc), .23, .06, e * .08); });
+  if (S.hat === 'moustache') { add(hd, new THREE.BoxGeometry(.04, .04, .2), L(S.hc), .235, -.05, 0); add(hd, new THREE.SphereGeometry(.25, 14, 10, 0, Math.PI * 2, 0, Math.PI / 3), L(S.hc), -.02, .04, 0); }
+  if (S.hat === 'fleurs') for (var f2 = 0; f2 < 8; f2++) { var a2 = f2 / 8 * 6.283; add(hd, new THREE.SphereGeometry(.05, 8, 6), L(f2 % 2 ? S.hc : '#ffd23d'), Math.cos(a2) * .2, .17, Math.sin(a2) * .2); }
+  g.userData.dyn = true; scene.add(g); return g; }
+function farterPose(g, sq, t, i) { var u = g.userData, k = Math.min(1, sq / .2); u.tor.rotation.z = -.75 * k + Math.sin(t * 1.7 + i) * .03; u.hip.rotation.z = -.12 * k; u.hip.position.y = .72 - .06 * k;
+  u.cheeks.forEach(function (c, j) { var w = 1 + .16 * k + (k > 0 ? Math.sin(t * 40 + j) * .05 * k : 0); c.scale.set(1.05 * w, .95 * w, w); }); u.head.rotation.z = .3 * k; }
+var RFF = [], RFDIR = [0, 0, 0, 0], RFSQ = [0, 0, 0, 0];
+function rfBots() { var ids = rfSeats(); for (var i = 0; i < 4; i++) { if (!RFF[i]) RFF[i] = farter(i); var human = i < ids.length; if (human && RFB[i]) RFB[i] = null; if (!human && !RFB[i]) RFB[i] = { cd: 1 + Math.random(), sq: 0 }; } }
 function raftTick(dt) { if (!RAFTM || state !== 'play') return; if (!RF || !RF.built) { if (SV && SV.netPlace) { rfMap(); RFT0 = performance.now(); toast('💨 RADEAU PÉTARD · PÈTE (tir / F) pour pousser le radeau là où tu regardes · évite les pièges !'); } return; }
   var now = performance.now(), host = rfHost(), ids = rfSeats(), my = ids.indexOf(NETID), M = rfMesh(); rfBots(); dt = Math.min(dt, .05);
   if (host && !RF.won) {
@@ -3592,14 +3618,15 @@ function raftTick(dt) { if (!RAFTM || state !== 'play') return; if (!RF || !RF.b
     if (RF.z > 190 && !RF.won) rfWin();
     /* bots : ils regardent un point de la rivière 14 m devant et pètent quand le radeau dévie */
     RFB.forEach(function (b, i) { if (!b) return; b.cd -= dt; if (b.cd > 0) return; var P = rfPathBuild(), tg = P[Math.min(P.length - 1, nr.i + 7)], sp = rfSeatPos(i), dx = tg.x - RF.x, dz = tg.z - RF.z, l = Math.hypot(dx, dz) || 1, vx = RF.vx, vz = RF.vz, lat = (-(dz / l) * vx + (dx / l) * vz);
-      var want = Math.abs(lat) > .9 || Math.hypot(vx, vz) < 1.8; if (want) { rfFart(i, dx / l - (lat * -(dz / l)) * .25, dz / l - (lat * (dx / l)) * .25, false); b.cd = .9 + Math.random() * 1.4; } else b.cd = .4; });
+      b.dir = Math.atan2(dz, dx); var want = Math.abs(lat) > .9 || Math.hypot(vx, vz) < 1.8; if (want) { rfFart(i, dx / l - (lat * -(dz / l)) * .25, dz / l - (lat * (dx / l)) * .25, false); b.cd = .9 + Math.random() * 1.4; } else b.cd = .4; });
     rfSend(false); }
   else if (!host && RF.tx != null) { var kk = Math.min(1, dt * 8); RF.x += (RF.tx - RF.x) * kk; RF.z += (RF.tz - RF.z) * kk; var da = RF.ta - RF.a; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; RF.a += da * kk; }
   RF.y = RFW + Math.sin(now / 520) * .06;
   M.position.set(RF.x, RF.y, RF.z); M.rotation.y = -RF.a; M.rotation.z = Math.sin(now / 700) * .04 + Math.max(-.12, Math.min(.12, RF.va * .04)); M.rotation.x = Math.sin(now / 610) * .03; if (M.userData.flag) M.userData.flag.rotation.y = Math.sin(now / 200) * .3;
   /* les persos assis à leur place */
-  RFB.forEach(function (b, i) { if (!b) return; var sp = rfSeatPos(i), c = b.m; b.sq = Math.max(0, b.sq - dt); c.root.position.set(sp.x, sp.y, sp.z); c.root.rotation.y = -(RF.a + Math.atan2(RFS[i][1], RFS[i][0]) + Math.PI); c.root.visible = true;
-    if (window.ANIM) ANIM.apply(c, ANIM.blend(c, b.sq > 0 ? ANIM.crouch() : ANIM.idle(now / 1000), dt, 10), true); });
+  var tnow = now / 1000; for (var fi = 0; fi < 4; fi++) { var fg = RFF[fi]; if (!fg) continue; var sp2 = rfSeatPos(fi), sid = ids[fi], dir = sid === NETID ? camA : sid && NETP[sid] ? NETP[sid].a : (RFB[fi] && RFB[fi].dir != null ? RFB[fi].dir : RFDIR[fi] || RF.a);
+    if (sid === NETID || (sid && NETP[sid])) RFDIR[fi] = dir; fg.userData.yaw = fg.userData.yaw == null ? dir : fg.userData.yaw + Math.atan2(Math.sin(dir - fg.userData.yaw), Math.cos(dir - fg.userData.yaw)) * Math.min(1, dt * 6);
+    RFSQ[fi] = Math.max(0, RFSQ[fi] - dt); fg.position.set(sp2.x, sp2.y, sp2.z); fg.rotation.y = -fg.userData.yaw; fg.visible = true; farterPose(fg, RFSQ[fi], tnow, fi); }
   var hud = $('rHud'); if (hud) { hud.hidden = false; var el = (now - RFT0) / 1000; hud.innerHTML = '💨 RADEAU PÉTARD · 🛟 <b>' + RFCP + '/' + (RFCPS.length - 1) + '</b> · 💥 <b>' + RFCRASH + '</b> · ⏱ <b>' + Math.floor(el / 60) + ':' + ('0' + Math.floor(el % 60)).slice(-2) + '</b> · ' + ids.length + ' joueur(s)'; } }
 /* moi sur le radeau : fixé à ma place, je ne marche pas ; TIR (ou F) = je pète dans la direction où je regarde */
 var RFFP = false, RFBTN = false; (function () { var b = document.getElementById('bFart'); if (!b) return; b.addEventListener('pointerdown', function (e) { e.preventDefault(); RFBTN = true; }); ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) { b.addEventListener(ev, function () { RFBTN = false; }); }); })();
@@ -3808,6 +3835,7 @@ function updDN(dt) { updBHP(dt); for (var i = DN.length - 1; i >= 0; i--) { var 
 function syncModels(t, dt) {
   var far = scene.fog.far;
   pl.forEach(function (p) { var c = p.model;
+    if (RAFTM && RF && RF.built && (p === me || p.net)) { c.root.visible = false; return; }   /* radeau : on voit les PÉTEURS à la place */
     if (p.alive && p.veh && p.veh.k === 'polo') {   // cabriolet : on voit le pilote
       var v = p.veh, ca = Math.cos(v.a), sa = Math.sin(v.a); c.root.visible = true; c.root.position.set(v.x + ca * -.12 + sa * .36, v.y + .1, v.z + sa * -.12 - ca * .36); c.root.rotation.y = -v.a;
       window.ANIM.apply(c, window.ANIM.blend(c, window.ANIM.drive(), dt, 10), false); c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false; c.body.position.y = -.38; return; }
@@ -3841,6 +3869,7 @@ function updCam(dt) {
   else if (me.veh) { tx = me.veh.x; ty = me.veh.y; tz = me.veh.z; dd = 9; sh = 0; h = 2.6; if (!lookPtr && !fireLook && document.pointerLockElement !== cv) camA += angD(me.veh.a, camA) * Math.min(1, dt * 2.5); }
   else if (SPECT && ROUND) { tx = SPECT.x; ty = SPECT.y; tz = SPECT.z; dd = 4.6; sh = .5; }   // spectateur (Fin de zone)
   else if (!me.alive) { tx = me.x; ty = me.y; tz = me.z; dd = 9; sh = 0; camA += dt * .3; }
+  else if (RAFTM && RF && RF.built) { tx = RF.x; ty = RF.y; tz = RF.z; dd = 9; sh = 0; h = 3.6; }   /* radeau : caméra derrière tout le radeau */
   else { tx = me.x; ty = me.y; tz = me.z; dd = 4.2 - 2 * adsK; sh = .85 - .1 * adsK; h = 1.75 - .1 * adsK - (me.crouch ? .5 : 0); }
   camKick *= Math.exp(-dt * 14); var p2 = camP + camKick;
   var dx = Math.cos(p2) * Math.cos(camA), dy = Math.sin(p2), dz = Math.cos(p2) * Math.sin(camA), rx = -Math.sin(camA), rz = Math.cos(camA);
