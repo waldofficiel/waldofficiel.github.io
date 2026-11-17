@@ -78,11 +78,11 @@
   // imposteur : on photographie le modèle de face (lumière du jeu) dans une petite texture, une fois pour toutes
   function impostor(n, S) {
     var R = C.renderer, g = GEO[n]; if (!R || !g) return null;
-    var Wd = g.W * 2.1, Hd = g.H * 1.04, tw = 128, th = Math.max(128, Math.min(256, Math.round(128 * Hd / Wd / 32) * 32));
+    var Wd = g.W * 2.1, Hd = g.H * 1.04, tw = 256, th = Hd / Wd > 1.4 ? 512 : 256;   /* imposteurs 2× plus fins + mipmaps : l'arbre lointain ressemble au vrai (plus de sapins « nuls » au loin) */
     var sc = new T.Scene(), cam = new T.OrthographicCamera(-Wd / 2, Wd / 2, Hd, 0, -50, 50); cam.position.set(0, 0, 10); cam.lookAt(0, 0, 0);
     sc.add(new T.HemisphereLight('#dfeeff', '#4a6a34', 1.0)); var dl = new T.DirectionalLight('#fff4e0', 1.5); dl.position.set(.4, 1, .8); sc.add(dl);
     parts(S, g).forEach(function (q) { var m = new T.MeshLambertMaterial({ map: q[2], alphaTest: q[3] ? .42 : 0, side: T.DoubleSide, color: typeof q[4] === 'string' ? q[4] : '#ffffff' }); if (Array.isArray(q[4])) m.color.setRGB(q[4][0], q[4][1], q[4][2]); sc.add(new T.Mesh(q[1], m)); });
-    var rt = new T.WebGLRenderTarget(tw, th);
+    var rt = new T.WebGLRenderTarget(tw, th); rt.texture.generateMipmaps = true; rt.texture.minFilter = T.LinearMipmapLinearFilter; rt.texture.anisotropy = 4;
     var oldRT = R.getRenderTarget(), oldC = R.getClearColor(new T.Color()), oldA = R.getClearAlpha(), tm = R.toneMapping, oe = R.outputEncoding;
     R.toneMapping = T.NoToneMapping; R.outputEncoding = T.LinearEncoding; R.setRenderTarget(rt); R.setClearColor(0x405030, 0); R.clear(); R.render(sc, cam);
     var px = new Uint8Array(tw * th * 4), ok = true; try { R.readRenderTargetPixels(rt, 0, 0, tw, th, px); var n2 = 0, sum = 0; for (var i = 0; i < px.length; i += 16) if (px[i + 3] > 128) { n2++; sum += px[i] + px[i + 1] + px[i + 2]; } ok = n2 > 20 && sum / n2 > 45; } catch (e) { ok = true; }   // photo ratée (textures pas prêtes = taches noires) : on réessaiera
@@ -176,6 +176,13 @@
     cut: function (t, on) { t.cut = !on; last.x = 1e9; var f = t.d3 && t.d3.far; if (!f) return; var im = f[0], k = f[1], q = im.userData.cmap && im.userData.cmap[k], Z = new T.Matrix4().makeScale(0, 0, 0);
       if (on) { O3.position.set(t.x, t.y + .05, t.z); O3.rotation.set(0, 0, 0); O3.scale.setScalar(t.d3.sc); O3.updateMatrix(); Z = O3.matrix; }
       if (q) { q[0].setMatrixAt(q[1], Z); q[0].instanceMatrix.needsUpdate = true; } else { im.setMatrixAt(k, Z); im.instanceMatrix.needsUpdate = true; } },
-    shake: function (t, a) { t.shk = a; last.x = 1e9; }
+    shake: function (t, a) { t.shk = a; last.x = 1e9; },
+    /* PROP HUNT : le VRAI arbre détaillé (même modèle, mêmes textures) pour se déguiser — jamais caché au loin (matériau sans LOD) */
+    disguise: function (sp, mi, sc, col) { var s = null; for (var k = 0; k < SETS.length; k++) if (SETS[k].sp === sp && SETS[k].mi === mi) { s = SETS[k]; break; } if (!s) return null;
+      var g = new T.Group(), o = new T.Object3D(); o.scale.setScalar(sc || 1); o.updateMatrix(); var cc = new T.Color(); cc.setRGB(col ? col[0] : 1, col ? col[1] : 1, col ? col[2] : 1);
+      s.ims.forEach(function (im) { var m0 = im.material, leaf = m0.alphaTest > 0, key = '_nolod'; var m1 = m0[key] || (m0[key] = mat(m0.map, leaf, false, [m0.color.r, m0.color.g, m0.color.b]));
+        var one = new T.InstancedMesh(im.geometry, m1, 1); one.setMatrixAt(0, o.matrix); one.setColorAt(0, cc); one.castShadow = true; one.frustumCulled = false; one.userData.dyn = true; g.add(one); });
+      g.userData.dyn = true; return g; },
+    info: function (t) { var d = t && t.d3; return d ? [d.sp, d.mi, +d.sc.toFixed(3), d.col.map(function (v) { return +v.toFixed(2); })] : null; }
   };
 })();
