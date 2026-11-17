@@ -1,5 +1,5 @@
 /* Wald Royal : toute la végétation en vrais modèles 3D libres (Quaternius « Ultimate Stylized Nature », CC0) dans jeu/models/trees/.
-   - Sapins, chênes, bouleaux, érables rouges : modèles détaillés (branches en cartes de feuilles) pour les N arbres les plus proches ;
+   - Sapins, chênes, bouleaux (plus d'érables) : modèles détaillés (branches en cartes de feuilles) pour les N arbres les plus proches ;
      plus loin, des IMPOSTEURS : une image de chaque modèle, rendue au chargement, sur un panneau qui se tourne vers la caméra.
    - Palmiers et arbres morts du désert, arbres des villes (window.EXT_TREES), buissons, fleurs autour du joueur, petits rochers moussus.
    Tout est en InstancedMesh, avec le vent dans le vertex shader et une lumière d'appoint pour ne jamais avoir de noir. */
@@ -17,7 +17,7 @@
     flower: { m: ['Flower_2_Clump', 'Flower_3_Clump', 'Flower_4_Clump', 'Flower_5_Clump', 'Plant_Flowers'], flo: 'Flowers.png', k: 1, tint: '#ffffff' },
     rock: { m: ['Rock_1', 'Rock_2', 'Rock_3', 'Rock_4', 'Rock_5'], bark: 'Rocks.jpg', k: 1, tint: '#ffffff' }
   };
-  var BIG = ['pine', 'oak', 'birch', 'maple'];
+  var BIG = ['pine', 'oak', 'birch'];   /* plus d'érables rouges/marron (demandé) : tous les arbres sont verts */
   var GEO = {}, TEXC = {};
   function tex(n, done) { if (TEXC[n]) { if (done) done(); return TEXC[n]; } var t = new T.TextureLoader().load(DIR + n, done, null, done); t.encoding = T.sRGBEncoding; t.anisotropy = 4; if (/Bark|Trunk|Rocks/.test(n)) t.wrapS = t.wrapT = T.RepeatWrapping; return (TEXC[n] = t); }
   // matériau : texture + vent + lumière d'appoint ; lod → caché au-delà du rayon des arbres détaillés
@@ -46,7 +46,7 @@
   }
   function load(cb) {
     var L = new T.GLTFLoader(), names = [], left;
-    var want = C.DES ? ['palm', 'dead', 'rock'] : ['pine', 'oak', 'birch', 'maple', 'bush', 'flower', 'rock'];
+    var want = C.DES ? ['palm', 'dead', 'rock'] : ['pine', 'oak', 'birch', 'bush', 'flower', 'rock'];
     (window.EXT_TREES || []).forEach(function (e) { if (want.indexOf(e.sp) < 0 && SPEC[e.sp]) want.push(e.sp); });   // les arbres des villes
     want.forEach(function (k) { SPEC[k].m.forEach(function (n) { names.push(n); }); });
     var tx = []; want.forEach(function (k) { ['leaf', 'bark', 'flo'].forEach(function (f) { if (SPEC[k][f] && tx.indexOf(SPEC[k][f]) < 0) tx.push(SPEC[k][f]); }); });
@@ -65,7 +65,6 @@
   function buildTrees() {
     var list = C.trees || []; O3 = new T.Object3D(); COL = new T.Color();
     list.forEach(function (t) { var h = h01(t.x, t.z), sp = t.kind === 'oak' ? 'oak' : t.kind === 'birch' ? 'birch' : 'pine';
-      if ((sp === 'oak' || sp === 'birch') && h01(t.z * 1.7, t.x) < .22) sp = 'maple';   // quelques érables rouges pour la couleur
       var S = SPEC[sp]; t.d3 = { sp: sp, mi: Math.floor(h * S.m.length) % S.m.length, rot: h * 6.283, sc: t.s * S.k * (t.dark ? 1.08 : 1) * (.9 + h * .25),
         col: t.dark ? [.42 + h * .1, .58 + h * .1, .56 + h * .08] : sp === 'pine' ? [.78 + h * .2, .88 + h * .12, .8 + h * .1] : [.85 + h * .15, .9 + h * .1, .8 + h * .15] }; });
     BIG.forEach(function (sp) { var S = SPEC[sp];
@@ -136,7 +135,7 @@
   function buildDead(P) { DEADSET = staticSet('dead', P, function (it, g) { return it.h / Math.max(2, g.H); }, function (it, k) { var h = (k * .53) % 1; return [.9 + h * .2, .85 + h * .1, .75]; }, true); }
   function buildCity() {   // arbres des villes (bacs de la place, palmiers des villas) posés par city.js dans window.EXT_TREES
     var E = window.EXT_TREES || []; if (!E.length) return;
-    ['oak', 'birch', 'maple', 'palm', 'pine', 'bush', 'flower'].forEach(function (sp) { var L = E.filter(function (e) { return e.sp === sp; }); if (L.length && GEO[SPEC[sp].m[0]]) staticSet(sp, L, function (it, g) { return it.h / Math.max(2, g.H); }, function () { return [1, 1, 1]; }, true); });
+    ['oak', 'birch', 'palm', 'pine', 'bush', 'flower'].forEach(function (sp) { var L = E.filter(function (e) { return e.sp === sp; }); if (L.length && GEO[SPEC[sp].m[0]]) staticSet(sp, L, function (it, g) { return it.h / Math.max(2, g.H); }, function () { return [1, 1, 1]; }, true); });
   }
   function buildBushes() {
     var B = C.bushes || []; if (!B.length) return;

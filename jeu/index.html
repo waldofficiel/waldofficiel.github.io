@@ -3818,8 +3818,8 @@ function lobbyFX(t) { var dt = Math.min(.05, t - (LFX.tt || t)); LFX.tt = t;
   if (LFX.mote) { var P = LFX.mote.geometry.attributes.position, A = P.array; for (var i = 0; i < A.length; i += 3) { A[i] += Math.sin(t * .3 + i) * dt * .25; A[i + 1] += dt * (.12 + (i % 7) * .02); if (A[i + 1] > 6) A[i + 1] = 0; } P.needsUpdate = true; LFX.mote.material.opacity = .65 + Math.sin(t * .7) * .25; }
   LFX.rays.forEach(function (r) { r.material.opacity = .16 + .1 * Math.sin(t * .35 + r.userData.ph); });
   if (!LFX.trees && window.TREES3D && TREES3D.disguise && TREES3D.ready && TREES3D.ready() && Math.floor(t) % 2 === 0) { LFX.trees = true;   /* vrais arbres 3D à la place des cônes */
-    var spots = [[-16, -10, 'pine'], [-13, -20, 'oak'], [15, -11, 'maple'], [19, -22, 'pine'], [-22, -26, 'pine'], [24, -6, 'oak'], [-9, -15, 'birch'], [12, -26, 'oak']], got = 0;
-    spots.forEach(function (q, i) { var g = null; for (var mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(q[2], mi, 1, [1, 1, 1]); if (!g) for (var s2 = 0, L = ['pine', 'oak', 'maple', 'birch']; s2 < 4 && !g; s2++) for (mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(L[s2], mi, 1, [1, 1, 1]); if (!g) return;
+    var spots = [[-16, -10, 'pine'], [-13, -20, 'oak'], [15, -11, 'oak'], [19, -22, 'pine'], [-22, -26, 'pine'], [24, -6, 'oak'], [-9, -15, 'oak'], [12, -26, 'oak']], got = 0;
+    spots.forEach(function (q, i) { var g = null; for (var mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(q[2], mi, 1, [1, 1, 1]); if (!g) for (var s2 = 0, L = ['oak', 'pine']; s2 < 2 && !g; s2++) for (mi = 0; mi < 3 && !g; mi++) g = TREES3D.disguise(L[s2], mi, 1, [1, 1, 1]); if (!g) return;
       var bb = new THREE.Box3().setFromObject(g), hh = Math.max(.1, bb.max.y - bb.min.y); g.scale.setScalar((7 + (i % 3) * 2) / hh); g.position.set(q[0], -.3, q[1]); g.rotation.y = i * 1.7; RANCH.add(g); got++; });
     if (got) RANCH.children.forEach(function (o) { if (o.isGroup && o.children.length === 4 && o.children[1] && o.children[1].geometry && o.children[1].geometry.type === 'ConeGeometry') o.visible = false; }); } }
 var lme = null;

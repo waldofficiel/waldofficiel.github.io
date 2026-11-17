@@ -101,7 +101,7 @@
       } else {   // bac à fleurs + arbre
         var pot = new T.Mesh(new T.CylinderGeometry(1.1, 1, .7, 20), stone); pot.position.y = .35; pot.castShadow = true; gB.add(pot);
         var soil = new T.Mesh(new T.CylinderGeometry(1.02, 1.02, .05, 20), new T.MeshLambertMaterial({ color: '#4a3020' })); soil.position.y = .68; gB.add(soil);
-        EXT.push({ sp: b === 0 || b === 4 ? 'birch' : 'maple', x: x0 + bx, y: y0 + .66, z: z0 + bz, a: b * 1.3, h: 4.6 });   // vrai arbre 3D (trees.js)
+        EXT.push({ sp: b === 0 || b === 4 ? 'birch' : 'oak', x: x0 + bx, y: y0 + .66, z: z0 + bz, a: b * 1.3, h: 4.6 });   // vrai arbre 3D (trees.js)
         for (var f = 0; f < 5; f++) { var fa = f / 5 * 6.283; EXT.push({ sp: 'flower', x: x0 + bx + Math.cos(fa) * .72, y: y0 + .66, z: z0 + bz + Math.sin(fa) * .72, a: fa, h: .55, mi: f }); }
         ctx.PCOL.push({ x: x0 + bx, z: z0 + bz, hw: .9, hd: .9, y0: y0, h: .8 });
       }
