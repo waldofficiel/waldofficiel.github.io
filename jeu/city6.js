@@ -210,7 +210,7 @@
   function loadHDR(url, done) { if (!T.RGBELoader) return; try { new T.RGBELoader().setDataType(T.UnsignedByteType).load(url, function (t) { try { var pm = new T.PMREMGenerator(R); pm.compileEquirectangularShader(); var e = pm.fromEquirectangular(t).texture; t.dispose(); pm.dispose(); done(e); } catch (x) {} }); } catch (e) {} }
 
   window.CITY6 = {
-    spots: SPOTS,
+    spots: SPOTS, grid: { AV: AV, ST: ST.concat([OD]), RW: RW },
     build: function (THREE, ctx) { T = THREE; C = ctx; R = ctx.renderer; _m = new T.Matrix4(); _v = new T.Vector3(); _n = new T.Vector3(); _q = new T.Quaternion();
       if (ctx.sky) envFromSky(ctx.scene, ctx.sky); makeTextures(); makeMats(); var grp = new T.Group(); grp.userData.dyn = true; build(grp); ctx.scene.add(grp); this.grp = grp;
       if (ctx.scene && ENV) ctx.scene.environment = ENV;

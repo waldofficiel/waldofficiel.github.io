@@ -472,7 +472,7 @@ body:not(.touch) #bCrouch{display:none}
   <div class="card"><h2 class="big">PAUSE</h2>
     <div class="row"><button class="go" id="resume" type="button">REPRENDRE</button></div>
     <div class="row"><button class="ghost" id="pSet" type="button">⚙️ Paramètres</button><button class="ghost" id="pFb" type="button">💬 Laisser un commentaire</button></div>
-    <div class="row"><button class="ghost" id="pDev" type="button" hidden>🧩 Appareils</button><button class="ghost" id="pRule" type="button" hidden>⚡ Règles</button><button class="ghost" id="pScr" type="button" hidden>📜 Script</button><button class="ghost" id="pPub" type="button" hidden>📤 Publier le jeu</button><button class="ghost" id="pEnd" type="button" hidden>⏹ Terminer la partie</button><button class="ghost" id="pCfg" type="button" hidden>⚙️ Paramètres de la partie</button><button class="ghost" id="quit" type="button">🏠 Retour au salon</button></div><p class="ea">ACCÈS ANTICIPÉ · le jeu est en développement</p></div>
+    <div class="row"><button class="ghost" id="pDev" type="button" hidden>🧩 Appareils</button><button class="ghost" id="pVeh" type="button" hidden>🚗 Mon véhicule</button><button class="ghost" id="pRule" type="button" hidden>⚡ Règles</button><button class="ghost" id="pScr" type="button" hidden>📜 Script</button><button class="ghost" id="pPub" type="button" hidden>📤 Publier le jeu</button><button class="ghost" id="pEnd" type="button" hidden>⏹ Terminer la partie</button><button class="ghost" id="pCfg" type="button" hidden>⚙️ Paramètres de la partie</button><button class="ghost" id="quit" type="button">🏠 Retour au salon</button></div><p class="ea">ACCÈS ANTICIPÉ · le jeu est en développement</p></div>
 </div>
 
 <div class="screen" id="setM" hidden><div class="card wide"><button class="mx" id="setX" type="button">✕</button><div id="setSlot"></div></div></div>
@@ -510,6 +510,7 @@ try { if (/WaldRoyalApp|Electron/.test(navigator.userAgent) && /[?&]jouer/.test(
 <script src="city.js"></script>
 <script src="RGBELoader.js"></script>
 <script src="city6.js"></script>
+<script src="real.js"></script>
 <script src="GLTFLoader.js"></script>
 <script src="SkeletonUtils.js"></script>
 <script src="interiors.js"></script>
@@ -539,7 +540,7 @@ if (IOSW && MODE === 'survie') MODE = 'br';
 var CREATOR = false, SURVOK = false; try { CREATOR = localStorage.getItem('wr_creator') === '1'; SURVOK = CREATOR || localStorage.getItem('wr_survie_ok') === '1'; } catch (e) {}
 if (MODE === 'survie' && !SURVOK) MODE = 'br';
 var MAP = MODE === 'ile' || MODE === 'city' || MODE === 'zw' || MODE === 'cs' || MODE === 'prop' || MODE === 'lave' || MODE === 'bf' || MODE === 'obby' || MODE === 'gg' || MODE === 'mm' ? 'propane' : MODE === 'survie' || MODE === 'creatif' ? 'survie' : brMap(); try { var mq = (location.search.match(/[?&]map=(\w+)/) || [])[1]; if (MAPS[mq]) { MAP = mq; if (mq === 'survie' && MODE !== 'creatif' && MODE !== 'bf') MODE = 'survie'; if (mq === 'propane') MODE = 'prop'; else if (mq !== 'survie' && MODE !== 'zb' && MODE !== 'zw') MODE = 'br'; } } catch (e) {}
-var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile' || MODE === 'city' || MODE === 'zw' || MODE === 'cs' || MODE === 'gg' || MODE === 'mm' || MODE === 'lave' || MODE === 'obby',   /* maps du Créatif faites DE ZÉRO sur l'île plate (plus le décor du mode classique) */ CREA = MODE === 'creatif' || MODE === 'city' || MODE === 'zw' || MODE === 'ile' || MODE === 'cs' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg' && MODE !== 'cs', MAPNAME = MAPS[MAP];
+var ARENA = null; var DES = MAP === 'desert', SURV = MAP === 'survie', PROPM = MAP === 'propane', VIDE = MODE === 'ile' || MODE === 'city' || MODE === 'zw' || MODE === 'cs' || MODE === 'gg' || MODE === 'mm' || MODE === 'lave' || MODE === 'obby',   /* maps du Créatif faites DE ZÉRO sur l'île plate (plus le décor du mode classique) */ CREA = MODE === 'creatif' || MODE === 'city' || MODE === 'zw' || MODE === 'ile' || MODE === 'cs' || MODE === 'mm' || MODE === 'bf' || MODE === 'prop' || MODE === 'lave' || MODE === 'obby' || MODE === 'gg', PROPH = MODE === 'prop', BF = MODE === 'bf', ZB = MODE === 'zb', BUILD = !ZB && MODE !== 'city' && MODE !== 'prop' && MODE !== 'obby' && MODE !== 'gg' && MODE !== 'cs', MAPNAME = MAPS[MAP];
 var NPL = SURV || PROPM || MODE === 'zw' ? 1 : 50, ISL = SURV ? 1720 : PROPM ? 240 : DES ? 465 : 420, HALF = SURV ? 2000 : PROPM ? 300 : DES ? 550 : 500;   // 50 joueurs par partie ; carte désert un peu plus grande   // PROP HUNT : mini-map ~3x plus petite   // survie : monde 4x plus grand (4 km)
 if (SURV) document.body.classList.add('surv'); if (CREA) document.body.classList.add('crea'); if (ZB) document.body.classList.add('zb');
 
@@ -1718,7 +1719,9 @@ function rCage() { me.x = ISL + 45; me.z = ISL + 45; me.y = me.gy = 140; me.vx =
 function roundTick(dt) { if (!CREA) return; rUI(); flyBtn(); if (state === 'play' && DEV.length) devTick(dt); if (me.fly && !FLYOK()) me.fly = false; var w = $('wroom'), hud = $('rHud'), bl = $('rBlind'), now = performance.now();
   if (state !== 'play') { w.hidden = true; hud.hidden = true; bl.hidden = true; return; }
   if (LAVA && (!ROUND || TPL !== 'lave')) LAVA.visible = false; pubApply(); if (!WVB && VIDE && (TPL === 'gg' || TPL === 'mm') && SV && SV.netPlace) wvBuild(); if (!WVB && TPL === 'zw' && SV && SV.netPlace) { WVB = true; zwMap(); } if (TPL === 'zw' && (!ROUND || ROUND.ph === 'end') && storm.mode !== 'off') zwOff();
+  if (TPL === 'cs' && FRAMEC % 10 === 0) realTick();   // CS : combattants réalistes
   crBotsTick(dt);
+  if (MODE === 'city') { w.hidden = true; hud.hidden = true; bl.hidden = true; cityTick(dt); return; }   /* WALD CITY : balade libre façon GTA (pas de salle d'attente) */
   if (!ROUND) { bl.hidden = true; hud.hidden = true; w.hidden = false; rDisarm(); unProp(true); enterHold(GP.xh);
     var auto = TPL !== 'libre' && TPL !== 'lave' || TPL === 'lave', wl = Math.max(0, Math.ceil(60 - (now - WAIT0) / 1000)), hum = rPlayers();
     if (auto && wl <= 0 && now - RSEEN > 5000 && hum.slice().sort()[0] === NETID) { WAIT0 = now + 1e9; rAuto(); return; }
@@ -2108,12 +2111,20 @@ function wvBuild() { if (!SV || !SV.netPlace) return; WVB = true; if (SV.clearBu
     TD.forEach(function (d) { d.id = DEVID++; d.y = +(hgt(d.x, d.z) - .2).toFixed(2); d.x0 = d.x; DEV.push(d); }); devBuild(); }
   return HOUSES8; }
 /* textures façon map de désert « dust » pour CS WILD GO : murs en enduit sable avec blocs de pierre, et caisses en bois (dessinées, originales) */
-function csWallTex() { var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = mulberry(51);
-  g.fillStyle = '#cdb68a'; g.fillRect(0, 0, W, H); for (var i = 0; i < 900; i++) { g.fillStyle = 'rgba(' + (r() < .5 ? '120,90,50' : '250,235,200') + ',' + (.04 + r() * .08) + ')'; g.beginPath(); g.ellipse(r() * W, r() * H, 6 + r() * 60, 4 + r() * 30, r() * 3, 0, 6.3); g.fill(); }
-  for (var y = 0; y < H; y += 119) for (var x = (y / 119 % 2) * 120; x < W + 240; x += 240) { g.strokeStyle = 'rgba(90,65,35,.35)'; g.lineWidth = 3; g.strokeRect(x - 120, y, 240, 119); g.fillStyle = 'rgba(255,245,220,.06)'; g.fillRect(x - 117, y + 3, 234, 12); }
-  for (var k = 0; k < 7; k++) { var cx = r() * W, cy = r() * H * .7; g.fillStyle = 'rgba(160,130,90,.55)'; g.beginPath(); g.ellipse(cx, cy, 30 + r() * 70, 18 + r() * 40, r(), 0, 6.3); g.fill(); g.fillStyle = 'rgba(120,95,60,.5)'; for (var b = 0; b < 4; b++) g.fillRect(cx - 40 + b * 22 + r() * 6, cy - 12 + r() * 20, 18, 9); }
-  g.strokeStyle = 'rgba(70,50,25,.55)'; g.lineWidth = 2; for (var q = 0; q < 10; q++) { var px = r() * W, py = r() * H; g.beginPath(); g.moveTo(px, py); for (var s2 = 0; s2 < 6; s2++) { px += (r() - .5) * 40; py += 10 + r() * 22; g.lineTo(px, py); } g.stroke(); }
-  var gr = g.createLinearGradient(0, H * .78, 0, H); gr.addColorStop(0, 'rgba(70,50,30,0)'); gr.addColorStop(1, 'rgba(70,50,30,.45)'); g.fillStyle = gr; g.fillRect(0, H * .78, W, H * .22); return c; }
+function csWallTex() {   /* mur de village du désert « photo » : enduit sable usé par le soleil (bruit multi-échelle), plaques d'enduit tombées qui montrent les pierres, coulures de pluie, fissures, crasse en bas */
+  var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = mulberry(51), N = 64, nz = [];
+  for (var q = 0; q < N * N; q++) nz.push(r());
+  function vn(x, y) { var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, a = nz[(yi & 63) * N + (xi & 63)], b = nz[(yi & 63) * N + ((xi + 1) & 63)], cc = nz[((yi + 1) & 63) * N + (xi & 63)], d = nz[((yi + 1) & 63) * N + ((xi + 1) & 63)]; fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); return a + (b - a) * fx + (cc - a) * fy + (a - b - cc + d) * fx * fy; }
+  var im = g.createImageData(W, H), D = im.data;
+  for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) { var u = x / W * 8, v = y / H * 5.6, n = vn(u, v) * .5 + vn(u * 2.3, v * 2.3) * .25 + vn(u * 6.1, v * 6.1) * .15 + vn(u * 19, v * 19) * .1, k = (y * W + x) * 4, t = .82 + n * .3 - (y / H) * .06;
+    D[k] = 216 * t; D[k + 1] = 194 * t; D[k + 2] = 152 * t; D[k + 3] = 255; }
+  g.putImageData(im, 0, 0);
+  for (var p = 0; p < 6; p++) { var cx = r() * W, cy = H * (.15 + r() * .6), rw = 50 + r() * 120, rh = 35 + r() * 70; g.save(); g.beginPath(); for (var a = 0; a < 6.29; a += .35) { var rr = 1 + (r() - .5) * .45; g.lineTo(cx + Math.cos(a) * rw * rr, cy + Math.sin(a) * rh * rr); } g.closePath(); g.clip();
+    g.fillStyle = '#a88a62'; g.fillRect(cx - rw * 1.5, cy - rh * 1.5, rw * 3, rh * 3); for (var by = cy - rh * 1.5; by < cy + rh * 1.5; by += 26) for (var bx = cx - rw * 1.5 + ((by / 26 | 0) % 2) * 22; bx < cx + rw * 1.5; bx += 44) { var sh = 140 + r() * 40; g.fillStyle = 'rgb(' + (sh + 30 | 0) + ',' + (sh + 8 | 0) + ',' + (sh - 30 | 0) + ')'; g.fillRect(bx + 2, by + 2, 40, 22); g.fillStyle = 'rgba(255,240,210,.18)'; g.fillRect(bx + 2, by + 2, 40, 4); }
+    g.restore(); }
+  for (var sr = 0; sr < 26; sr++) { var sx = r() * W, sw = 4 + r() * 18, sl = 60 + r() * 260, gr2 = g.createLinearGradient(0, 0, 0, sl); gr2.addColorStop(0, 'rgba(90,70,40,.22)'); gr2.addColorStop(1, 'rgba(90,70,40,0)'); g.fillStyle = gr2; g.fillRect(sx, 0, sw, sl); }   // coulures sous le toit
+  g.strokeStyle = 'rgba(60,42,22,.55)'; g.lineWidth = 1.4; for (var f = 0; f < 12; f++) { var px = r() * W, py = r() * H; g.beginPath(); g.moveTo(px, py); for (var s2 = 0; s2 < 7; s2++) { px += (r() - .5) * 36; py += 8 + r() * 20; g.lineTo(px, py); } g.stroke(); }
+  var gr = g.createLinearGradient(0, H * .72, 0, H); gr.addColorStop(0, 'rgba(70,50,30,0)'); gr.addColorStop(1, 'rgba(60,42,24,.55)'); g.fillStyle = gr; g.fillRect(0, H * .72, W, H * .28); return c; }
 function csCrateTex() { var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = mulberry(77);
   for (var i = 0; i < 9; i++) { var y = i * H / 9; g.fillStyle = ['#8a6234', '#7d5730', '#956b3a'][i % 3]; g.fillRect(0, y, W, H / 9); g.strokeStyle = 'rgba(40,25,10,.6)'; g.lineWidth = 4; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
     for (var k = 0; k < 14; k++) { g.strokeStyle = 'rgba(50,30,12,' + (.1 + r() * .2) + ')'; g.lineWidth = 1 + r() * 2; var yy = y + r() * H / 9; g.beginPath(); g.moveTo(0, yy); g.bezierCurveTo(W * .3, yy + (r() - .5) * 8, W * .7, yy + (r() - .5) * 8, W, yy); g.stroke(); } }
@@ -2134,6 +2145,13 @@ function csBuild() { if (CSBUILT || !SV || !SV.netPlace) return; CSBUILT = true;
   csZones(); }
 var CSZ = null;
 function csZones() { if (CSZ) return; CSZ = new THREE.Group(); var cnt = { A: [0, 0, 0], B: [0, 0, 0] };
+  (function () { /* sol de sable tassé façon village du désert sous toute la map (plus d'herbe verte) */ var a0 = csXZ(0, 0), a1 = csXZ(CSMAP[0].length - 1, CSMAP.length - 1), cx = (a0[0] + a1[0]) / 2, cz = (a0[1] + a1[1]) / 2, w = Math.abs(a1[0] - a0[0]) + 40, d = Math.abs(a1[1] - a0[1]) + 40;
+    var cv = document.createElement('canvas'); cv.width = cv.height = 512; var g = cv.getContext('2d'), r = mulberry(91); g.fillStyle = '#c4a272'; g.fillRect(0, 0, 512, 512);
+    for (var i = 0; i < 26000; i++) { g.fillStyle = 'rgba(' + (r() < .5 ? '90,66,38' : '240,220,180') + ',' + (r() * .16) + ')'; g.fillRect(r() * 512, r() * 512, 1 + r() * 2.5, 1 + r() * 2.5); }
+    for (var k = 0; k < 40; k++) { var x = r() * 512, y = r() * 512, rr = 20 + r() * 70, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, 'rgba(120,90,55,.18)'); gr.addColorStop(1, 'rgba(120,90,55,0)'); g.fillStyle = gr; g.fillRect(0, 0, 512, 512); }
+    for (var s2 = 0; s2 < 30; s2++) { g.fillStyle = 'rgba(150,135,115,' + (.4 + r() * .4) + ')'; g.beginPath(); g.ellipse(r() * 512, r() * 512, 2 + r() * 5, 1.5 + r() * 3, r() * 3, 0, 6.3); g.fill(); }
+    var tx = new THREE.CanvasTexture(cv); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(w / 8, d / 8); tx.encoding = THREE.sRGBEncoding; tx.anisotropy = 8;
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshLambertMaterial({ map: tx })); m.rotation.x = -Math.PI / 2; m.position.set(cx, CSL0 + .015, cz); m.receiveShadow = true; CSZ.add(m); })();
   for (var j = 0; j < CSMAP.length; j++) for (var i = 0; i < CSMAP[0].length; i++) { var c = csC(i, j), xz = csXZ(i, j);
     if (c === 'A' || c === 'B' || c === 'T' || c === 'C') { var col = c === 'A' ? '#ff3a3a' : c === 'B' ? '#ffb02a' : c === 'T' ? '#ff2bd6' : '#3dd6ff', m = new THREE.Mesh(new THREE.PlaneGeometry(4.9, 4.9), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .22, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(xz[0], CSL0 + .03, xz[1]); CSZ.add(m); }
     if (c === 'A' || c === 'B') { cnt[c][0] += xz[0]; cnt[c][1] += xz[1]; cnt[c][2]++; } }
@@ -2565,7 +2583,7 @@ function carModel(k) {
   var sh = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 2.2), new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: .3, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = .03; g.add(sh);
   return window.OPT ? OPT.mergeLocal(g) : g;
 }
-var VEH0 = MODE === 'city' ? ['golf', 'golf', 'van', 'golf', '2cv', 'van', 'golf', '2cv', 'golf', 'van'] : SURV || VIDE ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
+var VEH0 = MODE === 'city' ? ['golf', 'golf', 'van', 'golf', '2cv', 'van', 'golf', '2cv', 'golf', 'van', 'golf', 'van', 'golf', '2cv', 'golf', 'golf'] : SURV || VIDE ? [] : ['polo', 'golf', 'van', 'van', 'van', 'van', 'van', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv', '2cv'];
 var vehicles = VEH0.map(function (k) { return { k: k, m: null, x0: 0, z0: 0, a0: 0 }; });
 function vehSpot(placed) { if (MODE === 'city' && window.CITY6 && CITY6.spots.length) { for (var q = 0; q < 60; q++) { var cs = CITY6.spots[Math.random() * CITY6.spots.length | 0]; if (!placed.some(function (p) { return Math.hypot(p[0] - cs[0], p[1] - cs[1]) < 8; })) { placed.push([cs[0], cs[1]]); return [cs[0], cs[1], cs[2]]; } } }
   for (var k = 0; k < 300; k++) { var x, z, a;
@@ -3097,7 +3115,7 @@ function castRay(ox, oy, oz, dx, dy, dz, maxT, skip, fat) {
   return best;
 }
 var camKick = 0;
-function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) {
+function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) { if (p === me) LASTSHOT = performance.now();
   var w0 = cur(p); if (!w0 || p.fireCd > 0 || p.veh || p.mode !== 'ground' || w0.rlT > 0) return false;
   if (w0.mag <= 0) { reload(p); return false; }
   if (TPL === 'prop' && p === me && (w0.k === 'laser' || !ROUND || ROUND.seek !== NETID)) {   /* PROP HUNT : les cachés se transforment avec N'IMPORTE quelle arme (comme le pistolet à déguisement de Fortnite) */ var hp0 = castRay(ox + dx * tMin, oy + dy * tMin, oz + dz * tMin, dx, dy, dz, 60, p, 0), T0 = (hp0.t || 30) + tMin;   // PROP HUNT : le laser transforme en objet
@@ -3164,6 +3182,7 @@ function teamTag(n) { var cv2 = document.createElement('canvas'); cv2.width = 25
   var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv2), depthTest: false, transparent: true })); sp.scale.set(2.2, .55, 1); sp.position.y = 2.55; sp.renderOrder = 9; return sp; }
 function teamsAlive() { var t = {}; pl.forEach(function (x) { if (x.alive) t[x.team] = 1; }); return Object.keys(t).length; }
 function eliminate(c) {
+  if (c.ped) { pedDie(c); return; }
   if (WARMI && c === me) { warmSpawn(true); return; }   // île d'attente : on réapparaît
   if (SCR.on) { if (c === me) scrEv('death'); else if (c.lastHit === me) scrEv('kill', c.name); }
   if (TPL === 'cs' && CS && c === me) { csKill(me); return; }
@@ -3265,6 +3284,75 @@ function botThink(p, dt) { if (p.dabT > 0) { p.dabT -= dt; p.vx = p.vz = 0; retu
 }
 
 /* ================= boucle de jeu ================= */
+/* ===== WALD CITY façon GTA : VILLAGEOIS réalistes qui marchent sur les trottoirs (on peut les tuer), armes, voitures en libre accès,
+   persos RÉALISTES (REAL : soldier / michelle) pour tout le monde, VÉHICULES IMPORTÉS (.glb) avec puissance et vitesse plafonnées ===== */
+var LASTSHOT = 0, PEDS = [], CITYKIT = 0, CITYKILLS = 0, PEDN = 26;
+function realWant(p) { if (!window.REAL || !p.model) return null; if (MODE === 'city') return p.ped ? p.realK : /^(lea|nova)$/.test(p.skn || p.sk || (p === me ? mySkin() : '')) ? 'michelle' : 'soldier';
+  if (TPL === 'cs') { var k = p.skn || p.sk || (p === me ? mySkin() : ''); return k === 'csT' || k === 'csCT' ? 'soldier' : null; } return null; }
+function realTick() { if (!window.REAL) return; if (!REAL.ready) { if (MODE === 'city' || TPL === 'cs') REAL.load(THREE); return; }
+  pl.forEach(function (p) { var k = realWant(p), c = p.model; if (!c) return; var sk = TPL === 'cs' ? (p.skn || p.sk || (p === me ? mySkin() : '')) : '';
+    if (c.cm && c.real && (!k || c.realSk !== sk)) REAL.unapply(c);
+    if (k && !c.cm) { REAL.apply(c, k, sk === 'csT' ? [1, .86, .66] : sk === 'csCT' ? [.62, .74, 1] : p.ped ? p.tint : null); c.realSk = sk; } }); }
+function pedLines() { if (pedLines.c) return pedLines.c; var G = CITY6.grid, o = G.RW / 2 + 2, xs = [], zs = []; G.AV.forEach(function (a) { xs.push(a - o, a + o); }); G.ST.forEach(function (b) { zs.push(b - o, b + o); }); xs.sort(function (a, b) { return a - b; }); zs.sort(function (a, b) { return a - b; }); return (pedLines.c = { xs: xs, zs: zs }); }
+function pedMake(i) { var mdl = makeChar({ sk: 'npc' }); scene.add(mdl.root); var fem = i % 3 !== 2, tints = [[1, 1, 1], [1, .85, .85], [.85, .92, 1], [1, .95, .8], [.9, 1, .9]];
+  var p = { bot: true, ped: true, noai: true, id: 'ped' + i, sk: 'npc', name: 'Passant', model: mdl, look: { shirt: '#a33', skin: '#c8a080', pants: '#333' }, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, a: 0, hp: 60, sh: 0, alive: true, mode: 'ground', gy: 0,
+    inv: [null, null, null], slot: 0, heals: { mini: 0, shield: 0, heal: 0, bulle: 0 }, healSel: 'mini', useT: 0, fireCd: 0, recoil: 0, hurtT: 0, kills: 0, broken: 0, danceT: 0, step: 0, hitCd: 0, stormT: 0, lastHit: null, lastHitT: 0, veh: null,
+    ai: { t: 0, tx: 0, tz: 0, ag: 0, acc: 0, wantCar: false, land: null, strafe: 1 }, realK: fem ? 'michelle' : 'soldier', tint: fem ? tints[i % tints.length] : [.75 + (i % 3) * .1, .78, .72] };
+  pl.push(p); PEDS.push(p); return p; }
+function pedPlace(p, far) { var L = pedLines(); for (var t = 0; t < 40; t++) { var vert = Math.random() < .5, x = vert ? L.xs[Math.random() * L.xs.length | 0] : -150 + Math.random() * 300, z = vert ? -125 + Math.random() * 290 : L.zs[Math.random() * L.zs.length | 0], d = dist(x, z, me.x, me.z);
+    if (far ? d > 45 && d < 130 : d < 130 || t > 30) { p.x = x; p.z = z; p.y = p.gy = hgt(x, z) + .22; p.vy = 0; p.vert = vert; p.dir = Math.random() < .5 ? 1 : -1; p.tgt = null; p.alive = true; p.corpse = false; p.hp = 60; p.panic = 0; p.lastHit = null;
+      var c = p.model; if (c.cm) { c.cm.rotation.set(0, Math.PI / 2, 0); c.cm.position.y = 0; if (c.cmMix0) { c.cmMix = c.cmMix0; c.cmMix0 = null; } } return; } } }
+function pedTick(p, dt, now) { if (p.corpse) { if (now - p.deadT > 12000 && dist(p.x, p.z, me.x, me.z) > 40) pedPlace(p, true); return; } if (!p.alive) return;
+  if (dist(p.x, p.z, me.x, me.z) > 170) { pedPlace(p, true); return; }
+  if (now - LASTSHOT < 300 && dist(p.x, p.z, me.x, me.z) < 32) p.panic = now + 7000;   // coup de feu : tout le monde court
+  if (p.lastHit && now - p.lastHitT < 300) p.panic = now + 9000;
+  var spd = 1.45, tx, tz;
+  if (p.panic > now) { var fa = Math.atan2(p.z - me.z, p.x - me.x); tx = p.x + Math.cos(fa) * 10; tz = p.z + Math.sin(fa) * 10; spd = 5.6; p.tgt = null; p.wait = 0; }
+  else { if (!p.tgt) { var L = pedLines(), arr = p.vert ? L.zs : L.xs, cur = p.vert ? p.z : p.x, nxt = null; arr.forEach(function (v) { if ((v - cur) * p.dir > .3 && (nxt === null || Math.abs(v - cur) < Math.abs(nxt - cur))) nxt = v; });
+      if (nxt === null) { p.dir = -p.dir; return; }
+      if (p.vert) { var sx = L.xs.reduce(function (b, v) { return Math.abs(v - p.x) < Math.abs(b - p.x) ? v : b; }, L.xs[0]); p.tgt = [sx, nxt]; } else { var sz = L.zs.reduce(function (b, v) { return Math.abs(v - p.z) < Math.abs(b - p.z) ? v : b; }, L.zs[0]); p.tgt = [nxt, sz]; } }
+    tx = p.tgt[0]; tz = p.tgt[1]; if (dist(tx, tz, p.x, p.z) < .4) { p.tgt = null; if (Math.random() < .45) { p.vert = !p.vert; p.dir = Math.random() < .5 ? 1 : -1; } if (Math.random() < .2) p.wait = now + 1500 + Math.random() * 3000; return; } }
+  if (p.wait > now) { p.vx = p.vz = 0; return; }
+  var dx = tx - p.x, dz = tz - p.z, dl = Math.hypot(dx, dz) || 1; p.vx = dx / dl * spd; p.vz = dz / dl * spd; p.x += p.vx * dt; p.z += p.vz * dt; p.a = Math.atan2(p.vz, p.vx); pushCircle(p, .4); }
+function pedDie(c) { c.alive = false; c.corpse = true; c.deadT = performance.now(); c.vx = c.vz = 0; burst(c.x, c.y + 1, c.z, 18, ['#8a1010', '#b01818', '#5a0808'], 4, .2, .9);
+  var m = c.model; if (m.cm) { m.cmMix0 = m.cmMix; m.cmMix = null; m.cm.rotation.set(-Math.PI / 2, Math.PI / 2, 0, 'YXZ'); m.cm.position.y = .18; }
+  if (c.lastHit === me && performance.now() - c.lastHitT < 8000) { me.kills++; CITYKILLS++; toast('💀 VILLAGEOIS ÉLIMINÉ · ' + CITYKILLS); } }
+function cityKit() { me.inv = [newSlot('pistolet'), newSlot('fusil'), newSlot('pompe'), null, null]; me.inv.forEach(function (w) { if (w) w.res = 999; }); me.slot = 0; hbKey = ''; }
+function cityTick(dt) { var now = performance.now(); realTick(); if (!window.CITY6 || !CITY6.grid) return;
+  if (!CITYKIT || me.alive && !me.inv.some(function (w) { return w && !w.h; }) && now - CITYKIT > 4000) { var first = !CITYKIT; CITYKIT = now; cityKit(); toast(first ? '🌴 WALD CITY · pistolet, fusil et pompe · monte dans n\'importe quelle voiture avec E · Échap → 🚗 Mon véhicule' : '🔫 Armes rendues'); }
+  while (PEDS.length < PEDN) pedPlace(pedMake(PEDS.length), false);
+  PEDS.forEach(function (p) { pedTick(p, dt, now); }); }
+/* VÉHICULES IMPORTÉS : un .glb (fait soi-même ou trouvé en libre) + nom, vitesse max et puissance (plafonnées) → voiture conduisible */
+var CVEH = null, CVMAX = { vmax: [10, 48], acc: [5, 28] };
+function cvehLoad() { try { CVEH = JSON.parse(localStorage.getItem('wr_cveh') || 'null'); } catch (e) { CVEH = null; } return CVEH; }
+function cvehOpen() { cvehLoad(); var o = $('cvM'); if (!o) { o = document.createElement('div'); o.id = 'cvM'; document.body.appendChild(o); }
+  var c = CVEH || { n: 'Ma voiture', vmax: 32, acc: 18 };
+  o.style.cssText = 'position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(8,3,18,.72)';
+  o.innerHTML = '<div style="background:#160b26;border:1px solid #ff2bd6;border-radius:16px;padding:18px 22px;max-width:520px;color:#fff;font:14px system-ui"><h2 style="margin:0 0 8px">🚗 MON VÉHICULE</h2><p style="opacity:.8;font-size:13px">Importe un modèle 3D <b>.glb</b> (fait toi-même ou trouvé en libre), règle sa vitesse et sa puissance, puis fais-le apparaître devant toi. Plafonds : ' + Math.round(CVMAX.vmax[1] * 3.6) + ' km/h et puissance ' + CVMAX.acc[1] + '.</p>' +
+    '<p><input type="file" id="cvF" accept=".glb,model/gltf-binary"></p><p id="cvS" style="font-size:13px;opacity:.85">' + (c.b64 ? '✔ Modèle gardé : ' + (c.fn || 'voiture.glb') : 'Pas encore de modèle (sans modèle : Bolide Jaune repeint)') + '</p>' +
+    '<p>Nom <input id="cvN" maxlength="24" value="' + String(c.n).replace(/["<>]/g, '') + '" style="width:60%"></p>' +
+    '<p>Vitesse max <input type="range" id="cvV" min="' + CVMAX.vmax[0] + '" max="' + CVMAX.vmax[1] + '" value="' + c.vmax + '"> <b id="cvVl">' + Math.round(c.vmax * 3.6) + ' km/h</b></p>' +
+    '<p>Puissance <input type="range" id="cvA" min="' + CVMAX.acc[0] + '" max="' + CVMAX.acc[1] + '" value="' + c.acc + '"> <b id="cvAl">' + c.acc + '</b></p>' +
+    '<p style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="cvGo">🚗 FAIRE APPARAÎTRE</button><button class="btn ghost" id="cvX">Fermer</button></p></div>';
+  PMENU = true; try { document.exitPointerLock(); } catch (e) {}
+  $('cvV').oninput = function () { $('cvVl').textContent = Math.round(this.value * 3.6) + ' km/h'; }; $('cvA').oninput = function () { $('cvAl').textContent = this.value; };
+  $('cvF').onchange = function () { var f = this.files && this.files[0]; if (!f) return; if (f.size > 6e6) { $('cvS').textContent = '❌ Trop gros (6 Mo max)'; return; } var rd = new FileReader(); rd.onload = function () { var u8 = new Uint8Array(rd.result), bin = ''; for (var i = 0; i < u8.length; i += 32768) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 32768)); c.b64 = btoa(bin); c.fn = f.name; $('cvS').textContent = '✔ ' + f.name + ' chargé'; }; rd.readAsArrayBuffer(f); };
+  $('cvX').onclick = function () { o.style.display = 'none'; PMENU = false; };
+  $('cvGo').onclick = function () { c.n = ($('cvN').value || 'Ma voiture').slice(0, 24); c.vmax = Math.max(CVMAX.vmax[0], Math.min(CVMAX.vmax[1], +$('cvV').value)); c.acc = Math.max(CVMAX.acc[0], Math.min(CVMAX.acc[1], +$('cvA').value)); CVEH = c;
+    try { localStorage.setItem('wr_cveh', JSON.stringify(c)); } catch (e) { try { localStorage.setItem('wr_cveh', JSON.stringify({ n: c.n, vmax: c.vmax, acc: c.acc })); toast('Modèle trop gros pour être gardé : il marche jusqu\'à la fermeture du jeu'); } catch (e2) {} }
+    o.style.display = 'none'; PMENU = false; cvehSpawn(c); }; }
+function cvehModel(c, done) { if (!c.b64 || !THREE.GLTFLoader) { done(null); return; } try { var bin = atob(c.b64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    new THREE.GLTFLoader().parse(u8.buffer, '', function (g) { var o = g.scene, grp = new THREE.Group(); grp.add(o); o.updateMatrixWorld(true); var bb = new THREE.Box3().setFromObject(o), sz = bb.getSize(new THREE.Vector3());
+      if (sz.z > sz.x) o.rotation.y = Math.PI / 2; o.updateMatrixWorld(true); bb.setFromObject(o); sz = bb.getSize(new THREE.Vector3()); var s = 4.4 / Math.max(.01, sz.x); o.scale.multiplyScalar(s); o.updateMatrixWorld(true); bb.setFromObject(o); var ce = bb.getCenter(new THREE.Vector3()); o.position.x -= ce.x; o.position.z -= ce.z; o.position.y -= bb.min.y;
+      o.traverse(function (q) { if (q.isMesh) { q.castShadow = true; q.frustumCulled = false; } }); grp.userData.wh = []; done(grp); }, function () { done(null); }); } catch (e) { done(null); } }
+function cvehSpawn(c) { var k = 'cv_' + vehicles.length; VT[k] = { name: c.n, vmax: c.vmax, acc: c.acc, hp: 380, dmgP: 1.1, dmgV: 1, res: .8, smash: 1.2, r: 2.1 };
+  cvehModel(c, function (g) { var m = g || carModel('golf'); if (!g) m.traverse(function (q) { if (q.isMesh && q.material && q.material.color) { q.material = q.material.clone(); q.material.color.offsetHSL(.55, 0, 0); } });
+    var a = camA, x = me.x + Math.cos(a) * 6, z = me.z + Math.sin(a) * 6, v = { k: k, m: m, x0: x, z0: z, a0: a, x: x, z: z, a: a, y: hgt(x, z), vx: 0, vz: 0, hp: 380, max: 380, alive: true, driver: null, driftT: 0, boostT: 0, nitro: 0, r: 2.1, hitCd: 0, custom: 1 };
+    m.rotation.order = 'YZX'; scene.add(m); vehicles.push(v); toast('🚗 ' + c.n.toUpperCase() + ' EST LÀ · ' + Math.round(c.vmax * 3.6) + ' km/h · monte avec E'); }); }
+
+function noaiTick(p, dt) {   // bot piloté ailleurs (crBotsTick, csBot, villageois) : seulement la gravité et le sol
+  var g0 = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y + .6) : hgt(p.x, p.z); if (SV && SV.groundAt) { var g1 = SV.groundAt(p.x, p.z, p.y + .6); if (g1 != null && g1 > g0) g0 = g1; } if (DEV.length) { var dg = devTop(p.x, p.z, p.y + .6); if (dg && dg.y > g0) g0 = dg.y; }
+  p.gy = g0; if (p.y > g0 + .05) { p.vy = (p.vy || 0) - 25 * dt; p.y = Math.max(g0, p.y + p.vy * dt); } else { p.y += (g0 - p.y) * Math.min(1, dt * 12); p.vy = 0; } }
 function update(dt) {
   bubbleTick(dt, performance.now() / 1000);
   if (SURV) { if (!musOn || MUSMODE !== 'surv') { STR = Math.random() * 3 | 0; SBAR0 = 0; music(true, 'surv'); } }   // survie : 3 morceaux calmes qui tournent
@@ -3290,6 +3378,7 @@ function update(dt) {
     }
     tickGuns(p, dt);
     if (p.bot && !p.noai) botThink(p, dt);
+    else if (p.bot) noaiTick(p, dt);   /* BUG CORRIGÉ : les bots sans IA (meurtre mystère, prop hunt, CS, villageois) passaient dans la branche du JOUEUR → ils bougeaient/sautaient/tiraient avec TES touches */
     else {
       if (slotPress === 'h') { var hi = -1; for (var q = 1; q <= p.inv.length; q++) { var qq = (p.slot + q) % p.inv.length; if (p.inv[qq] && p.inv[qq].h) { hi = qq; break; } } slotPress = hi; if (hi < 0) toast('Pas de soins'); }
       if (slotPress >= 0 && SV && SV.tool()) { SURVIE.setTool(null); if (!p.inv[slotPress]) slotPress = -1; }
@@ -3392,6 +3481,7 @@ function syncModels(t, dt) {
       var v = p.veh, ca = Math.cos(v.a), sa = Math.sin(v.a); c.root.visible = true; c.root.position.set(v.x + ca * -.12 + sa * .36, v.y + .1, v.z + sa * -.12 - ca * .36); c.root.rotation.y = -v.a;
       window.ANIM.apply(c, window.ANIM.blend(c, window.ANIM.drive(), dt, 10), false); c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false; c.body.position.y = -.38; return; }
     c.body.position.y = 0;
+    if (p.corpse) { c.root.visible = dist(p.x, p.z, cam.position.x, cam.position.z) < 160; c.root.position.set(p.x, p.y, p.z); c.root.rotation.y = -p.a; return; }   // villageois à terre (Wald City)
     if (!p.alive || p.veh || p.mode === 'bus' || (WARMI && p.bot)) { c.root.visible = false; return; }
     c.root.visible = p === me ? !FPSV && me.alive : dist(p.x, p.z, cam.position.x, cam.position.z) < Math.min(far, 260); if (!c.root.visible) return;
     c.root.position.set(p.x, p.y, p.z); c.root.rotation.y = -p.a; animChar(p, dt); c.shadow.position.y = (p.gy || 0) + .03 - p.y; c.shadow.visible = p.mode === 'ground' && !R3.shadowMap.enabled; });
@@ -3705,7 +3795,7 @@ var PMENU = false;
 function pause(on) { if (on && state === 'play' && !PMENU) { PMENU = true; fireHeld = false; $('pause').hidden = false; if (CREA) { $('pEnd').hidden = !rLive(); $('pCfg').hidden = rLive(); } if (document.pointerLockElement && document.exitPointerLock) document.exitPointerLock(); } else if (!on && PMENU) { PMENU = false; $('pause').hidden = true; if (!isTouch && cv.requestPointerLock && state === 'play') cv.requestPointerLock(); } }
 $('play').addEventListener('click', start); $('frBtn').addEventListener('click', frOpen); $('vAgain').addEventListener('click', function () { $('victory').hidden = true; music(false); start(); }); $('vMenu').addEventListener('click', toMenu);
 $('vDance').addEventListener('click', function () { if (!myDances().length) return; doDance(); }); $('again').addEventListener('click', start); $('toMenu').addEventListener('click', toMenu);
-$('quit').addEventListener('click', toMenu); if (CREA) { $('pEnd').addEventListener('click', function () { if (!rLive()) return; netPub({ t: 're', n: netName() }); rEnd('⏹ PARTIE TERMINÉE'); pause(false); }); $('pCfg').addEventListener('click', function () { pause(false); if (rLive()) { toast('⚙️ Termine d\'abord la partie pour changer les réglages'); return; } rSetOpen(); }); } if (CREA) $('quit').textContent = '🚪 Quitter la partie'; if (MODE === 'creatif') { $('pPub').hidden = false; $('pPub').addEventListener('click', pubOpen); $('pDev').hidden = false; $('pDev').addEventListener('click', devOpen); $('pRule').hidden = false; $('pRule').addEventListener('click', rulesOpen); } if (MODE === 'creatif' || MODE === 'ile') { $('pScr').hidden = false; $('pScr').addEventListener('click', scrOpen); } $('resume').addEventListener('click', function () { pause(false); });
+$('quit').addEventListener('click', toMenu); if (CREA) { $('pEnd').addEventListener('click', function () { if (!rLive()) return; netPub({ t: 're', n: netName() }); rEnd('⏹ PARTIE TERMINÉE'); pause(false); }); $('pCfg').addEventListener('click', function () { pause(false); if (rLive()) { toast('⚙️ Termine d\'abord la partie pour changer les réglages'); return; } rSetOpen(); }); } if (CREA) $('quit').textContent = '🚪 Quitter la partie'; if (MODE === 'creatif') { $('pPub').hidden = false; $('pPub').addEventListener('click', pubOpen); $('pDev').hidden = false; $('pDev').addEventListener('click', devOpen); $('pRule').hidden = false; $('pRule').addEventListener('click', rulesOpen); } if (MODE === 'city' || MODE === 'creatif' || MODE === 'ile') { $('pVeh').hidden = false; $('pVeh').addEventListener('click', function () { pause(false); cvehOpen(); }); } if (MODE === 'creatif' || MODE === 'ile') { $('pScr').hidden = false; $('pScr').addEventListener('click', scrOpen); } $('resume').addEventListener('click', function () { pause(false); });
 document.addEventListener('visibilitychange', function () { if (document.hidden) { pause(true); music(false); } else if (state === 'menu') music(true); else if (state === 'play' && me.mode === 'bus') music(true, 'bus'); });
 ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { if (state === 'menu') { initAudio(); if (!musOn || MUSMODE !== 'lobby') music(true); } }, true); });
 function tab(t) { document.querySelectorAll('.tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); }); document.querySelectorAll('.pane').forEach(function (p) { p.classList.toggle('on', p.dataset.p === t); }); }

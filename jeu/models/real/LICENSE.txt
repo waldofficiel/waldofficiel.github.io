@@ -1,0 +1,3 @@
+soldier.glb (personnage « Vanguard ») et michelle.glb : personnages et animations de Mixamo (Adobe, https://www.mixamo.com).
+Mixamo autorise leur utilisation libre de droits dans des projets personnels, commerciaux et à but non lucratif (jeux compris) ;
+ils ne doivent pas être redistribués seuls comme fichiers de modèles. Récupérés dans le dépôt three.js (examples/models/gltf, licence MIT pour le code).
