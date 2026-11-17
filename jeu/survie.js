@@ -133,7 +133,27 @@
     var dg = g.createLinearGradient(0, H * .78, 0, H); dg.addColorStop(0, 'rgba(70,45,20,0)'); dg.addColorStop(1, 'rgba(70,45,20,.45)'); g.fillStyle = dg; g.fillRect(0, 0, W, H);   // terre en bas du mur
     g.strokeStyle = 'rgba(30,20,10,.35)'; g.lineWidth = 1.5; for (var cr = 0; cr < 3; cr++) { var cx = r() * W, cy = r() * H; g.beginPath(); g.moveTo(cx, cy); for (var s2 = 0; s2 < 5; s2++) { cx += (r() - .5) * 40; cy += 10 + r() * 20; g.lineTo(cx, cy); } g.stroke(); }
     var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
-  function bTex(mk) { if (/^pc\d$/.test(mk)) return favTex(mk); var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(mk === 'bois' ? 7 : mk === 'pierre' ? 11 : 13);
+  /* MURS INCASSABLES (outil des créateurs de maps, comme les murs « indestructibles » du créatif de Fortnite) : mêmes pièces 5 × 3,5 m, éditables,
+     mais impossibles à casser, avec une texture au choix. Seul le créateur (sur son île) peut les enlever, d'un coup de pioche. */
+  var IXM = { ixb: ['BÉTON', '#8f9399'], ixr: ['BRIQUE', '#a8503a'], ixs: ['GRÈS', '#d8b884'], ixm: ['ACIER', '#4a5260'], ixw: ['BOIS SOMBRE', '#5a3a22'], ixn: ['NÉON', '#16101f'] };
+  Object.keys(IXM).forEach(function (k) { MATW[k] = 'inv'; HPP[k] = 1e9; HP0[k] = 1e9; HPT[k] = 1; ICON[k] = '🛡️'; NAME[k] = IXM[k][0] + ' INCASSABLE'; });
+  function isIX(m) { return /^ix/.test(m || ''); }
+  function ixTex(mk) { var W = 512, H = 358, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(57 + mk.charCodeAt(2)), base = IXM[mk][1];
+    function speck(n, a) { for (var i = 0; i < n; i++) { g.fillStyle = r() < .5 ? 'rgba(0,0,0,' + (r() * a) + ')' : 'rgba(255,255,255,' + (r() * a) + ')'; g.fillRect(r() * W, r() * H, 1 + r() * 3, 1 + r() * 3); } }
+    g.fillStyle = base; g.fillRect(0, 0, W, H);
+    if (mk === 'ixb') { speck(2500, .09); g.strokeStyle = 'rgba(40,42,46,.55)'; g.lineWidth = 3; [W / 2].forEach(function (x) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); }); g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
+      [[W / 4, H / 4], [W * .75, H / 4], [W / 4, H * .75], [W * .75, H * .75]].forEach(function (q) { g.fillStyle = 'rgba(30,30,34,.6)'; g.beginPath(); g.arc(q[0], q[1], 7, 0, 7); g.fill(); g.fillStyle = 'rgba(255,255,255,.15)'; g.beginPath(); g.arc(q[0] - 1.5, q[1] - 1.5, 3, 0, 7); g.fill(); }); }
+    else if (mk === 'ixr' || mk === 'ixs') { var bh = mk === 'ixr' ? 30 : 60, bw = mk === 'ixr' ? 64 : 128; g.fillStyle = mk === 'ixr' ? '#6a5a50' : '#b89a6a'; g.fillRect(0, 0, W, H);
+      for (var row = 0, y = 0; y < H; row++, y += bh) for (var x = -(row % 2) * bw / 2; x < W; x += bw) { var li = (mk === 'ixr' ? 36 : 70) + r() * 10; g.fillStyle = mk === 'ixr' ? 'hsl(' + (10 + r() * 8) + ',55%,' + li + '%)' : 'hsl(' + (36 + r() * 6) + ',45%,' + li + '%)'; g.fillRect(x + 3, y + 3, bw - 6, bh - 6); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x + 3, y + 3, bw - 6, 3); g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(x + 3, y + bh - 6, bw - 6, 3); }
+      speck(1200, .08); }
+    else if (mk === 'ixm') { var gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, '#5a6474'); gr.addColorStop(1, '#343a46'); g.fillStyle = gr; g.fillRect(0, 0, W, H); speck(600, .1);
+      g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 4; g.strokeRect(8, 8, W - 16, H - 16); g.beginPath(); g.moveTo(W / 2, 8); g.lineTo(W / 2, H - 8); g.stroke();
+      for (var bx = 24; bx < W; bx += 46) [20, H - 20].forEach(function (by) { g.fillStyle = '#9aa2ae'; g.beginPath(); g.arc(bx, by, 5, 0, 7); g.fill(); });
+      for (var s = -H; s < W; s += 40) { g.fillStyle = (s / 40) % 2 ? '#e8b81a' : '#1a1a1a'; g.beginPath(); g.moveTo(s, H - 34); g.lineTo(s + 20, H - 34); g.lineTo(s + 40, H - 14); g.lineTo(s + 20, H - 14); g.fill(); } }
+    else if (mk === 'ixw') { for (var p = 0; p < 6; p++) { var py = p * H / 6, cols = ['#5a3a22', '#4a2e1a', '#64422a'][p % 3]; g.fillStyle = cols; g.fillRect(0, py + 2, W, H / 6 - 4); g.strokeStyle = 'rgba(20,10,4,.35)'; for (var l = 0; l < 6; l++) { g.lineWidth = 1 + r() * 2; g.beginPath(); var yy = py + 6 + r() * (H / 6 - 12); g.moveTo(0, yy); for (var xx = 0; xx <= W; xx += 32) g.lineTo(xx, yy + Math.sin(xx * .03 + l) * 2); g.stroke(); } } }
+    else { g.fillStyle = '#120a1c'; g.fillRect(0, 0, W, H); speck(400, .06); g.shadowBlur = 16; [['#ff2bd6', 14], ['#2de2ff', 30]].forEach(function (q) { g.strokeStyle = q[0]; g.shadowColor = q[0]; g.lineWidth = 5; g.strokeRect(q[1], q[1], W - 2 * q[1], H - 2 * q[1]); }); g.shadowBlur = 0; }
+    var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
+  function bTex(mk) { if (/^pc\d$/.test(mk)) return favTex(mk); if (isIX(mk)) return ixTex(mk); var W = 1024, H = 716, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'), r = rng(mk === 'bois' ? 7 : mk === 'pierre' ? 11 : 13);
     function grain(x, y, w, h, base, dark, n) { g.fillStyle = base; g.fillRect(x, y, w, h); g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
       for (var i = 0; i < n; i++) { g.strokeStyle = dark; g.globalAlpha = .12 + r() * .25; g.lineWidth = 1 + r() * 2.5; var yy = y + r() * h; g.beginPath(); g.moveTo(x, yy); for (var xx = x; xx <= x + w; xx += 24) g.lineTo(xx, yy + Math.sin(xx * .02 + i) * 3); g.stroke(); }
       g.globalAlpha = 1; if (r() < .7) { var kx = x + r() * w, ky = y + h * (.3 + r() * .4); g.fillStyle = dark; g.globalAlpha = .55; g.beginPath(); g.ellipse(kx, ky, 9 + r() * 6, 4 + r() * 3, 0, 0, 7); g.fill(); g.globalAlpha = .3; g.beginPath(); g.ellipse(kx, ky, 18, 8, 0, 0, 7); g.stroke(); g.globalAlpha = 1; }
@@ -171,7 +191,7 @@
     }
     var t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 8; t.wrapS = t.wrapT = T.RepeatWrapping; return t; }
   function bMat(mk, type) { var key = mk + (type === 'esc' ? 'e' : ''); if (BMAT[key]) return BMAT[key]; var tx = (BMAT['t' + mk] = BMAT['t' + mk] || bTex(mk)), m;
-    m = mk === 'metal' ? new T.MeshStandardMaterial({ map: tx, metalness: .55, roughness: .42, color: '#ffffff' }) : new T.MeshStandardMaterial({ map: tx, metalness: 0, roughness: mk === 'bois' ? .78 : .9, color: '#ffffff' });
+    m = mk === 'metal' || mk === 'ixm' ? new T.MeshStandardMaterial({ map: tx, metalness: .55, roughness: .42, color: '#ffffff' }) : mk === 'ixn' ? new T.MeshStandardMaterial({ map: tx, emissiveMap: tx, emissive: '#ffffff', emissiveIntensity: .8, metalness: 0, roughness: .6, color: '#ffffff' }) : new T.MeshStandardMaterial({ map: tx, metalness: 0, roughness: mk === 'bois' ? .78 : .9, color: '#ffffff' });
     if (mk === 'bois') { m.alphaTest = .5; m.side = T.DoubleSide; }
     return BMAT[key] = m; }
   /* TEXTURES PERSO (Créatif) : un créateur peut remplacer la texture du bois, de la pierre ou du métal par une image à lui (ou d'origine avec null) */
@@ -179,7 +199,7 @@
     if (src) { tx = new T.CanvasTexture(src); tx.encoding = T.sRGBEncoding; tx.anisotropy = 8; tx.wrapS = tx.wrapT = T.RepeatWrapping; } else tx = bTex(mk);
     var old = BMAT['t' + mk]; BMAT['t' + mk] = tx; [mk, mk + 'e'].forEach(function (k) { var m = BMAT[k]; if (!m) return; m.map = tx; if (mk === 'bois') { m.alphaTest = src ? 0 : .5; } m.needsUpdate = true; }); if (old && old !== tx) old.dispose(); }
   function pieceIM(type, mk) { var key = type + mk; if (PIM[key]) return PIM[key]; var mat = bMat(mk, type);
-    var im = new T.InstancedMesh(type === 'mur' || type === 'sol' ? C.BOX : GEO[type], mat, 300); im.count = 300; for (var i = 0; i < 300; i++) im.setMatrixAt(i, ZERO); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true; im.free = []; for (i = 299; i >= 0; i--) im.free.push(i); C.scene.add(im); PIM[key] = im; return im; }
+    var CAP = isIX(mk) ? 1500 : 600, im = new T.InstancedMesh(type === 'mur' || type === 'sol' ? C.BOX : GEO[type], mat, CAP); im.count = CAP; for (var i = 0; i < CAP; i++) im.setMatrixAt(i, ZERO); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; im.userData.dyn = true; im.free = []; for (i = CAP - 1; i >= 0; i--) im.free.push(i); C.scene.add(im); PIM[key] = im; return im; }
   function pieceMatrix(p, o) { o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1);
     if (p.t === 'sol') { o.position.set(p.x, p.L, p.z); o.scale.set(CELL, .16, CELL); }
     else if (p.t === 'esc') { o.position.set(p.x, p.L, p.z); o.rotation.y = -p.d * Math.PI / 2; }
@@ -312,7 +332,7 @@
     else { p.ii = im.free.pop(); if (p.d0 == null) p.d0 = p.d; pieceShow(p); }
     PIECES.push(p); return true; }
   /* SOLIDITÉ comme Fortnite : une pièce qui n'est plus reliée au sol (directement ou par d'autres pièces) TOMBE */
-  function grounded(p) { if (p.t === 'mur' && p.mask && p.mask[0] && p.mask[1] && p.mask[2]) return false;   /* rangée du bas enlevée : le mur ne touche plus le sol */
+  function grounded(p) { if (isIX(p.m)) return true;   /* un mur incassable tient toujours */ if (p.t === 'mur' && p.mask && p.mask[0] && p.mask[1] && p.mask[2]) return false;   /* rangée du bas enlevée : le mur ne touche plus le sol */
     var g = C.hgt(p.x, p.z); if (window.INTERIORS && INTERIORS.groundAt) g = Math.max(g, INTERIORS.groundAt(p.x, p.z, p.L + .5)); return p.L <= g + .6; }
   /* LIENS ENTRE PIÈCES comme Fortnite : deux pièces se tiennent seulement si elles partagent une arête (bas d'un mur sur le bord d'un sol,
      mur posé pile sur un mur, coin de deux murs, bas d'une rampe sur un sol…). Un mur décalé en « escalier » sur un autre ne tient plus. */
@@ -533,7 +553,8 @@
     (window.EXT_WRECK || []).forEach(function (w, i) { w.hp0 = w.hp; w.cols = w.col ? [w.col] : []; w.id = 'k' + i; WRECKS.push(w); });   // le tracteur du ranch
     return true; }
   function wreckVis() { var P = me(); WRECKS.forEach(function (w) { if (w.g && !w.dead) w.g.visible = Math.abs(w.x - P.x) < 260 && Math.abs(w.z - P.z) < 260; }); }
-  function hitPiece(p, dmg) { p.hp -= dmg; if (C.bhp) C.bhp(p.x, p.L + (p.t === 'sol' ? 1.2 : 3.9), p.z, p.hp, p.hmax || hpMax(p)); C.tone('square', 240, 150, .07, .06); (p.ws || []).forEach(function (w) { w.hp = p.hp; }); if (p.hp <= 0) removePiece(p, true); else C.burst(p.x, p.L + 1.2, p.z, 5, [C.MATS[MATW[p.m]].col], 3, .12, .4); }
+  function hitPiece(p, dmg) { if (isIX(p.m)) { if (C.EDITOR) { removePiece(p, true); return; } if (C.bhp) C.bhp(p.x, p.L + 3.9, p.z, 1, 1); C.tone('square', 900, 700, .05, .05); return; }   /* incassable (seul le créateur l'enlève sur son île) */
+    p.hp -= dmg; if (C.bhp) C.bhp(p.x, p.L + (p.t === 'sol' ? 1.2 : 3.9), p.z, p.hp, p.hmax || hpMax(p)); C.tone('square', 240, 150, .07, .06); (p.ws || []).forEach(function (w) { w.hp = p.hp; }); if (p.hp <= 0) removePiece(p, true); else C.burst(p.x, p.L + 1.2, p.z, 5, [C.MATS[MATW[p.m]].col], 3, .12, .4); }
   function fell(t) {   // l'arbre tombe : il disparaît, une souche reste, il repoussera
     t.cut = true; t.cutT = 0; t.r0 = t.r; t.h0 = t.h; t.r = 0; t.h = -99; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, false);
     STUMPL.push(t); stumpsRefresh(); C.SFX.crack(); C.noise(.5, .25, 500); C.burst(t.x, t.y + 3, t.z, 30, ['#3a6a2a', '#5a8a3a', '#8a5a2e', '#2a4a1e'], 8, .35, 1.6, .5); give('bois', 10); }
@@ -585,7 +606,7 @@
     el.open = document.createElement('button'); el.open.type = 'button'; el.open.id = 'sOpen'; el.open.hidden = true; el.open.innerHTML = '📦 OUVRIR LE COFFRE' + (C.isTouch ? '' : ' (E)'); document.body.appendChild(el.open);
     press(el.open, function () { act(); });
     el.tools = document.createElement('span'); el.tools.id = 'sTools';
-    el.tools.innerHTML = '<button type="button" data-t="pioche" title="Pioche (X)">' + IC.pioche + '<b>' + (C.isTouch ? '' : 'X') + '</b></button>' + (C.BUILD ? '<button type="button" data-t="build" title="Construire (V)">' + IC.build + '<b>' + (C.isTouch ? '' : 'V') + '</b></button>' : '');
+    el.tools.innerHTML = (C.NOPICK ? '' : '<button type="button" data-t="pioche" title="Pioche (X)">' + IC.pioche + '<b>' + (C.isTouch ? '' : 'X') + '</b></button>') + (C.BUILD ? '<button type="button" data-t="build" title="Construire (V)">' + IC.build + '<b>' + (C.isTouch ? '' : 'V') + '</b></button>' : '');
     var hb = document.getElementById('hotbar'); if (hb) hb.appendChild(el.tools); else document.body.appendChild(el.tools);
     el.tools.querySelectorAll('button').forEach(function (b) { press(b, function () { setTool(TOOL === b.dataset.t ? null : b.dataset.t); }); });
     el.build = document.createElement('div'); el.build.id = 'sBuild'; el.build.className = 'hud'; el.build.hidden = true;
@@ -594,20 +615,20 @@
     el.build.querySelectorAll('[data-p]').forEach(function (b) { press(b, function () { PIECE = b.dataset.p; hudBuild(); }); });
     press(el.build.querySelector('.mat'), function () { nextMat(); });
     el.edit = document.createElement('button'); el.edit.type = 'button'; el.edit.id = 'sEdit'; el.edit.innerHTML = '✏️<small>ÉDITER</small>'; if (C.BUILD) document.body.appendChild(el.edit); press(el.edit, function () { editWall(); });   // bouton ÉDITER à part, comme sur Fortnite
-    setInterval(function () { var on = /^(play|pause)$/.test(C.state()) && me() && me().alive; if (el.tools.hidden === on) el.tools.hidden = !on; if (!on && !el.build.hidden) el.build.hidden = true; else if (on && TOOL === 'build' && el.build.hidden) el.build.hidden = false; }, 250);
+    setInterval(function () { var on = /^(play|pause)$/.test(C.state()) && me() && me().alive && !(C.NOPICK && !C.BUILD);   /* GTA / jeux sans pioche : barre sans pioche, comme les réglages d'inventaire du créatif de Fortnite */ if (el.tools.hidden === on) el.tools.hidden = !on; if (!on && !el.build.hidden) el.build.hidden = true; else if (on && TOOL === 'build' && el.build.hidden) el.build.hidden = false; }, 250);
     addEventListener('keydown', function (e) { if (C.state() !== 'play' || e.repeat) return; var a = window.bindAct ? bindAct(e.code) : null;
-      if (a === 'pioche') setTool(TOOL === 'pioche' ? null : 'pioche');
+      if (a === 'pioche') { if (!C.NOPICK) setTool(TOOL === 'pioche' ? null : 'pioche'); }
       else if (a === 'construire') setTool(TOOL === 'build' ? null : 'build');
       else if (a === 'mur' || a === 'sol' || a === 'escalier' || a === 'toit') { e.preventDefault(); PIECE = { mur: 'mur', sol: 'sol', escalier: 'esc', toit: 'toit' }[a]; if (TOOL !== 'build') setTool('build'); hudBuild(); }
       else if (a === 'materiau' && TOOL === 'build') nextMat();
       else if (a === 'editer' && C.BUILD) editWall(); });
   }
   function press(b, fn) { b.addEventListener('pointerdown', function (e) { e.preventDefault(); e.stopPropagation(); fn(); }); }
-  function pickMat(cs) { if (INF() || RES[MATK] >= cs) return MATK; var L = ['bois', 'pierre', 'metal']; for (var i = 0; i < 3; i++) if (RES[L[i]] >= cs) return L[i]; return MATK; }   // plus assez de la matière choisie : on passe tout seul à une autre (bois, puis pierre, puis métal)
-  function nextMat() { var L = ['bois', 'pierre', 'metal']; MATK = L[(L.indexOf(MATK) + 1) % 3]; hudBuild(); }
+  function pickMat(cs) { if (isIX(MATK)) return C.EDITOR ? MATK : (MATK = 'bois'); if (INF() || RES[MATK] >= cs) return MATK; var L = ['bois', 'pierre', 'metal']; for (var i = 0; i < 3; i++) if (RES[L[i]] >= cs) return L[i]; return MATK; }   // plus assez de la matière choisie : on passe tout seul à une autre (bois, puis pierre, puis métal)
+  function nextMat() { var L = ['bois', 'pierre', 'metal'].concat(C.EDITOR ? Object.keys(IXM) : []); MATK = L[(L.indexOf(MATK) + 1) % L.length]; hudBuild(); if (isIX(MATK)) C.toast('🛡️ ' + NAME[MATK] + ' · clic droit = texture suivante'); }
   function hudRes() { ['bois', 'pierre', 'metal'].forEach(function (k) { var b = el[k] && el[k].querySelector('b'), v = INF() ? '∞' : String(RES[k]); if (b && b.textContent !== v) { b.textContent = v; el[k].classList.remove('flash'); void el[k].offsetWidth; el[k].classList.add('flash'); setTimeout(function () { el[k].classList.remove('flash'); }, 250); } }); }
   function hudBuild() { if (!el.build) return; el.build.querySelectorAll('[data-p]').forEach(function (b) { b.classList.toggle('on', b.dataset.p === PIECE); });
-    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + (INF() ? '∞' : RES[MATK]);
+    document.getElementById('sMatI').textContent = ICON[MATK]; document.getElementById('sMatN').textContent = NAME[MATK] + ' ' + (INF() || isIX(MATK) ? '∞' : RES[MATK]);
     el.tools.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === TOOL); }); el.build.hidden = TOOL !== 'build'; }
   function act() { if (!C.SURV) return false; if (window.FAUNE && FAUNE.on && FAUNE.act()) return true; var c = nearStor(); if (!c) return false; OPENC = null; bag(true); OPENC = c; bagDraw(); return true; }
   function setTool(t) { if (EDW && t !== 'edit') { EDW = null; gridDraw(); } if (t === 'build' && !C.BUILD) { C.toast(C.CREA ? 'CONSTRUCTIONS DÉSACTIVÉES DANS CETTE PARTIE' : 'PAS DE CONSTRUCTIONS EN ZÉRO CONSTRUCTION'); t = null; } if (t !== 'place') { PLACEK = null; PLACEI = -1; } TOOL = t; SW.t = -1; if (PICK) PICK.visible = t === 'pioche'; if (t !== 'build') ghostShow(null); hudBuild(); if (t === 'pioche') C.tone('triangle', 520, 780, .1, .06); }
@@ -813,15 +834,15 @@
       PIECES.slice().forEach(function (p) { if (p.ws && p.ws.some(function (w) { return !w.alive; })) removePiece(p, true); });   // un morceau cassé = tout le mur tombe
       if (PLACE_CD > 0) PLACE_CD -= dt;
       if (TOOL === 'place' && P.alive && P.mode === 'ground') ghostShow(placePlan(), true);
-      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planOk(), ok = !p.bad && !taken(p.key, p) && (INF() || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
+      else if (TOOL === 'build' && P.alive && P.mode === 'ground' && C.state() === 'play') { var p = planOk(), ok = !p.bad && !taken(p.key, p) && (INF() || isIX(MATK) || RES[p.t === 'lit' ? 'bois' : pickMat(cost(p.t))] >= cost(p.t)); ghostShow(taken(p.key, p) ? null : p, ok); } else ghostShow(null);
       if (SW.t >= 0) { SW.t += dt; if (!SW.hit && SW.t >= .27) { SW.hit = true; strike(); } if (SW.t >= .5) SW.t = -1; } },
     use: function (held, dt) {
       if (TOOL === 'edit') { if (!EDW) { TOOL = EPREV; return; } if (held && !ELAST) { editTap(); EDRAG = 1; } else if (held && EDRAG) editDrag(); if (!held && ELAST && EDRAG && C.editRel && C.editRel()) { EDRAG = 0; ELAST = false; editWall(); return; } ELAST = held; var P2 = me(); if (Math.hypot(P2.x - EDW.x, P2.z - EDW.z) > 9) editCancel(); return; }
       if (TOOL === 'pioche') { if (held && SW.t < 0) { SW.t = 0; SW.hit = false; C.noise(.12, .05, 1800); } }
       else if (TOOL === 'place' && held && PLACE_CD <= 0) { PLACE_CD = .4; placeItem(); }
       else if (TOOL === 'build' && held && PLACE_CD <= 0) { PLACE_CD = .2; var p = planOk(); if (p.bad || taken(p.key, p)) return; var cs = cost(p.t), mk = p.t === 'lit' ? 'bois' : pickMat(cs); if (p.t !== 'lit' && mk !== MATK) { MATK = mk; p.m = mk; hudBuild(); }
-        if (!INF() && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
-        if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!INF()) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
+        if (!INF() && !isIX(mk) && RES[mk] < cs) { C.toast('PAS ASSEZ DE ' + NAME[mk] + ' (' + cs + ')'); PLACE_CD = .8; return; }
+        if (placePiece(p)) { p.mine = true; if (HOOK) HOOK('b', { p: ser(p) }); if (!INF() && !isIX(mk)) RES[mk] -= cs; hudRes(); hudBuild(); C.tone('triangle', 420, 640, .09, .07); C.noise(.08, .1, 1200); } } },
     groundAt: groundAt,
     pose: function (o, c, ok) {   // bras qui tiennent la pioche / le plan de construction
       if (!TOOL || !ok) return; var th;
