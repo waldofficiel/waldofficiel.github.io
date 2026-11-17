@@ -12,15 +12,28 @@
       d.innerHTML = '⬇ TÉLÉCHARGEMENT · persos réalistes <span id="realDLp">0 %</span><div style="height:6px;background:#2a1a40;border-radius:4px;margin-top:6px;overflow:hidden"><i id="realDLb" style="display:block;height:100%;width:0;background:linear-gradient(90deg,#ff2bd6,#8a5cff,#2de2ff)"></i></div>'; document.body.appendChild(d); }
     document.getElementById('realDLp').textContent = Math.round(p * 100) + ' %'; document.getElementById('realDLb').style.width = (p * 100).toFixed(1) + '%'; }
   function prog() { var a = 0, b = 0; Object.keys(PROG).forEach(function (k) { a += PROG[k][0]; b += PROG[k][1] || 1; }); return b ? a / b : 0; }
-  var SIZE = { soldier: 2160468, michelle: 3276888 };
+  var SIZE = { soldier: 2160468, michelle: 3276888 }, SRC = { soldier: 'models/real/soldier.glb', michelle: 'models/real/michelle.glb' }, BUSY = {}, ANIMS = null, ANIMB = false;
+  /* CITADINS : Microsoft Rocketbox Avatar Library (licence MIT, models/rb/LICENSE.txt) : 16 vraies personnes texturées (squelette Biped « Bip01 »),
+     animations motion capture partagées (models/rb/anims.json : idle / walk / run hommes « m » et femmes « f ») */
+  var RB = [
+    ['male_adult_01', 'm', 'Lucas', 2018288], ['female_adult_01', 'f', 'Emma', 2124848], ['male_adult_04', 'm', 'Karim', 2171900], ['female_adult_03', 'f', 'Inès', 2522112],
+    ['male_adult_06', 'm', 'Hugo', 2054340], ['female_adult_08', 'f', 'Sofia', 2070568], ['male_adult_08', 'm', 'Théo', 1944480], ['female_adult_12', 'f', 'Chloé', 2136520],
+    ['male_adult_12', 'm', 'Marco', 1559600], ['female_adult_17', 'f', 'Léa', 2129088], ['male_adult_16', 'm', 'Diego', 1562428], ['female_party_01', 'f', 'Maya', 2535320],
+    ['male_adult_17', 'm', 'Yanis', 1562248], ['female_party_02', 'f', 'Nina', 2463928], ['business_male_02', 'm', 'Tony', 1811828], ['business_female_01', 'f', 'Clara', 2133276]];
+  RB.forEach(function (r, i) { SRC['c' + i] = 'models/rb/' + r[0] + '.glb'; SIZE['c' + i] = r[3]; });
   function prep(g) { g.scene.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = false; o.frustumCulled = false; if (o.material && o.material.roughness != null) o.material.roughness = Math.max(.45, o.material.roughness || .6); } }); }
-  function load(T0) { T = T0; if (LOADING || !T.GLTFLoader) return; LOADING = true; var L = new T.GLTFLoader(), n = 0; ui(0);
-    function fin() { if (++n === 2) { REAL.ready = !!G.soldier; ui(1); WAIT.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); } }
-    ['soldier', 'michelle'].forEach(function (k) { PROG[k] = [0, SIZE[k]];
-      L.load('models/real/' + k + '.glb', function (g) { G[k] = g; PROG[k][0] = PROG[k][1]; prep(g); fin(); },
-        function (e) { PROG[k] = [e.loaded, e.total || SIZE[k]]; ui(Math.min(.99, prog())); },
-        function (e) { console.warn('REAL ' + k, e && (e.message || e)); fin(); }); }); }
-  function clipsOf(k) { var own = G[k] && G[k].animations || [], S = G.soldier && G.soldier.animations || [], pick = function (L, re) { return L.filter(function (c) { return re.test(c.name); })[0]; };
+  function busyEnd(k) { delete BUSY[k]; if (!Object.keys(BUSY).length) { PROG = {}; ui(1); } else ui(Math.min(.99, prog())); }
+  /* téléchargement À LA DEMANDE : chaque modèle est chargé la première fois qu'un perso en a besoin (barre « ⬇ TÉLÉCHARGEMENT ») */
+  function need(k) { if (G[k] || BUSY[k] || !SRC[k] || !T || !T.GLTFLoader) return; BUSY[k] = 1; PROG[k] = [0, SIZE[k] || 2e6]; ui(prog());
+    new T.GLTFLoader().load(SRC[k], function (g) { G[k] = g; prep(g); PROG[k][0] = PROG[k][1]; busyEnd(k); WAIT.splice(0).forEach(function (f) { try { f(); } catch (e) {} }); },
+      function (e) { PROG[k] = [e.loaded, e.total || SIZE[k]]; ui(Math.min(.99, prog())); },
+      function (e) { console.warn('REAL ' + k, e && (e.message || e)); G[k] = null; busyEnd(k); }); }
+  function needAnims() { if (ANIMS || ANIMB || !T) return; ANIMB = true; BUSY.anims = 1; PROG.anims = [0, 910963];
+    new T.FileLoader().load('models/rb/anims.json', function (txt) { try { var J = JSON.parse(txt); ANIMS = {}; Object.keys(J).forEach(function (g) { ANIMS[g] = {}; J[g].forEach(function (c) { ANIMS[g][c.name] = T.AnimationClip.parse(c); }); }); } catch (e) { console.warn('REAL anims', e); ANIMS = {}; } PROG.anims[0] = PROG.anims[1]; busyEnd('anims'); },
+      function (e) { PROG.anims = [e.loaded, e.total || 910963]; ui(Math.min(.99, prog())); }, function () { ANIMS = {}; busyEnd('anims'); }); }
+  function load(T0) { T = T0; REAL.ready = true; }
+  function clipsOf(k) { if (/^c\d+$/.test(k)) { var A = ANIMS && ANIMS[RB[+k.slice(1)][1]] || {}; return { idle: A.idle, walk: A.walk, run: A.run }; }
+    var own = G[k] && G[k].animations || [], S = G.soldier && G.soldier.animations || [], pick = function (L, re) { return L.filter(function (c) { return re.test(c.name); })[0]; };
     var r = { idle: pick(own, /idle|stand|wait/i), walk: pick(own, /walk/i), run: pick(own, /run|jog|sprint/i) };
     if (!r.walk) { r.idle = pick(S, /^Idle$/); r.walk = pick(S, /^Walk$/); r.run = pick(S, /^Run$/); r.borrow = k !== 'soldier'; } return r; }
   var NOPOS = {};   // animations du soldat sur un autre corps : sans les pistes de position (tailles différentes)
@@ -70,20 +83,21 @@
     gr.traverse(function (q) { if (q.isMesh) q.castShadow = true; }); }
   window.REAL = {
     ready: false, load: load, VARS: VARS,
-    has: function (k) { return !!G[k]; },
+    has: function (k) { return !!G[k]; }, RB: RB, need: need,
     add: function (k, gltf, TT) { if (TT) T = TT; prep(gltf); G[k] = gltf; },
     /* c = perso (makeChar), k = 'soldier' | 'michelle' | 'perso' (importé) | 'vN' (personne n°N), tint = [r,g,b] (équipes de CS) */
-    apply: function (c, k, tint) { var vi = -1; if (/^v\d+$/.test(k)) { vi = +k.slice(1) % VARS.length; k = VARS[vi].b; } if (!c || !G[k] || c.cm) return false; var v = vi >= 0 ? VARS[vi] : null;
+    apply: function (c, k, tint) { var vi = -1; if (/^v\d+$/.test(k)) k = 'c' + (+k.slice(1) % RB.length);   // anciennes personnes vN = citadins
+      if (!c || c.cm) return false; var civ = /^c\d+$/.test(k); if (!G[k]) { need(k); if (civ) needAnims(); return false; } if (civ && !ANIMS) { needAnims(); return false; } var v = civ ? { sy: .96 + (+k.slice(1) * 37 % 9) / 100 } : null;
       var src = G[k].scene, o = T.SkeletonUtils ? T.SkeletonUtils.clone(src) : src.clone(true), g = new T.Group(); g.add(o);
-      o.traverse(function (q) { if (q.isMesh && q.material) { if (v) q.material = varMat(q.material, v, vi, k); if (tint) { q.material = q.material.clone(); q.material.color.setRGB(tint[0], tint[1], tint[2]); } } });
+      o.traverse(function (q) { if (q.isMesh && q.material) { if (v && vi >= 0) q.material = varMat(q.material, v, vi, k); if (tint) { q.material = q.material.clone(); q.material.color.setRGB(tint[0], tint[1], tint[2]); } } });
       var ext = function () { o.updateMatrixWorld(true); var bs = [], w = new T.Vector3(), r = null; o.traverse(function (q) { if (q.isBone) bs.push(q); });   // taille mesurée sur les OS (la boîte de la géométrie d'un SkinnedMesh peut être fausse : Michelle = couchée en cm)
-          if (bs.length > 5) { r = { y0: 1e9, y1: -1e9, cx: 0, cz: 0 }; bs.forEach(function (b) { b.getWorldPosition(w); if (w.y < r.y0) r.y0 = w.y; if (w.y > r.y1) r.y1 = w.y; if (/Hips$/.test(b.name)) { r.cx = w.x; r.cz = w.z; } }); r.y1 += (r.y1 - r.y0) * .02; }
+          if (bs.length > 5) { r = { y0: 1e9, y1: -1e9, cx: 0, cz: 0 }; bs.forEach(function (b) { b.getWorldPosition(w); if (w.y < r.y0) r.y0 = w.y; if (w.y > r.y1) r.y1 = w.y; if (/(Hips|Pelvis)$/.test(b.name)) { r.cx = w.x; r.cz = w.z; } }); r.y1 += (r.y1 - r.y0) * .02; }
           else { var bb = new T.Box3().setFromObject(o), ce = bb.getCenter(w); r = { y0: bb.min.y, y1: bb.max.y, cx: ce.x, cz: ce.z }; } return r; };
       var E = ext(), h0 = Math.max(.01, E.y1 - E.y0), s = 1.86 / .9 / h0 * (v && v.sy || 1); o.scale.multiplyScalar(s); if (v && v.sw) { o.scale.x *= v.sw; o.scale.z *= v.sw; }
       E = ext(); o.position.x -= E.cx; o.position.z -= E.cz; o.position.y -= E.y0 - .03;
-      if (v) accessories(o, v);
+      if (v && v.cap) accessories(o, v);
       g.rotation.y = Math.PI / 2; c.root.traverse(function (q) { if ((q.isMesh || q.isSkinnedMesh) && !q.userData.keep) { q.userData.cmHid = true; q.visible = false; } });
-      if (c.gunHold) c.gunHold.traverse(function (q) { if (q.isMesh) q.visible = true; }); c.root.add(g); c.cm = g; c.real = k;
+      if (c.gunHold) c.gunHold.traverse(function (q) { if (q.isMesh) q.visible = true; }); c.root.add(g); c.cm = g; c.real = k; c.civ = civ;
       var C = clipsOf(k), fix = C.borrow ? function (x) { return noPos(x, k); } : function (x) { return x; }; c.cmMix = new T.AnimationMixer(o); c.cmA = {};
       ['idle', 'walk', 'run'].forEach(function (a) { if (C[a]) c.cmA[a] = c.cmMix.clipAction(fix(C[a])); }); if (c.cmA.idle) { c.cmA.idle.time = Math.random() * 3; c.cmA.idle.play(); c.cmCur = 'idle'; } return true; },
     unapply: function (c) { if (!c || !c.cm || !c.real) return; c.root.remove(c.cm); c.cm = null; c.cmMix = null; c.real = null; c.root.traverse(function (q) { if (q.userData.cmHid) { q.visible = true; q.userData.cmHid = false; } }); },
