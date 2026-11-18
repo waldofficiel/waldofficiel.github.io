@@ -141,7 +141,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <h3 id="slvH">📡 SAUVE-LES ! · le jeu pour streamers</h3>
       <div class="sv" id="slv">
         <div class="svh"><img src="../wald-royal/img/sauveles_hud.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · STREAMERS</span><h2>SAUVE-<em>LES !</em></h2><p><b>Ton live TikTok contrôle le jeu.</b> Des villageois tombent dans une arène et courent en panique. Ton 🤖 robot-grue les sauve un par un… pendant que les <b>cadeaux de tes spectateurs</b> les font exploser.</p>
-          <div class="row"><button class="play" id="slvBuy" type="button">📡 ACHETER · 50 €</button><button class="btn2" id="slvAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="slvMsg">PC Windows (Wald Game). Paiement PayPal : écris-moi en DM sur TikTok @wald.off, tu reçois ton code.</p><div class="row svc"><input id="slvCode" maxlength="20" placeholder="TU AS UN CODE ? LIVE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="slvGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="slvCS"></p></div></div>
+          <div class="row"><button class="play" id="slvBuy" type="button">📡 ACHETER · 50 €</button><button class="btn2" id="slvAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="slvMsg">PC Windows (Wald Game). Paiement PayPal, ton code arrive par e-mail.</p><div class="row svc"><input id="slvCode" maxlength="20" placeholder="TU AS UN CODE ? LIVE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="slvGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="slvCS"></p></div></div>
         <div class="svg"><div><img src="../wald-royal/img/sauveles_grue.jpg" alt=""><b>🤖 Le robot-grue</b><small>Il attrape les villageois par le col et les pose dans la zone sûre. « Ouh ! »</small></div>
           <div><img src="../wald-royal/img/sauveles_feu.jpg" alt=""><b>🎁 Les cadeaux décident</b><small>🌹 Rose = robot turbo. 1 💎 sniper · 5 canon · 10 La Wald en drift · 20 lance-flammes · 30 missile · 100 météorite · 500 LA BOMBE.</small></div>
           <div><img src="../wald-royal/img/sauveles_hud.jpg" alt=""><b>💬 Leur pseudo dans l'arène</b><small>Chaque spectateur qui écrit dans le chat entre dans le jeu avec son pseudo : ils restent pour voir s'ils survivent.</small></div>
@@ -154,7 +154,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
           <span>5. Lance une vague (touche 9) quand le chat est calme, garde LA BOMBE pour les gros donateurs.</span>
           <span>6. Coupe les meilleurs moments en clips de 15 s pour TikTok : la bombe, le lance-flammes, un sauvetage de justesse.</span>
           <span>7. Branchement : touche L dans le jeu (pseudo TikTok + clé), ou TikFinity « touche clavier » (1 à 7, 0, 9).</span>
-          <em>📧 Contact : DM TikTok @wald.off · adresse e-mail bientôt</em></div>
+          <em>📧 Contact : <b>waldoffwald@gmail.com</b> · DM TikTok @wald.off</em></div>
       </div>
       <h3>Wald Royal + Mode Histoire</h3>
       <div class="sv">
@@ -320,13 +320,16 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   window.WRTV = play;
   window.WRTV2 = play2;
   /* Boutique : Wald Royal + Mode Histoire à 6,99 € + pub qui se lance toute seule la 1re fois */
-  window.SURV_PAY_URL = window.SURV_PAY_URL || '';
+  /* PAIEMENTS : PayPal de Wald Off (montant déjà rempli), puis il envoie le code par e-mail ; contact */
+  window.WG_MAIL = 'waldoffwald@gmail.com'; window.SURV_PAY_URL = 'https://paypal.me/Gotroz/6.99EUR'; window.PAY_LIVE_URL = 'https://paypal.me/Gotroz/50EUR';
+  function payOpen(u) { try { window.open(u, '_blank'); } catch (e) { location.href = u; } }
   $('edB').onclick = function (e) { e.stopPropagation(); $('edM').hidden = !$('edM').hidden; };
   document.addEventListener('click', function (e) { if (!$('edM').contains(e.target)) $('edM').hidden = true; });
-  if (window.SURV_PAY_URL) { var eb = document.querySelector('#edM [data-ed=wrs]'); eb.disabled = false; eb.classList.remove('off'); eb.querySelector('small').textContent = '32 créatures · monde de 4 km'; eb.onclick = function () { location.href = SURV_PAY_URL; }; }   // lien de paiement (à créer par Wald Off : Stripe, Ko-fi, PayPal…)
+  if (window.SURV_PAY_URL) { var eb = document.querySelector('#edM [data-ed=wrs]'); eb.disabled = false; eb.classList.remove('off'); eb.querySelector('small').textContent = '32 créatures · monde de 4 km'; eb.onclick = function () { payOpen(SURV_PAY_URL); $('svMsg').innerHTML = PAYMSG('MODE HISTOIRE'); }; }   // lien de paiement (à créer par Wald Off : Stripe, Ko-fi, PayPal…)
   $('svAd').onclick = function () { play(4); };
   if (window.SURV_PAY_URL) $('svBuy').classList.remove('off');
-  $('svBuy').onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; else $('svMsg').innerHTML = '🔒 Pas encore en vente : le paiement arrive très bientôt.'; };
+  function PAYMSG(what) { return '💳 Paie sur PayPal (<b>paypal.me/Gotroz</b>), puis envoie ton <b>pseudo</b> + la capture du paiement à <b>' + WG_MAIL + '</b> (objet : « ' + what + ' »). Tu reçois ton code, entre-le juste en dessous.'; }
+  $('svBuy').onclick = function () { if (LSg('wr_survie_ok') === '1') return; payOpen(SURV_PAY_URL); $('svMsg').innerHTML = PAYMSG('MODE HISTOIRE'); };
   /* ---- ACCUEIL : carrousel (pub Survie · Battle Royale · Mode histoire) ---- */
   var LSg = function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
   var CREA = LSg('wr_creator') === '1';
@@ -350,7 +353,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   slide(0);
   document.querySelectorAll('[data-shop]').forEach(function (b) { b.onclick = shopGo; });
   document.querySelectorAll('[data-home]').forEach(function (b) { b.onclick = function () { document.querySelector('nav [data-p=home]').click(); $('play').click(); }; });
-  document.querySelectorAll('[data-buy]').forEach(function (b) { b.onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; }; });
+  document.querySelectorAll('[data-buy]').forEach(function (b) { b.classList.remove('off'); b.textContent = '💳 ACHETER · 6,99 €'; b.onclick = function () { shopGo(); setTimeout(function () { $('svBuy').click(); }, 200); }; });
   /* 📡 SAUVE-LES ! : jeu à part dans la bibliothèque, 50 € (code LIVE-…, empreintes « wg-live|CODE », 2 appareils par code) */
   var LIVEC = {"3cd6c51c178c6ef11738e74d060e3bbc215db72e0be2df7b834b2e8588d57a7a": 2, "686b5d4650bc0434155a11807d8c506083d3801b6b2dd2e56fb8c09e946239aa": 2, "082f245a7d7c369263f82c9973b8466461faa80de4d11a75d8e5916c24f40808": 2, "0a6568064ee1757d3f67d20060ffd2d357f15fd7c4f9b1bc343c4e9f3a9e7571": 2, "95c3af1e18c0f7e5d4175239f1416aed7af8f6fcfb0c956170f162db7b87fc74": 2, "510e4b5b38cdeed67ceac51fb6210f1d548820e0455a809e30d2f0dbdfa5c050": 2, "682e2dcf94d84a997473b191aaaaea5208816112adf640d4d042a20082296f5c": 2, "c8b4911dee536785d5c33575423dfc173d36e6695c36ebb700792db62c895b14": 2, "f9621a35822e8ed5d53d90b5bf60f367e25a0f4aa5cac3b6e4297395e8fde7a8": 2, "84d907068ac483ed54d9c92ff334334f1052f5294cadead094d4a149e25895a0": 2};
   function liveOwned() { return CREA || LSg('wr_live_ok') === '1'; }
@@ -359,7 +362,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('libLive').onclick = function () { if (liveOwned()) { if (window.WGlaunch) WGlaunch('live'); else location.href = '../jeu/index.html?jouer&from=launcher&mode=live'; } else liveShop(); };
   document.querySelectorAll('[data-live]').forEach(function (b) { b.onclick = liveShop; });
   $('slvAd').onclick = function () { play(5); };
-  $('slvBuy').onclick = function () { if (liveOwned()) { $('libLive').click(); return; } if (window.PAY_LIVE_URL) window.open(PAY_LIVE_URL, '_blank'); else { $('slvMsg').innerHTML = '💳 Paiement PayPal : écris-moi en DM sur TikTok <b>@wald.off</b> (« SAUVE-LES »), je t\'envoie ton code, puis entre-le juste en dessous.'; $('slvCode').focus(); } };
+  $('slvBuy').onclick = function () { if (liveOwned()) { $('libLive').click(); return; } payOpen(PAY_LIVE_URL); $('slvMsg').innerHTML = PAYMSG('SAUVE-LES'); $('slvCode').focus(); };
   $('slvGo').onclick = function () { var c = $('slvCode').value.trim().toUpperCase(), out = function (t) { $('slvCS').textContent = t; }; if (!c) return;
     hx('wg-live|' + c).then(function (hs) { if (!LIVEC[hs]) { out('✖ Code invalide.'); return; } var dev = LSg('wg_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); setLS('wg_dev', dev); }
       out('⏳ Vérification du code…'); if (!window.NET || !NET.list) { out('✖ Pas de connexion, réessaie.'); return; }
