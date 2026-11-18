@@ -60,7 +60,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
 .edm button{display:grid;grid-template-columns:1fr auto;gap:2px 10px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px;color:#fff;cursor:pointer}.edm button:hover:not([disabled]){background:rgba(255,255,255,.07)}
 .edm b{font:800 14px Inter}.edm small{grid-column:1;font-size:11px;color:var(--mute)}.edm i{grid-row:1/3;grid-column:2;align-self:center;font:900 13px Inter;font-style:normal;color:#ffd23d}
 .edm .on{background:rgba(255,43,214,.12)}.play.off{filter:grayscale(1);opacity:.5;box-shadow:none;cursor:not-allowed}.edm .off{opacity:.42;filter:grayscale(1);cursor:not-allowed}
-.sv{display:flex;flex-direction:column;gap:16px}.svh{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,43,214,.45);box-shadow:0 0 50px rgba(122,47,255,.35);min-height:320px;display:flex;align-items:flex-end}
+.tips{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid rgba(255,210,61,.5);border-radius:14px;padding:14px 16px;font-size:14px}.tips b{color:#ffd23d;font-size:15px}.tips em{font-style:normal;opacity:.85;margin-top:4px}.sv{display:flex;flex-direction:column;gap:16px}.svh{position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,43,214,.45);box-shadow:0 0 50px rgba(122,47,255,.35);min-height:320px;display:flex;align-items:flex-end}
 .svh img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:svz 14s ease-in-out infinite alternate}.svh:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,4,24,.92) 0%,rgba(11,4,24,.55) 55%,transparent)}
 @keyframes svz{from{transform:scale(1)}to{transform:scale(1.08) translateX(-2%)}}.svt{position:relative;z-index:1;padding:26px;max-width:520px}.svt h2{font:900 46px/1 Inter;margin:10px 0}.svt h2 em{font-style:normal;background:linear-gradient(180deg,#fff,#c77dff 60%,#7a2fff);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 16px rgba(199,125,255,.7))}
 .svt p{color:#e0d0f0;line-height:1.45}.svt .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 8px}
@@ -98,7 +98,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
           <p id="hP">La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer.</p>
           <div class="hx" id="hX"></div>
           <div class="row"><div class="split"><button class="play" id="play">▶ JOUER</button><button class="play arr" id="edB" type="button" aria-label="Choisir l'édition">▾</button>
-            <div class="edm" id="edM" hidden><button type="button" class="on" data-ed="wr"><b>Wald Royal</b><small>Battle Royale · Créatif · gratuit</small><i>✔</i></button><button type="button" class="off" data-ed="wrs" disabled><b>Wald Royal + Mode Histoire</b><small>32 créatures · monde de 4 km · bientôt disponible</small><i>5,99 €</i></button></div></div><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
+            <div class="edm" id="edM" hidden><button type="button" class="on" data-ed="wr"><b>Wald Royal</b><small>Battle Royale · Créatif · gratuit</small><i>✔</i></button><button type="button" class="off" data-ed="wrs" disabled><b>Wald Royal + Mode Histoire</b><small>32 créatures · monde de 4 km · bientôt disponible</small><i>6,99 €</i></button></div></div><div><div class="ver" id="ver">Recherche de la dernière version…</div><div class="bar" id="bar"><i></i></div></div></div></div></div>
       <h3>🎬 Cinématiques</h3>
       <div class="grid cine">
         <button class="card" data-tv="4"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><b>🧟 Wald Royal + Mode Histoire</b><small>la pub · 32 créatures</small></div></button>
@@ -112,20 +112,20 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
         <button class="card" data-go="br"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>50 joueurs · Classé ou Partie rapide</small></div></button>
         <button class="card" data-go="creatif"><img src="../wald-royal/img/waldcar.jpg" alt=""><div><b>🎨 Créatif</b><small>Mon monde + maps publiques</small></div></button>
         <button class="card" data-go="bf"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>⚔️ MAP 1V1</b><small>Build fight entre potes</small></div></button>
-        <button class="card lockc" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>📖 Mode Histoire <span class="price">5,99 €</span></b><small>32 créatures · monde de 4 km · ta base</small></div></button>
+        <button class="card lockc" data-go="survie"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>📖 Mode Histoire <span class="price">6,99 €</span></b><small>32 créatures · monde de 4 km · ta base</small></div></button>
       </div>
       <h3>Nouveautés</h3><div class="news" id="news1"></div>
     </section>
     <section class="page" data-p="lib">
       <div class="top"><h1>Bibliothèque</h1></div>
-      <div class="grid"><button class="card" id="libCard"><img src="../jeu/logo.jpg" alt="Wald Royal" style="object-fit:cover"><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button></div>
+      <div class="grid"><button class="card" id="libCard"><img src="../jeu/logo.jpg" alt="Wald Royal" style="object-fit:cover"><div><b>Wald Royal</b><small id="libVer">Installé · toujours à jour</small></div></button><button class="card" id="libLive"><img src="../wald-royal/img/sauveles.jpg" alt="SAUVE-LES !"><div><b>📡 SAUVE-LES !</b><small id="libLiveS">Jeu pour streamers TikTok · 50 €</small></div></button></div>
       <button class="btn2" id="libUn" type="button" hidden style="margin-top:10px">🗑 Désinstaller Wald Royal</button>
       <h3>Vidéos</h3><div class="grid">
         <button class="card" data-tv="0"><img src="../wald-royal/img/capitale.jpg" alt=""><div><b>⭐ Bande-annonce</b><small>Wald Royal · accès anticipé</small></div></button>
         <button class="card" data-tv="1"><img src="../wald-royal/img/construction.jpg" alt=""><div><b>⚔️ Battle Royale</b><small>50 joueurs, 1 bus volant, 0 pitié</small></div></button>
         <button class="card" data-tv="2"><img src="../wald-royal/img/foret.jpg" alt=""><div><b>📖 Histoire 1 : La Brume Violette</b><small>La Brume Violette</small></div></button>
         <button class="card" data-tv="3"><img src="../wald-royal/img/buildfight.jpg" alt=""><div><b>🎨 Créatif</b><small>MAP 1V1, PROP HUNT, entre potes</small></div></button>
-        <button class="card" data-tv="4"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><b>📖 Pub : Mode Histoire</b><small>32 créatures · 5,99 €</small></div></button></div>
+        <button class="card" data-tv="4"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><b>📖 Pub : Mode Histoire</b><small>32 créatures · 6,99 €</small></div></button><button class="card" data-tv="5"><img src="../wald-royal/img/sauveles_feu.jpg" alt=""><div><b>📡 SAUVE-LES ! · la pub</b><small>le jeu que ton live contrôle</small></div></button></div>
       <p class="note" style="margin-top:14px">Wald Game met Wald Royal à jour tout seul : seuls les fichiers qui ont changé sont téléchargés.</p>
     </section>
     <section class="page" data-p="shop">
@@ -133,14 +133,33 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
       <h3 style="margin-top:0">Tous les jeux</h3>
       <div class="games">
         <div class="gm"><img src="../jeu/logo.jpg" alt="Wald Royal" style="object-fit:cover"><div><em>JEU · GRATUIT</em><b>Wald Royal</b><small>Battle Royale avec ou sans constructions, Partie rapide, Classé, Créatif et MAP 1V1.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
-        <div class="gm"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><em>ÉDITION · 5,99 €</em><b>Wald Royal + Mode Histoire</b><small>Tout Wald Royal + le Mode Histoire : monde de 4 km, 32 créatures, mode histoire.</small><button class="btn2 off" type="button" data-buy>🔒 BIENTÔT · 5,99 €</button></div></div>
+        <div class="gm"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div><em>ÉDITION · 6,99 €</em><b>Wald Royal + Mode Histoire</b><small>Tout Wald Royal + le Mode Histoire : monde de 4 km, 32 créatures, mode histoire.</small><button class="btn2 off" type="button" data-buy>🔒 BIENTÔT · 6,99 €</button></div></div>
         <div class="gm"><img src="../wald-royal/img/creatif.jpg" alt=""><div><em>CRÉATIF · GRATUIT</em><b>Créatif · MAP 1V1 · PROP HUNT</b><small>Mon monde, MAP 1V1, Prop Hunt, Sol en lave (✔ Wald Game) et les jeux publiés par les joueurs. Tout le Créatif est gratuit.</small><button class="btn2" type="button" data-home>▶ JOUER · GRATUIT</button></div></div>
+        <div class="gm"><img src="../wald-royal/img/sauveles.jpg" alt=""><div><em>JEU POUR STREAMERS · 50 €</em><b>SAUVE-LES !</b><small>Le jeu que ton LIVE TikTok contrôle : les cadeaux de tes spectateurs déclenchent sniper, lance-flammes, bombe… et un robot essaie de sauver les villageois.</small><button class="btn2" type="button" data-live>📡 VOIR LE JEU</button></div></div>
         <div class="gm soon"><img src="../wald-royal/img/lobby.jpg" alt=""><div><em>PROCHAIN JEU</em><b>??? · Wald Off Games</b><small>Le prochain jeu de Wald Off. Reste connecté…</small><button class="btn2 off" type="button" disabled>🔒 À VENIR</button></div></div>
+      </div>
+      <h3 id="slvH">📡 SAUVE-LES ! · le jeu pour streamers</h3>
+      <div class="sv" id="slv">
+        <div class="svh"><img src="../wald-royal/img/sauveles_hud.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · STREAMERS</span><h2>SAUVE-<em>LES !</em></h2><p><b>Ton live TikTok contrôle le jeu.</b> Des villageois tombent dans une arène et courent en panique. Ton 🤖 robot-grue les sauve un par un… pendant que les <b>cadeaux de tes spectateurs</b> les font exploser.</p>
+          <div class="row"><button class="play" id="slvBuy" type="button">📡 ACHETER · 50 €</button><button class="btn2" id="slvAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="slvMsg">PC Windows (Wald Game). Paiement PayPal : écris-moi en DM sur TikTok @wald.off, tu reçois ton code.</p><div class="row svc"><input id="slvCode" maxlength="20" placeholder="TU AS UN CODE ? LIVE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="slvGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="slvCS"></p></div></div>
+        <div class="svg"><div><img src="../wald-royal/img/sauveles_grue.jpg" alt=""><b>🤖 Le robot-grue</b><small>Il attrape les villageois par le col et les pose dans la zone sûre. « Ouh ! »</small></div>
+          <div><img src="../wald-royal/img/sauveles_feu.jpg" alt=""><b>🎁 Les cadeaux décident</b><small>🌹 Rose = robot turbo. 1 💎 sniper · 5 canon · 10 La Wald en drift · 20 lance-flammes · 30 missile · 100 météorite · 500 LA BOMBE.</small></div>
+          <div><img src="../wald-royal/img/sauveles_hud.jpg" alt=""><b>💬 Leur pseudo dans l'arène</b><small>Chaque spectateur qui écrit dans le chat entre dans le jeu avec son pseudo : ils restent pour voir s'ils survivent.</small></div>
+          <div><img src="../wald-royal/img/sauveles_bombe.jpg" alt=""><b>🏆 Objectif & tirage</b><small>Compteur de tous les 💎 vers ton objectif, TOP sauveurs / TOP tueurs, tirage au sort parmi ceux qui écrivent.</small></div></div>
+        <div class="tips"><b>🔥 TIPS POUR EXPLOSER TES VUES AVEC SAUVE-LES !</b>
+          <span>1. Titre du live qui accroche : « TES CADEAUX DÉCIDENT S'ILS VIVENT 😈 ».</span>
+          <span>2. Réagis à voix haute : « NOOON pas lui ! », « OUI il est sauvé ! » : c'est ça qui fait rester les gens.</span>
+          <span>3. Dis souvent : « écris ton pseudo dans le chat, ton perso entre dans l'arène ».</span>
+          <span>4. Annonce l'objectif 💎 et le gros lot au début, puis toutes les 10 minutes.</span>
+          <span>5. Lance une vague (touche 9) quand le chat est calme, garde LA BOMBE pour les gros donateurs.</span>
+          <span>6. Coupe les meilleurs moments en clips de 15 s pour TikTok : la bombe, le lance-flammes, un sauvetage de justesse.</span>
+          <span>7. Branchement : touche L dans le jeu (pseudo TikTok + clé), ou TikFinity « touche clavier » (1 à 7, 0, 9).</span>
+          <em>📧 Contact : DM TikTok @wald.off · adresse e-mail bientôt</em></div>
       </div>
       <h3>Wald Royal + Mode Histoire</h3>
       <div class="sv">
         <div class="svh"><img src="../wald-royal/img/crea_boss.jpg" alt=""><div class="svt"><span class="tag">NOUVEAU · DLC</span><h2>MODE <em>HISTOIRE</em></h2><p>La Brume Violette a tout envahi. Un monde de 4 km, <b>32 créatures</b> à découvrir, des boss, ta base à construire, et des animations à débloquer.</p>
-          <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + MODE HISTOIRE · 5,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p><div class="row svc"><input id="svCode" maxlength="20" placeholder="TU AS UN CODE ? SURVIE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="svGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="svCS"></p></div></div>
+          <div class="row"><button class="play off" id="svBuy" type="button">WALD ROYAL + MODE HISTOIRE · 6,99 €</button><button class="btn2" id="svAd" type="button" style="margin:0">▶ VOIR LA PUB</button></div><p class="note" id="svMsg">PC et Android, dans Wald Game. Pas sur Wald Royal iOS.</p><div class="row svc"><input id="svCode" maxlength="20" placeholder="TU AS UN CODE ? SURVIE-XXXX-XXXX" style="text-transform:uppercase"><button class="btn2" id="svGo" type="button" style="margin:0">🔓 DÉBLOQUER</button></div><p class="note" id="svCS"></p></div></div>
         <div class="svg"><div><img src="../wald-royal/img/crea_horde.jpg" alt=""><b>32 créatures</b><small>Communes, rares, épiques, légendaires. Certaines ne sortent que la nuit.</small></div>
           <div><img src="../wald-royal/img/crea_rares.jpg" alt=""><b>Le Livre des créatures</b><small>Chaque espèce tuée débloque sa fiche et son histoire.</small></div>
           <div><img src="../wald-royal/img/foret.jpg" alt=""><b>4 animations à débloquer</b><small>Danse du Zombie, La Rampante, Valse du Spectre, Danse du Roi Violet.</small></div>
@@ -161,7 +180,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     </section>
   </main>
 </div>
-<div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="4">🧟 Pub Histoire</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">📖 Histoire</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
+<div id="tv" hidden><canvas id="tvc"></canvas><div class="tvbar"><button type="button" data-tv="0">⭐ Bande-annonce</button><button type="button" data-tv="4">🧟 Pub Histoire</button><button type="button" data-tv="1">⚔️ Battle Royale</button><button type="button" data-tv="2">📖 Histoire</button><button type="button" data-tv="3">🎨 Créatif</button><button type="button" data-tv="5">📡 Sauve-les</button><button type="button" id="tvPlay">▶ JOUER</button><button type="button" id="tvX">✕</button></div></div>
 <script src="../jeu/net.js"></script>
 <script src="../jeu/wgfire.js"></script>
 <script src="cine.js"></script>
@@ -221,6 +240,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     $('bar').style.display = 'block'; var i = 0, t = setInterval(function () { i += 12; $('bar').firstChild.style.width = Math.min(100, i) + '%'; if (i >= 100) { clearInterval(t); location.href = '../jeu/index.html?jouer&from=launcher' + (mode ? '&mode=' + mode : ''); } }, 40);
   }
   function launch(mode) {
+    window.WGlaunch = launch;
     if (!APP) return go(mode);
     var v = inst();
     if (v < 0) return install(null);                       // 1re fois : on installe, puis le bouton devient JOUER
@@ -252,7 +272,8 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
     { bpm: 132, mood: 'hype', sc: [['ville.jpg', '30 JOUEURS', 'un seul TOP 1', 2.6], ['planeur.jpg', 'SAUTE DU BUS', 'et plane où tu veux', 2.6], ['construction.jpg', 'CONSTRUIS · ÉDITE', 'comme dans les plus grands', 2.6], ['lawald.jpg', 'LA WALD', 'la voiture légendaire tombe du ciel', 2.6], ['desert.jpg', '2 CARTES', 'Los Campagnes · Sable Rouge', 2.4], ['top1.jpg', 'TOP 1', 'classé ou partie rapide', 3], ['place.jpg', 'BATTLE ROYALE', END[1], 4.5]] },
     { bpm: 70, mood: 'dark', cine: 1, sc: [['#brume', 'IL Y A TROIS ANS…', 'la Brume Violette est sortie de la terre', 4.2, 'collines.jpg'], ['#horde', 'LES MORTS SE SONT LEVÉS', 'ceux qu\'elle touche ne dorment plus', 4, 'crea_horde.jpg'], ['#rares', '32 ESPÈCES', 'Rôdeurs, Noyés, Cornus… et des Ombres, la nuit', 4, 'crea_rares.jpg'], ['#faune', 'LES BÊTES ONT SURVÉCU', 'loups, cerfs, taureaux… chasse-les ou apprivoise-les', 4, 'foret.jpg'], ['#feu', 'TU N\'ES PAS SEUL', 'un loup, un feu, une nuit de plus', 4, 'foret.jpg'], ['#boss', 'TROUVE LE ROI VIOLET', 'construis · survis · libère les Terres Sauvages', 4.5, 'crea_boss.jpg'], ['#titre', 'LA BRUME VIOLETTE', 'Histoire 1 du Mode Histoire · ' + END[1], 4.5, 'foret.jpg']] },
     { bpm: 120, mood: 'fun', sc: [['creatif.jpg', 'MODE CRÉATIF', 'ton monde, tes règles', 2.8], ['buildfight.jpg', 'MAP 1V1', 'générateurs d\'armes · 200 PV · build fight', 3], ['capitale.jpg', 'PROP HUNT', 'deviens une poubelle… et siffle', 3], ['construction.jpg', 'CONSTRUCTIONS ILLIMITÉES', 'et tout est partagé avec tes potes', 3], ['village.jpg', 'ENTRE POTES', 'un code, et vous êtes ensemble', 3], ['place.jpg', 'CRÉATIF', END[1], 4.5]] },
-    { bpm: 138, mood: 'dark', ad: 1, cine: 1, sc: [['#brume', 'LA BRUME VIOLETTE…', '…a tout envahi', 3, 'collines.jpg'], ['#horde', '32 CRÉATURES', 'et elles ne dorment jamais', 3.2, 'crea_horde.jpg'], ['#rares', 'RARES · ÉPIQUES · LÉGENDAIRES', 'certaines ne sortent que la nuit', 3, 'crea_rares.jpg'], ['#boss', 'LE ROI VIOLET', 'et les autres boss t\'attendent', 3.4, 'crea_boss.jpg'], ['#loups', 'LA MEUTE CHASSE', 'loups · cerfs · taureaux en vrai 3D', 3, 'foret.jpg'], ['#feu', 'APPRIVOISE TON LOUP', 'un morceau de viande… et il te suit partout', 3.2, 'foret.jpg'], ['#base', 'CONSTRUIS TA BASE', 'bois · pierre · métal · ton lit', 3, 'construction.jpg'], ['#titre', 'WALD ROYAL + MODE HISTOIRE', '5,99 € · PC et Android · dans Wald Game', 5, 'crea_boss.jpg']] }];
+    { bpm: 138, mood: 'dark', ad: 1, cine: 1, sc: [['#brume', 'LA BRUME VIOLETTE…', '…a tout envahi', 3, 'collines.jpg'], ['#horde', '32 CRÉATURES', 'et elles ne dorment jamais', 3.2, 'crea_horde.jpg'], ['#rares', 'RARES · ÉPIQUES · LÉGENDAIRES', 'certaines ne sortent que la nuit', 3, 'crea_rares.jpg'], ['#boss', 'LE ROI VIOLET', 'et les autres boss t\'attendent', 3.4, 'crea_boss.jpg'], ['#loups', 'LA MEUTE CHASSE', 'loups · cerfs · taureaux en vrai 3D', 3, 'foret.jpg'], ['#feu', 'APPRIVOISE TON LOUP', 'un morceau de viande… et il te suit partout', 3.2, 'foret.jpg'], ['#base', 'CONSTRUIS TA BASE', 'bois · pierre · métal · ton lit', 3, 'construction.jpg'], ['#titre', 'WALD ROYAL + MODE HISTOIRE', '6,99 € · PC et Android · dans Wald Game', 5, 'crea_boss.jpg']] }];
+  TR.push({ bpm: 136, mood: 'hype', sc: [['sauveles_hud.jpg', 'WALD OFF GAMES', 'présente un jeu pour les STREAMERS', 2.6], ['sauveles.jpg', 'SAUVE-LES !', 'ton live TikTok contrôle le jeu', 2.8], ['sauveles_grue.jpg', 'LE ROBOT LES SAUVE', 'il les attrape par le col… un par un', 2.8], ['sauveles_feu.jpg', 'TES SPECTATEURS DÉCIDENT', '🎯 sniper · 🔥 lance-flammes · 🚗 La Wald en drift', 3], ['sauveles_wald.jpg', 'LEUR PSEUDO DANS L\'ARÈNE', 'ils écrivent dans le chat → leur perso entre', 2.8], ['sauveles_bombe.jpg', '500 💎 = LA BOMBE', 'tout explose… ton live aussi', 2.8], ['sauveles_hud.jpg', 'PLUS DE VUES · PLUS DE CADEAUX', 'disponible sur Wald Game · 50 €', 3.2]] });
   TR.forEach(function (t) { t.sc.forEach(function (q) { img(q[0].charAt(0) === '#' ? q[4] : q[0]); }); });
   function au() { if (AC) return; try { AC = new (window.AudioContext || window.webkitAudioContext)(); OUT = AC.createGain(); OUT.gain.value = .8; OUT.connect(AC.destination); } catch (e) {} }
   function note(type, f, t, dur, vol, lp, f2) { var o = AC.createOscillator(), gn = AC.createGain(), last = o; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur * .7); gn.gain.setValueAtTime(.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + .01); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
@@ -298,7 +319,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   $('tvPlay').addEventListener('click', function () { stop(); $('tv').hidden = true; $('play').click(); });
   window.WRTV = play;
   window.WRTV2 = play2;
-  /* Boutique : Wald Royal + Mode Histoire à 5,99 € + pub qui se lance toute seule la 1re fois */
+  /* Boutique : Wald Royal + Mode Histoire à 6,99 € + pub qui se lance toute seule la 1re fois */
   window.SURV_PAY_URL = window.SURV_PAY_URL || '';
   $('edB').onclick = function (e) { e.stopPropagation(); $('edM').hidden = !$('edM').hidden; };
   document.addEventListener('click', function (e) { if (!$('edM').contains(e.target)) $('edM').hidden = true; });
@@ -310,7 +331,8 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   var LSg = function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
   var CREA = LSg('wr_creator') === '1';
   var SL = [
-    { bg: 'crea_boss.jpg', tag: 'NOUVEAU · DLC', t: 'WALD ROYAL<br>+ MODE HISTOIRE', p: 'La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer. 5,99 € · bientôt.', x: [['▶ Cinématique', 4], ['🛒 Accès boutique', 'shop']] },
+    { bg: 'sauveles_hud.jpg', tag: 'NOUVEAU · POUR LES STREAMERS', t: 'SAUVE-LES !', p: 'Le jeu que ton live TikTok contrôle : tes spectateurs entrent dans l\'arène avec leur pseudo, leurs cadeaux font tout exploser, ton robot essaie de les sauver. 50 €.', x: [['▶ Voir la pub', 5], ['🛒 Accès boutique', 'shop']] },
+    { bg: 'crea_boss.jpg', tag: 'NOUVEAU · DLC', t: 'WALD ROYAL<br>+ MODE HISTOIRE', p: 'La Brume Violette a tout envahi : 32 créatures, des boss, ta base à construire et 4 animations à débloquer. 6,99 € · bientôt.', x: [['▶ Cinématique', 4], ['🛒 Accès boutique', 'shop']] },
     { bg: 'capitale.jpg', tag: 'SAISON 1 · GRATUIT', t: '<img src="../jeu/logo.jpg" alt="WALD ROYAL" class="hlogo">', p: 'Battle Royale avec ou sans constructions, Partie rapide ou Classé, Créatif avec MAP 1V1. Joue avec tes potes avec un code.', x: [['▶ Bande-annonce', 1], ['🎨 Créatif', 3]] },
     { bg: 'collines.jpg', tag: 'MODE HISTOIRE', t: 'LA BRUME<br>VIOLETTE', p: 'Il y a trois ans, la Brume Violette est sortie de la terre. Retrouve les affiches, remplis le Livre des créatures… et trouve le Roi Violet.', x: [['▶ Cinématique', 2], ['🛒 Accès boutique', 'shop']] }];
   var SI = 0, sT = null;
@@ -329,6 +351,23 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   document.querySelectorAll('[data-shop]').forEach(function (b) { b.onclick = shopGo; });
   document.querySelectorAll('[data-home]').forEach(function (b) { b.onclick = function () { document.querySelector('nav [data-p=home]').click(); $('play').click(); }; });
   document.querySelectorAll('[data-buy]').forEach(function (b) { b.onclick = function () { if (window.SURV_PAY_URL) location.href = SURV_PAY_URL; }; });
+  /* 📡 SAUVE-LES ! : jeu à part dans la bibliothèque, 50 € (code LIVE-…, empreintes « wg-live|CODE », 2 appareils par code) */
+  var LIVEC = {"3cd6c51c178c6ef11738e74d060e3bbc215db72e0be2df7b834b2e8588d57a7a": 2, "686b5d4650bc0434155a11807d8c506083d3801b6b2dd2e56fb8c09e946239aa": 2, "082f245a7d7c369263f82c9973b8466461faa80de4d11a75d8e5916c24f40808": 2, "0a6568064ee1757d3f67d20060ffd2d357f15fd7c4f9b1bc343c4e9f3a9e7571": 2, "95c3af1e18c0f7e5d4175239f1416aed7af8f6fcfb0c956170f162db7b87fc74": 2, "510e4b5b38cdeed67ceac51fb6210f1d548820e0455a809e30d2f0dbdfa5c050": 2, "682e2dcf94d84a997473b191aaaaea5208816112adf640d4d042a20082296f5c": 2, "c8b4911dee536785d5c33575423dfc173d36e6695c36ebb700792db62c895b14": 2, "f9621a35822e8ed5d53d90b5bf60f367e25a0f4aa5cac3b6e4297395e8fde7a8": 2, "84d907068ac483ed54d9c92ff334334f1052f5294cadead094d4a149e25895a0": 2};
+  function liveOwned() { return CREA || LSg('wr_live_ok') === '1'; }
+  function liveShop() { shopGo(); setTimeout(function () { var h = $('slvH'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 120); }
+  function liveDraw() { var o = liveOwned(); $('libLiveS').textContent = o ? '✔ Débloqué · ▶ JOUER' : 'Jeu pour streamers TikTok · 50 €'; $('slvBuy').textContent = o ? '▶ JOUER À SAUVE-LES !' : '📡 ACHETER · 50 €'; if (o) document.querySelector('#slv .svc').hidden = true; }
+  $('libLive').onclick = function () { if (liveOwned()) { if (window.WGlaunch) WGlaunch('live'); else location.href = '../jeu/index.html?jouer&from=launcher&mode=live'; } else liveShop(); };
+  document.querySelectorAll('[data-live]').forEach(function (b) { b.onclick = liveShop; });
+  $('slvAd').onclick = function () { play(5); };
+  $('slvBuy').onclick = function () { if (liveOwned()) { $('libLive').click(); return; } if (window.PAY_LIVE_URL) window.open(PAY_LIVE_URL, '_blank'); else { $('slvMsg').innerHTML = '💳 Paiement PayPal : écris-moi en DM sur TikTok <b>@wald.off</b> (« SAUVE-LES »), je t\'envoie ton code, puis entre-le juste en dessous.'; $('slvCode').focus(); } };
+  $('slvGo').onclick = function () { var c = $('slvCode').value.trim().toUpperCase(), out = function (t) { $('slvCS').textContent = t; }; if (!c) return;
+    hx('wg-live|' + c).then(function (hs) { if (!LIVEC[hs]) { out('✖ Code invalide.'); return; } var dev = LSg('wg_dev'); if (!dev) { dev = Math.random().toString(36).slice(2) + Date.now().toString(36); setLS('wg_dev', dev); }
+      out('⏳ Vérification du code…'); if (!window.NET || !NET.list) { out('✖ Pas de connexion, réessaie.'); return; }
+      NET.list('code/' + hs.slice(0, 16) + '/', function (L) { var devs = {}; (L || []).forEach(function (q) { if (q && q.d) devs[q.d] = 1; }); var n = Object.keys(devs).length;
+        if (!devs[dev] && n >= LIVEC[hs]) { out('✖ Ce code a déjà servi sur ' + LIVEC[hs] + ' appareils.'); return; }
+        var ok = function () { setLS('wr_live_ok', '1'); out('✔ SAUVE-LES ! débloqué : il est dans ta bibliothèque.'); if (window.WGsyncOut) WGsyncOut(); liveDraw(); };
+        if (devs[dev]) ok(); else NET.store('code/' + hs.slice(0, 16) + '/' + dev.slice(0, 12), { d: dev, t: Date.now() }, function (r) { if (r) ok(); else out('✖ Pas de connexion, réessaie.'); }); }); }); };
+  liveDraw();
   /* Survie verrouillée (sauf compte créateur) */
   var sc0 = document.querySelector('[data-go=survie]');
   if (sc0 && !CREA) { sc0.classList.add('lockc'); sc0.querySelector('small').textContent = '🔒 Bientôt · Wald Royal + Mode Histoire'; sc0.onclick = function () { shopGo(); }; } else if (sc0) sc0.classList.remove('lockc');
