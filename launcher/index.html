@@ -176,7 +176,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
         <label>Adresse e-mail du compte</label><div class="note" id="accEm">—</div>
         <label>Code créateur</label><input id="crI" maxlength="20" placeholder="CODE CRÉATEUR" style="text-transform:uppercase"><button class="btn2" id="crGo" type="button">✔ Valider le code</button><div class="note" id="crS"></div>
         <button class="btn2" id="logout" type="button" style="background:rgba(255,255,255,.1)">⎋ Se déconnecter</button>
-        <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne arriveront avec le serveur du jeu.</p></div>
+        <p class="note">Ton profil (pseudo, skins, pièces, rang) est gardé sur cet appareil. Les comptes en ligne arriveront avec le serveur du jeu.</p><p class="note">📧 Un problème ou une demande ? <a href="mailto:waldoffwald@gmail.com" style="color:#ffd23d">waldoffwald@gmail.com</a></p></div>
     </section>
   </main>
 </div>
@@ -359,7 +359,7 @@ h3{margin:28px 0 12px;font-size:16px;letter-spacing:.04em}
   function liveOwned() { return CREA || LSg('wr_live_ok') === '1'; }
   function liveShop() { shopGo(); setTimeout(function () { var h = $('slvH'); if (h) h.scrollIntoView({ behavior: 'smooth' }); }, 120); }
   function liveDraw() { var o = liveOwned(); $('libLiveS').textContent = o ? '✔ Débloqué · ▶ JOUER' : 'Jeu pour streamers TikTok · 50 €'; $('slvBuy').textContent = o ? '▶ JOUER À SAUVE-LES !' : '📡 ACHETER · 50 €'; if (o) document.querySelector('#slv .svc').hidden = true; }
-  $('libLive').onclick = function () { if (liveOwned()) { if (window.WGlaunch) WGlaunch('live'); else location.href = '../jeu/index.html?jouer&from=launcher&mode=live'; } else liveShop(); };
+  $('libLive').onclick = function () { if (liveOwned()) { try { if (window.prof) prof('out'); } catch (e) {} location.href = '../jeu/sauveles.html?from=launcher'; } else liveShop(); };   /* jeu à part : jeu/sauveles.html */
   document.querySelectorAll('[data-live]').forEach(function (b) { b.onclick = liveShop; });
   $('slvAd').onclick = function () { play(5); };
   $('slvBuy').onclick = function () { if (liveOwned()) { $('libLive').click(); return; } payOpen(PAY_LIVE_URL); $('slvMsg').innerHTML = PAYMSG('SAUVE-LES'); $('slvCode').focus(); };
