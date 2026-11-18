@@ -114,6 +114,7 @@
     var pg = new T.Group(), pb = new T.MeshLambertMaterial({ color: '#8a8f9a' }), pk = new T.MeshLambertMaterial({ color: '#e8a030' });
     var body = new T.SphereGeometry(.12, 8, 6), head = new T.SphereGeometry(.07, 8, 6);
     for (var k = 0; k < 10; k++) { var bird = new T.Group(), bd = new T.Mesh(body, pb); bd.scale.set(1.3, .9, .9); bird.add(bd); var hd = new T.Mesh(head, pb); hd.position.set(.15, .1, 0); bird.add(hd); var bk = new T.Mesh(new T.ConeGeometry(.025, .07, 5), pk); bk.rotation.z = -Math.PI / 2; bk.position.set(.24, .09, 0); bird.add(bk);
+      [-1, 1].forEach(function (sd) { var wg = new T.Group(), wm = new T.Mesh(new T.BoxGeometry(.16, .015, .2), pb); wm.position.z = sd * .1; wg.add(wm); wg.position.set(0, .05, sd * .07); bird.add(wg); });   // ailes (enfants 3 et 4) : battent en vol, repliées au sol
       var a2 = k / 10 * 6.283 + Math.random(), r2 = 5 + Math.random() * 1.5; bird.userData = { hx: Math.cos(a2) * r2, hz: Math.sin(a2) * r2, fly: 0, ph: Math.random() * 6 }; bird.position.set(bird.userData.hx, .12, bird.userData.hz); bird.rotation.y = Math.random() * 6; pg.add(bird); FX.pig.push(bird); }
     pg.userData.dyn = true; G.add(pg); FX.G = G;
   }
@@ -131,9 +132,12 @@
     if (FX.statue) FX.statue.rotation.y = .6 + t * .25;
     var lx = px - FX.G.position.x, lz = pz - FX.G.position.z;
     FX.pig.forEach(function (b) { var u = b.userData, d = Math.hypot(lx - b.position.x, lz - b.position.z);
-      if (u.fly <= 0 && d < 4.5) { u.fly = .01; u.vx = (b.position.x - lx) / d * 4; u.vz = (b.position.z - lz) / d * 4; }
-      if (u.fly > 0) { u.fly += dt; b.position.x += u.vx * dt; b.position.z += u.vz * dt; b.position.y += dt * 5; b.rotation.y = Math.atan2(-u.vz, u.vx); b.children[0].scale.z = .9 + Math.abs(Math.sin(t * 30)) * 1.6;
-        if (u.fly > 9) { u.fly = 0; b.position.set(u.hx, .12, u.hz); b.children[0].scale.z = .9; } }
+      /* les pigeons s'envolent quand on approche, font un tour au-dessus de la place puis reviennent se poser ailleurs (avant : ils montaient à l'infini, sans ailes) */
+      if (u.fly <= 0 && d < 4.5) { u.fly = .01; u.a0 = Math.atan2(b.position.z, b.position.x); u.dir = Math.random() < .5 ? 1 : -1; u.R = 7 + Math.random() * 5; u.H = 4 + Math.random() * 4; u.T = 5 + Math.random() * 3; u.x0 = b.position.x; u.z0 = b.position.z; var na = Math.random() * 6.283, nr = 4.5 + Math.random() * 2.5; u.nx = Math.cos(na) * nr; u.nz = Math.sin(na) * nr; }
+      if (u.fly > 0) { u.fly += dt; var f = Math.min(1, u.fly / u.T), ang = u.a0 + u.dir * f * 5.5, cx = Math.cos(ang) * u.R, cz = Math.sin(ang) * u.R, up = Math.sin(f * Math.PI), k0 = Math.min(1, f * 4), k1 = Math.max(0, (f - .75) * 4);
+        var nx = (u.x0 + (cx - u.x0) * k0) * (1 - k1) + u.nx * k1, nz = (u.z0 + (cz - u.z0) * k0) * (1 - k1) + u.nz * k1, ny = .12 + up * u.H;
+        b.rotation.y = Math.atan2(-(nz - b.position.z), nx - b.position.x + 1e-6); b.position.set(nx, ny, nz); var fl = Math.sin(t * 28 + u.ph) * (f < .9 ? .9 : .3); b.children[3].rotation.x = fl; b.children[4].rotation.x = -fl;
+        if (f >= 1) { u.fly = 0; b.position.set(u.nx, .12, u.nz); b.children[3].rotation.x = b.children[4].rotation.x = 0; } }
       else { b.position.y = .12 + Math.max(0, Math.sin(t * 6 + u.ph)) * .02; b.children[1].position.y = .1 - Math.max(0, Math.sin(t * 4 + u.ph)) * .08; if (Math.sin(t * .7 + u.ph) > .98) b.rotation.y += dt * 3; } });
   };
   window.EXT_FURN = window.EXT_FURN || [];

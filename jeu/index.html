@@ -1611,7 +1611,7 @@ function propTick() { pl.forEach(function (p) { if (p.net) { if ((p.pr || null) 
    On arrive dans la salle d'attente avec les joueurs du salon, quelqu'un appuie sur LANCER LA PARTIE.
    PROP HUNT : 3 joueurs minimum. 1 chercheur tiré au hasard (pompe), les autres se cachent (laser = se transformer en objet).
    60 s pour se cacher (le chercheur est aveuglé), puis 4 min de chasse. Les tirs cassent les objets ; un joueur-objet touché est éliminé. Personne ne construit. */
-var ROUND = null, PROPOBJ = [], HIDE_T = 60, HUNT_T = 240, RSEEN = 0, RSPUB = 0, RLAST = 0, PUB = null, PUBKEY = '', PUBDONE = false, LAVA = null, LASTJ = 0;
+var RREADY = 0, CRTOP = 0, ROUND = null, PROPOBJ = [], HIDE_T = 60, HUNT_T = 240, RSEEN = 0, RSPUB = 0, RLAST = 0, PUB = null, PUBKEY = '', PUBDONE = false, LAVA = null, LASTJ = 0;
 var TPL = MODE === 'city' ? 'libre' : MODE === 'raft' ? 'raft' : MODE === 'soleil' ? 'soleil' : MODE === 'zw' ? 'zw' : MODE === 'cs' ? 'cs' : MODE === 'ile' ? 'libre' : MODE === 'prop' ? 'prop' : MODE === 'lave' ? 'lave' : MODE === 'obby' ? 'obby' : MODE === 'gg' ? 'gg' : MODE === 'mm' ? 'mm' : BF ? 'bf' : 'libre';   // type de partie : libre, bf (1v1), prop (prop hunt), lave (sol en lave) — une map publiée peut choisir son type
 function mrng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function propObjs() { if (TPL !== 'prop' || PROPOBJ.length) return; var R = mrng(4242), i = 0;   // objets cassables posés pareil chez tous les joueurs (même graine)
@@ -1628,7 +1628,7 @@ function rUI() { var w = $('wroom'); if (!w) { w = document.createElement('div')
     document.body.appendChild(w); $('wrGo').addEventListener('click', rLaunch); $('wrCfg').addEventListener('click', rSetOpen); $('wrQuit').addEventListener('click', toMenu);
     var h = document.createElement('div'); h.id = 'rHud'; document.body.appendChild(h); var bl = document.createElement('div'); bl.id = 'rBlind'; bl.hidden = true; document.body.appendChild(bl); }
   return w; }
-function rNeed() { return TPL === 'cs' ? 2 : TPL === 'prop' || TPL === 'mm' ? 3 : Math.max(1, (PUB && PUB.min) || 1); }
+function rNeed() { return TPL === 'prop' || TPL === 'mm' ? 3 : TPL === 'cs' || TPL === 'zw' || TPL === 'gg' || TPL === 'bf' ? 2 : Math.max(1, (PUB && PUB.min) || 1); }
 /* ===== PARAMÈTRES DE LA PARTIE (comme « Paramètres de l'île » sur Fortnite) : on choisit la map, l'équipement, la vie, les règles… puis LANCER LA PARTIE. Avant le lancement : AUCUNE arme ===== */
 var RSET = null, RSETK = '', RCUR = null;
 var RKITS = { aucun: [], '1v1': ['fusil', 'pompeS', 'smg'], pompe: ['pompe'], sniper: ['sniper', 'pistolet'], fun: ['roquette', 'patate', 'laser'] };
@@ -1636,10 +1636,10 @@ var RSOPT = { mats: [['inf', '♾️ Matériaux : INFINIS'], ['500', '🪵 Maté
   hp: [[100, '❤️ 100 PV'], [200, '🛡 200 PV (100 + 100 bouclier)']], build: [[1, '🧱 Constructions : OUI'], [0, '🧱 Constructions : NON']], gen: [[1, '🔫 Générateurs d\'armes : OUI'], [0, '🔫 Générateurs d\'armes : NON']],
   resp: [[1, '♻️ Réapparition : OUI'], [0, '☠️ Réapparition : NON (dernier en vie gagne)']], time: [[0, '⏱ Durée : illimitée'], [3, '⏱ Durée : 3 min'], [5, '⏱ Durée : 5 min'], [10, '⏱ Durée : 10 min']],
   goal: [[0, '🏆 Objectif : aucun'], [5, '🏆 5 éliminations pour gagner'], [10, '🏆 10 éliminations'], [20, '🏆 20 éliminations']], bots: [[0, '🤖 Bots : 0'], [2, '🤖 Bots : 2'], [4, '🤖 Bots : 4'], [6, '🤖 Bots : 6'], [8, '🤖 Bots : 8'], [16, '🤖 Bots : 16'], [30, '🤖 Bots : 30'], [50, '🤖 Bots : 50']],
-  fly: [[0, '✈️ Voler en partie : NON'], [1, '✈️ Voler en partie : OUI']], jump: [[0, '🦘 Saut : normal'], [1, '🦘 Saut : SUPER SAUT']], speed: [[0, '👟 Vitesse : normale'], [1, '👟 Vitesse : RAPIDE']] };
+  fly: [[0, '✈️ Voler en partie : NON'], [1, '✈️ Voler en partie : OUI']], jump: [[0, '🦘 Saut : normal'], [1, '🦘 Saut : SUPER SAUT']], speed: [[0, '👟 Vitesse : normale'], [1, '👟 Vitesse : RAPIDE']], top1: [[1, '🏆 Écran TOP 1 pour le gagnant : OUI'], [0, '🏆 Écran TOP 1 : NON']] };
 var RPERSO = ['', 'fusil', 'pompeS', 'pompe', 'smg', 'pmx', 'scar', 'sniper', 'pistolet', 'roquette', 'laser', 'patate'];
-function rDef() { var bf = TPL === 'bf'; return { mats: 'inf', kit: bf ? '1v1' : 'aucun', hp: bf ? 200 : 100, build: 1, gen: 1, resp: 1, time: TPL === 'lave' ? 5 : 0, goal: 0, bots: 0, fly: TPL === 'libre' ? 1 : 0, jump: 0, speed: 0, k: ['fusil', 'pompeS', 'smg'] }; }
-function rKeys() { return TPL === 'libre' || TPL === 'bf' ? ['kit', 'hp', 'build', 'mats', 'gen', 'resp', 'time', 'goal', 'bots', 'fly', 'jump', 'speed'] : TPL === 'prop' || TPL === 'gg' || TPL === 'mm' || TPL === 'cs' ? ['bots'] : TPL === 'lave' ? ['time', 'jump'] : []; }
+function rDef() { var bf = TPL === 'bf'; return { mats: 'inf', kit: bf ? '1v1' : 'aucun', hp: bf ? 200 : 100, build: 1, gen: 1, resp: 1, time: TPL === 'lave' ? 5 : 0, goal: 0, bots: 0, fly: TPL === 'libre' ? 1 : 0, jump: 0, speed: 0, top1: 1, k: ['fusil', 'pompeS', 'smg'] }; }
+function rKeys() { return TPL === 'libre' || TPL === 'bf' ? ['kit', 'hp', 'build', 'mats', 'gen', 'resp', 'time', 'goal', 'bots', 'fly', 'jump', 'speed', 'top1'] : TPL === 'prop' || TPL === 'gg' || TPL === 'mm' || TPL === 'cs' ? ['bots', 'top1'] : TPL === 'lave' ? ['jump', 'top1'] : ['top1']; }
 function rSetGet() { var key = (PUBKEY || '') + '|' + TPL; if (RSET && RSETK === key) return RSET; RSETK = key; var st = null; try { st = JSON.parse(localStorage.getItem('wr_rset_' + key) || 'null'); } catch (e) {}
   var pk = PUB && !PUB.set && PUB.kit && PUB.kit.length ? { kit: 'perso', k: PUB.kit.slice(0, 3) } : {}; RSET = Object.assign(rDef(), PUB && PUB.set || {}, pk, PUB && PUB.time && TPL === 'lave' ? { time: PUB.time } : {}, st || {}); return RSET; }
 function rSetSave() { try { localStorage.setItem('wr_rset_' + RSETK, JSON.stringify(RSET)); } catch (e) {} }
@@ -1708,7 +1708,7 @@ function rLaunch() { var ids = rPlayers(), need = rNeed(), nb0 = rKeys().indexOf
   var m = { t: 'go', by: NETID, seek: all[Math.floor(Math.random() * all.length)], ids: all, tp: TPL, bots: bots, set: S }; if (TPL === 'mm') Object.assign(m, mmRoles(all)); if (TPL === 'cs') Object.assign(m, csTeams(all)); netPub(m); rStart(m); }
 /* BOTS pour compléter : au bout de 1 min d'attente, celui qui a le plus petit identifiant lance la partie et complète avec des bots (simulés chez lui, envoyés aux autres comme des joueurs) */
 var BOTS = {}, WAIT0 = performance.now(), BNAMES = ['Brutus', 'Kiki', 'Ziggy', 'Mamadou', 'Lulu', 'Rocco', 'Nina', 'Tonton'];
-function rFill() { return TPL === 'zw' ? 8 : TPL === 'cs' ? 8 : TPL === 'prop' ? 4 : TPL === 'bf' ? 4 : TPL === 'gg' ? 6 : TPL === 'mm' ? 7 : 0; }
+function rFill() { return 0; }   // Créatif : PAS de bots pour compléter (seulement si le créateur en met dans ⚙️ Paramètres)
 function rAuto() { var ids = rPlayers(), S = rSetGet(), nb = Math.max(rKeys().indexOf('bots') >= 0 ? S.bots || 0 : 0, Math.max(rNeed(), rFill()) - ids.length), bots = []; for (var i = 0; i < nb; i++) bots.push('bot' + i + NETID.slice(0, 3));
   var all = ids.concat(bots), m = { t: 'go', by: NETID, seek: all[Math.floor(Math.random() * all.length)], ids: all, tp: TPL, bots: bots, set: S }; if (TPL === 'mm') Object.assign(m, mmRoles(all)); if (TPL === 'cs') Object.assign(m, csTeams(all)); netPub(m); rStart(m); }
 function crBot(id, k) { var sk = ['lea', 'stan', 'flubb', 'wald'][k % 4], mdl = makeChar({ sk: sk }); scene.add(mdl.root);
@@ -1750,7 +1750,7 @@ function crBotsTick(dt) { if (!ROUND || ROUND.by !== NETID) return; var now = pe
       else { p.noai = true; p.vx = p.vz = 0; if (p.alive && !p.prop) { var o = PROPOBJ[Math.floor(Math.random() * PROPOBJ.length)]; if (o) { var a = Math.random() * 6.283; p.x = o.x + Math.cos(a) * 3; p.z = o.z + Math.sin(a) * 3; p.y = p.gy = hgt(p.x, p.z); } p.prop = o ? o.k : 'caisse'; p.propM = disguiseModel(p.prop); scene.add(p.propM); } } }
     if (p.fireCd > 0) p.fireCd -= dt;
     if (p.alive) netPub({ t: 's', bid: id, n: p.name, sk: p.sk, x: +p.x.toFixed(2), y: +p.y.toFixed(2), z: +p.z.toFixed(2), a: +p.a.toFixed(2), hp: Math.round(p.hp), sh: Math.round(p.sh), c: 0, w: p.inv[p.slot] ? p.inv[p.slot].k : '', pr: p.prop || '' }); }); }
-function rStart(m) { rUI(); RSCORE = 0; RCHR = {}; setTimeout(function () { if (ROUND) ruleFire('debut'); }, 300); if (ROUND && ROUND.by < m.by && performance.now() - ROUND.st < 4000) return;   // deux lancements en même temps : on garde le plus petit identifiant
+function rStart(m) { WBIN = false; rUI(); RSCORE = 0; RCHR = {}; setTimeout(function () { if (ROUND) ruleFire('debut'); }, 300); if (ROUND && ROUND.by < m.by && performance.now() - ROUND.st < 4000) return;   // deux lancements en même temps : on garde le plus petit identifiant
   if (m.ids.indexOf(NETID) < 0) return; RCUR = Object.assign(rDef(), m.set || rSetGet()); if (SVC) SVC.BUILD = BUILD && !!RCUR.build; if (SVC && !SVC.BUILD && SV && SV.tool && /build|edit/.test(SV.tool() || '')) SV.setTool(null); me.kills = 0; crBotsClear(); if (m.by === NETID && m.bots) m.bots.forEach(function (id, k) { crBotPlace(crBot(id, k)); }); ROUND = { by: m.by, seek: m.seek, ids: m.ids, st: performance.now() - (m.el || 0) * 1000, ph: TPL === 'prop' ? 'hide' : 'play', dead: {} }; $('wroom').hidden = true; unProp(true); me.fly = false;
   if (TPL === 'cs') { csBuild(); ROUND.ph = 'play'; if (SV && SV.setTool) SV.setTool(null); csGo(m); pl.forEach(function (p) { if (p.net && m.team[p.id] != null) p.team = m.team[p.id]; }); scrRun(CS_SCRIPT); return; }
   if (TPL === 'mm') { ROUND.mur = m.mur; ROUND.sher = m.sher; ROUND.armed = false; ROUND.mrev = false; me.hp = 100; me.sh = 0; me.heals = { mini: 0, shield: 0, heal: 0, bulle: 0 }; var t1 = TOWNS[Math.floor(Math.random() * TOWNS.length)], a1 = Math.random() * 6.283; me.x = t1[1] + Math.cos(a1) * 8; me.z = t1[2] + Math.sin(a1) * 8; me.y = me.gy = hgt(me.x, me.z); mmGive(); Object.keys(BOTS).forEach(function (id) { mmBotGive(BOTS[id]); });
@@ -1766,7 +1766,15 @@ function rStart(m) { rUI(); RSCORE = 0; RCHR = {}; setTimeout(function () { if (
   else { me.inv = [newSlot('laser'), null, null]; var t0 = PROPM ? TOWNS[Math.floor(Math.random() * TOWNS.length)] : TOWNS[0], a = Math.random() * 6.283; me.x = t0[1] + Math.cos(a) * 8; me.z = t0[2] + Math.sin(a) * 8; me.y = me.gy = hgt(me.x, me.z);
     toast('🎭 CACHE-TOI ! Vise un objet avec le laser pour te transformer · ' + rName(m.seek).replace(' (toi)', '') + ' te cherche dans 60 s'); }
   me.slot = 0; hbKey = ''; }
-function rEnd(txt) { if (!ROUND) return; ROUND.ph = 'end'; ROUND.endT = performance.now(); toast(txt); $('rHud').innerHTML = '<b class="big">' + txt + '</b>'; tone('triangle', 520, 1040, .4, .1); }
+function rEnd(txt, iWon) { if (!ROUND) return; ROUND.ph = 'end'; ROUND.endT = performance.now(); toast(txt); $('rHud').innerHTML = '<b class="big">' + txt + '</b>'; tone('triangle', 520, 1040, .4, .1);
+  var myN = rName(NETID).replace(' (toi)', '').toUpperCase(), T2 = txt.toUpperCase(); if (iWon == null) iWon = /🏆/.test(txt) && !ROUND.dead[NETID] && (T2.indexOf(myN) >= 0 || /TU AS SURVÉCU|TU GAGNES|TU AS GAGNÉ|SURVIVANTS|INNOCENTS GAGNENT|LES OBJETS GAGNENT/.test(T2));
+  if (iWon && (RCUR || rDef()).top1 !== 0) crTop1(txt); }
+/* VRAI TOP 1 dans le Créatif (réglable) : gros TOP 1 doré + musique de victoire pendant la fin de manche, puis retour en salle d'attente */
+function crTop1(txt) { var o = $('crTop'); if (!o) { o = document.createElement('div'); o.id = 'crTop'; o.innerHTML = '<b>TOP 1</b><span></span>'; document.body.appendChild(o);
+    var st = document.createElement('style'); st.textContent = '#crTop{position:fixed;inset:0;z-index:40;display:grid;place-content:center;text-align:center;pointer-events:none;background:radial-gradient(circle,rgba(255,43,214,.18),transparent 60%)}#crTop b{font:italic 900 min(22vw,180px)/1 WRtop,"Russo One",sans-serif;background:linear-gradient(180deg,#fff6c8,#ffd23d 45%,#e08a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px #ff2bd6) drop-shadow(0 6px 0 #6a1050);transform:skewX(-8deg);animation:crTop .6s cubic-bezier(.2,1.6,.4,1)}#crTop span{font:900 min(4vw,26px) system-ui,sans-serif;color:#fff;text-shadow:0 2px 10px #000;margin-top:8px}@keyframes crTop{from{transform:scale(2.4) skewX(-8deg);opacity:0}to{transform:scale(1) skewX(-8deg);opacity:1}}';
+    document.head.appendChild(st); }
+  o.querySelector('span').textContent = txt.replace(/^🏆\s*/, ''); o.hidden = false; CRTOP = performance.now() + 6000; try { music(true, 'win'); voice('wald_off', 1); } catch (e) {} }
+function crTopTick() { if (CRTOP && performance.now() > CRTOP) { CRTOP = 0; var o = $('crTop'); if (o) o.hidden = true; try { music(false); } catch (e) {} } }
 function rCage() { me.x = ISL + 45; me.z = ISL + 45; me.y = me.gy = 140; me.vx = me.vz = me.vy = 0; }
 function roundTick(dt) { if (!CREA) return; rUI(); flyBtn(); if (state === 'play' && DEV.length) devTick(dt); if (me.fly && !FLYOK()) me.fly = false; var w = $('wroom'), hud = $('rHud'), bl = $('rBlind'), now = performance.now();
   if (state !== 'play') { w.hidden = true; hud.hidden = true; bl.hidden = true; return; }
@@ -1777,14 +1785,15 @@ function roundTick(dt) { if (!CREA) return; rUI(); flyBtn(); if (state === 'play
   if (MODE === 'raft') { w.hidden = true; bl.hidden = true; raftTick(dt); return; }
   if (MODE === 'soleil') { w.hidden = true; bl.hidden = true; soleilTick(dt); return; }
   if ((MODE === 'creatif' || MODE === 'ile') && !PUB) { if (pnjTick.ld !== 1) { pnjTick.ld = 1; pnjLoad(); } pnjTick(dt); }   /* WALD CITY : balade libre façon GTA (pas de salle d'attente) */
-  netCapTick(); waitBoxTick(!ROUND && now - RSEEN < 5000 && TPL !== 'libre');
+  crTopTick(); netCapTick(); waitBoxTick(!ROUND && (now - RSEEN < 5000 && TPL !== 'libre' || TPL === 'zw'), !ROUND && TPL === 'zw' && now - RSEEN >= 5000);   // Fin de zone : salle d'attente murée entre les parties
   if (!ROUND) { bl.hidden = true; hud.hidden = true; w.hidden = false; rDisarm(); unProp(true); enterHold(GP.xh);
-    var auto = TPL !== 'libre' && TPL !== 'lave' || TPL === 'lave', wl = Math.max(0, Math.ceil(60 - (now - WAIT0) / 1000)), hum = rPlayers();
-    if (auto && wl <= 0 && now - RSEEN > 5000 && hum.slice().sort()[0] === NETID) { WAIT0 = now + 1e9; rAuto(); return; }
-    if (now - RLAST > 400) { RLAST = now; var ids = rPlayers(); $('wrGo').textContent = '▶ LANCER LA PARTIE' + (isTouch || GP.on ? '' : ' (maintiens ENTRÉE)') + (auto ? ' · auto dans ' + Math.floor(wl / 60) + ':' + ('0' + wl % 60).slice(-2) : '');
+    var auto = TPL !== 'libre', hum = rPlayers(), need = rNeed(), enough = hum.length >= need; if (!enough) RREADY = 0; else if (!RREADY) RREADY = now;
+    var wl = enough ? Math.max(0, Math.ceil(20 - (now - RREADY) / 1000)) : 0;   /* la partie se lance toute seule 20 s après qu'il y a assez de vrais joueurs */
+    if (auto && enough && wl <= 0 && now - RSEEN > 5000 && hum.slice().sort()[0] === NETID) { RREADY = now + 1e9; rAuto(); return; }
+    if (now - RLAST > 400) { RLAST = now; var ids = rPlayers(); $('wrGo').textContent = '▶ LANCER LA PARTIE' + (isTouch || GP.on ? '' : ' (maintiens ENTRÉE)') + (auto ? (enough ? ' · départ dans ' + wl + ' s' : '') : '');
       $('wrMap').textContent = (ISLE && !PUB ? '🏝️ ' + ISLE.name.toUpperCase() + (ISLE.tpl === 'grille' ? ' · île grille' : ' · grande map') : PUB ? '🌐 ' + PUB.name.toUpperCase() + ' · par ' + PUB.by : TPL === 'prop' ? 'PROP HUNT' : TPL === 'zw' ? 'FIN DE ZONE · ✔ WALD GAME' : TPL === 'gg' ? 'GUN GAME · ✔ WALD GAME' : TPL === 'mm' ? 'MEURTRE MYSTÈRE · ✔ WALD GAME' : TPL === 'cs' ? 'CS WILD GO · ✔ WALD GAME · fait avec le Créatif' : TPL === 'obby' ? 'PARCOURS · ✔ WALD GAME' : TPL === 'lave' ? 'SOL EN LAVE · ✔ WALD GAME' : BF ? 'MAP 1V1' : 'MON MONDE') + ' · ' + (netCode() ? 'code ' + netCode() : 'salon public');
       var S0 = rSetGet(), kk = rKeys(); $('wrSet').textContent = kk.length ? '⚙️ ' + (kk.indexOf('kit') >= 0 ? (rKit(S0).length ? rKit(S0).map(function (k) { return WEAPONS[k].name; }).join(' + ') : 'Sans arme') + ' · ' + S0.hp + ' PV · ' : '') + (kk.indexOf('time') >= 0 ? (S0.time ? S0.time + ' min' : 'Durée illimitée') + ' · ' : '') + (S0.bots ? S0.bots + ' bots' : 'pas de bots') + (kk.indexOf('resp') >= 0 && !S0.resp ? ' · 1 seule vie' : '') + (S0.goal && kk.indexOf('goal') >= 0 ? ' · ' + S0.goal + ' élim. pour gagner' : '') : '';
-      $('wrMap').textContent = '👥 ' + ids.length + '/16 · ' + $('wrMap').textContent;
+      $('wrMap').textContent = '👥 ' + ids.length + '/16 · ' + $('wrMap').textContent; if (auto && !enough && now - RSEEN > 5000) { $('wrMsg').className = ''; $('wrMsg').textContent = '⏳ En attente de joueurs · ' + ids.length + '/' + need + ' · la partie démarre toute seule dès qu\'il y a assez de monde'; }
       $('wrL').innerHTML = ids.map(function (id) { return '<span>' + (id === NETID ? '⭐ ' : '👤 ') + rName(id) + '</span>'; }).join('');
       if ($('wrMsg').className !== 'bad' || now - RSEEN < 0) $('wrMsg').textContent = now - RSEEN < 5000 ? '⏳ Une partie est en cours : tu joueras à la prochaine.' : TPL === 'prop' ? ids.length + '/3 joueurs minimum · 1 chercheur tiré au hasard, les autres se cachent' : TPL === 'gg' ? 'Gun Game : chaque élimination = arme suivante (10 armes) · des bots complètent' : TPL === 'obby' ? 'Parcours de sauts : le 1er à l\'arrivée gagne · points de passage verts' : TPL === 'lave' ? 'La lave monte : le dernier en vie gagne (seul : survis jusqu\'au bout)' : TPL === 'bf' ? 'Tout le monde réapparaît avec 200 PV' : (FLYOK() ? '✈️ Double saut pour voler · ' : '') + 'Construisez et jouez ensemble'; } return; }
   w.hidden = true; if ($('rSetM')) $('rSetM').hidden = true; if (TPL === 'cs') { csTick0(dt); return; } if (TPL === 'gg') { ggTick(dt); return; } if (TPL === 'mm') { mmTick(dt); return; } if (TPL === 'obby') { obbyTick(dt); return; } if (TPL === 'lave') { lavaTick(dt); return; } if (TPL !== 'prop') { freeTick(dt); return; }
@@ -2538,8 +2547,8 @@ function waitBox() { if (WBOX || !SV || !SV.netPlace) return; WBOX = true; var P
   for (var ci = -1; ci <= 0; ci++) for (var cj = -1; cj <= 0; cj++) P.push(['sol', 'ixn', ci * 5 + 2.5, cj * 5 + 2.5, WBY, 0, 'wb|s|' + ci + '|' + cj, 0, 0, '']);
   [-1, 1].forEach(function (e) { var ex = e < 0 ? -1 : 1; for (var k = -1; k <= 0; k++) { P.push(['mur', 'ixn', ex * 5, k * 5 + 2.5, WBY, 0, 'wb|x|' + ex + '|' + k, .07, 2.5, '']); P.push(['mur', 'ixn', k * 5 + 2.5, ex * 5, WBY, 1, 'wb|z|' + ex + '|' + k, 2.5, .07, '']); } });
   P.forEach(function (a) { SV.netPlace(a); }); }
-function waitBoxTick(on) { if (!on) { if (WBIN) { WBIN = false; if (SV && SV.respawn) SV.respawn(); toast('✅ La partie est finie : à toi de jouer !'); } return; } waitBox(); me.fly = false;
-  var first = !WBIN; if (first) toast('⏳ PARTIE EN COURS · tu attends dans la salle d\'attente jusqu\'à la prochaine'); WBIN = true;
+function waitBoxTick(on, lobby) { if (!on) { if (WBIN) { WBIN = false; if (SV && SV.respawn) SV.respawn(); toast('✅ La partie est finie : à toi de jouer !'); } return; } waitBox(); me.fly = false;
+  var first = !WBIN; if (first) toast(lobby ? '⏳ SALLE D\'ATTENTE · la partie se lance dès qu\'il y a assez de joueurs' : '⏳ PARTIE EN COURS · tu attends dans la salle d\'attente jusqu\'à la prochaine'); WBIN = true;
   if (first || Math.abs(me.x) > 4.5 || Math.abs(me.z) > 4.5 || me.y < WBY - 1 || me.y > WBY + 4) { var inb = !first && Math.abs(me.x) < 7 && Math.abs(me.z) < 7 && Math.abs(me.y - WBY) < 5; me.x = inb ? Math.max(-4.3, Math.min(4.3, me.x)) : 0; me.z = inb ? Math.max(-4.3, Math.min(4.3, me.z)) : 0; if (!inb || me.y < WBY - 1) { me.y = me.gy = WBY + .05; me.vy = 0; } me.vx = me.vz = 0; } }
 function netCode() { if (PUBKEY) return 'P' + PUBKEY; try { return (localStorage.getItem('wr_room') || '').toUpperCase(); } catch (e) { return ''; } }
 var NETFQ = [];   // tirs regroupés (un message toutes les 0,1 s au lieu d'un par balle : moins de messages perdus par les relais publics)
@@ -2585,7 +2594,8 @@ function netMsg(m) { if (!m || !m.t) return; if (RAFTM && rfMsg(m)) return; if (
   if (m.t === 'w' && q) { tone('sine', 1500, 2500, .16, .1); tone('sine', 2500, 1700, .28, .1, .2); burst(q.x, q.y + 1.6, q.z, 8, ['#ffffff', '#ff9ae8'], 2, .15, .9); return; }
   if (m.t === 'rz') { if (SV && SV.clearBuilds) SV.clearBuilds(); toast('🔄 ' + String(m.n || 'Un joueur').toUpperCase() + ' A RÉINITIALISÉ LES CONSTRUCTIONS'); return; }
   if (m.t === 'dr') { DOORS.net(m.key, m.o); return; }
-  if (!SV) return; if (m.t === 'b') SV.netPlace(m.p); else if (m.t === 'r') SV.netRemove(m.key); else if (m.t === 'e') SV.netEdit(m.key, m.mask); }
+  if (!SV) return; if (MODE === 'city' && (m.t === 'b' || m.t === 'r' || m.t === 'e')) return;   // Wald City : pas de constructions (avant, des murs d'autres joueurs apparaissaient sur les routes)
+  if (m.t === 'b') SV.netPlace(m.p); else if (m.t === 'r') SV.netRemove(m.key); else if (m.t === 'e') SV.netEdit(m.key, m.mask); }
 function netTick(p, dt) { var k = Math.min(1, dt * 10), ox = p.x, oz = p.z; p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k; p.z += (p.tz - p.z) * k; p.gy = p.y; var da = p.ta - p.a; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; p.a += da * k;
   p.vx = (p.x - ox) / Math.max(dt, .001); p.vz = (p.z - oz) / Math.max(dt, .001); if (performance.now() - p.seen > 15000) netDrop(p.id); }
 function netSend(dt) { if (!NETON) { if ((CREA || BRN) && !NETTRY) { NETTRY = true; netGo(); } return; } brStale(); brSendBots(dt); NETT -= dt; if (NETT > 0) return; NETT = .1; netFlushF(); var w = cur(me);
@@ -3391,7 +3401,7 @@ function fireGun(p, ox, oy, oz, dx, dy, dz, tMin) { if (p === me) LASTSHOT = per
   if (w0.mag <= 0) reload(p);
   return true;
 }
-function reload(p) { var w0 = cur(p); if (!w0 || w0.rlT > 0 || w0.mag >= WEAPONS[w0.k].mag) return; if (w0.res <= 0) { if (w0.mag <= 0) { p.inv[p.slot] = null; if (p === me) toast('PLUS DE MUNITIONS'); bestSlot(p); } return; } w0.rlT = WEAPONS[w0.k].rl; if (p === me) SFX.reload(); }
+function reload(p) { var w0 = cur(p); if (!w0 || w0.rlT > 0 || w0.mag >= WEAPONS[w0.k].mag) return; if (w0.res <= 0) { if (w0.mag <= 0) { if (p === me || p.net) { if (p === me && !(reload.t > performance.now())) { reload.t = performance.now() + 1500; toast('PLUS DE MUNITIONS · ramasse des munitions'); } } else { p.inv[p.slot] = null; bestSlot(p); } } return; } w0.rlT = WEAPONS[w0.k].rl; if (p === me) SFX.reload(); }   // le joueur GARDE son arme vide (avant elle disparaissait)
 function tickGuns(p, dt) { p.fireCd -= dt; p.recoil = Math.max(0, p.recoil - dt); p.inv.forEach(function (w0) { if (w0 && w0.rlT > 0) { w0.rlT -= dt; if (w0.rlT <= 0) { w0.rlT = 0; var need = Math.min(WEAPONS[w0.k].mag - w0.mag, w0.res); w0.mag += need; w0.res -= need; } } }); }
 function bestSlot(p) { for (var i = 0; i < p.inv.length; i++) if (p.inv[i] && !p.inv[i].h) { p.slot = i; return; } }
 function giveWeapon(p, it) {
@@ -3591,7 +3601,7 @@ function pnjOpen() { var c = PNJC || { n: 20, st: 'real', r: 40 }, o = $('pnjM')
 function pnjTick(dt) { if (!PNJC) return; var now = performance.now(); if (PNJC.st !== 'skin') realTick(); while (PEDS.length < PNJC.n) pedPlace(pedMake(PEDS.length), false); while (PEDS.length > PNJC.n) { var q = PEDS.pop(); scene.remove(q.model.root); var qi = pl.indexOf(q); if (qi >= 0) pl.splice(qi, 1); }
   PEDS.forEach(function (p) { pedTick(p, dt, now); }); }
 function cityKit() { me.inv = [newSlot('pistolet'), newSlot('fusil'), newSlot('pompe'), null, null]; me.inv.forEach(function (w) { if (w) w.res = 999; }); me.slot = 0; hbKey = ''; }
-function cityTick(dt) { var now = performance.now(); realTick(); if (!window.CITY6 || !CITY6.grid) return;
+function cityTick(dt) { var now = performance.now(); realTick(); if (SV && SV.myPieces && !cityTick.cl) { cityTick.cl = 1; if (SV.clearBuilds) SV.clearBuilds(); } if (!window.CITY6 || !CITY6.grid) return;
   if (!CITYKIT || me.alive && !me.inv.some(function (w) { return w && !w.h; }) && now - CITYKIT > 4000) { var first = !CITYKIT; CITYKIT = now; cityKit(); toast(first ? '🌴 WALD CITY · pistolet, fusil et pompe · monte dans n\'importe quelle voiture avec E · Échap → 🚗 Mon véhicule' : '🔫 Armes rendues'); }
   while (PEDS.length < PEDN) pedPlace(pedMake(PEDS.length), false);
   PEDS.forEach(function (p) { pedTick(p, dt, now); }); }

@@ -158,7 +158,8 @@
     // feux tricolores aux carrefours
     AV.forEach(function (ax) { ST.forEach(function (sz) { [[1, 1], [-1, -1]].forEach(function (q) { var x = ax + q[0] * (RW / 2 + 1), z = sz + q[1] * (RW / 2 + 1); box(MATS.pole, x, y0 + 3, z, .2, 6, .2, 0); box(MATS.pole, x - q[0] * 3, y0 + 5.9, z, 6, .16, .16, 0); box(MATS.dark, x - q[0] * 5.6, y0 + 5.3, z, .5, 1.4, .45, 0); box(MATS.neon[4], x - q[0] * 5.6, y0 + 4.8, z + q[1] * .24, .25, .25, .05, 0); }); }); });
     // lampadaires le long des rues
-    AV.forEach(function (ax) { for (var z = -110; z < OD; z += 26) { lamp(ax - RW / 2 - 1, z, Math.PI / 2); lamp(ax + RW / 2 + 1, z + 13, -Math.PI / 2); } });
+    function onCross(z, m) { return ST.concat([OD]).some(function (s2) { return Math.abs(z - s2) < RW / 2 + (m || 2.5); }); }   // jamais de poteau ni de voiture garée au milieu d'un carrefour
+    AV.forEach(function (ax) { for (var z = -110; z < OD; z += 26) { if (!onCross(z)) lamp(ax - RW / 2 - 1, z, Math.PI / 2); if (!onCross(z + 13)) lamp(ax + RW / 2 + 1, z + 13, -Math.PI / 2); } });
     // FRONT DE MER (entre la rue z=120 et Ocean Drive) : hôtels art déco face à la mer
     var sd = 1; for (var b = 0; b < AV.length - 1; b++) { var xa = AV[b] + RW / 2 + SW, xb = AV[b + 1] - RW / 2 - SW, zc = (ST[4] + RW / 2 + OD - RW / 2) / 2, L = xb - xa, nH = 2;
       for (var k = 0; k < nH; k++) { var w = L / nH - 2, xc = xa + (k + .5) * (L / nH); hotel(xc, zc + 2, 0, w, 22, 4 + ((b * 2 + k) * 7 % 4), b * 2 + k + 1, grp); } }
@@ -172,7 +173,12 @@
     [[0, 30], [-60, 90], [60, 90]].forEach(function (q, k) { box(MATS.grass, q[0], y0 + .24, q[1], 44, .06, 44, 0, 6, 6); for (var p = 0; p < 10; p++) { var a = p / 10 * 6.28; palm(q[0] + Math.cos(a) * 17, q[1] + Math.sin(a) * 17, 8 + (p % 3) * 2); }
       if (k === 0) { var fy = y0 + .25; box(MATS.white, q[0], fy + .4, q[1], 10, .8, 10, 0); box(MATS.water, q[0], fy + .75, q[1], 9, .1, 9, 0); box(MATS.white, q[0], fy + 1.8, q[1], 1.2, 2.6, 1.2, 0); box(MATS.neon[1], q[0], fy + 3.2, q[1], 1.6, .2, 1.6, 0); solid(q[0], q[1], 10, 10, 1); } });
     // OCEAN DRIVE : terre-plein de palmiers + promenade
-    for (var x = -150; x <= 150; x += 12) { palm(x, OD, 10 + (Math.abs(x) % 3)); }
+    /* palmiers en POTS sur la promenade, côté mer (avant : plantés au milieu d'Ocean Drive) */
+    var potG = new T.CylinderGeometry(1.05, .8, 1.1, 18), potM = std({ color: '#c8673e', roughness: .7 }), rimM = std({ color: '#efe6d6', roughness: .5 }), soilM = std({ color: '#3b2a1c', roughness: 1 });
+    for (var x = -150; x <= 150; x += 15) { if (AV.some(function (a2) { return Math.abs(x - a2) < 6; }) || Math.abs(x - 100) < 9) continue; var pz0 = OD + RW / 2 + 6.6, py0 = y0 + .22;
+      var pot = new T.Mesh(potG, potM); pot.position.set(x, py0 + .55, pz0); pot.castShadow = pot.receiveShadow = true; grp.add(pot); var rim = new T.Mesh(new T.TorusGeometry(1.05, .09, 6, 22), rimM); rim.rotation.x = Math.PI / 2; rim.position.set(x, py0 + 1.1, pz0); grp.add(rim);
+      var soil = new T.Mesh(new T.CircleGeometry(.98, 18), soilM); soil.rotation.x = -Math.PI / 2; soil.position.set(x, py0 + 1.02, pz0); grp.add(soil);
+      (window.EXT_TREES = window.EXT_TREES || []).push({ sp: 'palm', x: x, y: py0 + 1, z: pz0, a: (x * 7) % 6.28, h: 8 + (Math.abs(x) % 3) }); solid(x, pz0, 2, 2, 1.2); }
     box(MATS.walk, 0, y0 + .12, OD + RW / 2 + 4, 312, .2, 8, 0, 3, 3);
     // PLAGE : sable qui suit le terrain jusqu'à l'eau
     grp.add(terrainPlane(MATS.sand, -240, OD + RW / 2 + 8, 240, 250, 80, .04, 6));
@@ -186,10 +192,11 @@
     // marina (ouest) : yachts amarrés
     for (var yb = 0; yb < 5; yb++) yacht(-120 + yb * 14, OD + 75 + (yb % 2) * 6, Math.PI / 2 + (yb % 2) * .2, yb, grp);
     // places de parking le long des trottoirs (voitures de la ville)
-    AV.forEach(function (ax) { for (var z = -105; z < 150; z += 22) { carSpot(ax - RW / 2 + 1.6, z, Math.PI / 2); carSpot(ax + RW / 2 - 1.6, z + 11, -Math.PI / 2); } });
+    AV.forEach(function (ax) { for (var z = -105; z < 150; z += 22) { if (!onCross(z, 4)) carSpot(ax - RW / 2 + 1.6, z, Math.PI / 2); if (!onCross(z + 11, 4)) carSpot(ax + RW / 2 - 1.6, z + 11, -Math.PI / 2); } });
     // nature autour : palmiers et buissons sur le reste de l'île
     var rr = rng(9); for (var n = 0; n < 160; n++) { var a = rr() * 6.283, d = 175 + rr() * 50, tx = Math.cos(a) * d, tz = Math.sin(a) * d; if (tz > OD - 10 || C.hgt(tx, tz) < .4) continue; palm(tx, tz, 7 + rr() * 6); }
-    grp.add(terrainPlane(MATS.grass, -250, -260, 250, -150, 60, .015, 6)); [[-250, -150, -158, OD], [158, -150, 250, OD]].forEach(function (q) { grp.add(terrainPlane(MATS.grass, q[0], q[1], q[2], q[3], 40, .015, 6)); });
+    [[-250, -156], [156, 250]].forEach(function (q) { grp.add(terrainPlane(MATS.sand, q[0], OD - RW / 2 - 1, q[1], OD + RW / 2 + 9, 30, .03, 6)); });   // coins de la map : du sable au bout d'Ocean Drive
+    grp.add(terrainPlane(MATS.grass, -250, -260, 250, -150, 60, .015, 6)); [[-250, -150, -156, OD - RW / 2 - 1], [156, -150, 250, OD - RW / 2 - 1]].forEach(function (q) { grp.add(terrainPlane(MATS.grass, q[0], q[1], q[2], q[3], 40, .015, 6)); });
     SIGNS.forEach(function (m) { grp.add(m); }); flush(grp); }
   /* yacht : coque blanche, cabine vitrée */
   function yacht(x, z, ry, k, grp) { var y = -.2, L = 14 + (k % 3) * 3; box(MATS.white, x, y + .9, z, 4, 1.8, L, ry); box(MATS.white, x, y + 2.4, z, 3.2, 1.4, L * .55, ry); box(MATS.glassD, x, y + 2.5, z, 3.3, .7, L * .56, ry); box(MATS.white, x, y + 3.5, z, 2.4, .8, L * .3, ry); box(MATS.neon[1], x, y + 1.85, z, 4.05, .1, L + .05, ry); }
