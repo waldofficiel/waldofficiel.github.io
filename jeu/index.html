@@ -1372,7 +1372,7 @@ function zwFavela() { var rr = mulberry(1312), PAL = ['#e85a4a', '#f2b33a', '#4a
     var nz = Math.max(1, Math.round(hs.hz * 2 / GRID)), half = Math.floor(nz / 2), odd = nz % 2, run = half * GRID, rise = half * H; hs.rise = rise; hs.mats = [];
     var OV = .8;   // avancée du toit au-dessus des murs (les gouttières sont au bout)
     [-1, 1].forEach(function (sd) { o.position.set(hs.x, hs.y0 + hs.h + rise / 2 - OV * Math.tan(TH) / 2 + .12, hs.z + sd * (hs.hz - run / 2 + OV / 2)); o.rotation.set(sd * TH, 0, 0); o.scale.set(hs.hx * 2 + 1.2, .22, Math.max(.01, (run + OV) / Math.cos(TH) + .1)); o.updateMatrix(); hs.mats.push(o.matrix.clone()); });
-    hs.eaveY = hs.y0 + hs.h - OV * Math.tan(TH) - .05; hs.eaveZ = hs.hz + OV;
+    hs.eaveY = hs.y0 + hs.h - OV * Math.tan(TH) - .05; hs.eaveZ = hs.hz + OV; hs.rTop = hs.y0 + hs.h + rise + .23; hs.rFlat = odd ? GRID / 2 : 0; hs.rTan = Math.tan(TH);   /* pour marcher SUR le toit (INTERIORS.groundAt) */
     o.position.set(hs.x, hs.y0 + hs.h + rise + .12, hs.z); o.rotation.set(0, 0, 0); o.scale.set(hs.hx * 2 + .5, odd ? .22 : .001, odd ? GRID + .1 : .001); o.updateMatrix(); hs.mats.push(o.matrix.clone());   // faîtage plat (case du milieu)
     hs.mats.forEach(function (mm, j) { RT.setMatrixAt(hs.ri[j], mm); }); });
   // plafonds (vus de l'intérieur) : bois, brique, tôle ou béton selon le bâtiment — jamais transparent
@@ -4507,7 +4507,7 @@ var BRGO = null; try { BRGO = JSON.parse(localStorage.getItem('wr_brGo') || 'nul
 var BRN = false, BRLEAD = false, BRT = 0, BRGONE = [], BRSEEN = 0;
 /* ===== MATCHMAKING BATTLE ROYALE (comme Fortnite) : 1 min pour réunir de VRAIS joueurs (même mode, même map), les bots complètent jusqu'à 50,
    puis 20 s sur une petite ÎLE D'ATTENTE (on peut se battre, on réapparaît) : ceux qui lancent une partie pendant ces 20 s arrivent directement dessus. ===== */
-var MMQ = null, MMWAIT = 30000, MMWARM = 20000;   /* 30 s de recherche + 20 s d'île d'attente */
+var MMQ = null, MMWAIT = 30000, MMSOLO = 11000, MMWARM = 20000;   /* recherche comme les vrais jeux : si quelqu'un d'autre cherche, on se regroupe (30 s max depuis le 1er) ; seul → départ rapide avec des bots */   /* 30 s de recherche + 20 s d'île d'attente */
 function mmWant() { if (PARTY && PARTY.m && PARTY.m.length > 1 && !GRPSTART && !BRGO_FRESH()) { MMBLOCK = true; return false; } return !CREA && !SURV && !PROPM && (MODE === 'br' || MODE === 'zb') && !!window.NET && !BRGO_FRESH() && !(PARTY && PARTY.m && PARTY.m.length > 1); }
 function BRGO_FRESH() { try { var g = JSON.parse(localStorage.getItem('wr_brGo') || 'null'); return !!g && g.mode === MODE && Date.now() - g.at < 15000 && Date.now() < (g.wend || g.at + 5000); } catch (e) { return false; } }
 function mmKey() { return 'mmq3-' + MODE + '-' + TEAMSZ; }   /* même mode ET même taille d'équipe (duo avec duo, comme Fortnite) */   // tous ceux qui lancent le même mode se retrouvent ; la carte et la taille d'équipe sont celles du chef
@@ -4523,8 +4523,8 @@ function mmQueue() { if (MMQ) return; initAudio(); var me0 = { t0: Date.now() },
   NET.join(mmKey(), NETID, function (m) { if (!MMQ) return; if (m.t === 'q') Q[m.id] = { t0: m.t0, n: m.n, fs: m.fs || [m.f || m.id], seen: Date.now() }; else if (m.t === 'go' && m.go) mmGo(m.go); }, function () {});
   MMQ.iv = setInterval(function () { if (!MMQ) return; var now = Date.now(); NET.pub({ t: 'q', t0: me0.t0, n: netName() + (myFs.length > 1 ? ' +' + (myFs.length - 1) : ''), fs: myFs, f: FR.id }); Q[NETID] = { t0: me0.t0, n: netName() + (myFs.length > 1 ? ' +' + (myFs.length - 1) : ''), fs: myFs, seen: now };
     Object.keys(Q).forEach(function (k) { if (now - Q[k].seen > 5000) delete Q[k]; });
-    var ids = Object.keys(Q).sort(function (a, b) { return Q[a].t0 - Q[b].t0 || (a < b ? -1 : 1); }), lead = ids[0], end = Q[lead].t0 + MMWAIT, left = Math.max(0, end - now);
-    $('mqT').textContent = 'RECHERCHE DE JOUEURS… ' + Math.ceil(left / 1000) + ' s'; $('mqB').style.width = Math.min(100, (1 - left / MMWAIT) * 100) + '%';
+    var ids = Object.keys(Q).sort(function (a, b) { return Q[a].t0 - Q[b].t0 || (a < b ? -1 : 1); }), lead = ids[0], wait = ids.length > 1 ? MMWAIT : MMSOLO, end = ids.length >= 16 ? now : Q[lead].t0 + wait, left = Math.max(0, end - now), el = Math.floor((now - me0.t0) / 1000);
+    $('mqT').textContent = 'RECHERCHE DE PARTIE… ' + Math.floor(el / 60) + ':' + ('0' + el % 60).slice(-2); $('mqB').style.width = Math.min(100, (1 - left / wait) * 100) + '%';   /* temps écoulé (comme les vrais jeux), pas un compte à rebours fixe */
     $('mqN').textContent = '👥 ' + ids.length + ' joueur' + (ids.length > 1 ? 's' : '') + ' : ' + ids.map(function (k) { return Q[k].n || '?'; }).join(', ') + ' · les bots complètent jusqu\'à ' + NPL;
     $('mqC').textContent = NET.up() ? '🟢 connecté au serveur de jeu' : (now - me0.t0 > 6000 ? '🔴 pas de connexion au serveur de jeu : tu joueras avec des bots' : '⏳ connexion au serveur…');
     if (left <= 0 && lead === NETID) { var room = 'M'; for (var i = 0; i < 5; i++) room += 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random() * 31 | 0];

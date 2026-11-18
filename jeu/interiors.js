@@ -63,6 +63,9 @@
         for (var i = 0; i < 12; i++) { var va = v0 + (v1 - v0) * i / 12, vb = v0 + (v1 - v0) * (i + 1) / 12, top = y0 + (y1 - y0) * (i + 1) / 12; steps.push({ b: box(st[0], Math.min(va, vb), st[1], Math.max(va, vb)), y0: top - .12, y1: top }); }
         var lv = Lf / 2 * dir, pb = box(S[0][0], Math.min(lv, lv + 1.3 * dir), S[1][1], Math.max(lv, lv + 1.3 * dir)); EXL.push({ b: pb, y: y1 }); plats.push({ b: pb, y0: y1 - .12, y1: y1 });
         var pA = W(half + 2.52, v0), pB = W(half + 2.52, v1); beams.push([[pA[0], y0 + 1, pA[1]], [pB[0], y1 + 1, pB[1]], .06]);   // main courante
+        function rail(u0, va, u1, vb, ya, yb) { var q = box(u0, va, u1, vb); ctx.PCOL.push({ x: (q[0] + q[2]) / 2, z: (q[1] + q[3]) / 2, hw: Math.max(.05, (q[2] - q[0]) / 2), hd: Math.max(.05, (q[3] - q[1]) / 2), y0: ya, h: yb - ya }); }
+        rail(half + 2.47, Math.min(v0, v1), half + 2.6, Math.max(v0, v1), y0 - .2, y1 + 1.1);   /* garde-corps SOLIDES (avant : on tombait de l'escalier de secours) */
+        rail(half + .12, lv + 1.3 * dir - .06 * dir, half + 2.6, lv + 1.3 * dir + .06 * dir, y1 - .1, y1 + 1.1); rail(half + 2.47, Math.min(lv, lv + 1.3 * dir), half + 2.6, Math.max(lv, lv + 1.3 * dir), y1 - .1, y1 + 1.1);
         var pC = W(half + 2.52, lv + 1.3 * dir), pD = W(half + 2.52, lv); beams.push([[pD[0], y1 + 1, pD[1]], [pC[0], y1 + 1, pC[1]], .06]); }
       [[-Lf / 2 - 1.3], [Lf / 2 + 1.3]].forEach(function (q) { var pp = W(half + 2.5, q[0]); beams.push([[pp[0], hs.y0, pp[1]], [pp[0], hs.y0 + hs.h + 1.4, pp[1]], .12]); var pq = W(half + .14, q[0]); beams.push([[pq[0], hs.y0, pq[1]], [pq[0], hs.y0 + hs.h + .3, pq[1]], .1]); }); });
     if (!steps.length) return;
@@ -77,6 +80,8 @@
     for (var e = 0; e < EXR.length; e++) { var R = EXR[e]; if (x < R.b[0] - .05 || x > R.b[2] + .05 || z < R.b[1] - .05 || z > R.b[3] + .05) continue; var sv = R.ax === 'z' ? z : x, t = Math.max(0, Math.min(1, (sv - R.s0) / (R.s1 - R.s0))), hh = R.y0 + (R.y1 - R.y0) * t; if (hh <= lim && hh > g) g = hh; }
     for (e = 0; e < EXL.length; e++) { var L2 = EXL[e]; if (x < L2.b[0] || x > L2.b[2] || z < L2.b[1] || z > L2.b[3]) continue; if (L2.y <= lim && L2.y > g) g = L2.y; }
     for (e = 0; e < ROOFS.length; e++) { var rh = ROOFS[e]; if (rh.broken >= 2 || Math.abs(x - rh.x) > rh.hx || Math.abs(z - rh.z) > rh.hz) continue; var top = rh.y0 + rh.h + .3; if (top <= lim && top > g) g = top; }
+    for (e = 0; e < ctx.HOUSES.length; e++) { var gh = ctx.HOUSES[e]; if (gh.rTop == null || gh.flat || gh.broken >= 2 || Math.abs(x - gh.x) > gh.hx + .6 || Math.abs(z - gh.z) > gh.eaveZ) continue;   /* toits à 2 pentes : on marche dessus, on ne passe plus au travers */
+      var ry = gh.rTop - Math.max(0, Math.abs(z - gh.z) - gh.rFlat) * gh.rTan; if (ry <= lim && ry > g) g = ry; }
     for (var i = 0; i < FLOORED.length; i++) { var hs = FLOORED[i]; if (Math.abs(x - hs.x) > hs.hx || Math.abs(z - hs.z) > hs.hz || hs.broken >= 2) continue;
       var fl = hs.fl, F = fl.F, dx = x - hs.x, dz = z - hs.z, u = dx * F.r[0] + dz * F.r[1], v = dx * F.f[0] + dz * F.f[1], best = hs.y0, lim = y + .7;
       for (var k = 1; k < hs.nf; k++) { var lv = hs.y0 + k * fl.FH; if (lv > lim) break; var st = fl.strips[(k - 1) % 2]; if (!(v > st[0] && v < st[1] && Math.abs(u) < fl.Lr / 2)) best = Math.max(best, lv); }
@@ -358,6 +363,7 @@
       for (var i = 0; i < PLACED.length; i++) { var p = PLACED[i]; if (p.dead || !p.mesh) continue; var t = TPL[p.n]; if (!t) continue; var hx = t.s.x / 2 + .05, hz = t.s.z / 2 + .05, hr = Math.max(hx, hz);
         if (Math.abs(p.x - ox) > T + hr || Math.abs(p.z - oz) > T + hr) continue; var tt = boxT(ox, oy, oz, dx, dy, dz, p.x - hr, p.y, p.z - hr, p.x + hr, p.y + t.s.y, p.z + hr); if (tt < bt) { bt = tt; best = p; } }
       if (!best) return null; var o = hitPlaced(best, dmg); o.t = bt; return o; },
+    _exr: function () { return EXR; },
     stats: function () { var nv = 0; FIX.clusters.forEach(function (q) { nv += q.m.geometry.attributes.position.count; }); return { verts: nv, windows: FIX.win ? FIX.win.list.length : 0, furniture: PLACED.length, clusters: FIX.clusters.length, floors: FLOORED.length, ready: !!FIX.ready }; }
   };
 })();
