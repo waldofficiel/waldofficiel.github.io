@@ -30,7 +30,8 @@
       function (e) { PROG[k] = [e.loaded, e.total || SIZE[k]]; ui(Math.min(.99, prog())); },
       function (e) { console.warn('REAL ' + k, e && (e.message || e)); G[k] = null; busyEnd(k); }); }
   function needAnims() { if (ANIMS || ANIMB || !T) return; ANIMB = true; BUSY.anims = 1; PROG.anims = [0, 910963];
-    new T.FileLoader().load('models/rb/anims.json', function (txt) { try { var J = JSON.parse(txt); ANIMS = {}; Object.keys(J).forEach(function (g) { ANIMS[g] = {}; J[g].forEach(function (c) { ANIMS[g][c.name] = T.AnimationClip.parse(c); }); }); } catch (e) { console.warn('REAL anims', e); ANIMS = {}; } PROG.anims[0] = PROG.anims[1]; busyEnd('anims'); },
+    new T.FileLoader().load('models/rb/anims.json', function (txt) { try { var J = JSON.parse(txt); ANIMS = {}; Object.keys(J).forEach(function (g) { ANIMS[g] = {}; J[g].forEach(function (c) { c.tracks.forEach(function (t) { if (t.name === 'Bip01.position') for (var i = 0; i < t.values.length; i += 3) { t.values[i] = 0; t.values[i + 2] = 0; } });   /* pas de « root motion » : sinon le perso avance avec l'anim puis revient en arrière à chaque boucle (effet téléportation) */
+        ANIMS[g][c.name] = T.AnimationClip.parse(c); }); }); } catch (e) { console.warn('REAL anims', e); ANIMS = {}; } PROG.anims[0] = PROG.anims[1]; busyEnd('anims'); },
       function (e) { PROG.anims = [e.loaded, e.total || 910963]; ui(Math.min(.99, prog())); }, function () { ANIMS = {}; busyEnd('anims'); }); }
   function load(T0) { T = T0; REAL.ready = true; }
   function clipsOf(k) { if (/^c\d+$/.test(k)) { var A = ANIMS && ANIMS[RB[+k.slice(1)][1]] || {}; return { idle: A.idle, walk: A.walk, run: A.run }; }
