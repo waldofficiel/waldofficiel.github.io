@@ -272,7 +272,7 @@ body:not(.touch):not(.surv) .sres{top:auto;bottom:calc(166px + env(safe-area-ins
 .skin span{width:52px;height:52px;border-radius:10px;display:grid;place-items:center;font:900 24px var(--display);background:rgba(255,255,255,.08);overflow:hidden}
 .skin span img{width:100%;height:100%;object-fit:cover}
 .skin b{font:900 12px var(--display)}.skin small{color:var(--mute);font-size:11px}.skin.on{border-color:var(--sun)}.skin.lock{opacity:.5}
-.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.offer{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid var(--rc);background:linear-gradient(180deg,var(--rc) -40%,#140829 70%);box-shadow:0 0 14px color-mix(in srgb,var(--rc) 45%,transparent);text-align:center;padding-bottom:6px}
+.shop{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.shopH{grid-column:1/-1;margin:8px 0 2px;font:900 13px var(--display,Inter),sans-serif;color:#ffd23d;letter-spacing:.5px}.offer{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid var(--rc);background:linear-gradient(180deg,var(--rc) -40%,#140829 70%);box-shadow:0 0 14px color-mix(in srgb,var(--rc) 45%,transparent);text-align:center;padding-bottom:6px}
 .offer img{width:100%;aspect-ratio:1;display:block}.offer b{display:block;font:900 15px var(--display)}.offer .pr{display:inline-block;margin-top:3px;font:900 13px var(--body);color:#1a0830;background:#ffd23d;border-radius:999px;padding:2px 10px}.offer .pr.own{background:#5cffc8}.offer .pr.poor{background:#7a6a9a;color:#fff}
 .offer i{position:absolute;top:6px;left:6px;font:800 10px var(--body);font-style:normal;padding:2px 7px;border-radius:999px;background:var(--rc);color:#fff}
 @media (max-height:500px){.offer b{font-size:12px}.offer .pr{font-size:11px}}.skin{cursor:pointer;position:relative}.skin canvas{width:100%;height:100%}.skin .tagr{position:absolute;top:4px;left:4px;font:800 9px var(--body);padding:1px 6px;border-radius:999px;background:#9b4dff}.skin.buy small{color:#ffd23d;font-weight:800}.skin.poor{opacity:.75}h3 .po{float:right;font:800 14px var(--body);color:#ffd23d}
@@ -533,6 +533,7 @@ try { if (/WaldRoyalApp|Electron/.test(navigator.userAgent) && /[?&]jouer/.test(
 <script src="real.js"></script>
 <script src="GLTFLoader.js"></script>
 <script src="SkeletonUtils.js"></script>
+<script src="qskins.js"></script>
 <script src="interiors.js"></script>
 <script src="props.js"></script>
 <script src="trees.js"></script>
@@ -2818,6 +2819,7 @@ var SKINS = ['#f1c6a0', '#e0ac85', '#c68b5e', '#8d5a3b', '#f5d3b8'];
 var SHIRTS = ['#3dd6ff', '#7dff6a', '#ffb23d', '#c77dff', '#ff7bd5', '#f2f2f2', '#ffd23d', '#5cffc8', '#ff8a3d', '#6a8cff', '#2a2a2a', '#e83a3a'];
 var PANTS = ['#2b3a67', '#333', '#5a4630', '#4c6b3a', '#777', '#1d1d24'];
 function makeChar(lk) {
+  if (lk.sk && /^q\d/.test(lk.sk) && window.QS && QS.LIST[lk.sk]) { var cq = makeChar(Object.assign({}, lk, { sk: 'npc', v: 3 })); cq.qWant = lk.sk; QS.apply(cq, lk.sk); return cq; }   /* SKINS DÉTAILLÉS (qskins.js) : perso simple invisible + modèle animé accroché dessus */
   if (lk.sk && window.buildSkin) { var R = window.buildSkin(THREE, lk.sk, lk); Object.assign(lk, R.cols); R.root.scale.setScalar(.9); return charExtras(R, R.root, R.body, lk); }   // persos un peu plus petits : ils passent les portes
   var root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   function limb(px, py, pz) { var p = new THREE.Group(); p.position.set(px, py, pz); body.add(p); return p; }
@@ -2861,7 +2863,9 @@ function animChar(p, dt) {   // tout passe par le système de poses (anim.js) : 
   else if (p.swim) { var sw = Math.sin(now * (sp > .5 ? 5 : 2.2)), fl = Math.sin(now * 9); T = A.P({ la: 1.7 + sw * 1.3, ra: 1.7 - sw * 1.3, lb: .25, rb: .25, le: .4, re: .4, lt: .35 + fl * .3 * amp, rt: .35 - fl * .3 * amp, lk: .3, rk: .3, bp: sp > .5 ? .75 : .25, hp: sp > .5 ? -.5 : -.1 }); c.gunHold.visible = false; gr = false; }   /* nage : bras qui tournent, jambes qui battent */
   else { T = p.crouch ? A.crouch(p.step, amp) : amp > .05 ? A.walk(p.step, amp, sp > 6.5) : A.idle(now + (p.id || 0) * 1.7); if (armed) { A.gunArms(T, 0); var apt = Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))); T.ra += apt; T.la += apt * .95; T.hp = (T.hp || 0) + apt * .35; } }   /* l'arme suit le viseur (haut / bas) */
   if (SV && p === me) { SURVIE.pose(T, c, p.mode === 'ground' && !(p.danceT > 0) && !p.swim); if (stl) k = SURVIE.blendK(); }
-  A.apply(c, A.blend(c, T, dt, k), gr);
+  c.qSelf = !!c.qWant; A.apply(c, A.blend(c, T, dt, k), gr); c.qSelf = false;
+  if (c.qWant && window.QS) { if (c.qs !== c.qWant) QS.apply(c, c.qWant); if (c.qs) { var air = p.mode === 'ground' && p.y - (p.gy || 0) > .45, qp = p.mtl || p.ko || p.dabT > 0 || p.danceT > 0 || p.mode !== 'ground' || p.swim || p.crouch || stl || air || p.veh;
+      var qst = qp ? { pose: true } : QS.pick({ armed: armed, sp: sp, shoot: (p.recoil || 0) > .02 }); QS.drive(c, qst, dt, armed && !qp ? Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))) * .8 : 0); } }   /* vraie animation si elle existe, sinon copie de la pose */
   if (armed && p.recoil) { c.aR.rotation.z += p.recoil * 2; c.aL.rotation.z += p.recoil * 1.2; }
 }
 
@@ -3112,10 +3116,11 @@ function danceLoad() {   // les 5 danses choisies pour la partie (casier) ; vide
   return L; }
 function curDance() { var l = myDances(); if (l.indexOf(ST.dz) >= 0) return ST.dz; var L = danceLoad().filter(Boolean); return L[0] || l[0] || 'wald'; }
 var SKINS_SHOP = { wald: { name: 'Wald Off', price: 0, tag: 'Original' }, lea: { name: 'Léa', price: 400, tag: 'Rare', rc: '#3d8bff' }, stan: { name: 'Stan', price: 700, tag: 'Épique', rc: '#b44dff' }, flubb: { name: 'Flubb', price: 1200, tag: 'Légendaire', rc: '#ffa21f' }, rico: { name: 'Rico', price: 600, tag: 'Épique', rc: '#b44dff' }, nova: { name: 'Nova', price: 1500, tag: 'Légendaire', rc: '#ffa21f' } };
+if (window.QS) Object.keys(QS.LIST).forEach(function (k) { var d = QS.LIST[k]; SKINS_SHOP[k] = { name: d.name, price: d.price, tag: d.tag, rc: d.rc, q: 1 }; });   /* 63 skins détaillés (qskins.js) */
 var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Légende', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
 var pl = [];
 for (var ib = 0; ib < NPL; ib++) {
-  var isBot = ib > 0, lk = isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { sk: 'npc', v: ib, skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
+  var QB = [0, 2, 3, 4, 11, 13, 17, 9], isBot = ib > 0, lk = isBot && ib % 3 !== 0 && ib % 6 !== 5 && window.QS ? { sk: 'q' + QB[(ib * 5) % QB.length] + '_' + ((ib * 7) % 4 === 3 ? 1 : 0), glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { sk: 'npc', v: ib, skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
     : { sk: mySkin(), glider: '#ff2bd6', gl: myGl() };
   var mdl = makeChar(lk); scene.add(mdl.root);
   pl.push({ bot: isBot, name: isBot ? NAMES[ib - 1] : 'WALD OFF', model: mdl, look: lk, inv: [null, null, null], slot: 0 });
@@ -3651,7 +3656,7 @@ function botThink(p, dt) { if (p.dabT > 0) { p.dabT -= dt; p.vx = p.vz = 0; retu
 /* ===== WALD CITY façon GTA : VILLAGEOIS réalistes qui marchent sur les trottoirs (on peut les tuer), armes, voitures en libre accès,
    persos RÉALISTES (REAL : 16 citadins Rocketbox ; soldat en CS) pour tout le monde, VÉHICULES IMPORTÉS (.glb) avec puissance et vitesse plafonnées ===== */
 var LASTSHOT = 0, PEDS = [], CITYKIT = 0, CITYKILLS = 0, PEDN = 50;   // 50 villageois, au moins 10 personnes différentes (REAL.VARS)
-function realWant(p) { if (!window.REAL || !p.model) return null; if (p.ped) return p.realK; if (MODE === 'city') { if (/^(lea|nova)$/.test(p.skn || p.sk || (p === me ? mySkin() : ''))) return 'c9'; if (p === me) return 'c8'; var h = 0; String(p.id || p.name || '').split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) % 997; }); return 'c' + (h % 16); }   // citadins réalistes (Rocketbox)
+function realWant(p) { if (!window.REAL || !p.model || p.model.qWant) return null; if (p.ped) return p.realK; if (MODE === 'city') { if (/^(lea|nova)$/.test(p.skn || p.sk || (p === me ? mySkin() : ''))) return 'c9'; if (p === me) return 'c8'; var h = 0; String(p.id || p.name || '').split('').forEach(function (ch) { h = (h * 31 + ch.charCodeAt(0)) % 997; }); return 'c' + (h % 16); }   // citadins réalistes (Rocketbox)
   if (TPL === 'cs') { var k = p.skn || p.sk || (p === me ? mySkin() : ''); return k === 'csT' || k === 'csCT' ? 'soldier' : null; } return null; }
 function realTick() { if (!window.REAL) return; if (!REAL.ready) { if (MODE === 'city' || TPL === 'cs' || PEDS.some(function (p) { return p.realK; })) REAL.load(THREE); return; }
   pl.forEach(function (p) { var k = realWant(p), c = p.model; if (!c) return; var sk = TPL === 'cs' ? (p.skn || p.sk || (p === me ? mySkin() : '')) : '';
@@ -4750,11 +4755,14 @@ bindDraw();
 function mapPrev() { var c = $('mapPrev'), g = c.getContext('2d'), k = TEX / (HALF * 2), m = HALF * .12; g.drawImage(terr, m * k, m * k, (HALF * 2 - m * 2) * k, (HALF * 2 - m * 2) * k, 0, 0, c.width, c.height); } mapPrev();
 addEventListener('resize', resize);
 var THUMBS = {};
+var THPEND = {};
 function skinThumb(id, bust, dz) {
   var key = id + (bust ? 'h' : '') + (dz || ''); if (THUMBS[key]) return THUMBS[key];
+  if (/^q\d/.test(id) && window.QS && !QS.has(id)) { QS.prefetch(id); THPEND[id] = 1; if (!THPEND.iv) THPEND.iv = setInterval(function () { var ok = Object.keys(THPEND).filter(function (k) { return k !== 'iv' && QS.has(k); }); if (ok.length) { ok.forEach(function (k) { delete THPEND[k]; }); try { lockerRender(); } catch (e) {} } if (Object.keys(THPEND).length <= 1) { clearInterval(THPEND.iv); delete THPEND.iv; } }, 800);
+    if (!THUMBS.q0) { var cq = document.createElement('canvas'); cq.width = cq.height = 128; var gq = cq.getContext('2d'); gq.fillStyle = '#2a1450'; gq.fillRect(0, 0, 128, 128); gq.fillStyle = 'rgba(255,255,255,.18)'; gq.beginPath(); gq.arc(64, 40, 17, 0, 7); gq.fill(); gq.fillRect(42, 60, 44, 56); gq.font = '900 22px Inter, sans-serif'; gq.textAlign = 'center'; gq.fillStyle = '#ff2bd6'; gq.fillText('⬇', 64, 98); THUMBS.q0 = cq.toDataURL(); } return THUMBS.q0; }
   var W2 = bust ? 128 : 192, rt = new THREE.WebGLRenderTarget(W2, W2, { encoding: THREE.sRGBEncoding }), sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(30, 1, .1, 50);
-  sc.background = new THREE.Color('#2a1450'); sc.add(new THREE.HemisphereLight('#ffffff', '#3a1a60', 1)); var dl = new THREE.DirectionalLight('#fff', .7); dl.position.set(4, 5, 3); sc.add(dl);
-  var c0 = makeChar({ sk: id }); c0.shadow.visible = false; c0.root.rotation.y = bust ? -.35 : dz ? -.2 : -.5; if (dz) window.ANIM.apply(c0, window.ANIM.dance(dz, DANCES[dz].t), true); sc.add(c0.root); if (bust) { cm.position.set(2.7, 2.15, 0); cm.lookAt(0, 2.0, 0); } else { cm.position.set(5.6, 1.5, 0); cm.lookAt(0, 1.2, 0); }
+  sc.background = new THREE.Color('#2a1450'); sc.add(new THREE.HemisphereLight('#ffffff', '#3a1a60', 1)); if (/^q\d/.test(id)) { sc.add(new THREE.AmbientLight('#ffffff', .9)); var fl = new THREE.DirectionalLight('#ffe6ff', .8); fl.position.set(3, 2, -3); sc.add(fl); } var dl = new THREE.DirectionalLight('#fff', .7); dl.position.set(4, 5, 3); sc.add(dl);
+  var c0 = makeChar({ sk: id }); if (c0.qWant && c0.qs) { QS.drive(c0, { clip: 'Idle' }, .3); QS.drive(c0, { clip: 'Idle' }, .3); } c0.shadow.visible = false; c0.root.rotation.y = bust ? -.35 : dz ? -.2 : -.5; if (dz) window.ANIM.apply(c0, window.ANIM.dance(dz, DANCES[dz].t), true); sc.add(c0.root); if (bust) { cm.position.set(2.7, 2.15, 0); cm.lookAt(0, 2.0, 0); } else { cm.position.set(5.6, 1.5, 0); cm.lookAt(0, 1.2, 0); }
   var tm = R3.toneMapping; R3.setRenderTarget(rt); rt.texture.encoding = THREE.sRGBEncoding; R3.render(sc, cm); var px = new Uint8Array(W2 * W2 * 4); R3.readRenderTargetPixels(rt, 0, 0, W2, W2, px); R3.setRenderTarget(null); rt.dispose();
   var cvs = document.createElement('canvas'); cvs.width = cvs.height = W2; var g = cvs.getContext('2d'), im = g.createImageData(W2, W2);
   for (var y = 0; y < W2; y++) im.data.set(px.subarray((W2 - 1 - y) * W2 * 4, (W2 - y) * W2 * 4), y * W2 * 4);
@@ -4762,17 +4770,22 @@ function skinThumb(id, bust, dz) {
 }
 function gliderThumb(id) { var key = 'g' + id; if (THUMBS[key]) return THUMBS[key];
   var W2 = 160, rt = new THREE.WebGLRenderTarget(W2, W2, { encoding: THREE.sRGBEncoding }), sc = new THREE.Scene(), cm = new THREE.PerspectiveCamera(32, 1, .1, 60);
-  sc.background = new THREE.Color('#2a1450'); sc.add(new THREE.HemisphereLight('#ffffff', '#3a1a60', 1)); var dl = new THREE.DirectionalLight('#fff', .8); dl.position.set(4, 6, 3); sc.add(dl);
+  sc.background = new THREE.Color('#2a1450'); sc.add(new THREE.HemisphereLight('#ffffff', '#3a1a60', 1)); if (/^q\d/.test(id)) { sc.add(new THREE.AmbientLight('#ffffff', .9)); var fl = new THREE.DirectionalLight('#ffe6ff', .8); fl.position.set(3, 2, -3); sc.add(fl); } var dl = new THREE.DirectionalLight('#fff', .8); dl.position.set(4, 6, 3); sc.add(dl);
   var gm = window.buildGlider(THREE, '#ff2bd6', id); gm.rotation.y = -.6; sc.add(gm); cm.position.set(id === 'aile' ? 7.5 : 9.5, id === 'aile' ? 4.2 : 5.2, id === 'aile' ? 4.2 : 6.5); cm.lookAt(0, id === 'aile' ? 1.8 : 2.4, 0);
   R3.setRenderTarget(rt); R3.render(sc, cm); var px = new Uint8Array(W2 * W2 * 4); R3.readRenderTargetPixels(rt, 0, 0, W2, W2, px); R3.setRenderTarget(null); rt.dispose();
   var cvs = document.createElement('canvas'); cvs.width = cvs.height = W2; var g = cvs.getContext('2d'), im = g.createImageData(W2, W2); for (var y = 0; y < W2; y++) im.data.set(px.subarray((W2 - 1 - y) * W2 * 4, (W2 - y) * W2 * 4), y * W2 * 4);
   g.putImageData(im, 0, 0); return (THUMBS[key] = cvs.toDataURL()); }
+/* BOUTIQUE DU JOUR : 8 skins détaillés tirés au sort chaque jour (même boutique pour tout le monde, heure du serveur) */
+function qDaily() { var ids = Object.keys(SKINS_SHOP).filter(function (k) { return SKINS_SHOP[k].q; }), day = Math.floor((typeof NOW === 'function' ? NOW() : Date.now()) / 864e5), R = mulberry(day * 7 + 3), out = [], bases = {};
+  while (out.length < 8 && ids.length) { var k = ids.splice(R() * ids.length | 0, 1)[0], b = k.split('_')[0]; if (bases[b]) continue; bases[b] = 1; out.push(k); } return out; }
 function lockerRender() {
   var el = $('skinList'); if (!el) return; $('poN2').textContent = $('poN3').textContent = ST.po || 0; ST.own = ST.own || ['wald']; ST.ownG = ST.ownG || ['aile']; ST.ownD = ST.ownD || [];
   // boutique : skins, planeurs, danses
   function offer(attr, id, d, img, own, pre) { return '<div class="offer" style="--rc:' + d.rc + '" ' + attr + '="' + id + '"><i>' + (pre || '') + d.tag + '</i><img src="' + img + '" alt=""><b>' + d.name + '</b><span class="pr' + (own ? ' own' : (ST.po || 0) < d.price ? ' poor' : '') + '">' + (own ? '✔ Acheté' : d.price + ' 🪙') + '</span></div>'; }
   var h = '';
-  Object.keys(SKINS_SHOP).forEach(function (id) { var d = SKINS_SHOP[id]; if (d.price) h += offer('data-s', id, d, skinThumb(id), ST.own.indexOf(id) >= 0); });
+  var QD = qDaily(); h += '<h4 class="shopH">🔥 BOUTIQUE DU JOUR · nouveaux skins détaillés · change toutes les 24 h</h4>';
+  QD.forEach(function (id) { var d = SKINS_SHOP[id]; h += offer('data-s', id, d, skinThumb(id), ST.own.indexOf(id) >= 0); }); h += '<h4 class="shopH">⭐ SKINS WALD</h4>';
+  Object.keys(SKINS_SHOP).forEach(function (id) { var d = SKINS_SHOP[id]; if (d.price && !d.q) h += offer('data-s', id, d, skinThumb(id), ST.own.indexOf(id) >= 0); });
   Object.keys(GLIDERS).forEach(function (id) { var d = GLIDERS[id]; if (d.price) h += offer('data-g', id, d, gliderThumb(id), ST.ownG.indexOf(id) >= 0, '🪂 '); });
   Object.keys(DANCES).forEach(function (id) { var d = DANCES[id]; if (d.price && !d.unlock) h += offer('data-d', id, d, skinThumb(ST.skin || 'wald', 0, id), myDances().indexOf(id) >= 0, '💃 '); });
   $('shopList').innerHTML = h;
