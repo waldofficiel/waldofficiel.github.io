@@ -1801,7 +1801,7 @@ function lavaTick(dt) { var hud = $('rHud'), bl = $('rBlind'), now = performance
 var DEV = [], DEVG = null, OBCP = 0, OBDONE = false;
 var DEVC = { pf: '#d8d0f0', mv: '#3dd6ff', cp: '#3dff7a', kill: '#ff2a3a', fin: '#ffd23d', tp: '#b44dff', btn: '#ff7a1a', zn: '#3dd6ff' };
 /* TERRAIN du Créatif : collines, montagnes, plateaux (on part d'une île plate et on sculpte sa map) — s = rayon */
-var TERK = { col: .42, mont: .85, pla: .3, dune: .25, sab: .002, neige: .002, herbe: .002, beton: .002 }, PAINTC = { sab: ['#e2c08a', '#c9a066'], neige: ['#f4f7fb', '#d8e2ee'], herbe: ['#5fbf4a', '#3f8f36'], beton: ['#a9adb4', '#8a8f97'] }, SANDT = MODE === 'zw';
+var TERK = { col: .42, mont: .85, pla: .3, dune: .25, sab: .002, neige: .002, herbe: .002, beton: .002 }, PAINTC = { sab: ['#e2c08a', '#c9a066'], neige: ['#f4f7fb', '#d8e2ee'], herbe: ['#4e9440', '#3b7431'], beton: ['#a9adb4', '#8a8f97'] }, SANDT = MODE === 'zw';
 /* DÉCOR du Créatif : cactus, palmier, rocher, caisse, baril, clôture (rocher/caisse/baril : on peut monter dessus) */
 var DECO = { cactus: [2.6, 0], palmier: [6.5, 0], rocher: [1.5, 1], caisse: [1.25, 1], baril: [1.15, 1], cloture: [1.2, 0], buisson: [1, 0] };
 function terH(d, r) { var R = d.s || 14, H = R * TERK[d.k]; if (r >= R) return -1e9; var u = r / R; if (d.k === 'pla') return d.y + H * (u < .55 ? 1 : .5 + .5 * Math.cos(Math.PI * (u - .55) / .45)); var c = .5 + .5 * Math.cos(Math.PI * u); return d.y + H * (d.k === 'mont' ? Math.pow(c, 1.35) : c); }
@@ -2226,27 +2226,38 @@ function zwStart(m) { var ids = ROUND.ids.slice(), n = Math.max(1, ids.length), 
 /* ===== WALD VILLAGE : la map officielle de GUN GAME et MEURTRE MYSTÈRE, construite de zéro par Wald Game avec les pièces du Créatif
    (maisons de 2×2 cases, certaines à étage avec rampe, portes et fenêtres éditées, toits plats, abris) + collines et montagnes autour. Même graine chez tout le monde. ===== */
 var WVB = false;
-function wvBuild() { if (!SV || !SV.netPlace) return; WVB = true; if (SV.clearBuilds) SV.clearBuilds(); var R = mulberry(4242), P = [], L0 = +snapY(hgt(0, 0)).toFixed(1), LH = 3.5, MT = ['bois', 'pierre', 'bois', 'metal', 'pierre'];
+/* WALD VILLAGE (Meurtre mystère, Gun Game) : vrai petit village fait avec les pièces du Créatif, en matières INCASSABLES (la map reste propre) :
+   place en béton au milieu, 6 maisons de 10 × 10 m (porte vers la place, fenêtres), 3 à étage avec escalier intérieur, TOITS À DEUX PENTES
+   (toits édités : coins levés) avec pignons en demi-murs triangulaires, pelouse, clôtures, buissons, caisses et tonneaux pour se cacher. */
+function wvBuild() { if (!SV || !SV.netPlace) return; WVB = true; if (SV.clearBuilds) SV.clearBuilds(); var R = mulberry(4242), P = [], L0 = +snapY(hgt(0, 0)).toFixed(1), LH = 3.5;
   function lv(k) { return +(L0 + k * LH).toFixed(1); }
   function wx(ex, cj, L, m, mk) { P.push(['mur', m, ex * 5, cj * 5 + 2.5, L, 0, 'm|x|' + ex + '|' + cj + '|' + L.toFixed(1), .07, 2.5, mk || '']); }
   function wz(ci, ez, L, m, mk) { P.push(['mur', m, ci * 5 + 2.5, ez * 5, L, 1, 'm|z|' + ci + '|' + ez + '|' + L.toFixed(1), 2.5, .07, mk || '']); }
   function fl(ci, cj, L, m) { P.push(['sol', m, ci * 5 + 2.5, cj * 5 + 2.5, L, 0, 's|' + ci + '|' + cj + '|' + L.toFixed(1), 0, 0, '']); }
-  var DOOR = '010010000', WIN = '000010000', HOUSES8 = [];
-  for (var h = 0; h < 9; h++) { var a = h / 9 * 6.283 + .2, rr = 24 + R() * 6, ci = Math.round(Math.cos(a) * rr / 5) - 1, cj = Math.round(Math.sin(a) * rr / 5) - 1, m = MT[(R() * MT.length) | 0], two = R() < .45;
+  function rf(ci, cj, L, m, mk) { P.push(['toit', m, ci * 5 + 2.5, cj * 5 + 2.5, L, 0, 't|' + ci + '|' + cj + '|' + L.toFixed(1), 0, 0, mk]); }
+  var DOOR = '010010000', WIN = '000010000', HOUSES8 = [], STY = [['ixr', 'ixw'], ['ixs', 'ixw'], ['ixr', 'ixb'], ['ixw', 'ixw'], ['ixs', 'ixr'], ['ixb', 'ixw']];
+  var SPOTS = [[-5, -1], [-1, -5], [3, -1], [-1, 3], [-5, -5], [3, 3]];   // coins des maisons (en cases de 5 m), autour de la place
+  SPOTS.forEach(function (q, h) { var ci = q[0] * 1 + (h >= 4 ? 0 : 0), cj = q[1], mw = STY[h][0], mr = STY[h][1], two = h % 2 === 0;
     var cx = ci * 5 + 5, cz = cj * 5 + 5, dside = Math.abs(cx) > Math.abs(cz) ? (cx > 0 ? 'xn' : 'xp') : (cz > 0 ? 'zn' : 'zp');   // porte vers la place
-    for (var k = 0; k < (two ? 2 : 1); k++) { var L = lv(k);
-      [0, 1].forEach(function (o) { var mk0 = function (side) { return k === 0 && side === dside && o === 0 ? DOOR : R() < .35 ? WIN : ''; };
-        wx(ci, cj + o, L, m, mk0('xn')); wx(ci + 2, cj + o, L, m, mk0('xp')); wz(ci + o, cj, L, m, mk0('zn')); wz(ci + o, cj + 2, L, m, mk0('zp')); }); }
-    var top = lv(two ? 2 : 1); [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(function (q) { fl(ci + q[0], cj + q[1], top, m); });
-    if (two) { P.push(['esc', m, (ci + 1) * 5 + 2.5, cj * 5 + 2.5, L0, 1, 'e|' + (ci + 1) + '|' + cj + '|' + L0.toFixed(1), 0, 0, '']);   // rampe vers l'étage (monte vers +z)
-      [[0, 0], [0, 1], [1, 1]].forEach(function (q) { fl(ci + q[0], cj + q[1], lv(1), m); }); }
-    HOUSES8.push([cx, cz]); }
-  for (var c = 0; c < 14; c++) { var a2 = R() * 6.283, r2 = 8 + R() * 30, ci2 = Math.floor(Math.cos(a2) * r2 / 5), cj2 = Math.floor(Math.sin(a2) * r2 / 5), m2 = R() < .5 ? 'metal' : 'pierre';   // abris (murs isolés)
-    if (R() < .5) wx(ci2, cj2, L0, m2, R() < .4 ? '111000000' : ''); else wz(ci2, cj2, L0, m2, R() < .4 ? '111000000' : ''); }
-  P.forEach(function (q) { SV.netPlace(q); });
-  if (!DEV.some(function (d) { return TERK[d.k] != null; })) { var TD = []; for (var t = 0; t < 6; t++) { var a3 = t / 6 * 6.283 + .5; TD.push({ k: 'col', x: Math.cos(a3) * 62, z: Math.sin(a3) * 62, s: 14 + (t % 3) * 4 }); }
-    [[110, 30, 34], [-95, 80, 30], [20, -120, 38]].forEach(function (q) { TD.push({ k: 'mont', x: q[0], z: q[1], s: q[2] }); });
-    TD.forEach(function (d) { d.id = DEVID++; d.y = +(hgt(d.x, d.z) - .2).toFixed(2); d.x0 = d.x; DEV.push(d); }); devBuild(); }
+    var nF = two ? 2 : 1;
+    for (var k = 0; k < nF; k++) { var L = lv(k);
+      [0, 1].forEach(function (o) { var mk0 = function (side) { return k === 0 && side === dside && o === 0 ? DOOR : (o === 1 ? WIN : ''); };
+        wx(ci, cj + o, L, mw, mk0('xn')); wx(ci + 2, cj + o, L, mw, mk0('xp')); wz(ci + o, cj, L, mw, mk0('zn')); wz(ci + o, cj + 2, L, mw, mk0('zp')); }); }
+    if (two) { P.push(['esc', mr, (ci + 1) * 5 + 2.5, cj * 5 + 2.5, L0, 1, 'e|' + (ci + 1) + '|' + cj + '|' + L0.toFixed(1), 0, 0, '']); [[0, 0], [0, 1], [1, 1]].forEach(function (q2) { fl(ci + q2[0], cj + q2[1], lv(1), mr); }); }
+    var top = lv(nF);   /* toit à 2 pentes : faîtage au milieu (le long de z), pignons triangulaires aux deux bouts */
+    rf(ci, cj, top, mr, '0101'); rf(ci, cj + 1, top, mr, '0101'); rf(ci + 1, cj, top, mr, '1010'); rf(ci + 1, cj + 1, top, mr, '1010');
+    wz(ci, cj, top, mw, '034678'); wz(ci + 1, cj, top, mw, '245678'); wz(ci, cj + 2, top, mw, '034678'); wz(ci + 1, cj + 2, top, mw, '245678');
+    HOUSES8.push([cx, cz]); });
+  P.forEach(function (q) { if (q[0] === 'mur' && /^\d{6}$/.test(q[9])) { var mk = '000000000'.split(''); q[9].split('').forEach(function (c) { mk[+c] = '1'; }); q[9] = mk.join(''); } SV.netPlace(q); });
+  if (!DEV.some(function (d) { return d.wv; })) { var TD = [{ k: 'herbe', x: 0, z: 0, s: 64 }, { k: 'beton', x: 0, z: 0, s: 13 }];
+    for (var t = 0; t < 6; t++) { var a3 = t / 6 * 6.283 + .5; TD.push({ k: 'col', x: Math.cos(a3) * 78, z: Math.sin(a3) * 78, s: 16 + (t % 3) * 4 }); }
+    [[120, 30, 34], [-105, 85, 30], [20, -130, 38]].forEach(function (q) { TD.push({ k: 'mont', x: q[0], z: q[1], s: q[2] }); });
+    for (var f = 0; f < 44; f++) { var af = f / 44 * 6.283; TD.push({ k: 'cloture', x: Math.cos(af) * 46, z: Math.sin(af) * 46, s: 1, r: -af }); }   // clôture tout autour du village
+    var DK = ['buisson', 'buisson', 'caisse', 'baril', 'buisson', 'caisse', 'rocher'];
+    for (var j = 0; j < 34; j++) { var a2 = R() * 6.283, r2 = 9 + R() * 34, xx = Math.cos(a2) * r2, zz = Math.sin(a2) * r2;
+      if (HOUSES8.some(function (hc) { return Math.abs(hc[0] - xx) < 7 && Math.abs(hc[1] - zz) < 7; })) continue; TD.push({ k: DK[j % DK.length], x: xx, z: zz, s: .9 + R() * .5, r: R() * 6.283 }); }
+    HOUSES8.forEach(function (hc, i) { TD.push({ k: i % 2 ? 'caisse' : 'baril', x: hc[0] - 2.6, z: hc[1] + 2.6, s: 1 }); TD.push({ k: 'caisse', x: hc[0] + 2.4, z: hc[1] - 2.8, s: 1.1 }); });   // de quoi se cacher dans les maisons
+    TD.forEach(function (d) { d.id = DEVID++; d.wv = 1; d.x0 = d.x; d.y = +(hgt(d.x, d.z) + (PAINTC[d.k] ? .03 : TERK[d.k] != null ? -.2 : 0)).toFixed(2); DEV.push(d); }); devBuild(); }
   return HOUSES8; }
 /* textures façon map de désert « dust » pour CS WILD GO : murs en enduit sable avec blocs de pierre, et caisses en bois (dessinées, originales) */
 function csWallTex() {   /* mur de village du désert « photo » : enduit sable usé par le soleil (bruit multi-échelle), plaques d'enduit tombées qui montrent les pierres, coulures de pluie, fissures, crasse en bas */
