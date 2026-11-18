@@ -518,9 +518,11 @@
     '0,1,3,4,6,7', '1,2,4,5,7,8', '0,3,6,1,4,7', '3,6,7', '5,7,8', '0,1,3', '1,2,5', '0,3,4,6,7,8', '2,4,5,6,7,8', '0,1,2,3,4,6', '0,1,2,4,5,8', '4,7', '1,4,6,7,8', '3,4,5,7'].forEach(function (k) { EDOK[k.split(',').map(Number).sort(function (a, b) { return a - b; }).join(',')] = 1; });
   var ESEL = [];
   /* édit de mur valable = n'importe quelles cases (fenêtre sur le côté, en haut, porte de côté, arche, demi-mur…) tant qu'il reste au moins une case et que le reste tient en UN seul morceau */
-  function wallEditOk(sel) { if (sel.length >= 9) return false; var keep = [], k; for (k = 0; k < 9; k++) if (sel.indexOf(k) < 0) keep.push(k); var seen = [keep[0]], st = [keep[0]];
-    while (st.length) { var c = st.pop(), cr = tcr(c); keep.forEach(function (o) { if (seen.indexOf(o) >= 0) return; var orr = tcr(o); if (Math.abs(orr[0] - cr[0]) + Math.abs(orr[1] - cr[1]) === 1) { seen.push(o); st.push(o); } }); }
-    return seen.length === keep.length; }
+  /* ÉDITS DE MUR = SEULEMENT LES FORMES QUI EXISTENT (tableau des édits classiques, + leurs miroirs gauche/droite) — cases enlevées, numérotées de bas en haut */
+  var WOK = {}; (function () { var L = ['4', '1,4', '0,3', '3', '3,5', '0,1,2,4', '1,2,4,5', '6,7,8', '3,4,5,6,7,8', '0,3,6,7,8', '0,1,3,4,6,7', '0,1,3,4,6,7,8', '0,1,3,4,5,6,7,8', '3,6,7', '0,3,4,6,7,8', '0,1,3', '0,1,2,3,4,6'];
+    function mir(k) { return k.split(',').map(function (t) { var i = +t; return Math.floor(i / 3) * 3 + 2 - i % 3; }); }
+    L.forEach(function (k) { [k.split(',').map(Number), mir(k)].forEach(function (a) { WOK[a.sort(function (x, y) { return x - y; }).join(',')] = 1; }); }); })();
+  function wallEditOk(sel) { return !!WOK[sel.slice().sort(function (x, y) { return x - y; }).join(',')]; }
   function rampDir(a, b) { var ra = a > 1 ? 1 : 0, ca = a % 2, rb = b > 1 ? 1 : 0, cb = b % 2; if (ra === rb && ca !== cb) return cb > ca ? 0 : 2; if (ca === cb && ra !== rb) return rb > ra ? 1 : 3; return -1; }
   function editApply(p, mk) {   // applique un édit (local ou reçu du réseau)
     if (p.t === 'mur') { wallFree(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); }
@@ -528,7 +530,7 @@
     else if (p.t === 'esc') { pieceHide(p); if (typeof mk === 'number') { p.d = mk; p.rp = null; } else if (mk) { p.d = mk.d; p.rp = mk.rp; } pieceShow(p); } }
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
     if (EDW) { var p = EDW, sel = EMK.map(function (b, i) { return b ? i : -1; }).filter(function (i) { return i >= 0; }), msg = null;
-      if (p.t === 'mur' && sel.length && !wallEditOk(sel)) msg = sel.length === 9 ? '❌ GARDE AU MOINS UNE CASE DU MUR' : '❌ LE RESTE DU MUR DOIT TENIR EN UN SEUL MORCEAU';
+      if (p.t === 'mur' && sel.length && !wallEditOk(sel)) msg = '❌ CET ÉDIT N\'EXISTE PAS · fenêtre, porte, arche, demi-mur, triangle…';
       if (p.t === 'sol' && sel.length === 4) msg = '❌ GARDE AU MOINS UNE CASE DU SOL';
       if (p.t === 'toit' && sel.length === 4) msg = '❌ TOIT : 1 à 3 coins à lever';
       var RE = p.t === 'esc' && sel.length ? rampEditOf(ESEL) : null; if (p.t === 'esc' && sel.length && !RE) msg = '❌ ESCALIER : case du MILIEU → un bord = tourner · 3 cases sur un bord = demi-escalier · L de 5 cases = escalier qui tourne';
