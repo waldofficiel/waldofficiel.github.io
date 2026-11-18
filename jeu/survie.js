@@ -120,7 +120,12 @@
   /* ---------------- constructions ---------------- */
   function rampGeo() {   // escalier = UNE planche en pente (comme Fortnite) : de 0 à LH sur une case, sans jupe ni bloc dessous
     var L = Math.hypot(CELL, LH), th = .15, a = Math.atan2(LH, CELL), g = new T.BoxGeometry(L, th, CELL - .06); g.rotateZ(a); g.translate(Math.sin(a) * th / 2, LH / 2 - Math.cos(a) * th / 2, 0); g.computeVertexNormals(); return g; }
-  function roofGeo() { var g = new T.ConeGeometry(CELL / Math.SQRT2, 2.4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, 1.2, 0); g.computeVertexNormals(); return g; }
+  /* UV « posées » sur chaque pente : les planches restent droites et à la bonne taille sur chaque face du toit (avant : texture du cône tordue vers la pointe) */
+  function slopeUV(g) { g = g.index ? g.toNonIndexed() : g; var P = g.attributes.position, uv = [], A = new T.Vector3(), B = new T.Vector3(), Cc = new T.Vector3(), n = new T.Vector3();
+    for (var i = 0; i < P.count; i += 3) { A.fromBufferAttribute(P, i); B.fromBufferAttribute(P, i + 1); Cc.fromBufferAttribute(P, i + 2); n.subVectors(Cc, B).cross(new T.Vector3().subVectors(A, B)).normalize(); var hx = n.x, hz = n.z, hl = Math.hypot(hx, hz);
+      [A, B, Cc].forEach(function (q) { if (hl < .05) { uv.push(q.x / CELL + .5, q.z / LH + .5); return; } var ux = -hz / hl, uz = hx / hl, along = q.x * ux + q.z * uz, across = -(q.x * hx + q.z * hz) / hl, sl = Math.abs(n.y) > .02 ? 1 / Math.abs(n.y) : 1; uv.push(along / CELL + .5, (across * sl) / LH + .5); }); }
+    g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; }
+  function roofGeo() { var g = new T.ConeGeometry(CELL / Math.SQRT2, 2.4, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, 1.2, 0); return slopeUV(g); }
   /* TEXTURES DES CONSTRUCTIONS façon Fortnite (dessinées une fois, 1024 × 716 = un panneau 5 × 3,5 m) :
      BOIS = cadre en poutres + planches clouées avec des jours entre elles et des petits trous (on voit à travers),
      PIERRE = briquettes en quinconce dans un cadre de pierre, joints creusés, MÉTAL = tôle ondulée dans un cadre riveté. */
@@ -257,6 +262,7 @@
     if (t === 'mur') { var lw = feet + (up ? LH : 0); if (dx) { var ex = oi + (dx > 0 ? 1 : 0); p.x = ex * CELL; p.z = oj * CELL + CELL / 2; p.hw = WTH; p.hd = CELL / 2; p.key = 'm|x|' + ex + '|' + oj; } else { var ez = oj + (dz > 0 ? 1 : 0); p.z = ez * CELL; p.x = oi * CELL + CELL / 2; p.hw = CELL / 2; p.hd = WTH; p.key = 'm|z|' + oi + '|' + ez; } p.L = lw; }
     else { var ci = oi, cj = oj; if (!down && t !== 'toit') { ci = oi + dx; cj = oj + dz; }   // devant toi, sauf si tu regardes en bas
       p.x = ci * CELL + CELL / 2; p.z = cj * CELL + CELL / 2; p.L = feet + (up || t === 'toit' ? LH : 0);
+      if (down && t !== 'toit') p.L = lvl(p.x, p.z, P.y + .3 - LH * .12);   /* dans TA case : jamais au-dessus de tes pieds (avant : jusqu'à 77 cm plus haut, ou le haut de la rampe → le sol se posait SUR toi) */
       if (t === 'esc') { var back = PIECES.filter(function (q) { return q.t === 'esc' && q.d === d && Math.abs(q.x - (p.x - dx * CELL)) < .1 && Math.abs(q.z - (p.z - dz * CELL)) < .1 && Math.abs(q.L + LH - p.L) < LH * .8; })[0]; if (back) p.L = back.L + LH; }   // dans le prolongement : pile au bout
       p.key = t[0] + '|' + ci + '|' + cj; }
     p.L = +p.L.toFixed(2); p.key += '|' + p.L.toFixed(1); return p; }
@@ -310,6 +316,9 @@
      la tête cogne dessous en sautant ; on ne passe plus à travers par en dessous. Sol édité = 4 quarts (on enlève 1 à 3 cases). */
   function flatSegs(p) { p.ws = []; var Q = CELL / 4, out = [];
     if (p.t === 'sol') { for (var i = 0; i < 4; i++) { if (p.mask && p.mask[i]) continue; out.push([p.x + (i % 2 ? Q : -Q), p.z + (i > 1 ? Q : -Q), Q, Q, p.L - .08, .16]); } }
+    else if (p.t === 'esc' && p.rp) { rampShape(p).forEach(function (sg) { var n = sg.y0 === sg.y1 ? 1 : 3; for (var k = 0; k < n; k++) { var f0 = k / n, f1 = (k + 1) / n, x0 = sg.x0, x1 = sg.x1, z0 = sg.z0, z1 = sg.z1;
+        if (n > 1) { if (sg.d === 0) { x0 = sg.x0 + (sg.x1 - sg.x0) * f0; x1 = sg.x0 + (sg.x1 - sg.x0) * f1; } else if (sg.d === 2) { x1 = sg.x1 - (sg.x1 - sg.x0) * f0; x0 = sg.x1 - (sg.x1 - sg.x0) * f1; } else if (sg.d === 1) { z0 = sg.z0 + (sg.z1 - sg.z0) * f0; z1 = sg.z0 + (sg.z1 - sg.z0) * f1; } else { z1 = sg.z1 - (sg.z1 - sg.z0) * f0; z0 = sg.z1 - (sg.z1 - sg.z0) * f1; } }
+        var ya = sg.y0 + (sg.y1 - sg.y0) * f0, yb = sg.y0 + (sg.y1 - sg.y0) * f1; out.push([p.x + (x0 + x1) / 2, p.z + (z0 + z1) / 2, (x1 - x0) / 2, (z1 - z0) / 2, p.L + ya - .12, yb - ya + .12]); } }); }
     else if (p.t === 'esc') { var ax = p.d % 2 === 0, sg = p.d < 2 ? 1 : -1; for (var k = 0; k < 4; k++) { var u = (k + .5) * Q - CELL / 2; out.push([p.x + (ax ? sg * u : 0), p.z + (ax ? 0 : sg * u), ax ? Q / 2 + .02 : CELL / 2, ax ? CELL / 2 : Q / 2 + .02, p.L + LH * k / 4 - .12, LH / 4 + .12]); } }
     else if (p.t === 'toit') { out.push([p.x, p.z, CELL / 2 - .2, CELL / 2 - .2, p.L, 1.1]); }
     out.forEach(function (q) { var w = { x: q[0], z: q[1], hw: q[2], hd: q[3], y0: q[4], h: q[5], m: MATW[p.m] || 'bois', house: null, alive: true, hp: p.hp, build: p, flat: p.t === 'esc' ? 2 : 1, cut: true }; C.WALLS.push(w); p.ws.push(w); }); }
@@ -319,10 +328,59 @@
     for (var i = 0; i < 4; i++) { if (p.mask[i]) continue; var x0 = i % 2 ? 0 : -H2, x1 = x0 + H2, z0 = i > 1 ? 0 : -H2, z1 = z0 + H2;
       quad([x0, t, z1], [x1, t, z1], [x1, t, z0], [x0, t, z0], [0, 1, 0]); quad([x0, -t, z0], [x1, -t, z0], [x1, -t, z1], [x0, -t, z1], [0, -1, 0]);
       quad([x0, -t, z1], [x1, -t, z1], [x1, t, z1], [x0, t, z1], [0, 0, 1]); quad([x1, -t, z0], [x0, -t, z0], [x0, t, z0], [x1, t, z0], [0, 0, -1]);
-      quad([x1, -t, z1], [x1, -t, z0], [x1, t, z0], [x1, t, z1], [1, 0, 0]); quad([x0, -t, z0], [x0, -t, z1], [x0, t, z1], [x0, t, z0], [-1, 0, 0]); }
+      quad([x1, -t, z1], [x1, -t, z0], [x1, t, z0], [x1, t, z1], [1, 0, 0]); quad([x0, -t, z0], [x0, -t, z1], [x0, t, z1], [x0, t, z0], [-1, 0, 0]);
+      /* petit rebord (≈ 45 cm) le long de chaque côté coupé, comme sur les sols édités */
+      if (p.mask[i ^ 1]) { var rx = i % 2 ? .045 : -.045; rail(rx - .045, rx + .045, z0, z1); }
+      if (p.mask[i ^ 2]) { var rz = i > 1 ? .045 : -.045; rail(x0, x1, rz - .045, rz + .045); } }
+    function rail(a0, a1, b0, b1) { var y0 = t, y1 = t + .45; quad([a0, y1, b1], [a1, y1, b1], [a1, y1, b0], [a0, y1, b0], [0, 1, 0]); quad([a0, y0, b1], [a1, y0, b1], [a1, y1, b1], [a0, y1, b1], [0, 0, 1]); quad([a1, y0, b0], [a0, y0, b0], [a0, y1, b0], [a1, y1, b0], [0, 0, -1]);
+      quad([a1, y0, b1], [a1, y0, b0], [a1, y1, b0], [a1, y1, b1], [1, 0, 0]); quad([a0, y0, b0], [a0, y0, b1], [a0, y1, b1], [a0, y1, b0], [-1, 0, 0]); }
     var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(N, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(U, 2)); g.setIndex(I);
     var m = new T.Mesh(g, p.im.material); m.castShadow = m.receiveShadow = true; m.userData.dyn = true; m.position.set(p.x, p.L, p.z); C.scene.add(m); return m; }
-  function pieceShow(p) { var cut = p.t === 'sol' && p.mask && p.mask.some(Boolean); p.im.setMatrixAt(p.ii, cut ? ZERO : pieceMatrix(p, O3 || (O3 = new T.Object3D()))); p.im.instanceMatrix.needsUpdate = true; if (cut) p.tri = floorMesh(p); p._cp = null; if (p.t !== 'lit' && p.t !== 'coffre') flatSegs(p); }
+  /* ESCALIER ÉDITÉ façon Fortnite (grille 3×3, cases 0 1 2 le long de +x, rangées le long de +z) :
+     · glisser la case du MILIEU vers un bord (ou une ligne qui passe par le milieu) = l'escalier PIVOTE dans ce sens
+     · 3 cases en ligne sur un BORD = DEMI-ESCALIER de ce côté, qui monte dans le sens du glissé
+     · 5 cases en L le long de 2 bords = ESCALIER QUI TOURNE (« house stairs ») : une volée, un palier dans le coin, une volée à 90° */
+  function tcr(i) { return [i % 3, Math.floor(i / 3)]; }
+  function dirOf(a, b) { var A = tcr(a), B = tcr(b), dc = B[0] - A[0], dr = B[1] - A[1]; if (dr === 0 && dc) return dc > 0 ? 0 : 2; if (dc === 0 && dr) return dr > 0 ? 1 : 3; return -1; }
+  function lineOk(P) { for (var i = 1; i < P.length; i++) { var A = tcr(P[i - 1]), B = tcr(P[i]); if (Math.abs(A[0] - B[0]) + Math.abs(A[1] - B[1]) !== 1) return false; } return true; }
+  function rampEditOf(P) { if (!P.length || !lineOk(P)) return null; var d = dirOf(P[0], P[P.length - 1]);
+    if (P.length === 2 && (P[0] === 4 || P[1] === 4) && d >= 0) return { d: d, rp: null };   // on fait pivoter avec la case du milieu
+    if (P.length === 3 && d >= 0) { if (P[1] === 4) return { d: d, rp: null }; if (P.indexOf(4) < 0) return { d: d, rp: P.slice() }; return null; }   // ligne au milieu = pivoter, ligne sur un bord = demi-escalier
+    if (P.length === 5 && P.indexOf(4) < 0) { var d1 = dirOf(P[0], P[2]), d2 = dirOf(P[2], P[4]); if (d1 >= 0 && d2 >= 0 && d1 % 2 !== d2 % 2 && dirOf(P[0], P[1]) === d1 && dirOf(P[2], P[3]) === d2) return { d: d1, rp: P.slice() }; }
+    return null; }
+  function rampShape(p) { var H = CELL / 2, W = CELL / 2, P = p.rp;
+    if (!P) return [{ x0: -H, x1: H, z0: -H, z1: H, d: p.d, y0: 0, y1: LH }];
+    function band(i, alongX) { var cr = tcr(i), k = alongX ? cr[1] : cr[0]; return k === 0 ? [-H, -H + W] : k === 2 ? [H - W, H] : [-W / 2, W / 2]; }
+    function rect(alongX, a0, a1, bd) { return alongX ? { x0: a0, x1: a1, z0: bd[0], z1: bd[1] } : { x0: bd[0], x1: bd[1], z0: a0, z1: a1 }; }
+    var d1 = dirOf(P[0], P[2]), ax1 = d1 % 2 === 0, s1 = d1 < 2 ? 1 : -1;
+    if (P.length === 3) { var r = rect(ax1, -H, H, band(P[0], ax1)); r.d = d1; r.y0 = 0; r.y1 = LH; return [r]; }
+    var d2 = dirOf(P[2], P[4]), ax2 = d2 % 2 === 0, s2 = d2 < 2 ? 1 : -1, b1 = band(P[0], ax1), hiEnd = s1 > 0 ? [H - W, H] : [-H, -H + W], loEnd2 = s2 > 0 ? [-H, -H + W] : [H - W, H];
+    var leg1 = rect(ax1, s1 > 0 ? -H : -H + W, s1 > 0 ? H - W : H, b1); leg1.d = d1; leg1.y0 = 0; leg1.y1 = LH / 2;
+    var land = rect(ax1, hiEnd[0], hiEnd[1], loEnd2); land.d = d2; land.y0 = land.y1 = LH / 2;
+    var leg2 = rect(ax2, s2 > 0 ? -H + W : -H, s2 > 0 ? H : H - W, hiEnd); leg2.d = d2; leg2.y0 = LH / 2; leg2.y1 = LH;
+    return [leg1, land, leg2]; }
+  function segY(sg, lx, lz) { var f = sg.d === 0 ? (lx - sg.x0) / (sg.x1 - sg.x0) : sg.d === 2 ? (sg.x1 - lx) / (sg.x1 - sg.x0) : sg.d === 1 ? (lz - sg.z0) / (sg.z1 - sg.z0) : (sg.z1 - lz) / (sg.z1 - sg.z0); return sg.y0 + (sg.y1 - sg.y0) * Math.max(0, Math.min(1, f)); }
+  function rampMesh(p) { var grp = new T.Group(); grp.userData.dyn = true; rampShape(p).forEach(function (sg) { var len = sg.d % 2 ? sg.z1 - sg.z0 : sg.x1 - sg.x0, wid = sg.d % 2 ? sg.x1 - sg.x0 : sg.z1 - sg.z0, dy = sg.y1 - sg.y0, a = Math.atan2(dy, len), th = .15;
+      var g = new T.BoxGeometry(Math.hypot(len, dy), th, wid - .04); g.rotateZ(a); g.translate(Math.sin(a) * th / 2, -Math.cos(a) * th / 2, 0); g.rotateY(-sg.d * Math.PI / 2);
+      var m = new T.Mesh(g, p.im.material); m.castShadow = m.receiveShadow = true; m.position.set((sg.x0 + sg.x1) / 2, (sg.y0 + sg.y1) / 2, (sg.z0 + sg.z1) / 2); grp.add(m); });
+    grp.geometry = { dispose: function () { grp.children.forEach(function (q) { q.geometry.dispose(); }); } }; grp.position.set(p.x, p.L, p.z); C.scene.add(grp); return grp; }
+  /* TOIT ÉDITÉ (grille 2×2) : on ne retire rien, chaque case choisie LÈVE son coin. 1 case = un coin levé ;
+     2 cases d'un même côté = ce côté levé → pente qui monte vers ce côté (escalier) ; 2 en diagonale = arête en travers ; 3 = coins levés autour d'un coin bas. */
+  function roofGrid(p) { var m = p.mask || [], RH = LH, ch = function (i) { return m[i] ? RH : 0; }, c00 = ch(0), c10 = ch(1), c01 = ch(2), c11 = ch(3);
+    if (!m.some(Boolean)) return [[0, 1.2, 0], [1.2, 2.4, 1.2], [0, 1.2, 0]];   // chapeau d'origine (pointe au milieu)
+    var mid = (c00 + c10 + c01 + c11) / 4; if (m[0] && m[3] && !m[1] && !m[2] || m[1] && m[2] && !m[0] && !m[3]) mid = RH;   // diagonale : arête qui passe par le milieu
+    return [[c00, (c00 + c10) / 2, c10], [(c00 + c01) / 2, mid, (c10 + c11) / 2], [c01, (c01 + c11) / 2, c11]]; }   // [rangée z][colonne x]
+  function roofY(p, dx, dz) { var G = roofGrid(p), H = CELL / 2, fx = Math.max(0, Math.min(2, (dx + H) / H)), fz = Math.max(0, Math.min(2, (dz + H) / H)), c = Math.min(1, Math.floor(fx)), r = Math.min(1, Math.floor(fz)), u = fx - c, v = fz - r;
+    return G[r][c] * (1 - u) * (1 - v) + G[r][c + 1] * u * (1 - v) + G[r + 1][c] * (1 - u) * v + G[r + 1][c + 1] * u * v; }
+  function roofMesh(p) { var G = roofGrid(p), H = CELL / 2, P = [], U = [], I = [], th = .12;
+    for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) { P.push(-H + c * H, G[r][c], -H + r * H); U.push(c / 2, r / 2); }
+    for (r = 0; r < 2; r++) for (c = 0; c < 2; c++) { var a = r * 3 + c, b = a + 1, d = a + 3, e = d + 1; I.push(a, d, e, a, e, b); }
+    var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(P, 3)); g.setIndex(I); g = slopeUV(g);
+    var mat = p.im.material.clone(); mat.side = T.DoubleSide; var m = new T.Mesh(g, mat); m.receiveShadow = true; var grp = new T.Group(); grp.userData.dyn = true; grp.add(m); grp.position.set(p.x, p.L + th / 2, p.z); C.scene.add(grp);
+    grp.geometry = { dispose: function () { g.dispose(); mat.dispose(); } }; return grp; }
+  function pieceShow(p) { if (p.t === 'toit' && p.mask && p.mask.some(Boolean)) { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.tri = roofMesh(p); p._cp = null; flatSegs(p); return; }
+    if (p.t === 'esc' && p.rp) { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; p.tri = rampMesh(p); p._cp = null; flatSegs(p); return; }
+    var cut = p.t === 'sol' && p.mask && p.mask.some(Boolean); p.im.setMatrixAt(p.ii, cut ? ZERO : pieceMatrix(p, O3 || (O3 = new T.Object3D()))); p.im.instanceMatrix.needsUpdate = true; if (cut) p.tri = floorMesh(p); p._cp = null; if (p.t !== 'lit' && p.t !== 'coffre') flatSegs(p); }
   function pieceHide(p) { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } flatFree(p); }
   function ceilAt(x, z, y0, y1) { var c = null; for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (!w.flat || !w.alive || Math.abs(x - w.x) > w.hw + .25 || Math.abs(z - w.z) > w.hd + .25) continue; if (w.y0 >= y0 - .05 && w.y0 < y1 && (c == null || w.y0 < c)) c = w.y0; } return c; }
   function wallFree(p) { if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
@@ -397,11 +455,13 @@
         return '<div class="ent' + (n ? '' : ' lock') + '" style="--r:' + RC[k.rar] + '"><div class="ic">' + (n ? '🧟' : '❔') + '</div><div><b>' + (n ? k.name : '???') + '</b><small>' + k.rar + (k.night ? ' · la nuit' : '') + (n ? ' · ' + n + ' tué' + (n > 1 ? 's' : '') + ' · ' + k.hp + ' PV' : '') + '</small><p>' + (n ? LORE[k.id] : hint ? '🔎 Indice : ' + hint[2] : 'Tue cette créature pour découvrir sa fiche. Les affiches cachées dans les lieux donnent des indices.') + '</p></div></div>'; }).join('') + '</div></div>'; }
   /* JEU EN LIGNE : chaque pièce posée / cassée / éditée est envoyée aux potes (HOOK branché par index.html) */
   var HOOK = null;
-  function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, p.mask ? p.mask.map(Number).join('') : '']; }
-  function netPlace(a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null, _net: true }; placePiece(p); }
+  function mkStr(p) { return p.t === 'esc' && p.rp ? 'r' + p.rp.join('') : p.mask ? p.mask.map(Number).join('') : ''; }
+  function mkParse(v, p) { var s2 = v ? String(v) : ''; if (s2.charAt(0) === 'r') { p.rp = s2.slice(1).split('').map(Number); return null; } return s2 ? s2.split('').map(function (c) { return c === '1'; }) : null; }   /* escalier édité : « r » + le chemin des cases (ex. r03678) */
+  function ser(p) { return [p.t, p.m, p.x, p.z, p.L, p.d, p.key, p.hw || 0, p.hd || 0, mkStr(p)]; }
+  function netPlace(a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, _net: true }; p.mask = mkParse(a[9], p); placePiece(p); }
   function netRemove(key) { for (var i = 0; i < PIECES.length; i++) if (PIECES[i].key === key) { var p = PIECES[i]; p._net = true; removePiece(p, true); return; } }
   function netEdit(key, mk) { mk = mk == null ? '' : String(mk); PIECES.forEach(function (p) { if (p.key !== key) return;
-      if (p.t === 'esc') { if (/^d[0-3]$/.test(mk)) editApply(p, +mk.charAt(1)); } else if (p.t === 'mur' || p.t === 'sol') editApply(p, mk ? mk.split('').map(function (c) { return c === '1'; }) : null); }); support(); }
+      if (p.t === 'esc') { if (/^d[0-3]$/.test(mk)) editApply(p, +mk.charAt(1)); else if (/^r\d{3,5}$/.test(mk)) { var re2 = rampEditOf(mk.slice(1).split('').map(Number)); if (re2) editApply(p, re2.rp ? re2 : re2.d); } } else if (p.t === 'mur' || p.t === 'sol' || p.t === 'toit') editApply(p, mk ? mk.split('').map(function (c) { return c === '1'; }) : null); }); support(); }
   var EDW = null, EMK = null, EGRID = null, ELAST = false;
   /* ÉDITION façon Fortnite de TOUTES les pièces : MUR = grille 3×3, SOL = 2×2 (on enlève 1 à 3 cases), ESCALIER = 2×2 (on choisit 2 cases
      côte à côte, du bas vers le haut → l'escalier tourne dans ce sens). Les cases sont un hologramme bleu transparent ; les cases choisies s'éteignent. */
@@ -411,45 +471,54 @@
     PIECES.forEach(function (p) { if (Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t;
       if (p.t === 'mur') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1);
       else if (any && p.t === 'sol') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - CELL / 2, p.L - .12, p.z - CELL / 2, p.x + CELL / 2, p.L + .12, p.z + CELL / 2);
-      else if (any && p.t === 'esc') t = rayRamp(p, o, d); else return;
+      else if (any && p.t === 'esc') t = rayRamp(p, o, d);
+      else if (any && p.t === 'toit') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - CELL / 2, p.L - .1, p.z - CELL / 2, p.x + CELL / 2, p.L + 2.5, p.z + CELL / 2); else return;
       if (t < bt) { bt = t; best = p; } });
     return best ? { p: best, t: bt, o: o, d: d } : null; }
   function aimEdit() { return aimWall(true); }
-  function NT(p) { return p.t === 'mur' ? 9 : 4; }
+  function NT(p) { return p.t === 'mur' || p.t === 'esc' ? 9 : 4; }
   function rampY(p, x, z) { var u = (p.d === 0 ? x - p.x : p.d === 1 ? z - p.z : p.d === 2 ? p.x - x : p.z - z) + CELL / 2; return p.L + Math.max(0, Math.min(CELL, u)) * LH / CELL; }
   function gridDraw() { if (!EGRID) { EGRID = new T.Group(); EGRID.userData.dyn = true; EGRID.renderOrder = 6; for (var i = 0; i < 9; i++) { var m = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: '#4fb8ff', transparent: true, opacity: .34, depthWrite: false })); m.renderOrder = 6; EGRID.add(m);
         var e = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1, 1, 1)), new T.LineBasicMaterial({ color: '#dff4ff', transparent: true, opacity: .95 })); e.renderOrder = 7; m.add(e); } C.scene.add(EGRID); }
     EGRID.visible = !!EDW; if (!EDW) return; var p = EDW, n = NT(p);
     EGRID.children.forEach(function (m, i) { m.visible = i < n; if (i >= n) return; m.rotation.set(0, 0, 0); var on = EMK[i], e = m.children[0];
       if (p.t === 'mur') { var ax = p.hw > p.hd, cw = CELL / 3, rh = LH / 3, r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .06 : WTH * 2 + .12, rh - .06, ax ? WTH * 2 + .12 : cw - .06); }
-      else { var Q = CELL / 4, x = p.x + (i % 2 ? Q : -Q), z = p.z + (i > 1 ? Q : -Q), y = p.t === 'sol' ? p.L + .02 : rampY(p, x, z) + .03; m.position.set(x, y, z); m.scale.set(CELL / 2 - .08, .2, CELL / 2 - .08);
-        if (p.t === 'esc') { var a = Math.atan2(LH, CELL); if (p.d === 0) m.rotation.z = a; else if (p.d === 2) m.rotation.z = -a; else if (p.d === 1) m.rotation.x = -a; else m.rotation.x = a; m.scale.x = p.d % 2 ? CELL / 2 - .08 : (CELL / 2 - .08) / Math.cos(a); m.scale.z = p.d % 2 ? (CELL / 2 - .08) / Math.cos(a) : CELL / 2 - .08; } }
+      else if (p.t === 'esc') { var T3 = CELL / 3, ex2 = p.x + (i % 3 - 1) * T3, ez2 = p.z + (Math.floor(i / 3) - 1) * T3, a = Math.atan2(LH, CELL); m.position.set(ex2, rampY(p, ex2, ez2) + .05, ez2); m.scale.set(T3 - .08, .2, T3 - .08);
+        if (p.d === 0) m.rotation.z = a; else if (p.d === 2) m.rotation.z = -a; else if (p.d === 1) m.rotation.x = -a; else m.rotation.x = a; if (p.d % 2) m.scale.z = (T3 - .08) / Math.cos(a); else m.scale.x = (T3 - .08) / Math.cos(a);
+        if (i === 4) { m.material.color.set(on ? '#ffb02e' : '#9fd8ff'); } }
+      else { var Q = CELL / 4, x = p.x + (i % 2 ? Q : -Q), z = p.z + (i > 1 ? Q : -Q), y = p.t === 'toit' ? p.L + 1.25 : p.L + .02; m.position.set(x, y, z); m.scale.set(CELL / 2 - .08, .2, CELL / 2 - .08); }
       m.material.color.set(on ? '#ffb02e' : '#4fb8ff'); m.material.opacity = on ? .1 : .34; e.material.color.set(on ? '#ffd27a' : '#dff4ff'); }); }
   /* ÉDITS DE MUR AUTORISÉS (comme Fortnite) — cases enlevées, numérotées de bas en haut (0 1 2 / 3 4 5 / 6 7 8). Tout le reste est refusé (pas de formes en Z…) */
   var EDOK = {}; ['4', '3,4', '4,5', '3,4,5', '7', '1,4', '0,3', '2,5', '1,4,7', '0,3,6', '2,5,8', '0,1,3,4', '1,2,4,5', '0,1,2,4', '0,1,2,3,4,5', '0,1,2', '6,7,8', '3,4,5,6,7,8', '6,7', '7,8',
     '0,1,3,4,6,7', '1,2,4,5,7,8', '0,3,6,1,4,7', '3,6,7', '5,7,8', '0,1,3', '1,2,5', '0,3,4,6,7,8', '2,4,5,6,7,8', '0,1,2,3,4,6', '0,1,2,4,5,8', '4,7', '1,4,6,7,8', '3,4,5,7'].forEach(function (k) { EDOK[k.split(',').map(Number).sort(function (a, b) { return a - b; }).join(',')] = 1; });
   var ESEL = [];
+  /* édit de mur valable = n'importe quelles cases (fenêtre sur le côté, en haut, porte de côté, arche, demi-mur…) tant qu'il reste au moins une case et que le reste tient en UN seul morceau */
+  function wallEditOk(sel) { if (sel.length >= 9) return false; var keep = [], k; for (k = 0; k < 9; k++) if (sel.indexOf(k) < 0) keep.push(k); var seen = [keep[0]], st = [keep[0]];
+    while (st.length) { var c = st.pop(), cr = tcr(c); keep.forEach(function (o) { if (seen.indexOf(o) >= 0) return; var orr = tcr(o); if (Math.abs(orr[0] - cr[0]) + Math.abs(orr[1] - cr[1]) === 1) { seen.push(o); st.push(o); } }); }
+    return seen.length === keep.length; }
   function rampDir(a, b) { var ra = a > 1 ? 1 : 0, ca = a % 2, rb = b > 1 ? 1 : 0, cb = b % 2; if (ra === rb && ca !== cb) return cb > ca ? 0 : 2; if (ca === cb && ra !== rb) return rb > ra ? 1 : 3; return -1; }
   function editApply(p, mk) {   // applique un édit (local ou reçu du réseau)
     if (p.t === 'mur') { wallFree(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; p.v = null; p._cp = null; wallSegs(p, p.im); }
-    else if (p.t === 'sol') { pieceHide(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; pieceShow(p); }
-    else if (p.t === 'esc') { pieceHide(p); p.d = mk; pieceShow(p); } }
+    else if (p.t === 'sol' || p.t === 'toit') { pieceHide(p); p.mask = mk && mk.some(Boolean) ? mk.slice() : null; pieceShow(p); }
+    else if (p.t === 'esc') { pieceHide(p); if (typeof mk === 'number') { p.d = mk; p.rp = null; } else if (mk) { p.d = mk.d; p.rp = mk.rp; } pieceShow(p); } }
   function editWall() {   // bouton / touche ÉDITER : ouvre la grille, ou valide si elle est ouverte
     if (EDW) { var p = EDW, sel = EMK.map(function (b, i) { return b ? i : -1; }).filter(function (i) { return i >= 0; }), msg = null;
-      if (p.t === 'mur' && sel.length && !EDOK[sel.join(',')]) msg = '❌ CET ÉDIT N\'EXISTE PAS · comme Fortnite : fenêtre, porte, arche, demi-mur, triangle…';
+      if (p.t === 'mur' && sel.length && !wallEditOk(sel)) msg = sel.length === 9 ? '❌ GARDE AU MOINS UNE CASE DU MUR' : '❌ LE RESTE DU MUR DOIT TENIR EN UN SEUL MORCEAU';
       if (p.t === 'sol' && sel.length === 4) msg = '❌ GARDE AU MOINS UNE CASE DU SOL';
-      if (p.t === 'esc' && sel.length && (sel.length !== 2 || rampDir(ESEL[0], ESEL[1]) < 0)) msg = '❌ ESCALIER : choisis 2 cases côte à côte, du BAS vers le HAUT';
+      if (p.t === 'toit' && sel.length === 4) msg = '❌ TOIT : 1 à 3 coins à lever';
+      var RE = p.t === 'esc' && sel.length ? rampEditOf(ESEL) : null; if (p.t === 'esc' && sel.length && !RE) msg = '❌ ESCALIER : case du MILIEU → un bord = tourner · 3 cases sur un bord = demi-escalier · L de 5 cases = escalier qui tourne';
       if (msg) { C.toast(msg); C.tone('square', 220, 160, .12, .06); return; }   // on garde la grille ouverte pour corriger
       EDW = null; var net;
-      if (p.t === 'esc') { if (sel.length) { var nd = rampDir(ESEL[0], ESEL[1]); editApply(p, nd); net = 'd' + nd; } }
+      if (p.t === 'esc') { if (RE) { editApply(p, RE.rp ? RE : RE.d); net = RE.rp ? 'r' + RE.rp.join('') : 'd' + RE.d; } }
       else { editApply(p, EMK); net = p.mask ? p.mask.map(Number).join('') : ''; }
       support(); if (HOOK && net != null) HOOK('e', { key: p.key, mask: net }); gridDraw(); editPop(p); C.toast('✏️ ÉDITION VALIDÉE'); C.tone('triangle', 660, 990, .1, .07); C.noise(.06, .08, 2500); return; }
     var h = aimEdit(); if (!h) { C.toast('VISE UNE DE TES CONSTRUCTIONS POUR L\'ÉDITER'); return; }
     EDRAG = 0; ELASTI = -1; ESEL = []; EDW = h.p; var n = NT(h.p); EMK = (h.p.t !== 'esc' && h.p.mask && h.p.mask.length === n ? h.p.mask : new Array(n).fill(false)).slice(); if (TOOL !== 'edit') { EPREV = TOOL; TOOL = 'edit'; } gridDraw();
-    C.toast(h.p.t === 'esc' ? '✏️ ESCALIER : glisse du bas vers le haut sur 2 cases' : C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
+    C.toast(h.p.t === 'toit' ? '✏️ TOIT : choisis les coins à LEVER (2 cases d\'un côté = pente vers ce côté)' : h.p.t === 'esc' ? '✏️ ESCALIER : glisse la case du MILIEU vers un bord = tourner · 3 cases sur un bord = demi-escalier · L de 5 cases = escalier qui tourne' : C.editRel && C.editRel() ? '✏️ CLIQUE (OU GLISSE) SUR LES CASES · ÇA VALIDE TOUT SEUL EN RELÂCHANT' : '✏️ TOUCHE LES CASES À ENLEVER · ÉDITER POUR VALIDER'); C.tone('sine', 880, 1100, .06, .05); }
   function editPop(p) { C.burst(p.x, p.L + (p.t === 'mur' ? LH / 2 : .4), p.z, 12, ['#4fb8ff', '#dff4ff', '#ffffff'], 3, .12, .45); }   // petites étincelles bleues à la validation
   var EPREV = null;
   function editCell() { if (!EDW) return -1; var h = aimEdit(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
+    if (p.t === 'esc') { var T3 = CELL / 3; return Math.max(0, Math.min(2, Math.floor((x - p.x + CELL / 2) / T3))) + 3 * Math.max(0, Math.min(2, Math.floor((z - p.z + CELL / 2) / T3))); }
     if (p.t !== 'mur') return (x > p.x ? 1 : 0) + (z > p.z ? 2 : 0);
     var ax = p.hw > p.hd, u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
   function editSet(i, on) { EMK[i] = on; var k = ESEL.indexOf(i); if (on && k < 0) ESEL.push(i); if (!on && k >= 0) ESEL.splice(k, 1); }
@@ -460,7 +529,7 @@
     var p = EDW; if (!p) { var h = aimEdit(); if (!h) return false; p = h.p; } EDW = null; var net = '';
     if (p.t === 'esc') { editApply(p, p.d0 != null ? p.d0 : p.d); net = 'd' + p.d; } else editApply(p, null);
     support(); if (HOOK) HOOK('e', { key: p.key, mask: net }); gridDraw();
-    if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ ' + { mur: 'MUR', sol: 'SOL', esc: 'ESCALIER' }[p.t] + ' RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
+    if (TOOL === 'edit') TOOL = EPREV === 'edit' ? null : EPREV; C.toast('↺ ' + { mur: 'MUR', sol: 'SOL', esc: 'ESCALIER', toit: 'TOIT' }[p.t] + ' RÉINITIALISÉ'); C.tone('triangle', 900, 520, .1, .07); C.noise(.05, .08, 2000); return true; }
   function editCancel() { if (!EDW) return; EDW = null; gridDraw(); TOOL = EPREV === 'edit' ? null : EPREV; }
   function ghostShow(p, ok) {
     if (!GHOST) { GHOST = {}; var gm = new T.MeshBasicMaterial({ color: '#7fd4ff', transparent: true, opacity: .42, depthWrite: false, depthTest: true }); GHOST.mat = gm; var gl = new T.LineBasicMaterial({ color: '#e8f8ff', transparent: true, opacity: .9, depthWrite: false }); GHOST.lm = gl;
@@ -475,9 +544,10 @@
     for (var wi = 0; wi < C.WALLS.length; wi++) { var w = C.WALLS[wi]; if (!w.alive || w.flat || Math.abs(x - w.x) > w.hw + .22 || Math.abs(z - w.z) > w.hd + .22) continue; var wt = w.y0 + w.h; if (wt <= lim && wt > g) g = wt; }   // on peut tenir debout sur le haut des murs
     for (var i = 0; i < PIECES.length; i++) { var p = PIECES[i]; if (p.t === 'mur') continue; var dx = x - p.x, dz = z - p.z; if (Math.abs(dx) > CELL / 2 + .05 || Math.abs(dz) > CELL / 2 + .05) continue; var h;
       if (p.t === 'sol') { if (p.mask && p.mask[(dx > 0 ? 1 : 0) + (dz > 0 ? 2 : 0)]) continue; h = p.L + .08; }
+      else if (p.t === 'esc' && p.rp) { var SG = rampShape(p), hb = null; for (var si = 0; si < SG.length; si++) { var sg = SG[si]; if (dx < sg.x0 - .05 || dx > sg.x1 + .05 || dz < sg.z0 - .05 || dz > sg.z1 + .05) continue; var hs2 = p.L + .02 + segY(sg, dx, dz); if (hs2 <= y + 1.3 && (hb == null || hs2 > hb)) hb = hs2; } if (hb != null && hb > g) g = hb; continue; }   // demi-escalier / escalier qui tourne : seulement sur les marches
       else if (p.t === 'esc') { var u = (p.d === 0 ? dx : p.d === 1 ? dz : p.d === 2 ? -dx : -dz) + CELL / 2; h = p.L + .02 + Math.max(0, Math.min(CELL, u)) * LH / CELL; if (h <= y + 1.3 && h > g) { g = h; continue; } }
       else if (p.t === 'lit') continue;
-      else h = p.L + 2.4 * (1 - Math.max(Math.abs(dx), Math.abs(dz)) / (CELL / 2));
+      else h = p.mask && p.mask.some(Boolean) ? p.L + .06 + roofY(p, dx, dz) : p.L + 2.4 * (1 - Math.max(Math.abs(dx), Math.abs(dz)) / (CELL / 2));
       if (h <= lim && h > g) g = h; }
     return g; }
 
@@ -752,7 +822,7 @@
       var hw = []; C.WALLS.forEach(function (w, i) { if (!w.build && !w.alive && RUINS && RUINS.indexOf(w) < 0) hw.push(i); });
       var d = { v: 1, t: TIME, day: C.dayT ? C.dayT() : 0, res: RES, bed: BED, p: { x: P.x, z: P.z, y: P.y, hp: P.hp, sh: P.sh || 0 },
         inv: P.inv.map(function (w) { return w ? { k: w.k, mag: w.mag, res: w.res } : null; }), heals: P.heals,
-        pieces: PIECES.map(function (q) { return [q.t, q.m, q.x, q.z, q.L, q.d, q.key, q.hp, q.hw, q.hd, q.v || 0, q.mask ? q.mask.map(Number).join('') : 0]; }),
+        pieces: PIECES.map(function (q) { return [q.t, q.m, q.x, q.z, q.L, q.d, q.key, q.hp, q.hw, q.hd, q.v || 0, mkStr(q) || 0]; }),
         trees: C.TREES.map(function (t, i) { return t.gone ? i : t.cut ? -i - 1 : null; }).filter(function (v) { return v != null; }),
         harv: HARV().map(function (it, i) { return it.dead ? i : -1; }).filter(function (i) { return i >= 0; }),
         nodes: NODES.map(function (n, i) { return n.dead ? i : -1; }).filter(function (i) { return i >= 0; }),
@@ -765,7 +835,7 @@
     if (d.p) { P.x = d.p.x; P.z = d.p.z; P.y = P.gy = Math.max(C.hgt(P.x, P.z), d.p.y || 0); P.hp = Math.max(30, d.p.hp || 100); P.sh = d.p.sh || 0; }
     if (d.inv) d.inv.forEach(function (w, i) { if (w && C.WEAPONS[w.k]) { var sl = C.newSlot(w.k); sl.mag = w.mag; sl.res = w.res; P.inv[i] = sl; } });
     if (d.heals) Object.keys(d.heals).forEach(function (k) { P.heals[k] = d.heals[k]; });
-    (d.pieces || []).forEach(function (q) { var p = { t: q[0], m: q[1], x: q[2], z: q[3], L: q[4], d: q[5], key: q[6], hw: q[8], hd: q[9], v: q[10] || null, mask: q[11] ? String(q[11]).split('').map(function (c) { return c === '1'; }) : null, hp: q[7] }; if (placePiece(p)) { (p.ws || []).forEach(function (w) { w.hp = q[7]; }); } });
+    (d.pieces || []).forEach(function (q) { var p = { t: q[0], m: q[1], x: q[2], z: q[3], L: q[4], d: q[5], key: q[6], hw: q[8], hd: q[9], v: q[10] || null, hp: q[7] }; p.mask = mkParse(q[11], p); if (placePiece(p)) { (p.ws || []).forEach(function (w) { w.hp = q[7]; }); } });
     (d.trees || []).forEach(function (v) { var t = C.TREES[v >= 0 ? v : -v - 1]; if (!t || !t.d3) return; fellQuiet(t); if (v >= 0) { t.gone = true; STUMPL.splice(STUMPL.indexOf(t), 1); } }); stumpsRefresh();
     var H2 = HARV(); (d.harv || []).forEach(function (i) { if (H2[i] && window.PROPS) { PROPS.harvBreak(H2[i]); H2[i].t = 0; } });
     (d.nodes || []).forEach(function (i) { var n = NODES[i]; if (n) { n.dead = true; n.t = 0; nodeSet(n); var ci = C.PCOL.indexOf(n.col); if (ci >= 0) C.PCOL.splice(ci, 1); } });
@@ -855,7 +925,7 @@
     timeStr: function () { var s = Math.floor(TIME); return (s >= 60 ? Math.floor(s / 60) + ' min ' : '') + (s % 60) + ' s'; },
     hudLine: function () { var s = Math.floor(TIME), kk = window.ZOMB && ZOMB.kinds ? ZOMB.kinds() : [], tk = 0; kk.forEach(function (k) { tk += BESTI[k.id] || 0; }); var zl = window.ZOMB && ZOMB.on ? ' · 🧟 ' + tk + ' tuées · 📖 ' + kk.filter(function (k) { return BESTI[k.id]; }).length + '/' + kk.length : ''; return (C.isNight && C.isNight() ? '🌙 ' : '☀️ ') + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + zl; },
     time: function () { return TIME; },
-    res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined, mask: a[9] ? String(a[9]).split('').map(function (c) { return c === '1'; }) : null }; if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, editReset: editReset, ledge: function (x, y, z, fx, fz) { var best = null;   // bord d'un sol / d'une rampe juste devant, à portée de saut : on s'y agrippe
+    res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined }; p.mask = mkParse(a[9], p); if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, editReset: editReset, ledge: function (x, y, z, fx, fz) { var best = null;   // bord d'un sol / d'une rampe juste devant, à portée de saut : on s'y agrippe
       [.7, 1.3].forEach(function (k) { var px = x + fx * k, pz = z + fz * k; PIECES.forEach(function (q) { if (q.t !== 'sol' && q.t !== 'esc' && q.t !== 'toit') return; if (Math.abs(px - q.x) > CELL / 2 + .05 || Math.abs(pz - q.z) > CELL / 2 + .05) return; var top = q.t === 'sol' ? q.L + .15 : groundAt(px, pz, y + 4); if (top > y + .7 && top < y + 4.3 && (best == null || top < best)) best = top; }); }); return best; },
     _ev: function (s) { return eval(s); }, setTex: setTex,
     nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }

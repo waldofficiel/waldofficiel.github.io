@@ -1973,7 +1973,7 @@ function rulesTick(dt) { if (!RULES.length) return; var now = performance.now();
 function rulesOpen() { var d = $('ruleM'); if (!d) { d = document.createElement('div'); d.id = 'ruleM'; document.body.appendChild(d); }
   var K = Object.keys(WEAPONS);
   function row(r, i) { return '<div class="rrow"><b>QUAND</b> ' + RQ[r.q] + (r.qp !== '' && r.qp != null ? ' <i>' + String(r.qp).replace(/</g, '') + '</i>' : '') + ' <b>ALORS</b> ' + RA[r.a] + (r.ap !== '' && r.ap != null ? ' <i>' + (WEAPONS[r.ap] ? WEAPONS[r.ap].name : String(r.ap).replace(/</g, '')) + '</i>' : '') + ' <button type="button" data-rx="' + i + '">✕</button></div>'; }
-  d.innerHTML = '<div class="pubc"><h2>⚡ RÈGLES « QUAND… ALORS… »</h2><p class="sm">Comme les appareils reliés de Fortnite : chaque appareil a un numéro (au-dessus de lui). Exemple : QUAND je marche sur l\'appareil n°3 ALORS me téléporter sur l\'appareil n°7.</p>' +
+  d.innerHTML = '<div class="pubc"><h2>⚡ RÈGLES « QUAND… ALORS… »</h2><p class="sm">Chaque appareil a un numéro (au-dessus de lui). Exemple : QUAND je marche sur l\'appareil n°3 ALORS me téléporter sur l\'appareil n°7.</p>' +
     '<div class="rlist">' + (RULES.length ? RULES.map(row).join('') : '<p class="sm">Aucune règle pour l\'instant.</p>') + '</div>' +
     '<div class="radd"><label>QUAND</label><select id="rq">' + Object.keys(RQ).map(function (k) { return '<option value="' + k + '">' + RQ[k] + '</option>'; }).join('') + '</select><input id="rqp" placeholder="n° / secondes / points" maxlength="12">' +
     '<label>ALORS</label><select id="ra">' + Object.keys(RA).map(function (k) { return '<option value="' + k + '">' + RA[k] + '</option>'; }).join('') + '</select><input id="rap" placeholder="n° d\'appareil / texte" maxlength="80"><select id="rak" hidden>' + K.map(function (k) { return '<option value="' + k + '">' + WEAPONS[k].name + '</option>'; }).join('') + '</select></div>' +
@@ -3150,7 +3150,7 @@ addEventListener('pointerdown', function (e) { if (GP.on && e.pointerType === 't
 function gpPane() { var p = document.querySelector('[data-sp="manette"]'); if (!p) return; var m = gpMode(), M = GPMAP[m];
   function tb(t, L) { return '<h4>' + t + '</h4><div class="gpL">' + L.map(function (q) { return '<span><b>' + q[0] + '</b>' + q[1] + '</span>'; }).join('') + '</div>'; }
   p.innerHTML = '<div class="set">Disposition <div class="seg" id="gpSeg"><button type="button" data-g="pro"' + (m === 'pro' ? ' class="on"' : '') + '>🧱 Constructeur pro</button><button type="button" data-g="simple"' + (m === 'simple' ? ' class="on"' : '') + '>🎯 Combat simple</button></div></div>' +
-    '<p class="snote">' + (m === 'pro' ? 'Comme le « Builder Pro » de Fortnite : chaque gâchette pose sa pièce (1 appui = choisit + pose, garde appuyé pour en poser plusieurs).' : 'Comme les jeux de tir classiques : pas de construction à la manette, juste le combat.') + ' Branche ta manette (USB ou Bluetooth) et appuie sur un bouton.</p>' +
+    '<p class="snote">' + (m === 'pro' ? 'Chaque gâchette pose sa pièce (1 appui = choisit + pose, garde appuyé pour en poser plusieurs).' : 'Comme les jeux de tir classiques : pas de construction à la manette, juste le combat.') + ' Branche ta manette (USB ou Bluetooth) et appuie sur un bouton.</p>' +
     tb(m === 'pro' ? '⚔️ Mode combat' : '⚔️ Commandes', M.combat) + (M.build.length ? tb('🧱 Mode construction (après B)', M.build) : '') + '<p class="snote">Menus : croix pour choisir, A pour valider, B pour revenir.</p>';
   p.querySelectorAll('[data-g]').forEach(function (b) { b.onclick = function () { SET.gp = b.dataset.g; saveSet(); gpPane(); toast('🎮 ' + (SET.gp === 'pro' ? 'CONSTRUCTEUR PRO' : 'COMBAT SIMPLE')); }; }); }
 function adsSet(on) { var w0 = cur(me); if (on && (!w0 || (SV && SV.tool && SV.tool()) || me.veh || me.mode !== 'ground' || state !== 'play')) on = false; ads = on; $('bAim').classList.toggle('on', on); }
@@ -3864,7 +3864,7 @@ function syncModels(t, dt) {
 }
 function castRayStatic(ox, oy, oz, dx, dy, dz, maxT) { var best = maxT; for (var i = 0; i < WALLS.length; i++) { var w = WALLS[i]; if (!w.alive || Math.abs(w.x - ox) > maxT + w.hw || Math.abs(w.z - oz) > maxT + w.hd) continue; var t = rayBox(ox, oy, oz, dx, dy, dz, w.x - w.hw, w.y0 + wallBottom(w), w.z - w.hd, w.x + w.hw, w.y0 + w.h, w.z + w.hd); if (t < best) best = t; } return best; }
 /* PILOTE DE MOTO : il monte (enjambe la selle), s'assoit, mains aux poignées, pieds aux repose-pieds, se penche avec la moto */
-var MQ = new THREE.Quaternion(), MV = new THREE.Vector3(), MV2 = new THREE.Vector3();
+var CAMIN = false, MQ = new THREE.Quaternion(), MV = new THREE.Vector3(), MV2 = new THREE.Vector3();
 function motoRider(p, c, v, dt) { var m = v.m; m.updateMatrixWorld(true); p.mtK = Math.min(1, (p.mtK == null ? 1 : p.mtK) + dt / .55); var k = p.mtK, e = k * k * (3 - 2 * k);
   var spd = Math.hypot(v.vx, v.vz), ln = (v.thr > 0 ? .1 : v.thr < 0 ? -.12 : 0) + Math.min(.12, spd / 300);
   m.userData.seatM.getWorldPosition(MV); m.getWorldQuaternion(MQ); c.root.quaternion.copy(MQ); c.gunHold.visible = false; c.glider.visible = false; c.shadow.visible = false;
@@ -3895,8 +3895,11 @@ function updCam(dt) {
   var dx = Math.cos(p2) * Math.cos(camA), dy = Math.sin(p2), dz = Math.cos(p2) * Math.sin(camA), rx = -Math.sin(camA), rz = Math.cos(camA);
   var px = tx + rx * sh, py = ty + h, pz = tz + rz * sh;
   var hb = castRayStatic(px, py, pz, -dx, -dy, -dz, dd); dd = Math.max(.45, Math.min(dd, hb - .25));
+  if (me.mode === 'ground' && !me.veh && me.alive && dy > .05) { var cy0 = ty + .3; if (py - dy * dd < cy0) dd = Math.max(.45, (py - cy0) / dy); }   /* en regardant en l'air, la caméra ne descend JAMAIS sous tes pieds (avant : 2-4 m plus bas → on voyait sous les constructions, à travers le sol) */
   cam.position.set(px - dx * dd, py - dy * dd, pz - dz * dd); cam.position.y = Math.max(cam.position.y, hgt(cam.position.x, cam.position.z) + .5); fpsCam();
+  CAMIN = false;
   if (me.mode === 'ground' && !me.veh && window.INTERIORS) { var cl = INTERIORS.ceilAt(me.x, me.z, me.y); if (cl != null) cam.position.y = Math.max(me.y + .6, Math.min(cam.position.y, cl - .35)); }   // sous le plafond de l'étage
+  if (me.mode === 'ground' && !me.veh && !FPSV) { var hdx = cam.position.x - me.x, hdz = cam.position.z - me.z, hy0 = me.y + (me.crouch ? 1.05 : 1.55); CAMIN = Math.hypot(hdx, hdz) < .62 && cam.position.y > me.y - .2 && cam.position.y < hy0 + .45; }   /* caméra collée au perso (mur, plafond, construction juste au-dessus) : on cache le perso au lieu de voir dans son crâne */
   var ff = (GQ('view') === 0 ? 300 : GQ('view') === 1 ? 420 : GQ('view') === 3 ? 820 : 560) + Math.max(0, cam.position.y - 10) * 2.5; scene.fog.far = ff; scene.fog.near = ff * .5;
   if (SUNI == null) SUNI = sun.intensity; if (SURV) dayTick();
   if (DARKF) { var dk = 0; DARKFS.forEach(function (F) { dk = Math.max(dk, Math.max(0, Math.min(1, (darkK(F, cam.position.x, cam.position.z) + .05) / .45))); }); dk = dk * Math.max(0, Math.min(1, 1 - ((cam.position.y - hgt(cam.position.x, cam.position.z)) - 30) / 40)); DARKK += (dk - DARKK) * .05;   // forêt sombre : brume verte, lumière basse
@@ -4121,7 +4124,7 @@ function loop(now) {
   else {
     if (state === 'play') update(dt); else if (state === 'end') { updParts(dt); updTracers(dt); }
     if (state === 'play' && invOpen() && (invT += dt) > .5) { invT = 0; invRender(); }
-    updCam(dt); syncModels(t, dt); propTick(); if (state === 'play') netSend(dt); roundTick(dt); scrTick(dt); rzTick(); islTick(); terTick(dt); groundLOD(cam); if (window.OPT && OPT.cull && FRAMEC % 6 === 0) OPT.cull(cam, cam.far + 60); FRAMEC++; if (GQ('shadow') < 2) { R3.shadowMap.autoUpdate = false; if (FRAMEC % 2 === 0) R3.shadowMap.needsUpdate = true; } else R3.shadowMap.autoUpdate = true;   // ombres recalculées 1 image sur 2 en Moyen/Bas
+    updCam(dt); syncModels(t, dt); if (CAMIN && me.model) me.model.root.visible = false; propTick(); if (state === 'play') netSend(dt); roundTick(dt); scrTick(dt); rzTick(); islTick(); terTick(dt); groundLOD(cam); if (window.OPT && OPT.cull && FRAMEC % 6 === 0) OPT.cull(cam, cam.far + 60); FRAMEC++; if (GQ('shadow') < 2) { R3.shadowMap.autoUpdate = false; if (FRAMEC % 2 === 0) R3.shadowMap.needsUpdate = true; } else R3.shadowMap.autoUpdate = true;   // ombres recalculées 1 image sur 2 en Moyen/Bas
     if (window.PROPS) PROPS.update(cam); if (window.CITY_UPDATE) CITY_UPDATE(t, dt, me.x, me.z); if (MODE === 'city' && window.CITY6) CITY6.update(dt); if (window.BLINK) for (var bk = 0; bk < BLINK.length; bk++) BLINK[bk].visible = (t + bk * .3) % 1.6 < .8; if (window.INTERIORS) INTERIORS.update(cam, scene.fog); if (document.body.classList.contains('scoped')) me.model.root.visible = false; roofsUpdate(); var fx0 = me.mode === 'bus' ? bus.x : me.x, fz0 = me.mode === 'bus' ? bus.z : me.z; sun.position.set(fx0 + SUNDIR.x * 100, SUNDIR.y * 100, fz0 + SUNDIR.z * 100); sun.target.position.set(fx0, 0, fz0); sky.position.copy(cam.position); sky.scale.setScalar(cam.far * .92); skyMat.uniforms.uTime.value = t; GFX.update(t, dt); drawScene(scene, cam); if (state === 'play') { hud(); drawMini(); if (!$('bigMap').hidden) drawMini(true); } updDN(dt);
   }
   document.body.classList.toggle('inmenu', state !== 'play');
