@@ -39,6 +39,7 @@
     apply: function (c, id) { if (!T || !c || c.qs === id) return !!c.qs; var d = LIST[id]; if (!d) return false; if (!G[d.base] || !ANIMS[d.sex]) { need(d.base, d.sex); return false; }
       if (c.qs) QS.remove(c); var src = G[d.base].scene, o = T.SkeletonUtils ? T.SkeletonUtils.clone(src) : src.clone(true), g = new T.Group(); g.add(o); mats(id, o);
       var bb = new T.Box3(); o.updateMatrixWorld(true); var B = boneMap(o), w = V(), y0 = 1e9, y1 = -1e9; Object.keys(B).forEach(function (k) { B[k].getWorldPosition(w); if (w.y < y0) y0 = w.y; if (w.y > y1) y1 = w.y; }); bb.setFromObject(o); var h = Math.max(bb.max.y - bb.min.y, .5);
+      o.traverse(function (q) { if (/^(Pistol|Gun|Sword|Shield)/i.test(q.name || '')) q.visible = false; });   /* armes intégrées à certains modèles : on garde seulement celles du jeu */
       var s = 1.9 / .9 / h; o.scale.setScalar(s); o.position.y = -bb.min.y * s; g.rotation.y = Math.PI / 2; c.root.add(g);
       c.root.traverse(function (q) { if ((q.isMesh || q.isSkinnedMesh) && !q.userData.keep && q !== c.shadow && !(c.glider && isChild(q, c.glider)) && !(c.gunHold && isChild(q, c.gunHold)) && !isChild(q, g)) { q.userData.qHid = true; q.visible = false; } });
       var mix = new T.AnimationMixer(o), A = {}, CL = ANIMS[d.sex]; Object.keys(CL).forEach(function (k) { A[k] = mix.clipAction(CL[k]); });

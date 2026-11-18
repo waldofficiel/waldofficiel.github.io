@@ -108,7 +108,28 @@
     if (cross) { o.la = o.ra = 1.2; o.lb = o.rb = -.6; o.le = o.re = 2.2; o.lw = o.rw = .4; o.hy = s * .4; }
     else { var u = ease(tri(b / 2)); o.la = 1.6 + u * 1.1; o.ra = 1.6 + (1 - u) * 1.1; o.lb = o.rb = .7; o.le = .2 + (1 - u) * .8; o.re = .2 + u * .8; o.lw = -.4; o.rw = -.4; }
     return o; } };
-  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague', 'syncrobot', 'syncshuffle', 'zombi', 'rampe', 'spectre', 'couronne'];
+  /* NOUVELLES DANSES (v143) */
+  D.hype = { name: 'Hype Saut', bpm: 128, f: function (b) {   // petits sauts sur place, poings qui tapent le ciel en alternance
+    var j = pulse(b, .45), a = (Math.floor(b) % 2) ? 1 : 0, up = pulse(b, .6);
+    return P({ by: j * .16, lk: .35 - j * .3, rk: .35 - j * .3, lt: .2 - j * .15, rt: .2 - j * .15, bp: .12 - j * .1, la: a ? 2.9 - up * .3 : .7, ra: a ? .7 : 2.9 - up * .3, lb: .2, rb: .2, le: a ? .2 : 1.8, re: a ? 1.8 : .2, hp: -.15 + j * .2, hy: (a ? .2 : -.2) }); } };
+  D.twist = { name: 'Le Twist', bpm: 116, f: function (b) {   // hanches qui tournent d'un côté à l'autre, genoux pliés, bras en sens inverse
+    var t = S(b * PI), d = ease(tri(b * .25));
+    return P({ byw: t * .55, lk: .55 + d * .35, rk: .55 + d * .35, lt: .35 + d * .2, rt: .35 + d * .2, by: -.05 - d * .12, la: .9, ra: .9, lb: .5, rb: .5, le: 1.6, re: 1.6, lw: -t * .4, rw: t * .4, br: -t * .08, hy: -t * .3 }); } };
+  D.marteau = { name: 'Pas du Marteau', bpm: 112, f: function (b) {   // course sur place qui glisse en arrière, bras qui balancent fort
+    var ph = b * PI, l = S(ph), r = -l;
+    return P({ lt: .45 + l * .55, rt: .45 + r * .55, lk: .3 + Math.max(0, l) * 1.1, rk: .3 + Math.max(0, r) * 1.1, bp: .15, by: Math.abs(l) * .07, la: .6 + r * .9, ra: .6 + l * .9, lb: .15, rb: .15, le: 1.4, re: 1.4, hp: .1 }); } };
+  D.boxe = { name: 'Shadow Boxe', bpm: 104, f: function (b) {   // garde, jab-direct-crochet, sautille
+    var k = Math.floor(b) % 4, p = pulse(b, .4), hop = pulse(b * 2, .5);
+    var o = P({ by: hop * .06, lk: .4, rk: .4, lt: .25, rt: .15, bp: .2, la: 1.3, ra: 1.3, lb: -.2, rb: -.2, le: 2.1, re: 2.1, hp: .15, byw: .25 });
+    if (k === 0) { o.la = 1.55; o.le = 2.1 - p * 1.9; o.byw = .35; } else if (k === 1) { o.ra = 1.55; o.re = 2.1 - p * 1.9; o.byw = -.25 * p; } else if (k === 2) { o.la = 1.5; o.lb = .3 + p * .9; o.le = 1.6; o.byw = -.5 * p; } else { o.by -= p * .25; o.lk += p * .6; o.rk += p * .6; o.bp += p * .25; }
+    return o; } };
+  D.onde = { name: 'Ondulation', bpm: 100, f: function (b) {   // vague qui monte des genoux à la tête
+    var t = b * PI;
+    return P({ lk: .3 + Math.max(0, S(t)) * .5, rk: .3 + Math.max(0, S(t)) * .5, bp: S(t - .9) * .3, br: S(t * .5) * .1, hp: S(t - 1.8) * .35, la: .5 + S(t - 1.3) * .3, ra: .5 + S(t - 1.3) * .3, lb: .4, rb: .4, le: .9 + S(t - 2) * .5, re: .9 + S(t - 2) * .5, by: -Math.max(0, S(t)) * .12 }); } };
+  D.helico = { name: 'Hélico', bpm: 118, f: function (b) {   // il tourne sur lui-même, bras écartés qui font les pales, accroupi tous les 8 temps
+    var bb = b % 8, down = bb >= 6 ? pulse(b, .9) : 0;
+    return P({ byw: S(b * PI * .25) * PI, la: 1.57, ra: 1.57, lb: 1.4 + S(b * PI * 2) * .1, rb: 1.4 - S(b * PI * 2) * .1, le: 0, re: 0, lk: .2 + down * 1.2, rk: .2 + down * 1.2, lt: .1 + down * .6, rt: .1 + down * .6, by: -down * .35, hp: -.1 }); } };
+  var ORDER = ['wald', 'disco', 'robot', 'poulet', 'moulin', 'vague', 'syncrobot', 'syncshuffle', 'zombi', 'rampe', 'spectre', 'couronne', 'hype', 'twist', 'marteau', 'boxe', 'onde', 'helico'];
   function dance(id, t) { var d = D[id] || D.wald; return d.f(t * d.bpm / 60); }
 
   function blend(c, T, dt, k) {   // la pose affichée glisse vers la pose voulue
