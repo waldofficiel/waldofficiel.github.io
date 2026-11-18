@@ -460,6 +460,18 @@ body:not(.touch) #bCrouch{display:none}
           <label class="set">Volume <input type="range" id="vol" min="0" max="100" value="80"><output id="volO">80</output></label>
           <label class="set">Sensibilité <input type="range" id="sens" min="30" max="250" value="100"><output id="sensO">100</output></label>
           <label class="set touchOrPad">Aide à la visée <small>(téléphone et manette seulement)</small> <input type="range" id="aimS" min="0" max="200" value="100"><output id="aimO">100</output></label>
+          <h4 class="advH">🎯 VISÉE ET CAMÉRA</h4>
+          <label class="set">Sensibilité verticale <small>% de la sensibilité</small> <input type="range" id="sensY" min="30" max="200" value="100"><output id="sensYO">100</output></label>
+          <label class="set">Sensibilité en visant <small>% (clic droit)</small> <input type="range" id="adsS" min="20" max="150" value="100"><output id="adsSO">100</output></label>
+          <label class="set">Champ de vision (FOV) <input type="range" id="fovS" min="60" max="100" value="70"><output id="fovSO">70</output></label>
+          <label class="set">Distance de la caméra <small>%</small> <input type="range" id="camD" min="70" max="150" value="100"><output id="camDO">100</output></label>
+          <label class="set">Caméra à l'épaule <select id="camX"><option value="1">Droite</option><option value="0">Centre</option><option value="-1">Gauche</option></select></label>
+          <label class="set">Inverser la vue haut / bas <select id="invY"><option value="0">Non</option><option value="1">Oui</option></select></label>
+          <label class="set">Secousses de la caméra <select id="shk"><option value="1">Oui</option><option value="0">Non</option></select></label>
+          <h4 class="advH">🏃 MOUVEMENTS</h4>
+          <label class="set">Sprint automatique <small>(on court toujours, plus besoin de Maj)</small> <select id="autoSpr"><option value="0">Non</option><option value="1">Oui</option></select></label>
+          <label class="set">Saut maintenu <small>(garder SAUTER appuyé = sauter en continu)</small> <select id="jumpHold"><option value="0">Non</option><option value="1">Oui</option></select></label>
+          <label class="set">Accroupi <select id="crouchM"><option value="0">Bascule (un appui)</option><option value="1">Maintenir</option></select></label>
           <h4 class="advH">⚙️ JOUABILITÉ AVANCÉE</h4>
           <label class="set">Afficher les FPS <select id="fpsOn"><option value="1">Oui</option><option value="0">Non</option></select></label>
           <label class="set">Limite de FPS <select id="fpsMax"><option value="0">Illimité</option><option value="30">30</option><option value="60">60</option><option value="120">120</option><option value="144">144</option><option value="165">165</option><option value="240">240</option></select></label>
@@ -3202,7 +3214,7 @@ addEventListener('keydown', function (e) { if (e.code !== 'Enter' && e.code !== 
 var ENTH = 0; addEventListener('keyup', function (e) { if (e.code === 'Enter' || e.code === 'NumpadEnter') { ENTH = 0; if ($('wrGo')) $('wrGo').style.background = ''; } });
 function enterHold(hold0) { var h = ENTH || hold0; if (!h || !(state === 'play' && CREA && !ROUND)) { return; } var k = Math.min(1, (performance.now() - h) / 1000), b = $('wrGo'); if (b) b.style.background = 'linear-gradient(90deg,#ffd23d ' + (k * 100) + '%,transparent ' + (k * 100) + '%)';
   if (k >= 1) { ENTH = 0; GP.xh = 0; if (b) b.style.background = ''; rLaunch(); } }
-addEventListener('keyup', function (e) { keys[e.code] = false; });
+addEventListener('keyup', function (e) { keys[e.code] = false; if (SET.crouchM === 1 && state === 'play' && me.crouch && window.bindAct && bindAct(e.code) === 'accroupi') toggleCrouch(); });   /* accroupi « maintenir » */
 cv.addEventListener('mousedown', function (e) { if (isTouch || state !== 'play' || invOpen()) return; if (document.pointerLockElement !== cv) { if (cv.requestPointerLock) cv.requestPointerLock(); return; } if (e.button === 0) fireHeld = true; });
 addEventListener('mouseup', function () { if (!isTouch) fireHeld = false; });
 addEventListener('mousemove', function (e) { if (document.pointerLockElement === cv && $('dWheel').hidden) { lookDX += e.movementX * .0024; lookDY += e.movementY * .0024; } });
@@ -4142,7 +4154,7 @@ function lvOpen() { var c = lvCfg(), o = $('lvM'); if (!o) { o = document.create
   $('lvDraw').onclick = function () { var L = Object.keys(LV.chat); if (!L.length) { $('lvDrawR').textContent = 'Personne n\'a encore écrit dans le chat.'; return; } var n = 0, iv = setInterval(function () { $('lvDrawR').textContent = '🎲 ' + L[Math.random() * L.length | 0]; tone('square', 600 + n * 30, 0, .04, .04); if (++n > 24) { clearInterval(iv); var w = L[Math.random() * L.length | 0]; $('lvDrawR').textContent = '🏆 ' + w + ' !'; lvBan('🏆 ' + w.toUpperCase() + ' A GAGNÉ LE TIRAGE !', '#ffd23d', 6000); SFX.chest(); } }, 90); }; }
 /* ---------- caméra : vue de très haut sur toute l'arène ---------- */
 function liveCam(dt) { var asp = innerWidth / Math.max(1, innerHeight), tx = asp < 1 ? 1 : 3, tz = asp < 1 ? 7 : -1, y0 = LV.y0 || 0, pit = 1.15, D = Math.max(62, 53 / (.83 * asp)), now = performance.now(), sw = Math.sin(now / 9000) * 3;
-  if (cam.fov !== 45) { cam.fov = 45; cam.updateProjectionMatrix(); } var s = LV.shake; LV.shake *= Math.exp(-dt * 2.6);
+  if (cam.fov !== 45) { cam.fov = 45; cam.updateProjectionMatrix(); } var s = SET.shk === 0 ? 0 : LV.shake; LV.shake *= Math.exp(-dt * 2.6);
   cam.position.set(tx + sw + (Math.random() - .5) * s, y0 + Math.sin(pit) * D + (Math.random() - .5) * s, tz + Math.cos(pit) * D + (Math.random() - .5) * s); cam.lookAt(tx + sw * .3, y0, tz); }
 function liveTick(dt) { if (!LIVEM || state !== 'play') return; if (!LV.built) { lvBuild(); return; } var now = performance.now(); realTick();
   me.x = LVG.x + 2.6; me.z = LVG.z + 2.6; me.vx = me.vz = 0; if (me.model) me.model.root.visible = false;
@@ -4228,6 +4240,7 @@ function noaiTick(p, dt) {   // bot piloté ailleurs (crBotsTick, csBot, village
   var g0 = window.INTERIORS ? INTERIORS.groundAt(p.x, p.z, p.y + .6) : hgt(p.x, p.z); if (SV && SV.groundAt) { var g1 = SV.groundAt(p.x, p.z, p.y + .6); if (g1 != null && g1 > g0) g0 = g1; } if (DEV.length) { var dg = devTop(p.x, p.z, p.y + .6); if (dg && dg.y > g0) g0 = dg.y; }
   p.gy = g0; if (p.y > g0 + .05) { p.vy = (p.vy || 0) - 25 * dt; p.y = Math.max(g0, p.y + p.vy * dt); } else { p.y += (g0 - p.y) * Math.min(1, dt * 12); p.vy = 0; } }
 function update(dt) {
+  if (SET.jumpHold && state === 'play' && kd('sauter')) jumpPress = true;   /* saut maintenu */
   bubbleTick(dt, performance.now() / 1000);
   if (SURV) { if (!musOn || MUSMODE !== 'surv') { STR = Math.random() * 3 | 0; SBAR0 = 0; music(true, 'surv'); } }   // survie : 3 morceaux calmes qui tournent
   else if (me.mode === 'bus') { if (!musOn || MUSMODE !== 'bus') music(true, 'bus'); } else if (musOn && MUSMODE === 'bus') music(false);
@@ -4269,7 +4282,7 @@ function update(dt) {
         if (p.dabT > 0) { p.dabT -= dt; mvx = mvz = 0; jumpPress = false; fireHeld = false; }
         if (p.ko || p.mtl) { mvx = mvz = 0; jumpPress = false; if (p.ko || !(SV && SV.tool())) fireHeld = false; }   /* on peut construire pendant l'escalade */ if (!p.ko) reviveTick(p, dt);   // boule à dab : on ne bouge plus, on DAB
         healTick(p, dt); if (p.stam == null) p.stam = 1;
-        var moving = Math.hypot(mvx, mvz) > .3, spr = (kd('sprint') || SPRT) && moving && !ads && !p.crouch && !(p.useT > 0) && !fireHeld && p.stam > 0 && !(p.slideT > 0); p.sprint = spr;   // SPRINT façon Fortnite : à fond, ~15 s d'endurance
+        var moving = Math.hypot(mvx, mvz) > .3, spr = (kd('sprint') || SPRT || SET.autoSpr) && moving && !ads && !p.crouch && !(p.useT > 0) && !fireHeld && p.stam > 0 && !(p.slideT > 0); p.sprint = spr;   // SPRINT façon Fortnite : à fond, ~15 s d'endurance
         if (spr) { p.stam = Math.max(0, p.stam - dt / 5); p.stamCd = .9; } else if (p.slideT > 0) { p.stam = Math.max(0, p.stam - dt / 20); } else { p.stamCd = (p.stamCd || 0) - dt; if (p.stamCd <= 0) p.stam = Math.min(1, p.stam + dt / 4); }
         if (p.slideT > 0) {   // GLISSADE : on garde l'élan puis on ralentit doucement (s'accroupir en sprintant)
           p.slideT -= dt; var dk = Math.exp(-dt * .75); p.vx *= dk; p.vz *= dk; p.x += p.vx * dt; p.z += p.vz * dt; if (Math.hypot(p.vx, p.vz) < 3.5 || p.slideT <= 0) { p.slideT = 0; } }
@@ -4394,12 +4407,12 @@ function motoRider(p, c, v, dt) { var m = v.m; m.updateMatrixWorld(true); p.mtK 
     window.ANIM.apply(c, window.ANIM.blend(c, P, dt, 12), false); } }
 function updCam(dt) {
   if (ads && (me.veh || me.mode !== 'ground' || !me.alive || !cur(me))) adsSet(false);
-  adsK += ((ads ? 1 : 0) - adsK) * Math.min(1, dt * 12); var aw = cur(me), zf = aw && aw.k === 'sniper' ? 16 : aw && (aw.k === 'scar' || aw.k === 'fusil') ? 46 : 55, fov = 70 + (zf - 70) * adsK;
+  adsK += ((ads ? 1 : 0) - adsK) * Math.min(1, dt * 12); var aw = cur(me), zf = aw && aw.k === 'sniper' ? 16 : aw && (aw.k === 'scar' || aw.k === 'fusil') ? 46 : 55, fov0 = SET.fovS || 70, fov = fov0 + (Math.min(zf, fov0) - fov0) * adsK;
   if (Math.abs(cam.fov - fov) > .01) cam.fov = fov; var scoped = adsK > .85 && aw && aw.k === 'sniper'; $('scope').hidden = !scoped; document.body.classList.toggle('scoped', !!scoped); $('cross').classList.toggle('ads', adsK > .5);
   var cw = aw && WEAPONS[aw.k], cr = $('cross');   // pompes : viseur CARRÉ = la zone des plombs (plus petit au pompe spécialisé, rétrécit en visant)
   if (cw && cw.pellets) { var spx = cw.spread * (1.8 - adsK * 1.35) * (Math.hypot(me.vx, me.vz) > 1 ? 1.6 : 1) * (me.y > (me.gy || 0) + .1 ? 2 : 1), px = Math.max(14, Math.min(Math.round(innerHeight * .085), Math.round(spx / Math.tan(fov * Math.PI / 360) * innerHeight * .275)));   /* viseur du pompe plus petit, comme sur Fortnite */ cr.classList.add('sg'); if (cr._px !== px) { cr._px = px; cr.style.width = cr.style.height = px + 'px'; cr.style.margin = (-px / 2) + 'px 0 0 ' + (-px / 2) + 'px'; } }
   else if (cr._px) { cr._px = 0; cr.classList.remove('sg'); cr.style.width = cr.style.height = cr.style.margin = ''; }
-  var sk = fov / 70; camA += lookDX * SET.sens * sk; camP -= lookDY * SET.sens * sk; lookDX = lookDY = 0; camP = Math.max(-1.2, Math.min(.75, camP));
+  var sk = fov / 70 * (adsK > .5 ? (SET.adsS || 100) / 100 : 1); camA += lookDX * SET.sens * sk; camP -= lookDY * SET.sens * sk * (SET.sensY || 100) / 100 * (SET.invY ? -1 : 1); lookDX = lookDY = 0; camP = Math.max(-1.2, Math.min(.75, camP));
   var tx, ty, tz, dd = 4.2, sh = .85, h = 1.75;
   if (me.mode === 'bus') { tx = bus.x; ty = bus.y; tz = bus.z; dd = 34; sh = 0; h = 6; }
   else if (me.mode === 'fall') { tx = me.x; ty = me.y; tz = me.z; dd = 9; sh = 0; h = 3; }
@@ -4407,7 +4420,7 @@ function updCam(dt) {
   else if (SPECT && ROUND) { tx = SPECT.x; ty = SPECT.y; tz = SPECT.z; dd = 4.6; sh = .5; }   // spectateur (Fin de zone)
   else if (!me.alive) { tx = me.x; ty = me.y; tz = me.z; dd = 9; sh = 0; camA += dt * .3; }
   else if (RAFTM && RF && RF.built) { tx = RF.x; ty = RF.y; tz = RF.z; dd = 9; sh = 0; h = 3.6; }   /* radeau : caméra derrière tout le radeau */
-  else { tx = me.x; ty = me.y; tz = me.z; dd = 4.2 - 2 * adsK; sh = .85 - .1 * adsK; h = 1.75 - .1 * adsK - (me.crouch ? .5 : 0); }
+  else { tx = me.x; ty = me.y; tz = me.z; dd = (4.2 - 2 * adsK) * (SET.camD || 100) / 100; sh = (.85 - .1 * adsK) * (SET.camX == null ? 1 : SET.camX); h = 1.75 - .1 * adsK - (me.crouch ? .5 : 0); }
   camKick *= Math.exp(-dt * 14); var p2 = camP + camKick;
   var dx = Math.cos(p2) * Math.cos(camA), dy = Math.sin(p2), dz = Math.cos(p2) * Math.sin(camA), rx = -Math.sin(camA), rz = Math.cos(camA);
   var px = tx + rx * sh, py = ty + h, pz = tz + rz * sh;
@@ -4760,6 +4773,8 @@ function tab(t) { if (t === 'rangs') lbLoad(); document.querySelectorAll('.tab')
 document.querySelectorAll('.tab').forEach(function (b) { b.addEventListener('click', function () { tab(b.dataset.t); }); });
 $('vol').value = Math.round(SET.vol * 100); $('volO').textContent = $('vol').value; $('vol').addEventListener('input', function () { SET.vol = this.value / 100; $('volO').textContent = this.value; if (OUT) OUT.gain.value = SET.vol; saveSet(); });
 $('fpsOn').value = SET.fps === false ? '0' : '1'; $('fpsOn').addEventListener('change', function () { SET.fps = this.value === '1'; saveSet(); }); $('fpsMax').value = String(SET.fpsMax || 0); $('fpsMax').addEventListener('change', function () { SET.fpsMax = +this.value; saveSet(); }); $('editRel').value = SET.editRel === false ? '0' : '1'; $('editRel').addEventListener('change', function () { SET.editRel = this.value === '1'; saveSet(); }); $('aimS').value = Math.round((SET.aim == null ? 1 : SET.aim) * 100); $('aimO').textContent = $('aimS').value + ' %'; $('aimS').addEventListener('input', function () { SET.aim = this.value / 100; $('aimO').textContent = this.value + ' %'; saveSet(); });
+[['sensY', 100], ['adsS', 100], ['fovS', 70], ['camD', 100]].forEach(function (q) { var el = $(q[0]); if (!el) return; el.value = SET[q[0]] != null ? SET[q[0]] : q[1]; $(q[0] + 'O').textContent = el.value; el.addEventListener('input', function () { SET[q[0]] = +this.value; $(q[0] + 'O').textContent = this.value; saveSet(); }); });
+['camX', 'invY', 'shk', 'autoSpr', 'jumpHold', 'crouchM'].forEach(function (k) { var el = $(k); if (!el) return; if (SET[k] != null) el.value = String(SET[k]); el.addEventListener('change', function () { SET[k] = +this.value; saveSet(); }); });
 $('sens').value = Math.round(SET.sens * 100); $('sensO').textContent = $('sens').value; $('sens').addEventListener('input', function () { SET.sens = this.value / 100; $('sensO').textContent = this.value; saveSet(); });
 var GXL = [['res', 'Résolution / netteté'], ['shadow', 'Ombres'], ['view', 'Distance de vue'], ['grass', 'Herbe et fleurs'], ['ao', 'Ombrage d\'ambiance'], ['post', 'Effets (lumière, couleurs)'], ['tex', 'Qualité des textures']];
 function setGfx(q, keep) { if (isTouch && q > 2) q = 2; SET.gfx = q; if (!keep) SET.gx = {}; gxDraw(); resize(); saveSet(); }
