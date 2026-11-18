@@ -138,5 +138,18 @@
     ik(R, 'L_UpperArm', 'L_Forearm', 'L_Hand', rest(s).lerp(hL, hk), new T.Vector3(s * .7, -.55, -fz * .35)); ik(R, 'R_UpperArm', 'R_Forearm', 'R_Hand', rest(-s).lerp(hR, hk), new T.Vector3(-s * .7, -.55, -fz * .35));
     ik(R, 'L_Thigh', 'L_Calf', 'L_Foot', tfL, new T.Vector3(s * .25, .2, fz)); ik(R, 'R_Thigh', 'R_Calf', 'R_Foot', tfR, new T.Vector3(-s * .25, .2, fz));
     return true; };
+  /* CITADINS RÉALISTES ARMÉS (Wald City…) : les 2 bras viennent tenir l'arme devant la poitrine (IK sur les os Bip01) et l'arme est collée dans la main droite,
+     tournée vers où le perso vise (pitch). Appelé après l'animation (mixer) à chaque image. */
+  var QA = null;
+  window.REALAIM = function (c, pitch) { var T = T3(); if (!c.cm || !c.gunHold) return false; var R = rig(c); if (!R || !R.B.R_Hand) return false;
+    c.cm.updateMatrixWorld(true); var gm = new T.Matrix4().copy(c.cm.matrixWorld).invert(), P = function (b) { return b.getWorldPosition(new T.Vector3()).applyMatrix4(gm); };
+    var sL = P(R.B.L_UpperArm), sR = P(R.B.R_UpperArm), C0 = sL.clone().add(sR).multiplyScalar(.5), side = Math.sign(sR.x - sL.x) || -1, pc = Math.max(-1.1, Math.min(1.1, pitch || 0));
+    var fw = new T.Vector3(0, Math.sin(pc), Math.cos(pc)), up = new T.Vector3(0, Math.cos(pc), -Math.sin(pc));
+    var hR = C0.clone().add(fw.clone().multiplyScalar(.36)).add(up.clone().multiplyScalar(-.1)).add(new T.Vector3(side * .07, 0, 0)), hL = C0.clone().add(fw.clone().multiplyScalar(.6)).add(up.clone().multiplyScalar(-.06)).add(new T.Vector3(-side * .02, 0, 0));
+    ik(R, 'R_UpperArm', 'R_Forearm', 'R_Hand', hR, new T.Vector3(side * .8, -.6, -.2)); ik(R, 'L_UpperArm', 'L_Forearm', 'L_Hand', hL, new T.Vector3(-side * .8, -.6, -.2));
+    /* l'arme : dans la main droite, canon vers l'avant du perso + pitch */
+    var gh = c.gunHold, par = gh.parent; if (!par) return true; var wp = R.B.R_Hand.getWorldPosition(new T.Vector3()); par.updateMatrixWorld(true); gh.position.copy(par.worldToLocal(wp.clone()));
+    var rq = new T.Quaternion(); c.root.getWorldQuaternion(rq); var qw = rq.multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), pc)), pq = new T.Quaternion(); par.getWorldQuaternion(pq); gh.quaternion.copy(pq.invert().multiply(qw));
+    var ws = new T.Vector3(); par.getWorldScale(ws); var rs = new T.Vector3(); c.root.getWorldScale(rs); gh.scale.setScalar(rs.x / (ws.x || 1)); return true; };
   window.MOTOOFF = function (c) { if (!c || !c.cmMixR) return; c.cmMix = c.cmMixR; c.cmMixR = null; if (c.cmA) { c.cmCur = 'idle'; if (c.cmA.idle) c.cmA.idle.reset().play(); } if (c.cm) c.cm.position.set(0, 0, 0); };
 })();

@@ -280,7 +280,7 @@
     for (var r = 0; r < 3; r++) { var c = 0; while (c < 3) { if (mk[r * 3 + c]) { c++; continue; } var c0 = c; while (c < 3 && !mk[r * 3 + c]) c++; out.push([-W + c0 * cw, -W + c * cw, r * rh, (r + 1) * rh]); } }
     return out.length ? out : [[-.01, .01, 0, .01]]; }
   /* ÉDITS EN TRIANGLE comme Fortnite : un « L » de 3 cases dans un coin = petit triangle (coupe en biais), un escalier de 6 cases = demi-mur en diagonale */
-  var TRIS = { '3,6,7': ['tl', 0], '5,7,8': ['tr', 0], '0,1,3': ['bl', 0], '1,2,5': ['br', 0], '0,3,4,6,7,8': ['tl', 1], '2,4,5,6,7,8': ['tr', 1], '0,1,2,3,4,6': ['bl', 1], '0,1,2,4,5,8': ['br', 1] };
+  var TRIS = { '3,6,7': ['tl', 1], '5,7,8': ['tr', 1], '0,1,3': ['bl', 1], '1,2,5': ['br', 1],   /* L de 3 cases dans un coin = DEMI-MUR en diagonale (la moitié du mur) */ '0,3,4,6,7,8': ['tl', 1], '2,4,5,6,7,8': ['tr', 1], '0,1,2,3,4,6': ['bl', 1], '0,1,2,4,5,8': ['br', 1] };
   function triOf(mk) { if (!mk) return null; var ids = []; for (var i = 0; i < 9; i++) if (mk[i]) ids.push(i); return TRIS[ids.join(',')] || null; }
   function triMesh(p, tri) { var W = CELL, H = LH, k = tri[1] ? 3 : 2, a = W * k / 3, b = H * k / 3, pts;   // forme du mur = carré moins le triangle du coin
     var C4 = { bl: [0, 0], br: [W, 0], tl: [0, H], tr: [W, H] }[tri[0]], sx = tri[0].charAt(1) === 'l' ? 1 : -1, sy = tri[0].charAt(0) === 'b' ? 1 : -1, P1 = [C4[0] + sx * a, C4[1]], P2 = [C4[0], C4[1] + sy * b];
@@ -299,13 +299,18 @@
       quad([x1, y0, z1], [x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [1, 0, 0], pa, na, ua, ia); quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0], [-1, 0, 0], pa, na, ua, ia); }
     for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++) if (!mk[r * 3 + c]) box(-W / 2 + c * cw, -W / 2 + (c + 1) * cw, r ? r * rh : -ext, (r + 1) * rh, -th / 2, th / 2, P, N, U, I);
     var fw = .09, fd = th / 2 + .035;   // encadrement : un peu plus épais que le mur, déborde des deux côtés
-    for (r = 0; r < 3; r++) for (c = 0; c < 3; c++) { if (!mk[r * 3 + c]) continue; var x0 = -W / 2 + c * cw, x1 = x0 + cw, y0 = r * rh, y1 = y0 + rh;
-      if (c > 0 && !mk[r * 3 + c - 1]) box(x0, x0 + fw, y0, y1, -fd, fd, FP, FN, FU, FI); if (c < 2 && !mk[r * 3 + c + 1]) box(x1 - fw, x1, y0, y1, -fd, fd, FP, FN, FU, FI);
-      if (r < 2 && !mk[(r + 1) * 3 + c]) box(x0, x1, y1 - fw, y1, -fd, fd, FP, FN, FU, FI);
-      if (r > 0 && !mk[(r - 1) * 3 + c]) box(x0 - (c > 0 && !mk[r * 3 + c - 1] ? 0 : .06), x1 + (c < 2 && !mk[r * 3 + c + 1] ? 0 : .06), y0, y0 + fw * 1.3, -fd - .06, fd + .06, FP, FN, FU, FI);   // appui de fenêtre
-      if (c === 0 && !(mk[0] && mk[3] && mk[6])) box(x0, x0 + fw * 1.4, r ? y0 : y0 - ext, y1, -fd, fd, FP, FN, FU, FI);   // petit MONTANT au bord du mur (fenêtre / porte de côté)
-      if (c === 2 && !(mk[2] && mk[5] && mk[8])) box(x1 - fw * 1.4, x1, r ? y0 : y0 - ext, y1, -fd, fd, FP, FN, FU, FI);
-      if (r === 2 && !(mk[6] && mk[7] && mk[8])) box(x0, x1, y1 - fw * 1.4, y1, -fd, fd, FP, FN, FU, FI); }   // et en haut
+    /* VRAIES FENÊTRES : la grille d'édition sert juste à choisir ; une case enlevée qui n'est pas une porte devient une fenêtre plus petite que la case,
+       avec du mur autour, un cadre et un appui. Les portes (colonne ouverte depuis le bas) gardent toute la largeur. */
+    function doorish(r2, c2) { for (var k = 0; k <= r2; k++) if (!mk[k * 3 + c2]) return false; return true; }
+    var IH = .2, IV = .15;
+    for (r = 0; r < 3; r++) for (c = 0; c < 3; c++) { if (!mk[r * 3 + c]) continue; var x0 = -W / 2 + c * cw, x1 = x0 + cw, y0 = r * rh, y1 = y0 + rh, dr = doorish(r, c);
+      var kL = c === 0 ? !(mk[0] && mk[3] && mk[6]) : !mk[r * 3 + c - 1], kR = c === 2 ? !(mk[2] && mk[5] && mk[8]) : !mk[r * 3 + c + 1], kT = r === 2 ? !(mk[6] && mk[7] && mk[8]) : !mk[(r + 1) * 3 + c], kB = r > 0 && !mk[(r - 1) * 3 + c];
+      var ox0 = x0 + (kL ? (dr ? (c === 0 ? fw * 1.4 : 0) : IH) : 0), ox1 = x1 - (kR ? (dr ? (c === 2 ? fw * 1.4 : 0) : IH) : 0), oy0 = y0 + (kB && !dr ? IV : 0), oy1 = y1 - (kT ? (dr ? (r === 2 ? fw * 1.4 : 0) : IV) : 0);
+      if (ox0 > x0) box(x0, ox0, r ? y0 : y0 - (dr ? 0 : ext), y1, -th / 2, th / 2, P, N, U, I); if (ox1 < x1) box(ox1, x1, r ? y0 : y0 - (dr ? 0 : ext), y1, -th / 2, th / 2, P, N, U, I);   // mur autour de la fenêtre
+      if (oy0 > y0) box(ox0, ox1, y0, oy0, -th / 2, th / 2, P, N, U, I); if (oy1 < y1) box(ox0, ox1, oy1, y1, -th / 2, th / 2, P, N, U, I);
+      if (kL) box(ox0, ox0 + fw, oy0, oy1, -fd, fd, FP, FN, FU, FI); if (kR) box(ox1 - fw, ox1, oy0, oy1, -fd, fd, FP, FN, FU, FI);   // cadre
+      if (kT) box(ox0, ox1, oy1 - fw, oy1, -fd, fd, FP, FN, FU, FI);
+      if (kB) box(ox0 - (kL ? .06 : 0), ox1 + (kR ? .06 : 0), oy0, oy0 + fw * 1.3, -fd - .07, fd + .07, FP, FN, FU, FI); }   // appui de fenêtre
     /* PORTES : une colonne dont les 2 cases du bas sont enlevées (le haut reste) = une vraie porte qui s'ouvre (E) ; 2 colonnes côte à côte = double porte */
     var dc = [0, 1, 2].filter(function (c2) { return mk[c2] && mk[3 + c2] && !mk[6 + c2]; }); p.doorsW = [];
     if (dc.length && dc.length < 3 && window.DOORS) { var grpD = []; if (dc.length === 2 && dc[1] - dc[0] === 1) grpD.push([dc[0], dc[1]]); else dc.forEach(function (c2) { grpD.push([c2, c2]); });
@@ -479,7 +484,7 @@
     PIECES.forEach(function (p) { if (Math.abs(p.x - P.x) > 9 || Math.abs(p.z - P.z) > 9) return; var t;
       if (p.t === 'mur') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - p.hw - .1, p.L, p.z - p.hd - .1, p.x + p.hw + .1, p.L + LH, p.z + p.hd + .1);
       else if (any && p.t === 'sol') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - CELL / 2, p.L - .12, p.z - CELL / 2, p.x + CELL / 2, p.L + .12, p.z + CELL / 2);
-      else if (any && p.t === 'esc') t = rayRamp(p, o, d);
+      else if (any && p.t === 'esc') { t = rayRamp(p, o, d); if (EDW === p && Math.abs(d.y) > .02) { var tf = (p.L + .06 - o.y) / d.y, fx = o.x + d.x * tf - p.x, fz = o.z + d.z * tf - p.z; if (tf > 0 && Math.abs(fx) <= CELL / 2 + .3 && Math.abs(fz) <= CELL / 2 + .3) t = tf; } }   // en édition : grille À PLAT au pied de l'escalier
       else if (any && p.t === 'toit') t = C.rayBox(o.x, o.y, o.z, d.x, d.y, d.z, p.x - CELL / 2, p.L - .1, p.z - CELL / 2, p.x + CELL / 2, p.L + 2.5, p.z + CELL / 2); else return;
       if (t < bt) { bt = t; best = p; } });
     return best ? { p: best, t: bt, o: o, d: d } : null; }
@@ -488,14 +493,26 @@
   function rampY(p, x, z) { var u = (p.d === 0 ? x - p.x : p.d === 1 ? z - p.z : p.d === 2 ? p.x - x : p.z - z) + CELL / 2; return p.L + Math.max(0, Math.min(CELL, u)) * LH / CELL; }
   function gridDraw() { if (!EGRID) { EGRID = new T.Group(); EGRID.userData.dyn = true; EGRID.renderOrder = 6; for (var i = 0; i < 9; i++) { var m = new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: '#4fb8ff', transparent: true, opacity: .34, depthWrite: false })); m.renderOrder = 6; EGRID.add(m);
         var e = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1, 1, 1)), new T.LineBasicMaterial({ color: '#dff4ff', transparent: true, opacity: .95 })); e.renderOrder = 7; m.add(e); } C.scene.add(EGRID); }
-    EGRID.visible = !!EDW; if (!EDW) return; var p = EDW, n = NT(p);
+    EGRID.visible = !!EDW; if (!EDW) { if (EARR) arrowsDraw(null); return; } var p = EDW, n = NT(p);
     EGRID.children.forEach(function (m, i) { m.visible = i < n; if (i >= n) return; m.rotation.set(0, 0, 0); var on = EMK[i], e = m.children[0];
       if (p.t === 'mur') { var ax = p.hw > p.hd, cw = CELL / 3, rh = LH / 3, r = Math.floor(i / 3), c = i % 3, u = -CELL / 2 + (c + .5) * cw; m.position.set(p.x + (ax ? u : 0), p.L + (r + .5) * rh, p.z + (ax ? 0 : u)); m.scale.set(ax ? cw - .06 : WTH * 2 + .12, rh - .06, ax ? WTH * 2 + .12 : cw - .06); }
-      else if (p.t === 'esc') { var T3 = CELL / 3, ex2 = p.x + (i % 3 - 1) * T3, ez2 = p.z + (Math.floor(i / 3) - 1) * T3, a = Math.atan2(LH, CELL); m.position.set(ex2, rampY(p, ex2, ez2) + .05, ez2); m.scale.set(T3 - .08, .2, T3 - .08);
-        if (p.d === 0) m.rotation.z = a; else if (p.d === 2) m.rotation.z = -a; else if (p.d === 1) m.rotation.x = -a; else m.rotation.x = a; if (p.d % 2) m.scale.z = (T3 - .08) / Math.cos(a); else m.scale.x = (T3 - .08) / Math.cos(a);
-        if (i === 4) { m.material.color.set(on ? '#ffb02e' : '#9fd8ff'); } }
+      else if (p.t === 'esc') { var c3 = i % 3, r3 = Math.floor(i / 3), x0 = RB[c3], x1 = RB[c3 + 1], z0 = RB[r3], z1 = RB[r3 + 1];   // grille À PLAT au pied de l'escalier, cases du milieu plus fines
+        m.position.set(p.x + (x0 + x1) / 2, p.L + .07, p.z + (z0 + z1) / 2); m.scale.set(x1 - x0 - .08, .06, z1 - z0 - .08); }
       else { var Q = CELL / 4, x = p.x + (i % 2 ? Q : -Q), z = p.z + (i > 1 ? Q : -Q), y = p.t === 'toit' ? p.L + 1.25 : p.L + .02; m.position.set(x, y, z); m.scale.set(CELL / 2 - .08, .2, CELL / 2 - .08); }
-      m.material.color.set(on ? '#ffb02e' : '#4fb8ff'); m.material.opacity = on ? .1 : .34; e.material.color.set(on ? '#ffd27a' : '#dff4ff'); }); }
+      m.material.color.set(on ? '#ffb02e' : '#4fb8ff'); m.material.opacity = on ? .12 : .36; e.material.color.set(on ? '#ffd27a' : '#dff4ff'); m.material.depthTest = e.material.depthTest = p.t !== 'esc';   // escalier : la grille au sol se voit À TRAVERS les marches
+    });
+    arrowsDraw(p); }
+  /* FLÈCHES sur la grille de l'escalier : montrent dans quel sens ça monte (forme actuelle, ou forme qu'on est en train de faire) */
+  var RB = [-CELL / 2, -.6, .6, CELL / 2], EARR = null;
+  function arrowTex() { var c = document.createElement('canvas'); c.width = c.height = 128; var g = c.getContext('2d'); g.strokeStyle = '#ffffff'; g.lineWidth = 16; g.lineCap = g.lineJoin = 'round';
+    [[30, 0], [70, 0]].forEach(function (q) { g.beginPath(); g.moveTo(q[0], 26); g.lineTo(q[0] + 30, 64); g.lineTo(q[0], 102); g.stroke(); }); var t = new T.CanvasTexture(c); return t; }
+  function arrowsDraw(p) { if (!EARR) { EARR = []; var tx = arrowTex(); for (var i = 0; i < 9; i++) { var g = new T.PlaneGeometry(1, 1); g.rotateX(-Math.PI / 2); var a = new T.Mesh(g, new T.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false, depthTest: false, color: '#ffffff' })); a.renderOrder = 8; a.userData.dyn = true; C.scene.add(a); EARR.push(a); } }
+    var show = p && p.t === 'esc' && EDW === p, dirs = new Array(9).fill(-1);
+    if (show) { var RE = ESEL.length ? rampEditOf(ESEL) : null, shp = RE ? rampShape({ d: RE.d, rp: RE.rp }) : ESEL.length ? null : rampShape(p);
+      if (shp) for (var k = 0; k < 9; k++) { var cx = (RB[k % 3] + RB[k % 3 + 1]) / 2, cz = (RB[Math.floor(k / 3)] + RB[Math.floor(k / 3) + 1]) / 2; shp.forEach(function (sg) { if (cx >= sg.x0 - .01 && cx <= sg.x1 + .01 && cz >= sg.z0 - .01 && cz <= sg.z1 + .01 && sg.y1 > sg.y0) dirs[k] = sg.d; }); }
+      else ESEL.forEach(function (t2, j) { var a2 = j ? ESEL[j - 1] : t2, b2 = j ? t2 : ESEL[1]; if (b2 != null) dirs[t2] = dirOf(a2, b2); }); }
+    EARR.forEach(function (a, k) { a.visible = show && dirs[k] >= 0; if (!a.visible) return; var c3 = k % 3, r3 = Math.floor(k / 3), w = Math.min(RB[c3 + 1] - RB[c3], RB[r3 + 1] - RB[r3]) * .72;
+      a.position.set(p.x + (RB[c3] + RB[c3 + 1]) / 2, p.L + .12, p.z + (RB[r3] + RB[r3 + 1]) / 2); a.scale.set(w, 1, w); a.rotation.y = -dirs[k] * Math.PI / 2; a.material.color.set(ESEL.length ? '#ffd27a' : '#ffffff'); }); }
   /* ÉDITS DE MUR AUTORISÉS (comme Fortnite) — cases enlevées, numérotées de bas en haut (0 1 2 / 3 4 5 / 6 7 8). Tout le reste est refusé (pas de formes en Z…) */
   var EDOK = {}; ['4', '3,4', '4,5', '3,4,5', '7', '1,4', '0,3', '2,5', '1,4,7', '0,3,6', '2,5,8', '0,1,3,4', '1,2,4,5', '0,1,2,4', '0,1,2,3,4,5', '0,1,2', '6,7,8', '3,4,5,6,7,8', '6,7', '7,8',
     '0,1,3,4,6,7', '1,2,4,5,7,8', '0,3,6,1,4,7', '3,6,7', '5,7,8', '0,1,3', '1,2,5', '0,3,4,6,7,8', '2,4,5,6,7,8', '0,1,2,3,4,6', '0,1,2,4,5,8', '4,7', '1,4,6,7,8', '3,4,5,7'].forEach(function (k) { EDOK[k.split(',').map(Number).sort(function (a, b) { return a - b; }).join(',')] = 1; });
@@ -526,7 +543,7 @@
   function editPop(p) { C.burst(p.x, p.L + (p.t === 'mur' ? LH / 2 : .4), p.z, 12, ['#4fb8ff', '#dff4ff', '#ffffff'], 3, .12, .45); }   // petites étincelles bleues à la validation
   var EPREV = null;
   function editCell() { if (!EDW) return -1; var h = aimEdit(); if (!h || h.p !== EDW) return -1; var o = h.o, d = h.d, p = EDW, x = o.x + d.x * h.t, y = o.y + d.y * h.t, z = o.z + d.z * h.t;
-    if (p.t === 'esc') { var T3 = CELL / 3; return Math.max(0, Math.min(2, Math.floor((x - p.x + CELL / 2) / T3))) + 3 * Math.max(0, Math.min(2, Math.floor((z - p.z + CELL / 2) / T3))); }
+    if (p.t === 'esc') { var ci = function (v) { return v < RB[1] ? 0 : v < RB[2] ? 1 : 2; }; return ci(x - p.x) + 3 * ci(z - p.z); }
     if (p.t !== 'mur') return (x > p.x ? 1 : 0) + (z > p.z ? 2 : 0);
     var ax = p.hw > p.hd, u = (ax ? x - p.x : z - p.z) + CELL / 2, c = Math.max(0, Math.min(2, Math.floor(u / (CELL / 3)))), r = Math.max(0, Math.min(2, Math.floor((y - p.L) / (LH / 3)))); return r * 3 + c; }
   function editSet(i, on) { EMK[i] = on; var k = ESEL.indexOf(i); if (on && k < 0) ESEL.push(i); if (!on && k >= 0) ESEL.splice(k, 1); }
@@ -936,6 +953,7 @@
     res: function () { return RES; }, setRes: function (n) { RES = { bois: n, pierre: n, metal: n }; hudRes(); hudBuild(); }, restore: function (a) { if (!a || taken(a[6])) return; var p = { t: a[0], m: a[1], x: a[2], z: a[3], L: a[4], d: a[5], key: a[6], hw: a[7] || undefined, hd: a[8] || undefined }; p.mask = mkParse(a[9], p); if (placePiece(p)) { p.mine = true; p.hp = p.hmax = hpMax(p); p.grow = false; } }, wipe: function () { PIECES.slice().forEach(function (p) { p._net = true; removePiece(p, false, true); }); }, wallDown: function (p) { if (PIECES.indexOf(p) >= 0) removePiece(p, true); }, editReset: editReset, ledge: function (x, y, z, fx, fz) { var best = null;   // bord d'un sol / d'une rampe juste devant, à portée de saut : on s'y agrippe
       [.7, 1.3].forEach(function (k) { var px = x + fx * k, pz = z + fz * k; PIECES.forEach(function (q) { if (q.t !== 'sol' && q.t !== 'esc' && q.t !== 'toit') return; if (Math.abs(px - q.x) > CELL / 2 + .05 || Math.abs(pz - q.z) > CELL / 2 + .05) return; var top = q.t === 'sol' ? q.L + .15 : groundAt(px, pz, y + 4); if (top > y + .7 && top < y + 4.3 && (best == null || top < best)) best = top; }); }); return best; },
     _ev: function (s) { return eval(s); }, setTex: setTex,
+    _edit: function (key, sel) { var q = PIECES.filter(function (x) { return x.key === key; })[0]; if (!q) return false; EDW = q; ESEL = (sel || []).slice(); EMK = new Array(NT(q)).fill(false); ESEL.forEach(function (i) { EMK[i] = true; }); gridDraw(); return true; },
     nextMat: function () { if (TOOL === 'build') nextMat(); }, _btex: function (m) { return bTex(m); }, _sw: function (t) { SW.t = t; SW.hit = true; }, _strike: function () { strike(); }, _build: function (t, mk) { PIECE = t; MATK = mk || MATK; PLACE_CD = 0; var tl = TOOL; TOOL = 'build'; this.use(true, 0); TOOL = tl; }, give: function (k, n) { RES[k] = Math.min(RMAX, RES[k] + n); hudRes(); hudBuild(); }, pieces: function () { return PIECES; }, nodes: function () { return NODES; }, ready: function () { return READY; }
   };
   function regrow(t) { t.cut = false; t.r = t.r0 || t.r || .5; t.h = t.h0 || t.h || 6; t.hp = null; if (window.TREES3D && TREES3D.cut) TREES3D.cut(t, true); }
