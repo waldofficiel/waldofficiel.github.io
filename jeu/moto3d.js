@@ -148,7 +148,8 @@
     var hR = C0.clone().add(fw.clone().multiplyScalar(.36)).add(up.clone().multiplyScalar(-.1)).add(new T.Vector3(side * .07, 0, 0)), hL = C0.clone().add(fw.clone().multiplyScalar(.6)).add(up.clone().multiplyScalar(-.06)).add(new T.Vector3(-side * .02, 0, 0));
     ik(R, 'R_UpperArm', 'R_Forearm', 'R_Hand', hR, new T.Vector3(side * .8, -.6, -.2)); ik(R, 'L_UpperArm', 'L_Forearm', 'L_Hand', hL, new T.Vector3(-side * .8, -.6, -.2));
     /* l'arme : dans la main droite, canon vers l'avant du perso + pitch */
-    var gh = c.gunHold, par = gh.parent; if (!par) return true; var wp = R.B.R_Hand.getWorldPosition(new T.Vector3()); par.updateMatrixWorld(true); gh.position.copy(par.worldToLocal(wp.clone()));
+    var gh = c.gunHold; if (!gh.userData.par0) gh.userData.par0 = gh.parent; if (gh.parent !== c.root) c.root.add(gh);   /* l'arme était accrochée au squelette du perso du jeu (caché) → elle était invisible */
+    var par = gh.parent; var wp = R.B.R_Hand.getWorldPosition(new T.Vector3()); par.updateMatrixWorld(true); gh.position.copy(par.worldToLocal(wp.clone()));
     var rq = new T.Quaternion(); c.root.getWorldQuaternion(rq); var qw = rq.multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), pc)), pq = new T.Quaternion(); par.getWorldQuaternion(pq); gh.quaternion.copy(pq.invert().multiply(qw));
     var ws = new T.Vector3(); par.getWorldScale(ws); var rs = new T.Vector3(); c.root.getWorldScale(rs); gh.scale.setScalar(rs.x / (ws.x || 1)); return true; };
   window.MOTOOFF = function (c) { if (!c || !c.cmMixR) return; c.cmMix = c.cmMixR; c.cmMixR = null; if (c.cmA) { c.cmCur = 'idle'; if (c.cmA.idle) c.cmA.idle.reset().play(); } if (c.cm) c.cm.position.set(0, 0, 0); };

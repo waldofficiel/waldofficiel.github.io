@@ -1381,7 +1381,7 @@ function zwFavela() { var rr = mulberry(1312), PAL = ['#e85a4a', '#f2b33a', '#4a
   var r = mulberry(5), placed = [];
   function spot(clear) { for (var k = 0; k < 400; k++) { var a = r() * 6.283, d = 40 + r() * (ISLM - 60), x = Math.cos(a) * d, z = Math.sin(a) * d; if (!onLand(x, z) || inTown(x, z, 14) || nearRoad(x, z, 9)) continue; if (treeNear(x, z, clear * .6) || placed.some(function (q) { return Math.hypot(q[0] - x, q[1] - z) < clear; })) continue; placed.push([x, z]); return [x, z]; } return null; }
   for (var n = 0; n < (VIDE ? 0 : SURV ? 16 : 12); n++) { var s2 = spot(30); if (s2) { house(s2[0], s2[1], 9, 8, 'bois', H, 'nsew'[n % 4]); if (!SURV || n % 3 === 0) CHEST0.push(s2); } }
-  for (n = 0; n < (SURV ? 10 : 30); n++) { s2 = spot(14); if (s2) { if (r() < .5) W(s2[0], s2[1], GRID, .3, 'bois', H); else W(s2[0], s2[1], .3, GRID, 'bois', H); } }
+  for (n = 0; n < (VIDE ? 0 : SURV ? 10 : 30); n++) { s2 = spot(14); if (s2) { if (r() < .5) W(s2[0], s2[1], GRID, .3, 'bois', H); else W(s2[0], s2[1], .3, GRID, 'bois', H); } }
   for (n = 0; n < (SURV ? 9 : 12); n++) { s2 = spot(14); if (s2) CHEST0.push(s2); }   // coffres cachés (survie : peu, au fond des bois)
   CHEST0.forEach(function (c) { for (var i = 0; i < HOUSES.length; i++) { var q = HOUSES[i]; if (Math.abs(c[0] - q.ox) > q.ohx + .3 || Math.abs(c[1] - q.oz) > q.ohz + .3) continue;   // les coffres suivent leur maison recalée sur la grille
       c[0] = q.x + Math.max(-q.hx + 1.2, Math.min(q.hx - 1.2, c[0] - q.ox)); c[1] = q.z + Math.max(-q.hz + 1.2, Math.min(q.hz - 1.2, c[1] - q.oz)); return; } });
