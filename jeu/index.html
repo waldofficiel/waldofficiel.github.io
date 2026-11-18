@@ -1282,7 +1282,38 @@ function house(x, z, sx, sz, m, h, door) {
   side4(true, z - hz, side === 'n'); side4(true, z + hz, side === 's'); side4(false, x - hx, side === 'w'); side4(false, x + hx, side === 'e');
   return hs;
 }
+/* ===== PORTES qui s'ouvrent et se ferment (E / bouton d'action) : portes des maisons de la map + portes faites en éditant un mur (2 cases du bas).
+   Une porte = un battant sur charnière (bois peint + poignée), un « mur » de collision quand elle est fermée (les balles passent quand elle est ouverte).
+   Les bots ouvrent les portes qu'ils touchent. En réseau : message « dr » (clé de la porte + ouverte / fermée). ===== */
+var DOORS = (function () { var L = [], BYK = {}, TX0 = null, MAT = null, HMAT = null;
+  function tex() { if (TX0) return TX0; var c = document.createElement('canvas'); c.width = 256; c.height = 512; var g = c.getContext('2d'); g.fillStyle = '#b07a48'; g.fillRect(0, 0, 256, 512);
+    for (var i = 0; i < 5; i++) { g.fillStyle = i % 2 ? '#bd8652' : '#a66f3f'; g.fillRect(i * 51, 0, 50, 512); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(i * 51 + 49, 0, 2, 512); }
+    g.strokeStyle = '#6e4322'; g.lineWidth = 10; g.strokeRect(14, 14, 228, 484); g.strokeRect(34, 40, 188, 190); g.strokeRect(34, 280, 188, 190);
+    for (var k = 0; k < 900; k++) { g.fillStyle = 'rgba(40,20,8,' + (Math.random() * .12) + ')'; g.fillRect(Math.random() * 256, Math.random() * 512, 1, 6 + Math.random() * 20); }
+    TX0 = new THREE.CanvasTexture(c); TX0.encoding = THREE.sRGBEncoding; TX0.anisotropy = 8; return TX0; }
+  function mats() { if (!MAT) { MAT = new THREE.MeshStandardMaterial({ map: tex(), roughness: .75, metalness: 0 }); HMAT = new THREE.MeshStandardMaterial({ color: '#d8b04a', roughness: .3, metalness: .9 }); } }
+  /* o : { key, x, z, y0, ax (le mur suit x ?), u0, u1 (bord gauche / droit le long du mur, en coordonnées monde), h, th, two (2 battants) } */
+  function make(o) { if (BYK[o.key]) kill(BYK[o.key]); mats(); var d = { key: o.key, ax: o.ax, x: o.x, z: o.z, y0: o.y0, h: o.h, open: 0, a: 0, leaves: [], g: new THREE.Group(), cols: [] }; d.g.userData.dyn = true;
+    var spans = o.two ? [[o.u0, (o.u0 + o.u1) / 2, 1], [o.u1, (o.u0 + o.u1) / 2, -1]] : [[o.u0, o.u1, 1]];
+    spans.forEach(function (sp) { var w = Math.abs(sp[1] - sp[0]) - .03, hinge = new THREE.Object3D(), pan = new THREE.Mesh(new THREE.BoxGeometry(w, o.h - .04, .06), MAT), kn = new THREE.Mesh(new THREE.SphereGeometry(.045, 10, 8), HMAT);
+      pan.position.set(sp[2] * w / 2, (o.h - .04) / 2, 0); pan.castShadow = pan.receiveShadow = true; kn.position.set(sp[2] * (w - .12), o.h * .47, .06); var kn2 = kn.clone(); kn2.position.z = -.06; hinge.add(pan, kn, kn2);
+      hinge.position.set(o.ax ? sp[0] : o.x, o.y0, o.ax ? o.z : sp[0]); if (!o.ax) hinge.rotation.y = -Math.PI / 2; hinge.userData.r0 = hinge.rotation.y; hinge.userData.sg = sp[2]; d.g.add(hinge); d.leaves.push(hinge); });
+    var mid = (o.u0 + o.u1) / 2, hl = Math.abs(o.u1 - o.u0) / 2; d.cx = o.ax ? mid : o.x; d.cz = o.ax ? o.z : mid;
+    d.col = { x: d.cx, z: d.cz, hw: o.ax ? hl : .08, hd: o.ax ? .08 : hl, y0: o.y0, h: o.h, m: 'inv', alive: true, cut: true, hp: 1e12, house: null, door: d }; WALLS.push(d.col);
+    scene.add(d.g); L.push(d); BYK[o.key] = d; return d; }
+  function kill(d) { if (!d) return; scene.remove(d.g); d.g.traverse(function (q) { if (q.geometry) q.geometry.dispose(); }); var i = WALLS.indexOf(d.col); if (i >= 0) WALLS.splice(i, 1); i = L.indexOf(d); if (i >= 0) L.splice(i, 1); if (BYK[d.key] === d) delete BYK[d.key]; }
+  function set(d, open, side) { if (!d || !!d.open === !!open) return; d.open = open ? (side || 1) : 0; var i = WALLS.indexOf(d.col); if (open && i >= 0) WALLS.splice(i, 1); if (!open && i < 0) WALLS.push(d.col); if (window.sfx && sfx.door) sfx.door(open); else try { tone('triangle', open ? 320 : 220, open ? 200 : 140, .08, .05); } catch (e) {} }
+  function sideOf(d, p) { return d.ax ? (p.z - d.cz >= 0 ? 1 : -1) : (p.x - d.cx >= 0 ? -1 : 1); }   // le battant s'ouvre vers l'intérieur, loin de celui qui pousse
+  function near(p, r) { var best = null, bd = r || 1.9; L.forEach(function (d) { if (Math.abs(p.y - d.y0) > 2.2) return; var dd = Math.hypot(p.x - d.cx, p.z - d.cz); if (dd < bd) { bd = dd; best = d; } }); return best; }
+  function use(p) { var d = near(p); if (!d) return false; var o = d.open ? 0 : sideOf(d, p); set(d, o); if (NETON) netPub({ t: 'dr', key: d.key, o: o }); return true; }
+  function tick(dt) { for (var i = L.length - 1; i >= 0; i--) if (L[i].lin && !L[i].lin.alive) kill(L[i]);   // mur de la porte cassé → la porte tombe avec
+    for (i = 0; i < L.length; i++) { var d = L[i], tg = d.open ? d.open * 1.45 : 0; if (Math.abs(d.a - tg) > .001) { d.a += (tg - d.a) * Math.min(1, dt * 9); d.leaves.forEach(function (hg) { hg.rotation.y = hg.userData.r0 + d.a * hg.userData.sg; }); }
+      if (!d.open) for (var j = 0; j < pl.length; j++) { var p = pl[j]; if (p === me || p.net || !p.alive || p.mode !== 'ground') continue; if (Math.abs(p.y - d.y0) < 2 && Math.hypot(p.x - d.cx, p.z - d.cz) < 1.25) { set(d, sideOf(d, p)); break; } } } }   // les bots ouvrent les portes
+  return { make: make, kill: kill, use: use, tick: tick, near: near, net: function (key, o) { var d = BYK[key]; if (d) set(d, o); }, list: function () { return L; } }; })();
+window.DOORS = DOORS;
 var CHEST0 = [], WMAT = {};
+function houseDoors() { HOUSES.forEach(function (hs, i) { if (!hs.door || hs.door.length !== 1 || hs.barn || hs.fav) return; var sd = hs.door, ax = sd === 'n' || sd === 's', c0 = sd === 'n' ? hs.z - hs.hz : sd === 's' ? hs.z + hs.hz : sd === 'w' ? hs.x - hs.hx : hs.x + hs.hx;
+  var d = DOORS.make({ key: 'h' + i, ax: ax, x: ax ? hs.x : c0, z: ax ? c0 : hs.z, y0: hs.y0, u0: (ax ? hs.x : hs.z) - 1.3, u1: (ax ? hs.x : hs.z) + 1.3, h: 2.6, two: true }); d.lin = hs.walls.filter(function (w) { return w.lintel && w.st === 0; })[0] || null; }); }
 /* FIN DE ZONE : la FAVELA COLORÉE (les mêmes maisons que dans la favela de Mirage City : murs peints de couleurs vives, toits plats
    avec réservoirs d'eau, fers à béton, linge), serrée autour d'une petite place, avec des ruelles — construite de zéro par Wald Game */
 function zwFavela() { var rr = mulberry(1312), PAL = ['#e85a4a', '#f2b33a', '#4ab0d8', '#7acb5a', '#e87ab8', '#f4e6c8', '#9a6ae0', '#f08a3a', '#3ac8b0', '#ffd84a'], nf = 0;
@@ -1498,6 +1529,7 @@ var GFX = (function () {
 if (window.OPT) OPT.scene = scene; var OPT_N0 = scene.children.length;
 if (window.CITY) try { CITY.build(THREE, { scene: scene, H: H, HOUSES: HOUSES, TOWNS: TOWNS, ROADS: ROADS, ROADP: SURV ? [] : ROADP, SURV: SURV, FARM: FARM, inField: inField, onFarmPath: onFarmPath, hgt: hgt, inTown: inTown, nearRoad: nearRoad, DES: DES, H: H, PCOL: PCOL }); } catch (e) { console.error('CITY', e); }
 if (window.INTERIORS) try { INTERIORS.build(THREE, { scene: scene, H: H, HOUSES: HOUSES, WALLS: WALLS, hgt: hgt, PCOL: PCOL, worldMat: worldMat, TX: TX, H: H }); } catch (e) { console.error('INTERIORS', e); }
+try { houseDoors(); } catch (e) { console.error('DOORS', e); }
 var PCTX = null;
 if (window.PROPS && !VIDE) try { PROPS.build(THREE, PCTX = { EXTRA: SURV ? ARIDX.slice() : undefined, aridK: aridK, lakeK: lakeK, BUSHES: DES ? GFX.bushList : null, onReady: function () { PCTX.done = true; }, scene: scene, hgt: hgt, onLand: onLand, inTown: inTown, nearRoad: nearRoad, HOUSES: HOUSES, inField: inField, TREES: TREES, LAKE: LAKE, DARKF: DARKF, DARKFS: DARKFS, SURV: SURV, DES: DES, ISLM: ISLM, PEBS: PROPCOL, shoreR: shoreR, PEAKS: PEAKS }); } catch (e) { console.error('PROPS', e); }
 var CITYCTX = { renderer: R3, hgt: hgt, W: W, scene: scene, sky: sky };
@@ -2520,6 +2552,7 @@ function netMsg(m) { if (!m || !m.t) return; if (RAFTM && rfMsg(m)) return; if (
   if (m.t === 'k') { if (m.by === NETID) { me.kills++; toast('💀 TU AS ÉLIMINÉ ' + (q ? q.name : 'TON POTE').toUpperCase()); } else feed((NETP[m.by] ? NETP[m.by].name : '?') + ' a éliminé ' + (q ? q.name : '?')); return; }
   if (m.t === 'w' && q) { tone('sine', 1500, 2500, .16, .1); tone('sine', 2500, 1700, .28, .1, .2); burst(q.x, q.y + 1.6, q.z, 8, ['#ffffff', '#ff9ae8'], 2, .15, .9); return; }
   if (m.t === 'rz') { if (SV && SV.clearBuilds) SV.clearBuilds(); toast('🔄 ' + String(m.n || 'Un joueur').toUpperCase() + ' A RÉINITIALISÉ LES CONSTRUCTIONS'); return; }
+  if (m.t === 'dr') { DOORS.net(m.key, m.o); return; }
   if (!SV) return; if (m.t === 'b') SV.netPlace(m.p); else if (m.t === 'r') SV.netRemove(m.key); else if (m.t === 'e') SV.netEdit(m.key, m.mask); }
 function netTick(p, dt) { var k = Math.min(1, dt * 10), ox = p.x, oz = p.z; p.x += (p.tx - p.x) * k; p.y += (p.ty - p.y) * k; p.z += (p.tz - p.z) * k; p.gy = p.y; var da = p.ta - p.a; while (da > Math.PI) da -= 6.283; while (da < -Math.PI) da += 6.283; p.a += da * k;
   p.vx = (p.x - ox) / Math.max(dt, .001); p.vz = (p.z - oz) / Math.max(dt, .001); if (performance.now() - p.seen > 15000) netDrop(p.id); }
@@ -3777,6 +3810,7 @@ function update(dt) {
         if (fireHeld && p.useT > 0 && !curH(p)) cancelHeal(p);
         if ((fireHeld || autoShoot) && !invOpen() && !(p.useT > 0) && !tool && !p.swim && !p.ko && !TERR.on) { var cp = cam.position, cd = cam.getWorldDirection(v1), tMin = cp.distanceTo(v2.set(p.x, p.y + 1.5, p.z)); fireGun(p, cp.x, cp.y, cp.z, cd.x, cd.y, cd.z, tMin); }
       }
+      if (actPress && !p.veh && DOORS.use(p)) actPress = false;   // ouvrir / fermer une porte
       if (actPress && SURV && SV && SV.act()) actPress = false;   // survie : ouvrir son coffre
       if (actPress) { if (p.veh) leave(p); else { var nv = nearVeh(p), sw = nearSwap(p); if (nv) enter(p, nv); else if (sw) { var old = p.inv[p.slot], ca = Math.cos(p.a), sa = Math.sin(p.a);
           if (old && old.h) { for (var hd = 0; hd < (p.heals[old.h] || 0); hd++) dropItem(p.x - sa * (1 + hd * .35) + ca * .6, p.z + ca * (1 + hd * .35) + sa * .6, old.h); p.heals[old.h] = 0; } else if (old) dropItem(p.x - sa * 1.2 + ca * .6, p.z + ca * 1.2 + sa * .6, old.k, old);
@@ -4136,7 +4170,7 @@ function loop(now) {
     if (state === 'play') update(dt); else if (state === 'end') { updParts(dt); updTracers(dt); }
     if (state === 'play' && invOpen() && (invT += dt) > .5) { invT = 0; invRender(); }
     updCam(dt); syncModels(t, dt); if (CAMIN && me.model) me.model.root.visible = false; propTick(); if (state === 'play') netSend(dt); roundTick(dt); scrTick(dt); rzTick(); islTick(); terTick(dt); groundLOD(cam); if (window.OPT && OPT.cull && FRAMEC % 6 === 0) OPT.cull(cam, cam.far + 60); FRAMEC++; if (GQ('shadow') < 2) { R3.shadowMap.autoUpdate = false; if (FRAMEC % 2 === 0) R3.shadowMap.needsUpdate = true; } else R3.shadowMap.autoUpdate = true;   // ombres recalculées 1 image sur 2 en Moyen/Bas
-    if (window.PROPS) PROPS.update(cam); if (window.CITY_UPDATE) CITY_UPDATE(t, dt, me.x, me.z); if (MODE === 'city' && window.CITY6) CITY6.update(dt); if (window.BLINK) for (var bk = 0; bk < BLINK.length; bk++) BLINK[bk].visible = (t + bk * .3) % 1.6 < .8; if (window.INTERIORS) INTERIORS.update(cam, scene.fog); if (document.body.classList.contains('scoped')) me.model.root.visible = false; roofsUpdate(); var fx0 = me.mode === 'bus' ? bus.x : me.x, fz0 = me.mode === 'bus' ? bus.z : me.z; sun.position.set(fx0 + SUNDIR.x * 100, SUNDIR.y * 100, fz0 + SUNDIR.z * 100); sun.target.position.set(fx0, 0, fz0); sky.position.copy(cam.position); sky.scale.setScalar(cam.far * .92); skyMat.uniforms.uTime.value = t; GFX.update(t, dt); drawScene(scene, cam); if (state === 'play') { hud(); drawMini(); if (!$('bigMap').hidden) drawMini(true); } updDN(dt);
+    if (window.PROPS) PROPS.update(cam); if (window.CITY_UPDATE) CITY_UPDATE(t, dt, me.x, me.z); DOORS.tick(dt); if (MODE === 'city' && window.CITY6) CITY6.update(dt); if (window.BLINK) for (var bk = 0; bk < BLINK.length; bk++) BLINK[bk].visible = (t + bk * .3) % 1.6 < .8; if (window.INTERIORS) INTERIORS.update(cam, scene.fog); if (document.body.classList.contains('scoped')) me.model.root.visible = false; roofsUpdate(); var fx0 = me.mode === 'bus' ? bus.x : me.x, fz0 = me.mode === 'bus' ? bus.z : me.z; sun.position.set(fx0 + SUNDIR.x * 100, SUNDIR.y * 100, fz0 + SUNDIR.z * 100); sun.target.position.set(fx0, 0, fz0); sky.position.copy(cam.position); sky.scale.setScalar(cam.far * .92); skyMat.uniforms.uTime.value = t; GFX.update(t, dt); drawScene(scene, cam); if (state === 'play') { hud(); drawMini(); if (!$('bigMap').hidden) drawMini(true); } updDN(dt);
   }
   document.body.classList.toggle('inmenu', state !== 'play');
   requestAnimationFrame(loop);

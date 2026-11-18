@@ -302,11 +302,19 @@
     for (r = 0; r < 3; r++) for (c = 0; c < 3; c++) { if (!mk[r * 3 + c]) continue; var x0 = -W / 2 + c * cw, x1 = x0 + cw, y0 = r * rh, y1 = y0 + rh;
       if (c > 0 && !mk[r * 3 + c - 1]) box(x0, x0 + fw, y0, y1, -fd, fd, FP, FN, FU, FI); if (c < 2 && !mk[r * 3 + c + 1]) box(x1 - fw, x1, y0, y1, -fd, fd, FP, FN, FU, FI);
       if (r < 2 && !mk[(r + 1) * 3 + c]) box(x0, x1, y1 - fw, y1, -fd, fd, FP, FN, FU, FI);
-      if (r > 0 && !mk[(r - 1) * 3 + c]) box(x0 - (c > 0 && !mk[r * 3 + c - 1] ? 0 : .06), x1 + (c < 2 && !mk[r * 3 + c + 1] ? 0 : .06), y0, y0 + fw * 1.3, -fd - .06, fd + .06, FP, FN, FU, FI); }   // appui de fenêtre
+      if (r > 0 && !mk[(r - 1) * 3 + c]) box(x0 - (c > 0 && !mk[r * 3 + c - 1] ? 0 : .06), x1 + (c < 2 && !mk[r * 3 + c + 1] ? 0 : .06), y0, y0 + fw * 1.3, -fd - .06, fd + .06, FP, FN, FU, FI);   // appui de fenêtre
+      if (c === 0 && !(mk[0] && mk[3] && mk[6])) box(x0, x0 + fw * 1.4, r ? y0 : y0 - ext, y1, -fd, fd, FP, FN, FU, FI);   // petit MONTANT au bord du mur (fenêtre / porte de côté)
+      if (c === 2 && !(mk[2] && mk[5] && mk[8])) box(x1 - fw * 1.4, x1, r ? y0 : y0 - ext, y1, -fd, fd, FP, FN, FU, FI);
+      if (r === 2 && !(mk[6] && mk[7] && mk[8])) box(x0, x1, y1 - fw * 1.4, y1, -fd, fd, FP, FN, FU, FI); }   // et en haut
+    /* PORTES : une colonne dont les 2 cases du bas sont enlevées (le haut reste) = une vraie porte qui s'ouvre (E) ; 2 colonnes côte à côte = double porte */
+    var dc = [0, 1, 2].filter(function (c2) { return mk[c2] && mk[3 + c2] && !mk[6 + c2]; }); p.doorsW = [];
+    if (dc.length && dc.length < 3 && window.DOORS) { var grpD = []; if (dc.length === 2 && dc[1] - dc[0] === 1) grpD.push([dc[0], dc[1]]); else dc.forEach(function (c2) { grpD.push([c2, c2]); });
+      grpD.forEach(function (q) { var lu0 = -W / 2 + q[0] * cw + (q[0] === 0 ? fw * 1.4 : fw), lu1 = -W / 2 + (q[1] + 1) * cw - (q[1] === 2 ? fw * 1.4 : fw), ax = p.hw > p.hd;
+        p.doorsW.push({ key: p.key + '|' + q[0], ax: ax, x: p.x, z: p.z, y0: p.L, u0: (ax ? p.x : p.z) + lu0, u1: (ax ? p.x : p.z) + lu1, h: 2 * rh - fw, two: q[1] > q[0] }); }); }
     function mesh(pa, na, ua, ia, mat) { var g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pa, 3)); g.setAttribute('normal', new T.Float32BufferAttribute(na, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(ua, 2)); g.setIndex(ia); var m = new T.Mesh(g, mat); m.castShadow = m.receiveShadow = true; return m; }
     var grp = new T.Group(); grp.userData.dyn = true; if (P.length) grp.add(mesh(P, N, U, I, p.im.material)); if (FP.length) grp.add(mesh(FP, FN, FU, FI, frameMat(p.m)));
     grp.geometry = { dispose: function () { grp.children.forEach(function (q) { q.geometry.dispose(); }); } };
-    grp.position.set(p.x, p.L, p.z); if (!(p.hw > p.hd)) grp.rotation.y = -Math.PI / 2; C.scene.add(grp); return grp; }
+    grp.position.set(p.x, p.L, p.z); if (!(p.hw > p.hd)) grp.rotation.y = -Math.PI / 2; C.scene.add(grp); p.doors = p.doorsW.map(function (o) { return DOORS.make(o); }); return grp; }
   function wallSegs(p, im) { var below = PIECES.some(function (q) { return q !== p && Math.abs(q.L - (p.L - LH)) < .2 && Math.hypot(q.x - p.x, q.z - p.z) < 3; }), gr = Math.min(C.hgt(p.x - (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z - (p.hw > p.hd ? 0 : CELL / 2 - .3)), C.hgt(p.x + (p.hw > p.hd ? CELL / 2 - .3 : 0), p.z + (p.hw > p.hd ? 0 : CELL / 2 - .3))),
       ext = below || p.L - gr > 1.2 ? 0 : Math.max(0, p.L - gr + .05), alongX = p.hw > p.hd;   /* le bas du mur ne descend que jusqu'au sol (avant : 1 m dans le vide → « petit mur » sous les escaliers) */
     var TRI0 = triOf(p.mask), HOLE = !TRI0 && p.mask && p.mask.some(Boolean); p.ws = []; (p.mask ? maskSegs(p.mask) : segsOf(p.v)).forEach(function (sg) { if (!im.free.length) return; var cu = (sg[0] + sg[1]) / 2, hu = (sg[1] - sg[0]) / 2, y0 = sg[2] === 0 ? p.L - ext : p.L + sg[2], y1 = p.L + sg[3];
@@ -383,7 +391,7 @@
     var cut = p.t === 'sol' && p.mask && p.mask.some(Boolean); p.im.setMatrixAt(p.ii, cut ? ZERO : pieceMatrix(p, O3 || (O3 = new T.Object3D()))); p.im.instanceMatrix.needsUpdate = true; if (cut) p.tri = floorMesh(p); p._cp = null; if (p.t !== 'lit' && p.t !== 'coffre') flatSegs(p); }
   function pieceHide(p) { p.im.setMatrixAt(p.ii, ZERO); p.im.instanceMatrix.needsUpdate = true; if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } flatFree(p); }
   function ceilAt(x, z, y0, y1) { var c = null; for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (!w.flat || !w.alive || Math.abs(x - w.x) > w.hw + .25 || Math.abs(z - w.z) > w.hd + .25) continue; if (w.y0 >= y0 - .05 && w.y0 < y1 && (c == null || w.y0 < c)) c = w.y0; } return c; }
-  function wallFree(p) { if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
+  function wallFree(p) { (p.doors || []).forEach(function (d) { window.DOORS && DOORS.kill(d); }); p.doors = null; if (p.tri) { C.scene.remove(p.tri); p.tri.geometry.dispose(); p.tri = null; } (p.ws || []).forEach(function (w) { var wi = C.WALLS.indexOf(w); if (wi >= 0) C.WALLS.splice(wi, 1); if (w.alive) C.setWall(w, false); p.im.free.push(w.ii); }); p.ws = []; p.w = null; }
   function placePiece(p) { if (p.t === 'lit') return placeBed(p);
     var im = pieceIM(p.t, p.m); if (!im.free.length) return false; p.im = im; if (!p.hp) { p.hmax = hpMax(p); p.hp = p.t === 'lit' || p.t === 'coffre' ? p.hmax : Math.round(p.hmax * (HP0[p.m] || 90) / (HPP[p.m] || 150)); p.grow = p.hp < p.hmax; }
     if (p.t === 'mur') { slotWalls(p, true).forEach(function (w) { w.alive = false; C.setWall(w, false); }); wallSegs(p, im); }
