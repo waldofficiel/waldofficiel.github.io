@@ -653,7 +653,7 @@ body.t80{--pink:#ff2bd6;--violet:#9b4dff;--cyan:#2de2ff;--sun1:#ffd23f;--sun2:#f
         follow(user);
       } else if (ev === 'chat' && d.comment) {
         var u = String(d.uniqueId || (d.user && d.user.uniqueId) || '').toLowerCase();
-        if (u === HOST || u === 'wald.off' || d.isModerator) command(d.comment);
+        if (u === HOST || d.isModerator) command(d.comment);
       }
     };
   }

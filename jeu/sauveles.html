@@ -459,7 +459,7 @@ addEventListener('mousemove', function () { LV.mT = performance.now(); });
 function lvOpen() { var c = lvCfg(), o = $('lvM'); if (!o) { o = document.createElement('div'); o.id = 'lvM'; document.body.appendChild(o); }
   o.innerHTML = '<div class="bx"><h2>📡 BRANCHER MON LIVE TIKTOK</h2>' +
     '<p class="s">Le jeu lit ton live tout seul : cadeaux, chat, abonnés. Rien n\'est envoyé dans Fortnite ou ailleurs.</p>' +
-    '<label>Pseudo TikTok <input id="lvU" placeholder="ex. wald.off" value="' + lvEsc(c.user || '') + '"></label>' +
+    '<label>Pseudo TikTok <input id="lvU" placeholder="ex. wald_off" value="' + lvEsc(c.user || '') + '"></label>' +
     '<label>Clé API (gratuite sur tik.tools · gardée sur cet appareil) <input id="lvK" type="password" value="' + lvEsc(c.key || '') + '"></label>' +
     '<label>Cadeau qui SAUVE (⚡ turbo du robot) <input id="lvH" value="' + lvEsc(c.help) + '"></label>' +
     '<div class="r2"><label>Objectif 💎 <input id="lvGo" type="number" min="10" value="' + (+c.goal) + '"></label><label>Gros lot (texte) <input id="lvP" maxlength="40" value="' + lvEsc(c.prize) + '"></label></div>' +
