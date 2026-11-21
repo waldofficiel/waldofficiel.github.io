@@ -2895,8 +2895,8 @@ function animChar(p, dt) {   // tout passe par le système de poses (anim.js) : 
   else { T = p.crouch ? A.crouch(p.step, amp) : amp > .05 ? A.walk(p.step, amp, sp > 6.5) : A.idle(now + (p.id || 0) * 1.7); if (armed) { A.gunArms(T, 0); var apt = Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))); T.ra += apt; T.la += apt * .95; T.hp = (T.hp || 0) + apt * .35; } }   /* l'arme suit le viseur (haut / bas) */
   if (SV && p === me) { SURVIE.pose(T, c, p.mode === 'ground' && !(p.danceT > 0) && !p.swim); if (stl) k = SURVIE.blendK(); }
   c.qSelf = !!c.qWant; A.apply(c, A.blend(c, T, dt, k), gr); c.qSelf = false;
-  if (c.qWant && window.QS) { if (c.qs !== c.qWant) QS.apply(c, c.qWant); if (c.qs) { var air = p.mode === 'ground' && p.y - (p.gy || 0) > .45, qp = p.mtl || p.ko || p.dabT > 0 || p.danceT > 0 || p.mode !== 'ground' || p.swim || p.crouch || stl || air || p.veh;
-      var qst = qp ? { pose: true } : QS.pick({ armed: armed, sp: sp, shoot: (p.recoil || 0) > .02 }); QS.drive(c, qst, dt, armed && !qp ? Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))) * .8 : 0); } }   /* vraie animation si elle existe, sinon copie de la pose */
+  if (c.qWant && window.QS) { if (c.qs !== c.qWant) QS.apply(c, c.qWant); if (c.qs) { var air = p.mode === 'ground' && !p.veh && p.y - (p.gy || 0) > .45, qp = p.mtl || p.ko || p.dabT > 0 || p.danceT > 0 || p.mode !== 'ground' || stl || (p.veh && c.ride);
+      var qst = qp ? { pose: true } : QS.pick({ armed: armed, sp: p.veh ? 0 : sp, shoot: (p.recoil || 0) > .02, crouch: p.crouch, swim: p.swim, air: air, veh: !!p.veh, slide: p.slideT > 0 }); QS.drive(c, qst, dt, armed && !qp ? Math.max(-1.1, Math.min(.9, (p === me ? camP + .22 : (p.pt || 0)))) * .8 : 0); } }   /* vraie animation si elle existe, sinon copie de la pose */
   if (armed && p.recoil) { c.aR.rotation.z += p.recoil * 2; c.aL.rotation.z += p.recoil * 1.2; }
 }
 

@@ -1,0 +1,7 @@
+Modèles des skins détaillés de Wald Royal (dossier models/u) :
+- Quaternius « Universal Base Characters » (corps, têtes, cheveux)
+- Quaternius « Modular Character Outfits - Fantasy » (tenues Ranger et Peasant)
+- Quaternius « Universal Animation Library » (animations motion capture)
+Auteur : Quaternius (https://quaternius.com)
+Licence : CC0 1.0 Universal (domaine public) — https://creativecommons.org/publicdomain/zero/1.0/
+Textures converties en JPEG, animations extraites et allégées pour le jeu.
