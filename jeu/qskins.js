@@ -246,7 +246,7 @@
       o.updateMatrixWorld(true); var bb = new T.Box3(); o.traverse(function (q) { if (q.isSkinnedMesh && q.geometry.boundingBox == null) q.geometry.computeBoundingBox(); }); bb.setFromObject(o); var h = Math.max(bb.max.y - bb.min.y, .5);
       if (h > 2.4) h = d.sex === 'm' ? 1.81 : 1.77;
       var B = boneMap(o), s = 1.9 / .9 / h; o.scale.setScalar(s); o.position.y = -Math.min(0, bb.min.y) * s; g.rotation.y = Math.PI / 2; c.root.add(g);
-      c.root.traverse(function (q) { if ((q.isMesh || q.isSkinnedMesh) && !q.userData.keep && q !== c.shadow && !(c.glider && isChild(q, c.glider)) && !(c.gunHold && isChild(q, c.gunHold)) && !isChild(q, g)) { q.userData.qHid = true; q.visible = false; } });
+      c.root.traverse(function (q) { if ((q.isMesh || q.isSkinnedMesh) && !q.userData.keep && !toolOf(q) && q !== c.shadow && !(c.glider && isChild(q, c.glider)) && !(c.gunHold && isChild(q, c.gunHold)) && !isChild(q, g)) { q.userData.qHid = true; q.visible = false; } });
       var mix = new T.AnimationMixer(o), CLP = clips(d.sex), A = {}; Object.keys(CLP).forEach(function (k) { A[k] = mix.clipAction(CLP[k]); A[k].w = 0; });
       ['Death01', 'Jump_Start', 'Jump_Land', 'Pistol_Shoot', 'Roll', 'Punch_Cross', 'Interact', 'Hit_Chest', 'Chest_Open'].forEach(function (k) { [k, 'L:' + k, 'U:' + k].forEach(function (kk) { if (A[kk]) { A[kk].setLoop(T.LoopOnce); A[kk].clampWhenFinished = true; } }); });
       c.qs = id; c.qg = g; c.qo = o; c.qB = B; c.qMix = mix; c.qA = A; c.qCur = null; c.qSnap = null; c.qMode = 'clip'; c.qOut = null; c.qBones = []; o.traverse(function (q) { if (q.isBone) c.qBones.push(q); });
@@ -319,6 +319,7 @@
     var s = 1.95 / h, g = new T.Group(); o.scale.setScalar(s); g.add(o); g.rotation.y = 0; if (R.headS) o.traverse(function (q) { if (q.isBone && q.name === 'Head') q.scale.setScalar(R.headS); });
     var mix = new T.AnimationMixer(o), CLP = clips(sex), A = {}; ['Zombie_Idle_Loop', 'Zombie_Walk_Fwd_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Zombie_Scratch', 'Death01', 'Hit_Chest', 'Crouch_Fwd_Loop', 'Crouch_Idle_Loop', 'Walk_Loop', 'Idle_Loop', 'Punch_Cross', 'Melee_Hook'].forEach(function (k) { if (CLP[k]) A[k] = mix.clipAction(CLP[k]); });
     return { g: g, o: o, mix: mix, A: A }; };
+  function toolOf(q) { while (q) { if (q.userData && q.userData.tool) return true; q = q.parent; } return false; }
   function isChild(q, p) { while (q) { if (q === p) return true; q = q.parent; } return false; }
   QS.poseNow = function (c) { if (c.qs !== c.qWant) QS.apply(c, c.qWant); if (!c.qs) return; var now = performance.now(), dt = Math.min(.1, (now - (c.qT || now)) / 1000) || .016; c.qT = now; QS.drive(c, { pose: true }, dt); };
   if (window.ANIM) { var oa = ANIM.apply; ANIM.apply = function (c, o, g) { oa(c, o, g); if (c && c.qWant && !c.qSelf && T) QS.poseNow(c); }; }

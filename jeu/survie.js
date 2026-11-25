@@ -99,7 +99,7 @@
     m(hg, steel, .9 + .02, 0, 0);
     [-1, 1].forEach(function (sd) { var sp = new T.ConeGeometry(.04, .2, 6); var o = m(sp, steel, .9 - .28, sd * .5, 0); o.rotation.z = sd > 0 ? -.55 : Math.PI + .55; });
     var nb = new T.BoxGeometry(.03, .16, .08); m(nb, neon, .955, 0, 0);
-    g.position.set(.02, -.7, 0); g.visible = false; return g;
+    g.position.set(.02, -.7, 0); g.visible = false; g.userData.tool = 1; return g;
   }
   /* prise à deux mains : pour chaque angle du bras droit, angles des deux bras calculés pour que la main gauche tienne le manche 24 cm au-dessus de la droite */
   var GRIP = [[-.1, -.5, 1.4, 0, -.6, -.8, .15], [.55, 0, 1.1, .4, -.4, .4, .15], [1.0, .5, 1.2, .5, -.2, .7, .15], [1.6, .5, .7, 1.2, -.9, .4, 0], [2.2, .5, .7, 1.1, -1.3, 1, .3]];
@@ -113,9 +113,19 @@
     var tx = new T.CanvasTexture(cv), cover = new T.MeshLambertMaterial({ map: tx }), page = new T.MeshLambertMaterial({ color: '#f4f1e6' }), g = new T.Group();
     var b = new T.Mesh(new T.BoxGeometry(.05, .3, .38), [page, page, page, page, cover, cover]); b.rotation.y = Math.PI / 2; g.add(b);
     var c2 = new T.Mesh(new T.BoxGeometry(.012, .31, .39), cover); c2.position.set(-.03, 0, 0); g.add(c2);
-    g.traverse(function (m) { if (m.isMesh) m.castShadow = true; }); g.visible = false; return g; }
-  function attachBook(c) { if (!BOOK) BOOK = buildBook(); var par = c.eL || c.aL; if (BOOK.parent !== par) { if (BOOK.parent) BOOK.parent.remove(BOOK); par.add(BOOK); BOOK.position.set(.12, c.eL ? -.36 : -.66, .06); BOOK.rotation.set(0, 0, -.9); } }
-  function attachPick(c) { if (!PICK) PICK = buildPick(); if (PICK.parent !== c.aR) { if (PICK.parent) PICK.parent.remove(PICK); c.aR.add(PICK); } }
+    g.traverse(function (m) { if (m.isMesh) m.castShadow = true; }); g.visible = false; g.userData.tool = 1; return g; }
+  function attachBook(c) { if (!BOOK) BOOK = buildBook(); if (!BLP) { BLP = new T.Vector3(.12, c.eL ? -.36 : -.66, .06); BLR = new T.Euler(0, 0, -.9); } if (c.qB) return; var par = c.eL || c.aL; if (BOOK.parent !== par) { if (BOOK.parent) BOOK.parent.remove(BOOK); par.add(BOOK); BOOK.position.set(.12, c.eL ? -.36 : -.66, .06); BOOK.rotation.set(0, 0, -.9); } }
+  var HV = null, HV2 = null;
+  /* skins détaillés : le squelette simple est caché (ses enfants ne sont plus dessinés) → l'outil est posé sur le perso visible,
+     orienté comme l'os du bras du squelette simple, et placé dans la VRAIE main du modèle détaillé */
+  var HM = null;
+  function handSnap(obj, bone, hand, along, side, lp, lr, root) { if (!hand || !bone || !root) return; if (!HM) HM = { m: new T.Matrix4(), l: new T.Matrix4(), p: new T.Vector3(), q: new T.Quaternion(), s: new T.Vector3(), h: new T.Vector3(), o: new T.Vector3() };
+    if (obj.parent !== root) root.add(obj); root.updateMatrixWorld(true);
+    HM.l.compose(lp, new T.Quaternion().setFromEuler(lr), new T.Vector3(1, 1, 1)); HM.m.multiplyMatrices(bone.matrixWorld, HM.l); HM.m.decompose(HM.p, HM.q, HM.s);
+    hand.getWorldPosition(HM.h); HM.o.set(side, along, 0).applyQuaternion(hand.getWorldQuaternion(new T.Quaternion())).multiplyScalar(hand.getWorldScale(new T.Vector3()).x); HM.h.add(HM.o);
+    HM.m.compose(HM.h, HM.q, HM.s); HM.m.premultiply(new T.Matrix4().copy(root.matrixWorld).invert()); HM.m.decompose(obj.position, obj.quaternion, obj.scale); }
+  var PLP = null, PLR = null, BLP = null, BLR = null;
+  function attachPick(c) { if (!PICK) PICK = buildPick(); if (!PLP) { PLP = PICK.position.clone(); PLR = PICK.rotation.clone(); } if (c.qB) return; if (PICK.parent !== c.aR) { if (PICK.parent) PICK.parent.remove(PICK); c.aR.add(PICK); } }
 
   /* ---------------- constructions ---------------- */
   function rampGeo() {   // escalier = UNE planche en pente (comme Fortnite) : de 0 à LH sur une case, sans jupe ni bloc dessous
@@ -916,7 +926,8 @@
     clearBuilds: function () { PIECES.slice().forEach(function (p) { if (p.t === 'lit' || p.t === 'coffre') return; p._net = true; removePiece(p, false, true); }); },   // efface toutes les constructions (panneau RÉINITIALISER, nouvelle manche)
     save: save, hasSave: function () { return !!loadSave(); }, wipe: function () { try { localStorage.removeItem(SKEY); localStorage.removeItem(SKEY + '_fog'); } catch (e) {} },
     update: function (dt) { TIME += dt; for (var gi = 0; gi < PIECES.length; gi++) { var gp = PIECES[gi]; if (!gp.grow) continue; gp.hp = Math.min(gp.hmax, gp.hp + (gp.hmax * (1 - (HP0[gp.m] || 90) / (HPP[gp.m] || 150))) / (HPT[gp.m] || 4) * dt); if (gp.hp >= gp.hmax) gp.grow = false; if (gp.ws) gp.ws.forEach(function (w) { w.hp = gp.hp; }); } if (AFFM.length && C.state() === 'play') affTick(); var P = me(); if (P && P.model && P === me()) attachPick(P.model);
-      if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0) && !P.swim && !P.ko; if (P.model && (TOOL === 'build' || TOOL === 'edit')) attachBook(P.model); if (BOOK) BOOK.visible = (TOOL === 'build' || TOOL === 'edit') && P.alive && !(P.danceT > 0) && P.mode === 'ground' && !P.swim && !P.ko;
+      if (P.model && TOOL === 'pioche') attachPick(P.model); if (PICK) PICK.visible = TOOL === 'pioche' && P.alive && !(P.danceT > 0) && !P.swim && !P.ko; if (P.model && (TOOL === 'build' || TOOL === 'edit')) attachBook(P.model); if (BOOK) BOOK.visible = (TOOL === 'build' || TOOL === 'edit') && P.alive && !(P.danceT > 0) && P.mode === 'ground' && !P.swim && !P.ko;
+      if (P.model && P.model.qB) { if (PICK && PICK.visible) handSnap(PICK, P.model.aR, P.model.qB.hand_r, .085, 0, PLP, PLR, P.model.root); if (BOOK && BOOK.visible) handSnap(BOOK, P.model.eL || P.model.aL, P.model.qB.hand_l, .08, .04, BLP, BLR, P.model.root); }   // skins détaillés : l'outil va dans la VRAIE main (le squelette simple a d'autres longueurs de bras)
       // arbres qui tremblent, rochers qui reviennent, arbres qui repoussent
       C.TREES.forEach(function (t) { if (t.shk > 0) { t.shk = Math.max(0, t.shk - dt); if (window.TREES3D && TREES3D.shake) TREES3D.shake(t, t.shk > 0 ? Math.sin(t.shk * 70) * t.shk * .5 : 0); } });
       NODES.forEach(function (n) { if (n.shk > 0) { n.shk = Math.max(0, n.shk - dt); nodeSet(n); } if (n.dead) { n.t += dt; if (n.t > 240 && Math.hypot(n.x - P.x, n.z - P.z) > 40) { n.dead = false; n.hp = n.max; C.PCOL.push(n.col); nodeSet(n); } } });
