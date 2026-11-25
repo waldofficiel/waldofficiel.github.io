@@ -1747,7 +1747,7 @@ var BOTS = {}, WAIT0 = performance.now(), BNAMES = ['Brutus', 'Kiki', 'Ziggy', '
 function rFill() { return 0; }   // Créatif : PAS de bots pour compléter (seulement si le créateur en met dans ⚙️ Paramètres)
 function rAuto() { var ids = rPlayers(), S = rSetGet(), nb = Math.max(rKeys().indexOf('bots') >= 0 ? S.bots || 0 : 0, Math.max(rNeed(), rFill()) - ids.length), bots = []; for (var i = 0; i < nb; i++) bots.push('bot' + i + NETID.slice(0, 3));
   var all = ids.concat(bots), m = { t: 'go', by: NETID, seek: all[Math.floor(Math.random() * all.length)], ids: all, tp: TPL, bots: bots, set: S }; if (TPL === 'mm') Object.assign(m, mmRoles(all)); if (TPL === 'cs') Object.assign(m, csTeams(all)); netPub(m); rStart(m); }
-function crBot(id, k) { var sk = ['lea', 'stan', 'flubb', 'wald'][k % 4], mdl = makeChar({ sk: sk }); scene.add(mdl.root);
+function crBot(id, k) { var sk = ['lea', 'stan', 'flubb', 'rico', 'nova'][k % 5], mdl = makeChar({ sk: sk }); scene.add(mdl.root);
   var p = { bot: true, crbot: true, id: id, sk: sk, name: '🤖 ' + BNAMES[k % BNAMES.length], model: mdl, look: { shirt: '#888', skin: '#c8a080', pants: '#333' }, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, a: 0, hp: 100, sh: 0, alive: true, mode: 'ground', gy: 0,
     inv: [null, null, null], slot: 0, heals: { mini: 0, shield: 0, heal: 0, bulle: 0 }, healSel: 'mini', useT: 0, useK: null, fireCd: 0, recoil: 0, hurtT: 0, kills: 0, broken: 0, danceT: 0, step: 0, hitCd: 0, stormT: 0, lastHit: null, lastHitT: 0, veh: null,
     ai: { t: 0, tx: 0, tz: 0, ag: .55, acc: .22, wantCar: false, land: null, strafe: 1 } };
@@ -2701,7 +2701,7 @@ function netGo(k) { if (!(CREA || BRN) || !window.NET || NETON || MODE === 'live
 function netStop() { if (!NETON) return; netPub({ t: 'bye' }); NETON = false; if (window.NET) NET.leave(); if (SV) SV.hook(null); Object.keys(NETP).forEach(netDrop); $('netB').hidden = true; }
 function netBadge(on) { var n = Object.keys(NETP).length + 1, code = netCode(); $('netB').textContent = (on === false || !NET.up() ? '🔴 hors ligne' : '🟢 ' + n + ' joueur' + (n > 1 ? 's' : '')) + ' · ' + (code ? 'code ' + code : 'salon public'); }
 function netDrop(id) { var p = NETP[id]; if (!p) return; delete NETP[id]; scene.remove(p.model.root); if (p.propM) scene.remove(p.propM); var i = pl.indexOf(p); if (i >= 0) pl.splice(i, 1); netBadge(); }
-function skOk(k) { return !!(SKINS_SHOP[k] || k === 'csT' || k === 'csCT'); }
+function skOk(k) { return !!(SKINS_SHOP[k] || (window.QS && QS.LIST[k]) || k === 'csT' || k === 'csCT'); }
 function setModel(p, sk) { if (!p || !skOk(sk) || p.skn === sk) return; var vis = p.model ? p.model.root.visible : true; if (p.model) scene.remove(p.model.root); p.model = makeChar({ sk: sk }); p.model.root.visible = vis; scene.add(p.model.root); p.skn = sk; if (p.crbot) p.sk = sk; }   // change de tenue (ex. CS WILD GO)
 function netPlayer(m) { var p = NETP[m.id]; if (p) { if (m.sk && skOk(m.sk) && (p.skn || 'wald') !== m.sk) setModel(p, m.sk); return p; } var mdl = makeChar({ sk: skOk(m.sk) ? m.sk : 'wald' }); scene.add(mdl.root);
   p = { net: true, skn: skOk(m.sk) ? m.sk : 'wald', id: m.id, bot: false, name: m.n || 'Pote', model: mdl, look: {}, x: m.x, y: m.y, z: m.z, tx: m.x, ty: m.y, tz: m.z, vx: 0, vy: 0, vz: 0, a: m.a || 0, ta: m.a || 0, hp: 100, sh: 0, alive: true, mode: 'ground', gy: m.y,
@@ -2850,7 +2850,7 @@ var SKINS = ['#f1c6a0', '#e0ac85', '#c68b5e', '#8d5a3b', '#f5d3b8'];
 var SHIRTS = ['#3dd6ff', '#7dff6a', '#ffb23d', '#c77dff', '#ff7bd5', '#f2f2f2', '#ffd23d', '#5cffc8', '#ff8a3d', '#6a8cff', '#2a2a2a', '#e83a3a'];
 var PANTS = ['#2b3a67', '#333', '#5a4630', '#4c6b3a', '#777', '#1d1d24'];
 function makeChar(lk) {
-  if (lk.sk && /^q\d/.test(lk.sk) && window.QS && QS.LIST[lk.sk]) { var cq = makeChar(Object.assign({}, lk, { sk: 'npc', v: 3 })); cq.qWant = lk.sk; QS.apply(cq, lk.sk); return cq; }   /* SKINS DÉTAILLÉS (qskins.js) : perso simple invisible + modèle animé accroché dessus */
+  if (lk.sk && window.QS && QS.LIST[lk.sk]) { var cq = makeChar(Object.assign({}, lk, { sk: 'npc', v: 3 })); cq.qWant = lk.sk; QS.apply(cq, lk.sk); return cq; }   /* SKINS DÉTAILLÉS (qskins.js) : perso simple invisible + modèle animé accroché dessus */
   if (lk.sk && window.buildSkin) { var R = window.buildSkin(THREE, lk.sk, lk); Object.assign(lk, R.cols); R.root.scale.setScalar(.9); return charExtras(R, R.root, R.body, lk); }   // persos un peu plus petits : ils passent les portes
   var root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   function limb(px, py, pz) { var p = new THREE.Group(); p.position.set(px, py, pz); body.add(p); return p; }
@@ -3155,7 +3155,7 @@ if (window.QS) Object.keys(QS.LIST).forEach(function (k) { var d = QS.LIST[k]; S
 var NAMES = ['Kevin_Bronze', 'Mamie_Turbo', 'Le_Boulanger', 'Pupuce', 'xX_Noob_Xx', 'Tonton_Diesel', 'Sardine42', 'Captain_Raclette', 'Bébert', 'Lulu_Drift', 'Chef_Kebab', 'Gégé_Rallye', 'Mimi_Sniper', 'Patrick_Bob', 'Jojo_Lapin', 'Dédé_Pneu', 'Nina_Nitro', 'Cassoulet', 'Mr_Pneu', 'La_Daronne', 'Fifi_Build', 'Tata_Ranked', 'Momo_Légende', 'Bob_Le_Pot', 'Riri_Sweat', 'Zizou_09', 'Gaston_Kart', 'Lili_Pompe', 'Doudou_Tilt'];
 var pl = [];
 for (var ib = 0; ib < NPL; ib++) {
-  var QB = [0, 2, 3, 4, 11, 13, 17, 9], isBot = ib > 0, lk = isBot && ib % 3 !== 0 && ib % 6 !== 5 && window.QS ? { sk: 'q' + QB[(ib * 5) % QB.length] + '_' + ((ib * 7) % 4 === 3 ? 1 : 0), glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { sk: 'npc', v: ib, skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
+  var QB = [0, 2, 3, 4, 11, 13, 17, 9, 5, 8, 12, 14, 18, 20, 1, 10], isBot = ib > 0, lk = isBot && window.QS ? { sk: ib % 9 === 4 ? ['lea', 'stan', 'rico', 'nova', 'flubb'][(ib / 9 | 0) % 5] : 'q' + QB[(ib * 5) % QB.length] + '_' + ((ib * 7) % 4 === 3 ? 1 : 0), glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot && ib % 3 === 1 ? { sk: ['flubb', 'lea', 'stan'][(ib / 3 | 0) % 3], glider: SHIRTS[(ib + 2) % SHIRTS.length] } : isBot ? { sk: 'npc', v: ib, skin: SKINS[ib % SKINS.length], shirt: SHIRTS[ib % SHIRTS.length], pants: PANTS[ib % PANTS.length], legs: SKINS[ib % SKINS.length], shoes: ib % 3 ? '#222' : '#eee', hat: ib % 3 === 0 ? 'cap' : null, hatCol: SHIRTS[(ib + 4) % SHIRTS.length], glider: SHIRTS[(ib + 2) % SHIRTS.length] }
     : { sk: mySkin(), glider: '#ff2bd6', gl: myGl() };
   var mdl = makeChar(lk); scene.add(mdl.root);
   pl.push({ bot: isBot, name: isBot ? NAMES[ib - 1] : 'WALD OFF', model: mdl, look: lk, inv: [null, null, null], slot: 0 });
@@ -3891,7 +3891,7 @@ function solBuild() { if (SOL.built || !SV || !SV.netPlace) return; SOL.built = 
   L.push({ k: 'poupee', x: 0, z: SOLZ1 + 12, s: 2.3, r: 0 }); L.push({ k: 'arche', x: 0, z: SOLZ1, s: SOLW * 2, r: 0 });
   L.forEach(function (d) { d.id = DEVID++; d.sol = 1; d.x0 = d.x; d.y = +hgt(d.x, d.z).toFixed(2); DEV.push(d); }); devBuild();
   /* bots : mêmes positions chez tout le monde (calculées depuis l'heure du serveur) */
-  for (var b = 0; b < 9; b++) { var m = makeChar({ sk: 'npc', v: 2 + b * 3 }); scene.add(m.root); SOL.bots.push({ m: m, i: b }); } }
+  for (var b = 0; b < 9; b++) { var m = makeChar({ sk: 'q' + ((b * 5 + 2) % 21) + '_0' }); scene.add(m.root); SOL.bots.push({ m: m, i: b }); } }
 function solBotState(b, cyc, tc, seq) { var R = mulberry(cyc * 131 + b.i * 17), sp = 2.6 + R() * 2.4, x = -SOLW + 2 + (b.i + .5) / 9 * (SOLW * 2 - 4), z = SOLZ0 - 1.5, moving = false, out = false;
   for (var k = 0; k < seq.length && !out; k++) { var s0 = seq[k]; if (s0[0] > tc) break; if (s0[2] === 'vert' || s0[2] === 'tourne') { var d0 = Math.max(0, Math.min(tc, s0[1]) - s0[0] - (s0[2] === 'vert' ? .25 : 0)); var late = s0[2] === 'tourne' && R() < .18; z += sp * (s0[2] === 'tourne' ? (late ? d0 : 0) : d0); if (s0[2] === 'tourne' && late && tc > s0[1]) { out = true; } moving = tc < s0[1] && (s0[2] === 'vert' || late); } if (z >= SOLZ1) break; }
   return { x: x, z: Math.min(z, SOLZ1 + 3), mv: moving && z < SOLZ1, out: out, fin: z >= SOLZ1 }; }
@@ -4369,7 +4369,7 @@ function lobbySlots(t) { if (!LSL.length) LSLOT.forEach(function (q, i) { var g 
   var M = (PARTY.m || []).filter(function (q) { return q && q.n && q.n !== frName(); });
   LSL.forEach(function (S, i) { S.g.visible = !PREV; var q = M[i], who = q ? q.n : ''; S.plus.material.opacity = .75 + Math.sin(t * 2 + i) * .2; if (who === S.who) { if (S.ch) window.ANIM.apply(S.ch, window.ANIM.idle(t + i), true); return; } S.who = who;
     if (S.ch) { S.g.remove(S.ch.root); S.ch = null; } if (S.tag) { S.g.remove(S.tag); S.tag = null; } S.ghost.root.visible = S.plus.visible = !who;
-    if (who) { var hsh = 0; for (var k = 0; k < who.length; k++) hsh += who.charCodeAt(k); S.ch = makeChar({ sk: 'npc', v: hsh % 12 }); S.ch.root.rotation.y = -Math.PI * .5 + .55; S.g.add(S.ch.root); S.tag = lsSprite(who.slice(0, 14), '#3dd6ff', false); S.tag.position.set(0, 2.25, 0); S.g.add(S.tag); } }); }
+    if (who) { var hsh = 0; for (var k = 0; k < who.length; k++) hsh += who.charCodeAt(k); S.ch = makeChar({ sk: 'q' + (hsh % 21) + '_0' }); S.ch.root.rotation.y = -Math.PI * .5 + .55; S.g.add(S.ch.root); S.tag = lsSprite(who.slice(0, 14), '#3dd6ff', false); S.tag.position.set(0, 2.25, 0); S.g.add(S.tag); } }); }
 var LCLK = null; document.addEventListener('pointerdown', function (e) { LCLK = state === 'menu' && !$('lobby').hidden ? [e.clientX, e.clientY] : null; });
 document.addEventListener('pointerup', function (e) { if (!LCLK || state !== 'menu' || PREV || Math.hypot(e.clientX - LCLK[0], e.clientY - LCLK[1]) > 8 || (e.target.closest && e.target.closest('button,.panel,.tabs,.modal,input,a,#grpBar,.lb-top,.rankbox'))) { LCLK = null; return; } LCLK = null;
   var rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1), lcam); var hs = rc.intersectObjects(LSL.map(function (S) { return S.hit; }));
