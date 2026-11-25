@@ -77,7 +77,7 @@
   /* combinaison peinte sur le corps de base (coordonnées du corps au repos : vB) */
   function suitMat(m, U) { m.onBeforeCompile = function (s) { Object.assign(s.uniforms, U);
       s.vertexShader = 'varying vec3 vB;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvB = position;');
-      s.fragmentShader = 'varying vec3 vB;\nuniform vec3 uC1,uC2,uC3,uC4,uTone;uniform vec4 uOpt;uniform float uPat,uNeck,uMet,uRgh,uMask,uEm,uAll,uNoFeet;\n' + HSV + s.fragmentShader
+      s.fragmentShader = 'varying vec3 vB;\nuniform vec3 uC1,uC2,uC3,uC4,uTone;uniform vec4 uOpt;uniform float uPat,uNeck,uMet,uRgh,uMask,uEm,uAll,uNoFeet,uRot;\n' + HSV + s.fragmentShader
         .replace('#include <map_fragment>', [
           '#include <map_fragment>',
           'vec3 tx=diffuseColor.rgb; float lum=dot(tx,vec3(.2126,.7152,.0722)); float sh=clamp(lum/.30,.62,1.28);',
@@ -95,10 +95,11 @@
           '  if(Y<.95&&uOpt.z>.5){ float ck=mod(floor(vB.x*16.)+floor(Y*16.)+floor(vB.z*16.),2.); col=mix(uC2,mix(uC2,uC4,.55),ck); }',
           '  skR=max(sl,(1.-lo)*leg*(1.-foot)); if(uOpt.w>.5&&Y<.27&&Y>=.135){ skR=0.; col=uC4; } skR=max(skR,hand); col=mix(col,uC1,(1.-step(.02,abs(Y-.955)))*0.); }',
           'else if(uPat<7.5){ col=uC1; float st=(1.-step(.012,abs(Y-1.505)))*arm+(1.-step(.012,abs(abs(vB.x)-.165)))*leg*step(.14,Y); col=mix(col,uC2,clamp(st,0.,1.)); col=mix(col,uC3,(1.-step(.006,X))*Zf*step(1.,Y)*step(Y,uNeck)); skR=hand; }',
+          'else if(uPat<8.5){ float bd=fract(Y*14.+vB.x*1.7+sin(vB.z*30.)*.15); col=mix(uC1,uC2,smoothstep(.0,.12,bd)*(1.-smoothstep(.82,.95,bd))); skR=0.; }',
           'col=mix(col,uC3,max(hand,foot)*(1.-step(5.5,uPat)));',
           'col=mix(col,uC3,foot*step(5.5,uPat));',
           'float mk=uMask*step(uNeck-.01,Y)*step(Y,uNeck+.155)*step(X,.2)*step(-.02,vB.z);',
-          'vec3 skin=tx*uTone; float hS=max(head*(1.-mk),skR); diffuseColor.rgb=mix(col*sh, skin, hS);',
+          'vec3 skin=tx*uTone; if(uRot>0.){ float nz=sin(vB.x*41.+vB.y*23.)*sin(vB.y*37.-vB.z*29.)+sin(vB.z*53.+vB.x*17.)*.5; skin*=mix(1.,.55+.25*sin(vB.y*90.),uRot*smoothstep(.2,.9,nz)); col*=mix(1.,.6,uRot*smoothstep(.35,1.,-nz)); } float hS=max(head*(1.-mk),skR); diffuseColor.rgb=mix(col*sh, skin, hS);',
           'float qS=1.-hS; vec3 qGlow=col*gl*uEm*qS;'
         ].join('\n'))
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor=mix(metalnessFactor,uMet,qS);')
@@ -107,7 +108,7 @@
     m.customProgramCacheKey = function () { return 'qsuit2'; }; }
   /* tissus d'une tenue recolorés (A = tissu principal, B = cuir / bas) ; peau des bras au bon teint */
   function clothMat(m, U, kind) { m.onBeforeCompile = function (s) { Object.assign(s.uniforms, U);
-      s.fragmentShader = 'uniform vec3 uA,uB,uTone;uniform float uOnA,uOnB,uMet,uEm,uKind,uSkin;\n' + HSV + s.fragmentShader
+      s.fragmentShader = 'uniform vec3 uA,uB,uTone;uniform float uOnA,uOnB,uMet,uEm,uKind,uSkin,uRot;\n' + HSV + s.fragmentShader
         .replace('#include <map_fragment>', [
           '#include <map_fragment>',
           'vec3 tx=diffuseColor.rgb; vec3 h=qHsv(tx); float mA=0.,mB=0.; vec3 qGlow=vec3(0.);',
@@ -115,7 +116,7 @@
           'else { if(uKind<.5){ mA=(1.-smoothstep(.09,.13,abs(h.x-.33)))*step(.2,h.y); mB=step(h.x,.17)*step(.25,h.y)*(1.-mA); }',
           '  else { mA=smoothstep(.13,.22,h.z); mB=(1.-mA)*step(.2,h.y); }',
           '  vec3 rA=min(uA*h.z/(uKind<.5?.064:.36),vec3(1.)), rB=min(uB*h.z/(uKind<.5?.105:.07),vec3(1.));',
-          '  diffuseColor.rgb=mix(tx,rA,mA*uOnA); diffuseColor.rgb=mix(diffuseColor.rgb,rB,mB*uOnB); qGlow=rA*mA*uOnA*uEm; }'
+          '  diffuseColor.rgb=mix(tx,rA,mA*uOnA); diffuseColor.rgb=mix(diffuseColor.rgb,rB,mB*uOnB); qGlow=rA*mA*uOnA*uEm; } if(uRot>0.){ float rn=sin(vUv.x*61.+sin(vUv.y*23.)*2.)*sin(vUv.y*57.+sin(vUv.x*19.)*2.)+sin((vUv.x-vUv.y)*41.)*.6; diffuseColor.rgb*=mix(1.,.5,uRot*smoothstep(.45,1.1,rn)); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.8,.85,.7),uRot*.4); }'
         ].join('\n'))
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor=mix(metalnessFactor,uMet,max(mA*uOnA,mB*uOnB*.6));')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=qGlow;'); };
@@ -176,6 +177,21 @@
         var fr = new T.Mesh(new T.BoxGeometry(hr * 1.35, .012, .012), new T.MeshStandardMaterial({ color: C('#d8b040'), metalness: .9, roughness: .2 })); fr.position.set(0, ey + hr * .12, fz - .005); g.add(fr); }
       else { var lens = new T.Mesh(new T.SphereGeometry(hr * 1.06, 32, 12, Math.PI * .2, Math.PI * .6, Math.PI * .43, Math.PI * .16), lm); lens.position.y = ey + hr * .07; lens.scale.set(1, 1, 1.02); g.add(lens);
         var strap = new T.Mesh(new T.CylinderGeometry(hr * 1.02, hr * 1.02, hr * .16, 32, 1, true), new T.MeshStandardMaterial({ color: C(kind === 'ski' ? '#14141a' : '#3dd6ff'), roughness: .7, emissive: C(kind === 'ski' ? '#000' : '#3dd6ff'), emissiveIntensity: kind === 'ski' ? 0 : .6 })); strap.position.y = ey + hr * .07; g.add(strap); } }
+    else if (kind === 'bois') { var bmat = new T.MeshStandardMaterial({ color: C(R.accC || '#d8d0c0'), roughness: .6 });
+      [-1, 1].forEach(function (sd) { var seg2 = function (x0, y0, z0, x1, y1, z1, r) { var a0 = new T.Vector3(x0, y0, z0), a1 = new T.Vector3(x1, y1, z1), dir = a1.clone().sub(a0), m = new T.Mesh(new T.CylinderGeometry(r * .6, r, dir.length(), 8), bmat); m.position.copy(a0).add(a1).multiplyScalar(.5); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir.normalize()); g.add(m); };
+        var b0 = [sd * hr * .5, hr * .85, 0], b1 = [sd * hr * 1.5, hr * 1.9, -hr * .3], b2 = [sd * hr * 2.3, hr * 3.0, -hr * .2];
+        seg2(b0[0], b0[1], b0[2], b1[0], b1[1], b1[2], .022); seg2(b1[0], b1[1], b1[2], b2[0], b2[1], b2[2], .017);
+        seg2(b1[0], b1[1], b1[2], sd * hr * 1.4, hr * 2.9, hr * .5, .012); seg2(b2[0] * .8, b2[1] * .85, b2[2], sd * hr * 1.7, hr * 3.5, hr * .4, .01); seg2(b2[0], b2[1], b2[2], sd * hr * 3.1, hr * 3.4, -hr * .6, .01); }); }
+    else if (kind === 'cornes' || kind === 'champis' || kind === 'cristaux' || kind === 'oeil3') { var ac = C(R.accC || (kind === 'cornes' ? '#e8dcc0' : kind === 'champis' ? '#d83a3a' : kind === 'cristaux' ? '#9ae8ff' : '#ffffff'));
+      if (kind === 'cornes') { var hm2 = new T.MeshStandardMaterial({ color: ac, roughness: .45, metalness: .1 }); [-1, 1].forEach(function (sd) { var cn = new T.Mesh(new T.ConeGeometry(.028, .17, 12), hm2); cn.position.set(sd * hr * .55, hr * .78, hr * .2); cn.rotation.set(-.35, 0, -sd * .62); g.add(cn); var cn2 = new T.Mesh(new T.ConeGeometry(.016, .08, 10), hm2); cn2.position.set(sd * hr * 1.05, hr * 1.38, hr * .05); cn2.rotation.set(-.6, 0, -sd * 1.2); g.add(cn2); }); }
+      else if (kind === 'champis') { var cm2 = new T.MeshStandardMaterial({ color: ac, roughness: .5, emissive: ac, emissiveIntensity: P.em ? .4 : .08 }), st2 = new T.MeshStandardMaterial({ color: C('#efe6d0'), roughness: .7 }), dots = new T.MeshStandardMaterial({ color: C('#ffffff'), roughness: .5 });
+        [[0, 1.0, -.1, .075], [-.6, .75, .25, .05], [.65, .7, .1, .055], [.3, 1.05, -.6, .04], [-.35, .6, -.75, .045]].forEach(function (m) { var gr = new T.Group(); gr.position.set(m[0] * hr, m[1] * hr, m[2] * hr); gr.rotation.set(m[2] * .5, 0, -m[0] * .7);
+          var cap = new T.Mesh(new T.SphereGeometry(m[3], 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), cm2); cap.scale.y = .65; cap.position.y = m[3] * .6; gr.add(cap); var stm = new T.Mesh(new T.CylinderGeometry(m[3] * .32, m[3] * .4, m[3] * .7, 10), st2); stm.position.y = m[3] * .3; gr.add(stm);
+          for (var di = 0; di < 3; di++) { var dt2 = new T.Mesh(new T.SphereGeometry(m[3] * .14, 8, 6), dots); var aa = di * 2.1; dt2.position.set(Math.cos(aa) * m[3] * .55, m[3] * .95, Math.sin(aa) * m[3] * .55); gr.add(dt2); } g.add(gr); }); }
+      else if (kind === 'cristaux') { var crm = new T.MeshStandardMaterial({ color: ac, roughness: .08, metalness: .2, emissive: ac, emissiveIntensity: .7, transparent: true, opacity: .9 });
+        [[0, 1.05, -.2, .06, 0, 0], [-.5, .9, -.3, .045, .5, -.4], [.55, .85, -.25, .05, -.5, .4], [-.25, 1.0, -.7, .04, .3, -.2], [.3, .95, -.75, .04, -.3, .2], [0, .7, -.95, .05, 0, 0]].forEach(function (m) { var cy = new T.Mesh(new T.OctahedronGeometry(m[3], 0), crm); cy.scale.set(.6, 2.2, .6); cy.position.set(m[0] * hr, m[1] * hr, m[2] * hr); cy.rotation.set(m[2] * .9, m[4], m[5]); g.add(cy); }); }
+      else { var ew = new T.Mesh(new T.SphereGeometry(.028, 16, 12), new T.MeshStandardMaterial({ color: C('#f4f0e8'), roughness: .3 })); ew.position.set(0, hr * .42, hr * .93); ew.scale.z = .6; g.add(ew);
+        var ir = new T.Mesh(new T.SphereGeometry(.014, 12, 10), new T.MeshStandardMaterial({ color: C(R.eye || '#3dd6ff'), emissive: C(R.eye || '#3dd6ff'), emissiveIntensity: 2.2 })); ir.position.set(0, hr * .42, hr * .93 + .012); g.add(ir); } }
     else if (kind === 'chaine') { var n0 = BODY[sex].neck, fz = sex === 'm' ? 1 : 1.12; g.position.set(0, 0, 0);
       var cv = new T.CatmullRomCurve3([new T.Vector3(-.085, n0 + .01, -.005), new T.Vector3(-.078, n0 - .06, .085 * fz), new T.Vector3(0, n0 - .13, .128 * fz), new T.Vector3(.078, n0 - .06, .085 * fz), new T.Vector3(.085, n0 + .01, -.005)]);
       g.add(new T.Mesh(new T.TubeGeometry(cv, 48, .0105, 8, false), gold));
@@ -193,15 +209,16 @@
     for (var k = 0; k < 4; k++) { var l = new T.Mesh(new T.BoxGeometry(.05, .008, .012), lm); l.position.set(x, .118 - k * .006, .03 + k * .028); l.rotation.x = -.35; g.add(l); }
     g.traverse(function (q) { if (q.isMesh) { q.castShadow = true; q.frustumCulled = false; } }); return g; }
   /* construit le modèle complet d'un skin */
-  function build(id) { var d = LIST[id], R = RC0[d.base], s = d.sex, P = pal(id); P.v = d.v;
+  function build(id) { var d = LIST[id], P = pal(id); P.v = d.v; return buildRec(RC0[d.base], d.sex, P); }
+  function buildRec(R, s, P) {
     var o = T.SkeletonUtils.clone(F[s + '_base.glb'].scene); o.updateMatrixWorld(true); var B = boneMap(o), body = null, tn = R.skinC ? C(R.skinC).multiplyScalar(1.15) : tone(R.tone == null ? 1 : R.tone);
     o.traverse(function (q) { if (q.isSkinnedMesh && /Superhero/i.test(q.name)) body = q; });
     BODYM = body;
-    var hairMat = null; o.traverse(function (q) { if (!q.isMesh) return; var mt = std(q.material); if (/Hair/.test(q.material.name)) { mt.color = C(P.hc).lerp(C('#2a1a10'), .6); mt.side = T.DoubleSide; hairMat = mt; } q.material = mt; });
+    var hairMat = null; o.traverse(function (q) { if (!q.isMesh) return; var mt = std(q.material); if (/Hair/.test(q.material.name)) { mt.color = C(P.hc).lerp(C('#2a1a10'), .6); mt.side = T.DoubleSide; hairMat = mt; } if (R.eye && /Eye/i.test(q.name) && !/brow/i.test(q.name)) { mt.emissive = C(R.eye); mt.emissiveIntensity = 2.2; mt.color = C(R.eye); } q.material = mt; });
     var suit = R.o === 'suit';
-    var bu = { uC1: U3(P.c1), uC2: U3(P.c2), uC3: U3(P.c3), uC4: U3(R.c4 || '#f2f2f2'), uOpt: { value: new T.Vector4().fromArray(R.opt || [0, 0, 0, 0]) }, uTone: { value: tn }, uPat: { value: suit ? R.pat : 0 }, uNeck: { value: BODY[s].neck }, uMet: { value: P.met }, uRgh: { value: P.rgh }, uMask: { value: R.mask ? 1 : 0 }, uEm: { value: P.em }, uAll: { value: suit ? 0 : 1 }, uNoFeet: { value: suit && R.add && R.add.some(function (a) { return /Feet/.test(a); }) ? 1 : R.shoes ? 2 : 0 } };
+    var bu = { uC1: U3(P.c1), uC2: U3(P.c2), uC3: U3(P.c3), uC4: U3(R.c4 || '#f2f2f2'), uOpt: { value: new T.Vector4().fromArray(R.opt || [0, 0, 0, 0]) }, uTone: { value: tn }, uPat: { value: suit ? R.pat : 0 }, uNeck: { value: R.wrap ? 9 : BODY[s].neck }, uMet: { value: P.met }, uRgh: { value: P.rgh }, uMask: { value: R.mask ? 1 : 0 }, uEm: { value: P.em }, uAll: { value: suit ? 0 : 1 }, uRot: { value: R.rot || 0 }, uNoFeet: { value: suit && R.add && R.add.some(function (a) { return /Feet/.test(a); }) ? 1 : R.shoes ? 2 : 0 } };
     if (body) { if (!suit) body.geometry = headOnly(body.geometry, s); suitMat(body.material, bu); }
-    var cu = function (kind, skin) { return { uA: U3(P.A || '#808080'), uB: U3(P.B || '#808080'), uTone: { value: tn }, uOnA: { value: P.A ? 1 : 0 }, uOnB: { value: P.B ? 1 : 0 }, uMet: { value: P.met }, uEm: { value: P.em }, uKind: { value: kind }, uSkin: { value: skin ? 1 : 0 } }; };
+    var cu = function (kind, skin) { return { uA: U3(P.A || '#808080'), uB: U3(P.B || '#808080'), uTone: { value: tn }, uOnA: { value: P.A ? 1 : 0 }, uOnB: { value: P.B ? 1 : 0 }, uMet: { value: P.met }, uEm: { value: P.em }, uKind: { value: kind }, uSkin: { value: skin ? 1 : 0 }, uRot: { value: R.rot || 0 } }; };
     var dress = function (list, kind) { list.forEach(function (m) { var mt = std(m.material), skin = /Regular/.test(m.material.name); clothMat(mt, cu(kind, skin)); m.material = mt; }); };
     var hood = R.o === 'ranger' && !(R.hide || []).some(function (h) { return h === 'Hood'; });
     if (R.o === 'ranger') dress(graft(o, s + '_ranger.glb', function (n) { return !(R.hide || []).some(function (h) { return n.indexOf(h) >= 0; }); }), 0);
@@ -294,6 +311,14 @@
       if (o.armed && !o.veh && !o.swim) return { up: true, legs: loco.clip, clip: loco.clip, ts: loco.ts };
       return loco; }
   };
+  /* modèle seul (sans perso du jeu) : créatures humaines du Mode Histoire. R = recette, sex = 'm'/'f'. Renvoie null tant que ce n'est pas chargé. */
+  QS.monReady = function (R, sex) { if (!T) return false; RC0._ = R; var d = { base: '_', sex: sex }, ok = ready(d); if (!ok) need(d); delete RC0._; return ok; };
+  QS.mon = function (R, sex) { if (!T) return null; var d = { base: '_', sex: sex }; RC0._ = R; if (!ready(d)) { need(d); delete RC0._; return null; }
+    var P = { c1: R.c1, c2: R.c2, c3: R.c3, A: R.A, B: R.B, met: 0, rgh: .6, em: R.em || 0, hc: R.hc || '#222' }, o = buildRec(R, sex, P); delete RC0._;
+    o.updateMatrixWorld(true); var bb = new T.Box3().setFromObject(o), h = Math.max(.5, bb.max.y - bb.min.y); if (h > 2.4) h = sex === 'm' ? 1.81 : 1.77;
+    var s = 1.95 / h, g = new T.Group(); o.scale.setScalar(s); g.add(o); g.rotation.y = 0; if (R.headS) o.traverse(function (q) { if (q.isBone && q.name === 'Head') q.scale.setScalar(R.headS); });
+    var mix = new T.AnimationMixer(o), CLP = clips(sex), A = {}; ['Zombie_Idle_Loop', 'Zombie_Walk_Fwd_Loop', 'Jog_Fwd_Loop', 'Sprint_Loop', 'Zombie_Scratch', 'Death01', 'Hit_Chest', 'Crouch_Fwd_Loop', 'Crouch_Idle_Loop', 'Walk_Loop', 'Idle_Loop', 'Punch_Cross', 'Melee_Hook'].forEach(function (k) { if (CLP[k]) A[k] = mix.clipAction(CLP[k]); });
+    return { g: g, o: o, mix: mix, A: A }; };
   function isChild(q, p) { while (q) { if (q === p) return true; q = q.parent; } return false; }
   QS.poseNow = function (c) { if (c.qs !== c.qWant) QS.apply(c, c.qWant); if (!c.qs) return; var now = performance.now(), dt = Math.min(.1, (now - (c.qT || now)) / 1000) || .016; c.qT = now; QS.drive(c, { pose: true }, dt); };
   if (window.ANIM) { var oa = ANIM.apply; ANIM.apply = function (c, o, g) { oa(c, o, g); if (c && c.qWant && !c.qSelf && T) QS.poseNow(c); }; }

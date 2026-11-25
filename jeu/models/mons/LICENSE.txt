@@ -1,0 +1,5 @@
+Créatures du Mode Histoire (dossier models/mons) :
+- Quaternius « Ultimate Monsters » et « Ultimate Animated Animals » (Deer) — https://quaternius.com
+- KayKit « Character Pack: Skeletons » par Kay Lousberg (Skeleton_Minion, Skeleton_Warrior) — https://kaylousberg.com
+Licence : CC0 1.0 Universal (domaine public). Textures converties en JPEG.
+Les autres créatures sont faites avec les corps Quaternius Universal Base Characters (models/u, CC0).

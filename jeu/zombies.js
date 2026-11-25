@@ -57,9 +57,68 @@
       else { var a2 = Math.random() * 6.283, d2 = 60 + Math.random() * 200; x = P.x + Math.cos(a2) * d2; z = P.z + Math.sin(a2) * d2; }
       var dp = Math.hypot(x - P.x, z - P.z); if (dp < 60 || !C.onLand(x, z) || C.inLake(x, z, 3) || C.hgt(x, z) > 70) continue;
       var k = pickKind(night); Z.push({ id: NID++, k: k, x: x, z: z, y: C.hgt(x, z), a: Math.random() * 6.28, hp: KIND[k].hp, st: 'idle', t: Math.random() * 3, hx: x, hz: z, step: 0, groan: 3, atk: 0 }); return; } }
-  function makeModel(k) { var K = KIND[k], c = C.makeChar(Object.assign({ sk: 'zombie', zv: K.m, v: (POOL.length * 3 + 1) }, K.o || {})); c.root.visible = false; c.root.scale.setScalar(K.sc); C.scene.add(c.root); c.root.traverse(function (o) { o.frustumCulled = false; }); var e = { k: k, c: c, z: null }; POOL.push(e); return e; }
-  function grab(z) { for (var i = 0; i < POOL.length; i++) { var p = POOL[i]; if (!p.z && p.k === z.k) { p.z = z; z.m = p; p.c.root.visible = true; return; } }
-    if (built < 90 && POOL.filter(function (q) { return q.k === z.k; }).length < (KIND[z.k].w >= 10 ? 5 : 2)) { built++; var e = makeModel(z.k); e.z = z; z.m = e; e.c.root.visible = true; } }
+  /* ===== CRÉATURES v2 : vrais modèles animés (motion capture / Quaternius, KayKit), plus de pantins ===== */
+  var HZ = function (o) { return Object.assign({ rot: .85 }, o); };
+  var VIS = {
+    rodeur: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a6a58', B: '#3a3026', hair: 'simpleparted', hc: '#2a2a22', skinC: '#8a9a78', eye: '#c8ff4a' }) },
+    brute: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2018', hide: ['Hood'], hair: 'buzzed', hc: '#222222', skinC: '#7a8a66', eye: '#ff5a2a', beard: 1 }) },
+    coureur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#5a5048', c2: '#2a2a30', c3: '#3a3028', c4: '#6a6a58', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#1a1a14', skinC: '#9aa888', rot: 1, eye: '#e8ff4a' }) },
+    bizarre: { sex: 'm', h: HZ({ o: 'suit', pat: 6, c1: '#4a3a5a', c2: '#2a2030', c3: '#2a2030', c4: '#666666', opt: [0, 1, 0, 0], skinC: '#b0a0c8', rot: 1, eye: '#3dd6ff', headS: 1.45 }) },
+    hurleur: { sex: 'f', h: HZ({ o: 'peasant', A: '#8a5a8a', B: '#3a1a3a', hair: 'long', hc: '#4a2a4a', skinC: '#d8a0d0', rot: .7, eye: '#ff2bd6', acc: ['cornes'], accC: '#3a1a3a' }) },
+    colosse: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a5a2a', B: '#2a3a1a', hide: ['Hood'], skinC: '#6a8a4a', rot: 1, eye: '#c8ff2a', acc: ['champis'], accC: '#7aa04a', beard: 1, hc: '#2a3a1a' }) },
+    spectre: { sex: 'f', fly: .35, ghost: '#7ab8ff', h: HZ({ o: 'suit', pat: 1, c1: '#c8e0ff', c2: '#3a4a8a', c3: '#c8e0ff', hair: 'long', hc: '#e8f0ff', skinC: '#c8e0ff', rot: .3, eye: '#3dd6ff', em: .6 }) },
+    roi: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#5a1a8a', c2: '#14041e', c3: '#ffd23d', hair: 'simpleparted', hc: '#c8b8d8', skinC: '#a87ad0', rot: .5, eye: '#ffd23d', beard: 1, acc: ['couronne'], add: ['Feet_Boots', 'Belt', 'Pauldron', 'Bracer'], B: '#1a0a2a' }) },
+    noye: { sex: 'm', h: HZ({ o: 'peasant', A: '#5a7a88', B: '#1a2a3a', hair: 'simpleparted', hc: '#1a2a2a', skinC: '#7aa0a8', rot: .9, eye: '#3dd6ff' }) },
+    rampant: { sex: 'm', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'peasant', A: '#5a5a48', B: '#2a2418', skinC: '#9aa88a', rot: 1, eye: '#e8ff4a' }) },
+    fermier: { sex: 'm', h: HZ({ o: 'peasant', A: '#8a6a3a', B: '#3a4a7a', hair: 'simpleparted', hc: '#5a4a2a', beard: 1, skinC: '#a8b07a', eye: '#ffd23d' }) },
+    momie: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8c49a', c2: '#8a7a5a', c3: '#a89870', skinC: '#c8b48a', rot: .35, eye: '#ffb52e', wrap: 1 }) },
+    osdur: { g: 'Skeleton_Minion', hs: 1 },
+    sauteur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a5a2a', c2: '#1a2a12', c3: '#1a2a12', c4: '#555555', opt: [0, 0, 0, 0], skinC: '#b0d080', rot: .9, eye: '#c8ff2a' }) },
+    champi: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a4a3a', B: '#2a1a12', skinC: '#b8a888', rot: .9, eye: '#ffd23d', acc: ['champis'] }) },
+    cornu: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#4a2a2a', c2: '#2a1414', c3: '#2a1414', c4: '#555555', opt: [0, 1, 0, 0], skinC: '#a87a6a', rot: .9, eye: '#ff6a2a', acc: ['cornes'], beard: 1, hc: '#2a1a10' }) },
+    gele: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#c8e8f0', c2: '#4a6a8a', c3: '#9ae8ff', skinC: '#c8e8f0', rot: .4, eye: '#ffffff', acc: ['cristaux'], accC: '#9ae8ff' }) },
+    braise: { sex: 'm', h: HZ({ o: 'suit', pat: 5, c1: '#1a0a08', c2: '#ff6a1a', c3: '#3a1a10', skinC: '#6a3a30', rot: .8, eye: '#ff8a2a', em: 1.6 }) },
+    cultiste: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a0a5a', B: '#1a0628', skinC: '#b0a0c0', rot: .6, eye: '#ff2bd6' }) },
+    mineur: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2418', hide: ['Hood'], skinC: '#9a9aa8', rot: .8, eye: '#7a5aff', acc: ['cristaux'], accC: '#8a5aff', beard: 1, hc: '#3a3a3a' }) },
+    bossu: { sex: 'm', walk: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'ranger', A: '#5a4a3a', B: '#2a2018', hide: ['Hood', 'Pauldron'], hair: 'buzzed', hc: '#333333', skinC: '#a8b090', rot: .9, eye: '#e8ff4a' }) },
+    pleureur: { sex: 'f', h: HZ({ o: 'suit', pat: 6, c1: '#d8d8e0', c2: '#5a5a6a', c3: '#3a3a4a', c4: '#888888', opt: [1, 1, 0, 0], hair: 'long', hc: '#d8d8e8', skinC: '#d8d8e0', rot: .6, eye: '#ffffff' }) },
+    cerf: { g: 'Deer', tint: '#3a2a1a', hs: 1.05, quad: 1 },
+    tisseuse: { sex: 'f', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#1a1020', c2: '#100a14', c3: '#100a14', c4: '#333333', opt: [1, 1, 0, 0], hair: 'buns', hc: '#100a14', skinC: '#6a4a6a', rot: .8, eye: '#ff3a3a', acc: ['oeil3'] }) },
+    trioeil: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a3a7a', B: '#2a1a3a', skinC: '#c8a0d8', rot: .7, eye: '#3dd6ff', acc: ['oeil3'], headS: 1.2 }) },
+    sanguin: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a0a0a', c2: '#1a0606', c3: '#2a0808', c4: '#550000', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#330000', skinC: '#c84a4a', rot: 1, eye: '#ff2020' }) },
+    capitaine: { g: 'Skeleton_Warrior', tint: '#8ab0b0', hs: 1.05 },
+    ombre: { sex: 'm', fly: .4, ghost: '#6a1060', h: HZ({ o: 'ranger', A: '#0a0610', B: '#06040a', skinC: '#1a1020', rot: .2, eye: '#ff2bd6' }) },
+    reine: { sex: 'f', h: HZ({ o: 'peasant', A: '#c84a9a', B: '#4a1a3a', hair: 'long', hc: '#ff8ad8', skinC: '#d8a8c8', rot: .5, eye: '#ff2bd6', acc: ['champis'], accC: '#ff2bd6', em: .4 }) },
+    brasier: { sex: 'm', h: HZ({ o: 'suit', pat: 5, c1: '#140806', c2: '#ff4a00', c3: '#2a1008', skinC: '#4a2a20', rot: .9, eye: '#ff8a2a', em: 1.8, acc: ['cornes'], accC: '#1a1210', add: ['Feet_Boots', 'Pauldron', 'Bracer'], B: '#1a0a06' }) },
+    titan: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#b8d8e8', c2: '#2a4a6a', c3: '#bff4ff', skinC: '#b8d8e8', rot: .4, eye: '#ffffff', acc: ['cristaux'], accC: '#bff4ff', beard: 1, hc: '#e8f4ff', add: ['Feet_Boots', 'Pauldron'], B: '#3a5a7a' }) },
+    devoreur: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8d0c0', c2: '#2a2020', c3: '#d8d0c0', skinC: '#d8d0c0', rot: .6, eye: '#3dd6ff', acc: ['bois'], accC: '#e8e0d0', add: ['Pauldron', 'Bracer', 'Feet_Boots'], B: '#2a2020' }) } };
+  var GL = {}, GLB = {}, MDIR = 'models/mons/';
+  function glLoad(n) { if (GL[n] !== undefined || GLB[n] || !T.GLTFLoader) return; GLB[n] = 1; new T.GLTFLoader().load(MDIR + n + '.glb', function (g) { GL[n] = g; delete GLB[n]; }, null, function () { GL[n] = null; delete GLB[n]; }); }
+  function clipFind(list, res) { for (var i = 0; i < res.length; i++) for (var j = 0; j < list.length; j++) if (res[i].test(list[j].name)) return list[j]; return null; }
+  /* crée le modèle v2 d'une espèce ; null si pas encore chargé (on garde l'ancien modèle en attendant) */
+  function visModel(k) { var K = KIND[k], V = VIS[K.id]; if (!V || !T.SkeletonUtils) return null; var root = new T.Group(), e;
+    if (V.h) { if (!window.QS) return null; var R = Object.assign({}, V.h); if (R.wrap) R.mask = 0; var M = QS.mon(R, V.sex); if (!M) return null;
+      M.g.rotation.y = Math.PI / 2; root.add(M.g); var A = M.A; if (V.fly) M.g.position.y = V.fly;
+      if (V.ghost) M.o.traverse(function (q) { if (!q.isMesh) return; var mt = q.material; mt.transparent = true; mt.opacity = .5; mt.depthWrite = false; mt.emissive = new T.Color(V.ghost); mt.emissiveIntensity = .55; q.castShadow = false; });
+      e = { mix: M.mix, act: { idle: A[V.idle || 'Zombie_Idle_Loop'], walk: A[V.walk || 'Zombie_Walk_Fwd_Loop'], run: A[V.run || 'Jog_Fwd_Loop'], atk: A.Zombie_Scratch, die: A.Death01, hit: A.Hit_Chest }, wsp: 1.1, rsp: V.run ? 6 : 3.6 }; }
+    else { var G = GL[V.g]; if (G === undefined) { glLoad(V.g); return null; } if (!G) return null;
+      var o = T.SkeletonUtils.clone(G.scene), tint = V.tint ? new T.Color(V.tint) : null, white = new T.Color(1, 1, 1);
+      o.traverse(function (q) { if (!q.isMesh) return; q.castShadow = true; q.frustumCulled = false; var ms = Array.isArray(q.material) ? q.material : [q.material];
+        ms = ms.map(function (m) { var n = m.clone(); if (tint) { if (n.map) n.color = white.clone().lerp(tint, .55); else n.color.lerp(tint, .6); } if (V.em) { n.emissive = new T.Color(V.em); n.emissiveIntensity = .35; } n.userData.e0 = n.emissive ? n.emissive.clone() : null; return n; });
+        q.material = Array.isArray(q.material) ? ms : ms[0]; });
+      o.updateMatrixWorld(true); var bb = new T.Box3().setFromObject(o), h = Math.max(.3, bb.max.y - bb.min.y), sc = 1.95 * (V.hs || 1) / h; if (V.quad) sc = 1.75 * (V.hs || 1) / h;
+      o.scale.setScalar(sc); o.position.y = -bb.min.y * sc + (V.fly || 0); var g2 = new T.Group(); g2.add(o); g2.rotation.y = Math.PI / 2; root.add(g2);
+      var mx = new T.AnimationMixer(o), cl = G.animations, act = function (res) { var c = clipFind(cl, res); return c ? mx.clipAction(c) : null; };
+      var idle = act([/(^|\|)Idle$/, /Flying_Idle/, /Idle_Combat/]), walk = act([/(^|\|)Walk$/, /Walking_A/, /Fast_Flying/]) || idle;
+      e = { mix: mx, act: { idle: idle, walk: walk, run: act([/(^|\|)Run$/, /Running_A/, /Gallop/, /Fast_Flying/]) || walk, atk: act([/(^|\|)Punch$/, /Bite_Front/, /Headbutt/, /1H_Melee_Attack_Chop/, /Attack/]), die: act([/Death/]), hit: act([/HitReact/, /HitRecieve/, /Hit_A/]) }, wsp: 1.2, rsp: 3.8 }; }
+    ['atk', 'die', 'hit'].forEach(function (n) { var a = e.act[n]; if (a) { a.setLoop(T.LoopOnce); a.clampWhenFinished = true; } });
+    root.traverse(function (q) { q.frustumCulled = false; if (q.isMesh) q.castShadow = true; }); e.root = root; e.v2 = 1; e.cur = null; return e; }
+  function visModelReady(k) { var V = VIS[KIND[k].id]; if (!V) return false; if (V.h) return !!(window.QS && QS.monReady && QS.monReady(V.h, V.sex)); if (GL[V.g] === undefined) glLoad(V.g); return !!GL[V.g]; }
+  function vPlay(e, n, fade, ts) { var a = e.act[n] || e.act.idle; if (!a) return; if (ts != null) a.timeScale = ts; if (e.cur === a) return; if (n === 'atk' || n === 'die' || n === 'hit') a.reset(); a.play(); a.setEffectiveWeight(1); if (e.cur) e.cur.crossFadeTo(a, fade || .2, false); e.cur = a; e.curN = n; }
+  function makeModel(k) { var K = KIND[k], vm = visModel(k); if (vm) { vm.root.visible = false; vm.root.scale.setScalar(K.sc); C.scene.add(vm.root); var ev = { k: k, c: { root: vm.root }, v: vm, z: null }; POOL.push(ev); return ev; }
+    var c = C.makeChar(Object.assign({ sk: 'zombie', zv: K.m, v: (POOL.length * 3 + 1) }, K.o || {})); c.root.visible = false; c.root.scale.setScalar(K.sc); C.scene.add(c.root); c.root.traverse(function (o) { o.frustumCulled = false; }); var e = { k: k, c: c, z: null }; POOL.push(e); return e; }
+  function grab(z) { var vOK = !!visModelReady(z.k); for (var i = 0; i < POOL.length; i++) { var p = POOL[i]; if (!p.z && p.k === z.k && (!vOK || p.v)) { p.z = z; z.m = p; p.c.root.visible = true; return; } }
+    if (built < 90 && POOL.filter(function (q) { return q.k === z.k && (!vOK || q.v); }).length < (KIND[z.k].w >= 10 ? 5 : 2)) { built++; var e = makeModel(z.k); e.z = z; z.m = e; e.c.root.visible = true; } }
   function release(z) { if (!z.m) return; z.m.c.root.visible = false; z.m.z = null; z.m = null; }
   function blockWall(z, dx, dz) {   // un mur juste devant (dans la direction de la marche) ?
     var best = null, bt = 1.3; for (var i = 0; i < C.WALLS.length; i++) { var w = C.WALLS[i]; if (!w.alive || Math.abs(w.x - z.x) > 6 || Math.abs(w.z - z.z) > 6) continue;
@@ -92,7 +151,7 @@
   }
   window.ZOMB = {
     on: false,
-    init: function (THREE, ctx, kill) { T = THREE; C = ctx; A = C.ANIM; onKill = kill; gen(); this.on = true; }, kinds: function () { return KIND; }, demo: function (k, c, now, spd) { if (!A) A = window.ANIM; var z = { m: { c: c }, k: k, spd: spd == null ? 1.2 : spd, step: now * 1.6, id: k * 3, atk: 0 }; pose(z, 1, now); },
+    init: function (THREE, ctx, kill) { T = THREE; C = ctx; A = C.ANIM; onKill = kill; gen(); this.on = true; ['Skeleton_Minion', 'Skeleton_Warrior', 'Deer'].forEach(glLoad); if (window.QS && QS.monReady) { QS.monReady(VIS.rodeur.h, 'm'); QS.monReady(VIS.brute.h, 'm'); QS.monReady(VIS.hurleur.h, 'f'); QS.monReady(VIS.coureur.h, 'm'); } }, vis: function () { return VIS; }, _vis: function (k, TT) { if (!T) T = TT; return visModel(k); }, _ready: function (k, TT) { if (!T) T = TT; return visModelReady(k); }, kinds: function () { return KIND; }, demo: function (k, c, now, spd) { if (!A) A = window.ANIM; var z = { m: { c: c }, k: k, spd: spd == null ? 1.2 : spd, step: now * 1.6, id: k * 3, atk: 0 }; pose(z, 1, now); },
     total: function () { return Z.length; }, left: function () { return Z.filter(function (z) { return !z.dead; }).length; },
     deadIds: function () { return Z.filter(function (z) { return z.dead; }).map(function (z) { return z.id; }); },
     reset: function (dead) { var D = {}; RESP = []; Z.forEach(function (z) { release(z); z.dead = !!D[z.id]; z.x = z.hx; z.z = z.hz; z.y = C.hgt(z.x, z.z); z.hp = KIND[z.k].hp; z.st = 'idle'; z.atk = 0; z.spd = 0; }); },
@@ -104,30 +163,34 @@
       if (Math.random() < .002) { Z = Z.filter(function (q) { return !q.dead || q.m; }); var al = Z.filter(function (q) { return !q.dead; }).length; if (al + RESP.length < POP) RESP.push(5); }
       var sense = night ? 48 : 26, pAlive = P.alive && C.state() === 'play';
       for (var i = 0; i < Z.length; i++) { var z = Z[i], d = Math.hypot(z.x - P.x, z.z - P.z);
-        if (z.dead) { if (z.m) { z.dt0 += dt; var c = z.m.c, f = Math.min(1, z.dt0 / .6); c.root.rotation.set(0, -z.a, -f * 1.45); c.root.position.y = z.y - Math.max(0, z.dt0 - 2.5) * .8; if (z.dt0 > 4) release(z); } continue; }
+        if (z.dead) { if (z.m) { z.dt0 += dt; var c = z.m.c; if (z.m.v) { vPlay(z.m.v, 'die', .15, 1); z.m.v.mix.update(dt); c.root.position.y = z.y - Math.max(0, z.dt0 - 2.6) * .7; } else { var f = Math.min(1, z.dt0 / .6); c.root.rotation.set(0, -z.a, -f * 1.45); c.root.position.y = z.y - Math.max(0, z.dt0 - 2.5) * .8; } if (z.dt0 > 4.2) release(z); } continue; }
         if (d > 170) { if (z.m) release(z); continue; }   // endormi loin du joueur
         var k = KIND[z.k], tx = null, tz = null, spd = 0; z.t -= dt; if (z.atk > 0) z.atk -= dt;
         if (pAlive && (d < sense || (z.st === 'chase' && d < sense * 2.2))) { if (z.st !== 'chase') { z.st = 'chase'; if (d < 40) C.tone('sawtooth', 110 + z.k * 25, 70, .5, .05); } }
         else if (z.st === 'chase') { z.st = 'idle'; z.t = 2; }
         if (z.st === 'chase') { tx = P.x; tz = P.z; spd = d < 1.4 ? 0 : k.run * (night ? 1.15 : 1);
-          if (d < 1.55 && Math.abs(P.y - z.y) < 1.8 && z.atk <= 0) { z.atk = 1.1; z.hitAt = .5; }
+          if (d < 1.55 && Math.abs(P.y - z.y) < 1.8 && z.atk <= 0) { z.atk = 1.1; z.hitAt = .5; z.atkNew = 1; }
           if (z.atk > 0 && z.hitAt > 0 && 1.1 - z.atk >= z.hitAt) { z.hitAt = 0; if (d < 2 && Math.abs(P.y - z.y) < 2) { C.hurt(P, k.dmg); C.noise(.12, .2, 700); } }
           if ((z.groan -= dt) < 0 && d < 30) { z.groan = 4 + Math.random() * 6; C.tone('sawtooth', 80 + Math.random() * 50, 55, .7, .045); } }
         else { if (z.t <= 0) { z.t = 3 + Math.random() * 6; if (Math.random() < .55) { var a = Math.random() * 6.283, rr = 4 + Math.random() * 12; z.wx = z.hx + Math.cos(a) * rr; z.wz = z.hz + Math.sin(a) * rr; } else { z.wx = z.x; z.wz = z.z; } }
           tx = z.wx; tz = z.wz; spd = Math.hypot(tx - z.x, tz - z.z) > 1 ? k.walk : 0; }
         if (spd > 0) { var dx = tx - z.x, dz = tz - z.z, l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; var ta = Math.atan2(dz, dx), da = ((ta - z.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI; z.a += da * Math.min(1, dt * 6);
           var w = d < 70 ? blockWall(z, dx, dz) : null;
-          if (w && z.st === 'chase') { spd = 0; if (z.atk <= 0) { z.atk = 1.1; C.hitWall(w, k.dmg * 1.4, null); C.noise(.1, .15, 500); } }   // il tape le mur
+          if (w && z.st === 'chase') { spd = 0; if (z.atk <= 0) { z.atk = 1.1; z.atkNew = 1; C.hitWall(w, k.dmg * 1.4, null); C.noise(.1, .15, 500); } }   // il tape le mur
           else { z.x += dx * spd * dt; z.z += dz * spd * dt; if (d < 80) { var o = { x: z.x, z: z.z, y: z.y, vx: dx * spd, vz: dz * spd }; C.pushCircle(o, .42 * k.sc); z.x = o.x; z.z = o.z; } } }
         z.spd = spd; var gy = C.hgt(z.x, z.z); if (C.groundAt) gy = Math.max(gy, C.groundAt(z.x, z.z, z.y)); z.y += (gy - z.y) * Math.min(1, dt * 12);
-        if (d < 95 && !z.m) grab(z); else if (d > 110 && z.m) release(z);
-        if (z.m) { var c2 = z.m.c; c2.root.position.set(z.x, z.y, z.z); c2.root.rotation.set(0, -z.a, 0); if (z.flash > 0) z.flash -= dt; pose(z, dt, now); } }
+        if (d < 95 && !z.m) grab(z); else if (d > 110 && z.m) release(z); else if (z.m && !z.m.v && (z.id + (now * 2 | 0)) % 20 === 0 && visModelReady(z.k)) { release(z); grab(z); }
+        if (z.m) { var c2 = z.m.c; c2.root.position.set(z.x, z.y, z.z); c2.root.rotation.set(0, -z.a, 0); if (z.flash > 0) z.flash -= dt;
+          if (z.m.v) { var e = z.m.v; if (z.atkNew) { z.atkNew = 0; vPlay(e, 'atk', .1, 1.3); } else if (z.hitNew && e.curN !== 'atk') { z.hitNew = 0; vPlay(e, 'hit', .08, 1.4); }
+            if (!(e.curN === 'atk' || e.curN === 'hit') || !e.cur.isRunning()) { if (z.spd < .15) vPlay(e, 'idle', .25, 1); else if (z.spd > k.walk * 1.5) vPlay(e, 'run', .2, Math.max(.6, Math.min(1.7, z.spd / e.rsp))); else vPlay(e, 'walk', .25, Math.max(.6, Math.min(1.8, z.spd / e.wsp))); }
+            c2.root.scale.setScalar(k.sc * (z.flash > 0 ? 1.06 : 1)); if (d < 60 || ((z.id + (now * 10 | 0)) % 3) === 0) e.mix.update(d < 60 ? dt : dt * 3); }
+          else pose(z, dt, now); } }
     },
     ray: function (ox, oy, oz, dx, dy, dz, maxT, fat) { var best = null, bt = maxT, f = fat || 0;
       for (var i = 0; i < Z.length; i++) { var z = Z[i]; if (z.dead || Math.abs(z.x - ox) > maxT + 2 || Math.abs(z.z - oz) > maxT + 2) continue; var s = KIND[z.k].sc, hh = 2.05 * s, r = .45 * s + f;
         var t = C.rayBox(ox, oy, oz, dx, dy, dz, z.x - r, z.y, z.z - r, z.x + r, z.y + hh + f * .5, z.z + r); if (t < bt) { bt = t; best = { t: t, kind: 'zomb', o: z, head: oy + dy * t - z.y > hh - .55 * s }; } }
       return best; },
-    hurt: function (z, d, by) { if (z.dead) return; z.hp -= d; z.st = 'chase'; z.flash = .15; if (z.hp <= 0) die(z, by); else C.noise(.06, .08, 1200); },
+    hurt: function (z, d, by) { if (z.dead) return; z.hp -= d; z.st = 'chase'; z.flash = .15; z.hitNew = 1; if (z.hp <= 0) die(z, by); else C.noise(.06, .08, 1200); },
     melee: function (x, y, z0, fx, fz, range, dmg) { var best = null, bd = range; Z.forEach(function (z) { if (z.dead) return; var dx = z.x - x, dz = z.z - z0, d = Math.hypot(dx, dz); if (d > bd || Math.abs(z.y - y) > 2.2) return; if ((dx * fx + dz * fz) / (d || 1) < .2 && d > .8) return; bd = d; best = z; });
       if (best) { this.hurt(best, dmg, C.me()); C.burst(best.x, best.y + 1.3, best.z, 8, ['#7aff4a', '#3a8a2a'], 4, .15, .5); C.dmgNum(best.x, best.y + 1.8, best.z, dmg, false, false); } return best; },
     nearest: function (x, z) { var b = null, bd = 1e9; Z.forEach(function (q) { if (q.dead) return; var d = Math.hypot(q.x - x, q.z - z); if (d < bd) { bd = d; b = q; } }); return b ? { z: b, d: bd } : null; }
