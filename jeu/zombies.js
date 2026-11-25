@@ -58,40 +58,40 @@
       var dp = Math.hypot(x - P.x, z - P.z); if (dp < 60 || !C.onLand(x, z) || C.inLake(x, z, 3) || C.hgt(x, z) > 70) continue;
       var k = pickKind(night); Z.push({ id: NID++, k: k, x: x, z: z, y: C.hgt(x, z), a: Math.random() * 6.28, hp: KIND[k].hp, st: 'idle', t: Math.random() * 3, hx: x, hz: z, step: 0, groan: 3, atk: 0 }); return; } }
   /* ===== CRÉATURES v2 : vrais modèles animés (motion capture / Quaternius, KayKit), plus de pantins ===== */
-  var HZ = function (o) { return Object.assign({ rot: .85 }, o); };
+  var HZ = function (o) { var r = Object.assign({ rot: 1 }, o); r.rot = Math.max(.9, r.rot); return r; };
   var VIS = {
-    rodeur: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a6a58', B: '#3a3026', hair: 'simpleparted', hc: '#2a2a22', skinC: '#8a9a78', eye: '#c8ff4a' }) },
-    brute: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2018', hide: ['Hood'], hair: 'buzzed', hc: '#222222', skinC: '#7a8a66', eye: '#ff5a2a', beard: 1 }) },
-    coureur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#5a5048', c2: '#2a2a30', c3: '#3a3028', c4: '#6a6a58', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#1a1a14', skinC: '#9aa888', rot: 1, eye: '#e8ff4a' }) },
-    bizarre: { sex: 'm', h: HZ({ o: 'suit', pat: 6, c1: '#4a3a5a', c2: '#2a2030', c3: '#2a2030', c4: '#666666', opt: [0, 1, 0, 0], skinC: '#b0a0c8', rot: 1, eye: '#3dd6ff', headS: 1.45 }) },
-    hurleur: { sex: 'f', h: HZ({ o: 'peasant', A: '#8a5a8a', B: '#3a1a3a', hair: 'long', hc: '#4a2a4a', skinC: '#d8a0d0', rot: .7, eye: '#ff2bd6', acc: ['cornes'], accC: '#3a1a3a' }) },
-    colosse: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a5a2a', B: '#2a3a1a', hide: ['Hood'], skinC: '#6a8a4a', rot: 1, eye: '#c8ff2a', acc: ['champis'], accC: '#7aa04a', beard: 1, hc: '#2a3a1a' }) },
+    rodeur: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a6a58', B: '#3a3026', hair: 'simpleparted', hc: '#2a2a22', skinC: '#8a9a78', eye: '#c040ff' }) },
+    brute: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2018', hide: ['Hood'], hair: 'buzzed', hc: '#222222', skinC: '#7a8a66', eye: '#c040ff', beard: 1 }) },
+    coureur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#5a5048', c2: '#2a2a30', c3: '#3a3028', c4: '#6a6a58', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#1a1a14', skinC: '#9aa888', rot: 1, eye: '#c040ff' }) },
+    bizarre: { sex: 'm', h: HZ({ o: 'suit', pat: 6, c1: '#4a3a5a', c2: '#2a2030', c3: '#2a2030', c4: '#666666', opt: [0, 1, 0, 0], skinC: '#b0a0c8', rot: 1, eye: '#c040ff', headS: 1.45 }) },
+    hurleur: { sex: 'f', h: HZ({ o: 'peasant', A: '#8a5a8a', B: '#3a1a3a', hair: 'long', hc: '#4a2a4a', skinC: '#d8a0d0', rot: .7, eye: '#c040ff', acc: ['cornes'], accC: '#3a1a3a' }) },
+    colosse: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a5a2a', B: '#2a3a1a', hide: ['Hood'], skinC: '#6a8a4a', rot: 1, eye: '#c040ff', acc: ['champis'], accC: '#7aa04a', beard: 1, hc: '#2a3a1a' }) },
     spectre: { sex: 'f', fly: .35, ghost: '#7ab8ff', h: HZ({ o: 'suit', pat: 1, c1: '#c8e0ff', c2: '#3a4a8a', c3: '#c8e0ff', hair: 'long', hc: '#e8f0ff', skinC: '#c8e0ff', rot: .3, eye: '#3dd6ff', em: .6 }) },
     roi: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#5a1a8a', c2: '#14041e', c3: '#ffd23d', hair: 'simpleparted', hc: '#c8b8d8', skinC: '#a87ad0', rot: .5, eye: '#ffd23d', beard: 1, acc: ['couronne'], add: ['Feet_Boots', 'Belt', 'Pauldron', 'Bracer'], B: '#1a0a2a' }) },
-    noye: { sex: 'm', h: HZ({ o: 'peasant', A: '#5a7a88', B: '#1a2a3a', hair: 'simpleparted', hc: '#1a2a2a', skinC: '#7aa0a8', rot: .9, eye: '#3dd6ff' }) },
-    rampant: { sex: 'm', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'peasant', A: '#5a5a48', B: '#2a2418', skinC: '#9aa88a', rot: 1, eye: '#e8ff4a' }) },
-    fermier: { sex: 'm', h: HZ({ o: 'peasant', A: '#8a6a3a', B: '#3a4a7a', hair: 'simpleparted', hc: '#5a4a2a', beard: 1, skinC: '#a8b07a', eye: '#ffd23d' }) },
-    momie: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8c49a', c2: '#8a7a5a', c3: '#a89870', skinC: '#c8b48a', rot: .35, eye: '#ffb52e', wrap: 1 }) },
+    noye: { sex: 'm', h: HZ({ o: 'peasant', A: '#5a7a88', B: '#1a2a3a', hair: 'simpleparted', hc: '#1a2a2a', skinC: '#7aa0a8', rot: .9, eye: '#c040ff' }) },
+    rampant: { sex: 'm', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'peasant', A: '#5a5a48', B: '#2a2418', skinC: '#9aa88a', rot: 1, eye: '#c040ff' }) },
+    fermier: { sex: 'm', h: HZ({ o: 'peasant', A: '#8a6a3a', B: '#3a4a7a', hair: 'simpleparted', hc: '#5a4a2a', beard: 1, skinC: '#a8b07a', eye: '#c040ff' }) },
+    momie: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8c49a', c2: '#8a7a5a', c3: '#a89870', skinC: '#c8b48a', rot: .35, eye: '#c040ff', wrap: 1 }) },
     osdur: { g: 'Skeleton_Minion', hs: 1 },
-    sauteur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a5a2a', c2: '#1a2a12', c3: '#1a2a12', c4: '#555555', opt: [0, 0, 0, 0], skinC: '#b0d080', rot: .9, eye: '#c8ff2a' }) },
-    champi: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a4a3a', B: '#2a1a12', skinC: '#b8a888', rot: .9, eye: '#ffd23d', acc: ['champis'] }) },
-    cornu: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#4a2a2a', c2: '#2a1414', c3: '#2a1414', c4: '#555555', opt: [0, 1, 0, 0], skinC: '#a87a6a', rot: .9, eye: '#ff6a2a', acc: ['cornes'], beard: 1, hc: '#2a1a10' }) },
+    sauteur: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a5a2a', c2: '#1a2a12', c3: '#1a2a12', c4: '#555555', opt: [0, 0, 0, 0], skinC: '#b0d080', rot: .9, eye: '#c040ff' }) },
+    champi: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a4a3a', B: '#2a1a12', skinC: '#b8a888', rot: .9, eye: '#c040ff', acc: ['champis'] }) },
+    cornu: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#4a2a2a', c2: '#2a1414', c3: '#2a1414', c4: '#555555', opt: [0, 1, 0, 0], skinC: '#a87a6a', rot: .9, eye: '#c040ff', acc: ['cornes'], beard: 1, hc: '#2a1a10' }) },
     gele: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#c8e8f0', c2: '#4a6a8a', c3: '#9ae8ff', skinC: '#c8e8f0', rot: .4, eye: '#ffffff', acc: ['cristaux'], accC: '#9ae8ff' }) },
     braise: { sex: 'm', h: HZ({ o: 'suit', pat: 5, c1: '#1a0a08', c2: '#ff6a1a', c3: '#3a1a10', skinC: '#6a3a30', rot: .8, eye: '#ff8a2a', em: 1.6 }) },
-    cultiste: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a0a5a', B: '#1a0628', skinC: '#b0a0c0', rot: .6, eye: '#ff2bd6' }) },
-    mineur: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2418', hide: ['Hood'], skinC: '#9a9aa8', rot: .8, eye: '#7a5aff', acc: ['cristaux'], accC: '#8a5aff', beard: 1, hc: '#3a3a3a' }) },
-    bossu: { sex: 'm', walk: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'ranger', A: '#5a4a3a', B: '#2a2018', hide: ['Hood', 'Pauldron'], hair: 'buzzed', hc: '#333333', skinC: '#a8b090', rot: .9, eye: '#e8ff4a' }) },
-    pleureur: { sex: 'f', h: HZ({ o: 'suit', pat: 6, c1: '#d8d8e0', c2: '#5a5a6a', c3: '#3a3a4a', c4: '#888888', opt: [1, 1, 0, 0], hair: 'long', hc: '#d8d8e8', skinC: '#d8d8e0', rot: .6, eye: '#ffffff' }) },
+    cultiste: { sex: 'm', h: HZ({ o: 'ranger', A: '#3a0a5a', B: '#1a0628', skinC: '#b0a0c0', rot: .6, eye: '#c040ff' }) },
+    mineur: { sex: 'm', h: HZ({ o: 'ranger', A: '#4a4a3a', B: '#2a2418', hide: ['Hood'], skinC: '#9a9aa8', rot: .8, eye: '#c040ff', acc: ['cristaux'], accC: '#8a5aff', beard: 1, hc: '#3a3a3a' }) },
+    bossu: { sex: 'm', walk: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'ranger', A: '#5a4a3a', B: '#2a2018', hide: ['Hood', 'Pauldron'], hair: 'buzzed', hc: '#333333', skinC: '#a8b090', rot: .9, eye: '#c040ff' }) },
+    pleureur: { sex: 'f', h: HZ({ o: 'suit', pat: 6, c1: '#d8d8e0', c2: '#5a5a6a', c3: '#3a3a4a', c4: '#888888', opt: [1, 1, 0, 0], hair: 'long', hc: '#d8d8e8', skinC: '#d8d8e0', rot: .6, eye: '#c040ff' }) },
     cerf: { g: 'Deer', tint: '#3a2a1a', hs: 1.05, quad: 1 },
-    tisseuse: { sex: 'f', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#1a1020', c2: '#100a14', c3: '#100a14', c4: '#333333', opt: [1, 1, 0, 0], hair: 'buns', hc: '#100a14', skinC: '#6a4a6a', rot: .8, eye: '#ff3a3a', acc: ['oeil3'] }) },
-    trioeil: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a3a7a', B: '#2a1a3a', skinC: '#c8a0d8', rot: .7, eye: '#3dd6ff', acc: ['oeil3'], headS: 1.2 }) },
-    sanguin: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a0a0a', c2: '#1a0606', c3: '#2a0808', c4: '#550000', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#330000', skinC: '#c84a4a', rot: 1, eye: '#ff2020' }) },
+    tisseuse: { sex: 'f', walk: 'Crouch_Fwd_Loop', run: 'Crouch_Fwd_Loop', idle: 'Crouch_Idle_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#1a1020', c2: '#100a14', c3: '#100a14', c4: '#333333', opt: [1, 1, 0, 0], hair: 'buns', hc: '#100a14', skinC: '#6a4a6a', rot: .8, eye: '#c040ff', acc: ['oeil3'] }) },
+    trioeil: { sex: 'm', h: HZ({ o: 'peasant', A: '#6a3a7a', B: '#2a1a3a', skinC: '#c8a0d8', rot: .7, eye: '#c040ff', acc: ['oeil3'], headS: 1.2 }) },
+    sanguin: { sex: 'm', run: 'Sprint_Loop', h: HZ({ o: 'suit', pat: 6, c1: '#3a0a0a', c2: '#1a0606', c3: '#2a0808', c4: '#550000', opt: [0, 1, 0, 0], hair: 'buzzed', hc: '#330000', skinC: '#c84a4a', rot: 1, eye: '#c040ff' }) },
     capitaine: { g: 'Skeleton_Warrior', tint: '#8ab0b0', hs: 1.05 },
     ombre: { sex: 'm', fly: .4, ghost: '#6a1060', h: HZ({ o: 'ranger', A: '#0a0610', B: '#06040a', skinC: '#1a1020', rot: .2, eye: '#ff2bd6' }) },
-    reine: { sex: 'f', h: HZ({ o: 'peasant', A: '#c84a9a', B: '#4a1a3a', hair: 'long', hc: '#ff8ad8', skinC: '#d8a8c8', rot: .5, eye: '#ff2bd6', acc: ['champis'], accC: '#ff2bd6', em: .4 }) },
+    reine: { sex: 'f', h: HZ({ o: 'peasant', A: '#c84a9a', B: '#4a1a3a', hair: 'long', hc: '#ff8ad8', skinC: '#d8a8c8', rot: .5, eye: '#c040ff', acc: ['champis'], accC: '#ff2bd6', em: .4 }) },
     brasier: { sex: 'm', h: HZ({ o: 'suit', pat: 5, c1: '#140806', c2: '#ff4a00', c3: '#2a1008', skinC: '#4a2a20', rot: .9, eye: '#ff8a2a', em: 1.8, acc: ['cornes'], accC: '#1a1210', add: ['Feet_Boots', 'Pauldron', 'Bracer'], B: '#1a0a06' }) },
     titan: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#b8d8e8', c2: '#2a4a6a', c3: '#bff4ff', skinC: '#b8d8e8', rot: .4, eye: '#ffffff', acc: ['cristaux'], accC: '#bff4ff', beard: 1, hc: '#e8f4ff', add: ['Feet_Boots', 'Pauldron'], B: '#3a5a7a' }) },
-    devoreur: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8d0c0', c2: '#2a2020', c3: '#d8d0c0', skinC: '#d8d0c0', rot: .6, eye: '#3dd6ff', acc: ['bois'], accC: '#e8e0d0', add: ['Pauldron', 'Bracer', 'Feet_Boots'], B: '#2a2020' }) } };
+    devoreur: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8d0c0', c2: '#2a2020', c3: '#d8d0c0', skinC: '#d8d0c0', rot: .6, eye: '#c040ff', acc: ['bois'], accC: '#e8e0d0', add: ['Pauldron', 'Bracer', 'Feet_Boots'], B: '#2a2020' }) } };
   var GL = {}, GLB = {}, MDIR = 'models/mons/';
   function glLoad(n) { if (GL[n] !== undefined || GLB[n] || !T.GLTFLoader) return; GLB[n] = 1; new T.GLTFLoader().load(MDIR + n + '.glb', function (g) { GL[n] = g; delete GLB[n]; }, null, function () { GL[n] = null; delete GLB[n]; }); }
   function clipFind(list, res) { for (var i = 0; i < res.length; i++) for (var j = 0; j < list.length; j++) if (res[i].test(list[j].name)) return list[j]; return null; }
@@ -100,7 +100,7 @@
     if (V.h) { if (!window.QS) return null; var R = Object.assign({}, V.h); if (R.wrap) R.mask = 0; var M = QS.mon(R, V.sex); if (!M) return null;
       M.g.rotation.y = Math.PI / 2; root.add(M.g); var A = M.A; if (V.fly) M.g.position.y = V.fly;
       if (V.ghost) M.o.traverse(function (q) { if (!q.isMesh) return; var mt = q.material; mt.transparent = true; mt.opacity = .5; mt.depthWrite = false; mt.emissive = new T.Color(V.ghost); mt.emissiveIntensity = .55; q.castShadow = false; });
-      e = { mix: M.mix, act: { idle: A[V.idle || 'Zombie_Idle_Loop'], walk: A[V.walk || 'Zombie_Walk_Fwd_Loop'], run: A[V.run || 'Jog_Fwd_Loop'], atk: A.Zombie_Scratch, die: A.Death01, hit: A.Hit_Chest }, wsp: 1.1, rsp: V.run ? 6 : 3.6 }; }
+      e = { mix: M.mix, act: { idle: A[V.idle || 'Zombie_Idle_Loop'], walk: A[V.walk || 'Zombie_Walk_Fwd_Loop'], run: A[V.run || 'Zombie_Walk_Fwd_Loop'], atk: A.Zombie_Scratch, die: A.Death01, hit: A.Hit_Chest }, wsp: 1.1, rsp: V.run ? 6 : 1.6 }; }
     else { var G = GL[V.g]; if (G === undefined) { glLoad(V.g); return null; } if (!G) return null;
       var o = T.SkeletonUtils.clone(G.scene), tint = V.tint ? new T.Color(V.tint) : null, white = new T.Color(1, 1, 1);
       o.traverse(function (q) { if (!q.isMesh) return; q.castShadow = true; q.frustumCulled = false; var ms = Array.isArray(q.material) ? q.material : [q.material];

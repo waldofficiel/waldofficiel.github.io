@@ -77,7 +77,7 @@
   /* combinaison peinte sur le corps de base (coordonnées du corps au repos : vB) */
   function suitMat(m, U) { m.onBeforeCompile = function (s) { Object.assign(s.uniforms, U);
       s.vertexShader = 'varying vec3 vB;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvB = position;');
-      s.fragmentShader = 'varying vec3 vB;\nuniform vec3 uC1,uC2,uC3,uC4,uTone;uniform vec4 uOpt;uniform float uPat,uNeck,uMet,uRgh,uMask,uEm,uAll,uNoFeet,uRot;\n' + HSV + s.fragmentShader
+      s.fragmentShader = 'varying vec3 vB;\nvec3 zSkin(vec3 tx,vec3 p,vec3 tint){float l=dot(tx,vec3(.2126,.7152,.0722));float s2=clamp(l/.28,.45,1.4);float n1=sin(p.x*37.+p.y*17.)*sin(p.y*29.-p.z*23.)+sin(p.z*47.+p.x*19.)*.6;float n2=sin(p.x*71.+p.y*53.)*sin(p.y*67.+p.z*49.);vec3 c=mix(vec3(.075,.12,.05),vec3(.10,.04,.14),smoothstep(-.1,1.1,n1));c=mix(c,c*.3,smoothstep(.5,.95,n2));float vn=1.-smoothstep(.0,.05,abs(sin(p.x*140.+sin(p.y*60.)*2.)*sin(p.y*120.+p.z*40.)));c=mix(c,vec3(.10,.01,.16),vn*.55);return mix(c,tint*.6,.18)*s2;}\nuniform vec3 uC1,uC2,uC3,uC4,uTone;uniform vec4 uOpt;uniform float uPat,uNeck,uMet,uRgh,uMask,uEm,uAll,uNoFeet,uRot;\n' + HSV + s.fragmentShader
         .replace('#include <map_fragment>', [
           '#include <map_fragment>',
           'vec3 tx=diffuseColor.rgb; float lum=dot(tx,vec3(.2126,.7152,.0722)); float sh=clamp(lum/.30,.62,1.28);',
@@ -99,7 +99,7 @@
           'col=mix(col,uC3,max(hand,foot)*(1.-step(5.5,uPat)));',
           'col=mix(col,uC3,foot*step(5.5,uPat));',
           'float mk=uMask*step(uNeck-.01,Y)*step(Y,uNeck+.155)*step(X,.2)*step(-.02,vB.z);',
-          'vec3 skin=tx*uTone; if(uRot>0.){ float nz=sin(vB.x*41.+vB.y*23.)*sin(vB.y*37.-vB.z*29.)+sin(vB.z*53.+vB.x*17.)*.5; skin*=mix(1.,.55+.25*sin(vB.y*90.),uRot*smoothstep(.2,.9,nz)); col*=mix(1.,.6,uRot*smoothstep(.35,1.,-nz)); } float hS=max(head*(1.-mk),skR); diffuseColor.rgb=mix(col*sh, skin, hS);',
+          'vec3 skin=tx*uTone; if(uRot>0.){ skin=zSkin(tx,vB,uTone); float nt=sin(vB.x*29.+vB.y*7.)*sin(vB.y*33.+vB.z*21.)+sin(vB.y*13.-vB.x*17.)*.7+.45*sin(vB.x*97.+vB.y*71.)*sin(vB.y*89.-vB.z*63.); float jag=.04*sin(vB.y*70.+vB.z*55.)+.03*sin(vB.x*110.); float hem=step(.47+jag,abs(vB.x))*step(1.25,vB.y)+(1.-step(.36+jag,vB.y))*step(.135,vB.y)*(1.-step(.3,abs(vB.x))); float torn=max(step(.92,nt),hem); skR=max(skR,uRot*torn*(1.-head)); col*=mix(.75,.45,uRot*smoothstep(-.4,.8,nt)); col=mix(col,vec3(.12,.14,.06),uRot*.25); } float hS=max(head*(1.-mk),skR); diffuseColor.rgb=mix(col*sh, skin, hS);',
           'float qS=1.-hS; vec3 qGlow=col*gl*uEm*qS;'
         ].join('\n'))
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor=mix(metalnessFactor,uMet,qS);')
@@ -108,15 +108,16 @@
     m.customProgramCacheKey = function () { return 'qsuit2'; }; }
   /* tissus d'une tenue recolorés (A = tissu principal, B = cuir / bas) ; peau des bras au bon teint */
   function clothMat(m, U, kind) { m.onBeforeCompile = function (s) { Object.assign(s.uniforms, U);
-      s.fragmentShader = 'uniform vec3 uA,uB,uTone;uniform float uOnA,uOnB,uMet,uEm,uKind,uSkin,uRot;\n' + HSV + s.fragmentShader
+      s.vertexShader = 'varying vec3 vB;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvB = position;');
+      s.fragmentShader = 'varying vec3 vB;\nvec3 zSkin(vec3 tx,vec3 p,vec3 tint){float l=dot(tx,vec3(.2126,.7152,.0722));float s2=clamp(l/.28,.45,1.4);float n1=sin(p.x*37.+p.y*17.)*sin(p.y*29.-p.z*23.)+sin(p.z*47.+p.x*19.)*.6;float n2=sin(p.x*71.+p.y*53.)*sin(p.y*67.+p.z*49.);vec3 c=mix(vec3(.075,.12,.05),vec3(.10,.04,.14),smoothstep(-.1,1.1,n1));c=mix(c,c*.3,smoothstep(.5,.95,n2));float vn=1.-smoothstep(.0,.05,abs(sin(p.x*140.+sin(p.y*60.)*2.)*sin(p.y*120.+p.z*40.)));c=mix(c,vec3(.10,.01,.16),vn*.55);return mix(c,tint*.6,.18)*s2;}\nuniform vec3 uA,uB,uTone;uniform float uOnA,uOnB,uMet,uEm,uKind,uSkin,uRot;\n' + HSV + s.fragmentShader
         .replace('#include <map_fragment>', [
           '#include <map_fragment>',
           'vec3 tx=diffuseColor.rgb; vec3 h=qHsv(tx); float mA=0.,mB=0.; vec3 qGlow=vec3(0.);',
-          'if(uSkin>.5){ diffuseColor.rgb=tx*uTone; }',
+          'if(uSkin>.5){ diffuseColor.rgb=uRot>0.?zSkin(tx,vB,uTone):tx*uTone; }',
           'else { if(uKind<.5){ mA=(1.-smoothstep(.09,.13,abs(h.x-.33)))*step(.2,h.y); mB=step(h.x,.17)*step(.25,h.y)*(1.-mA); }',
           '  else { mA=smoothstep(.13,.22,h.z); mB=(1.-mA)*step(.2,h.y); }',
           '  vec3 rA=min(uA*h.z/(uKind<.5?.064:.36),vec3(1.)), rB=min(uB*h.z/(uKind<.5?.105:.07),vec3(1.));',
-          '  diffuseColor.rgb=mix(tx,rA,mA*uOnA); diffuseColor.rgb=mix(diffuseColor.rgb,rB,mB*uOnB); qGlow=rA*mA*uOnA*uEm; } if(uRot>0.){ float rn=sin(vUv.x*61.+sin(vUv.y*23.)*2.)*sin(vUv.y*57.+sin(vUv.x*19.)*2.)+sin((vUv.x-vUv.y)*41.)*.6; diffuseColor.rgb*=mix(1.,.5,uRot*smoothstep(.45,1.1,rn)); diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.8,.85,.7),uRot*.4); }'
+          '  diffuseColor.rgb=mix(tx,rA,mA*uOnA); diffuseColor.rgb=mix(diffuseColor.rgb,rB,mB*uOnB); qGlow=rA*mA*uOnA*uEm; } if(uRot>0.&&uSkin<.5){ float nt=sin(vB.x*29.+vB.y*7.)*sin(vB.y*33.+vB.z*21.)+sin(vB.y*13.-vB.x*17.)*.7+.45*sin(vB.x*97.+vB.y*71.)*sin(vB.y*89.-vB.z*63.); float jag=.04*sin(vB.y*70.+vB.z*55.)+.03*sin(vB.x*110.); float hem=step(.47+jag,abs(vB.x))*step(1.25,vB.y)+(1.-step(.36+jag,vB.y))*step(.135,vB.y)*(1.-step(.3,abs(vB.x))); float torn=max(step(1.2,nt),hem); if(torn>.5) discard; float rn=sin(vB.x*29.+vB.y*7.)*sin(vB.y*33.+vB.z*21.)+sin(vB.y*13.-vB.x*17.)*.7; diffuseColor.rgb*=mix(.7,.35,uRot*smoothstep(-.4,.9,rn)); diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.10,.12,.05),uRot*.3); }'
         ].join('\n'))
         .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor=mix(metalnessFactor,uMet,max(mA*uOnA,mB*uOnB*.6));')
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance+=qGlow;'); };
@@ -217,7 +218,7 @@
     var hairMat = null; o.traverse(function (q) { if (!q.isMesh) return; var mt = std(q.material); if (/Hair/.test(q.material.name)) { mt.color = C(P.hc).lerp(C('#2a1a10'), .6); mt.side = T.DoubleSide; hairMat = mt; } if (R.eye && /Eye/i.test(q.name) && !/brow/i.test(q.name)) { mt.emissive = C(R.eye); mt.emissiveIntensity = 2.2; mt.color = C(R.eye); } q.material = mt; });
     var suit = R.o === 'suit';
     var bu = { uC1: U3(P.c1), uC2: U3(P.c2), uC3: U3(P.c3), uC4: U3(R.c4 || '#f2f2f2'), uOpt: { value: new T.Vector4().fromArray(R.opt || [0, 0, 0, 0]) }, uTone: { value: tn }, uPat: { value: suit ? R.pat : 0 }, uNeck: { value: R.wrap ? 9 : BODY[s].neck }, uMet: { value: P.met }, uRgh: { value: P.rgh }, uMask: { value: R.mask ? 1 : 0 }, uEm: { value: P.em }, uAll: { value: suit ? 0 : 1 }, uRot: { value: R.rot || 0 }, uNoFeet: { value: suit && R.add && R.add.some(function (a) { return /Feet/.test(a); }) ? 1 : R.shoes ? 2 : 0 } };
-    if (body) { if (!suit) body.geometry = headOnly(body.geometry, s); suitMat(body.material, bu); }
+    if (body) { if (!suit && !R.rot) body.geometry = headOnly(body.geometry, s); suitMat(body.material, bu); }   /* zombie : on garde tout le corps sous la tenue (il se voit par les déchirures) */
     var cu = function (kind, skin) { return { uA: U3(P.A || '#808080'), uB: U3(P.B || '#808080'), uTone: { value: tn }, uOnA: { value: P.A ? 1 : 0 }, uOnB: { value: P.B ? 1 : 0 }, uMet: { value: P.met }, uEm: { value: P.em }, uKind: { value: kind }, uSkin: { value: skin ? 1 : 0 }, uRot: { value: R.rot || 0 } }; };
     var dress = function (list, kind) { list.forEach(function (m) { var mt = std(m.material), skin = /Regular/.test(m.material.name); clothMat(mt, cu(kind, skin)); m.material = mt; }); };
     var hood = R.o === 'ranger' && !(R.hide || []).some(function (h) { return h === 'Hood'; });
