@@ -8,23 +8,46 @@
   var T, C, X, ON = false, L = [], MAT = {}, GB = null, SAVE = { meat: 0, tamed: 0, names: [] }, SPAWNT = 0, EVT = null, EVTT = 90, UI = null, LAST = 0;
   /* modèles 3D animés Quaternius « Ultimate Animated Animals » (CC0) dans models/animaux/ : arrondis, 12 animations chacun */
   var K = {
-    loup: { n: 'Loup', f: 'Wolf', hgt: .95, hp: 70, walk: 1.6, run: 7.2, dmg: 9, meat: 1, mode: 'neutre' },
-    taureau: { n: 'Taureau', f: 'Bull', hgt: 1.55, hp: 120, walk: 1.2, run: 6.5, dmg: 14, meat: 3, mode: 'hostile' },
-    vache: { n: 'Vache', f: 'Cow', hgt: 1.45, hp: 60, walk: 1, run: 4.2, meat: 3, mode: 'passif' },
-    lama: { n: 'Lama', f: 'Alpaca', hgt: 1.7, hp: 45, walk: 1.1, run: 5, meat: 2, mode: 'passif' },
-    renard: { n: 'Renard', f: 'Fox', hgt: .55, hp: 20, walk: 1.5, run: 7.5, meat: 1, mode: 'passif' },
-    biche: { n: 'Biche', f: 'Deer', hgt: 1.35, hp: 45, walk: 1.3, run: 8.5, meat: 2, mode: 'passif' },
-    cerf: { n: 'Cerf', f: 'Stag', hgt: 1.9, hp: 70, walk: 1.4, run: 8.5, meat: 3, mode: 'passif' }
+    loup: { n: 'Loup', f: 'Wolf', hgt: .95, hp: 70, walk: 1.6, run: 7.2, dmg: 9, meat: 1, mode: 'neutre', fur: .05 },
+    taureau: { n: 'Taureau', f: 'Bull', hgt: 1.55, hp: 120, walk: 1.2, run: 6.5, dmg: 14, meat: 3, mode: 'hostile', fur: .018 },
+    vache: { n: 'Vache', f: 'Cow', hgt: 1.45, hp: 60, walk: 1, run: 4.2, meat: 3, mode: 'passif', fur: .014 },
+    lama: { n: 'Lama', f: 'Alpaca', hgt: 1.7, hp: 45, walk: 1.1, run: 5, meat: 2, mode: 'passif', fur: .06 },
+    renard: { n: 'Renard', f: 'Fox', hgt: .55, hp: 20, walk: 1.5, run: 7.5, meat: 1, mode: 'passif', fur: .055 },
+    biche: { n: 'Biche', f: 'Deer', hgt: 1.35, hp: 45, walk: 1.3, run: 8.5, meat: 2, mode: 'passif', fur: .022 },
+    cerf: { n: 'Cerf', f: 'Stag', hgt: 1.9, hp: 70, walk: 1.4, run: 8.5, meat: 3, mode: 'passif', fur: .022 }
   };
   var WEIGHT = [['renard', 3], ['vache', 3], ['lama', 2], ['biche', 3], ['cerf', 2], ['loup', 3], ['taureau', 2]];
   var TPLS = {}, LOADQ = false;
   function mat(c) { return MAT[c] || (MAT[c] = new T.MeshLambertMaterial({ color: c })); }
   function box(par, w, h, d, x, y, z, c) { var m = new T.Mesh(GB, mat(c)); m.scale.set(w, h, d); m.position.set(x, y, z); m.castShadow = true; par.add(m); return m; }
+  /* ===== FOURRURE (animaux plus beaux) : normales lissées, couleur nuancée, et couches de poils (« shells ») qui suivent les os ===== */
+  var FURV = 'uniform float uSh;\nvarying vec3 vB;\n', FURF = 'uniform float uLv,uFq,uBase;\nvarying vec3 vB;\nfloat fh(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}\nfloat fn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(fh(i),fh(i+vec3(1,0,0)),f.x),mix(fh(i+vec3(0,1,0)),fh(i+vec3(1,1,0)),f.x),f.y),mix(mix(fh(i+vec3(0,0,1)),fh(i+vec3(1,0,1)),f.x),mix(fh(i+vec3(0,1,1)),fh(i+vec3(1,1,1)),f.x),f.y),f.z);}\n';
+  function smoothN(g) { var p = g.attributes.position, n = g.attributes.normal; if (!n) { g.computeVertexNormals(); n = g.attributes.normal; } var map = {}, i, k;
+    for (i = 0; i < p.count; i++) { k = Math.round(p.getX(i) * 2000) + '_' + Math.round(p.getY(i) * 2000) + '_' + Math.round(p.getZ(i) * 2000); var a = map[k] || (map[k] = [0, 0, 0, []]); a[0] += n.getX(i); a[1] += n.getY(i); a[2] += n.getZ(i); a[3].push(i); }
+    Object.keys(map).forEach(function (kk) { var a = map[kk], l = Math.hypot(a[0], a[1], a[2]) || 1; a[3].forEach(function (j) { n.setXYZ(j, a[0] / l, a[1] / l, a[2] / l); }); }); n.needsUpdate = true; }
+  function furBase(m, hb) { var nm = new T.MeshStandardMaterial({ color: m.color.clone(), roughness: .92, metalness: 0, skinning: true }); nm.name = m.name;
+    if (/Eye/i.test(m.name)) { nm.roughness = .08; nm.color.setRGB(.01, .01, .012); return nm; } if (/Nose|Horn|Hoof|Antler/i.test(m.name)) { nm.roughness = .55; return nm; }
+    var fq = 1 / (hb * .05); nm.onBeforeCompile = function (sh) { sh.uniforms.uLv = { value: 0 }; sh.uniforms.uFq = { value: fq }; sh.uniforms.uBase = { value: 1 };
+      sh.vertexShader = FURV + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvB = position;');
+      sh.fragmentShader = FURF + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\nfloat q1=fn(vB*uFq),q2=fn(vB*uFq*4.7);diffuseColor.rgb*=.78+.3*q1+.14*q2;'); };
+    nm.customProgramCacheKey = function () { return 'furB'; }; return nm; }
+  function hbL(q) { if (!q.geometry.boundingBox) q.geometry.computeBoundingBox(); var b = q.geometry.boundingBox; return Math.max(b.max.y - b.min.y, b.max.z - b.min.z, b.max.x - b.min.x) * .6; }
+  function prepFur(o, hb) { o.traverse(function (q) { if (!q.isSkinnedMesh) return; smoothN(q.geometry); hb = hbL(q); var ms = Array.isArray(q.material) ? q.material : [q.material]; ms = ms.map(function (m) { return furBase(m, hb); }); q.material = Array.isArray(q.material) ? ms : ms[0]; }); }
+  var HIDEM = null;
+  function furShells(o, D, hb) { var N = window.SET && SET.gfx >= 2 ? 7 : window.SET && SET.gfx === 0 ? 0 : 4; if (!N || !D.fur) return; if (!HIDEM) { HIDEM = new T.MeshBasicMaterial({ skinning: true }); HIDEM.visible = false; }
+    var list = []; o.traverse(function (q) { if (q.isSkinnedMesh && !q.userData.shell) list.push(q); });
+    list.forEach(function (q) { var hb = hbL(q), ms = Array.isArray(q.material) ? q.material : [q.material], fq = 1 / (hb * .016), len = hb * D.fur;
+      for (var i = 1; i <= N; i++) { var lv = i / N, sm = ms.map(function (m) { if (/Eye|Nose|Horn|Hoof|Antler/i.test(m.name)) return HIDEM; var nm = new T.MeshStandardMaterial({ color: m.color.clone(), roughness: 1, metalness: 0, skinning: true });
+          nm.onBeforeCompile = function (sh) { sh.uniforms.uSh = { value: len * lv }; sh.uniforms.uLv = { value: lv }; sh.uniforms.uFq = { value: fq }; sh.uniforms.uBase = { value: 0 };
+            sh.vertexShader = FURV + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvB = position;').replace('#include <skinning_vertex>', '#include <skinning_vertex>\ntransformed += normalize(objectNormal) * uSh;');
+            sh.fragmentShader = FURF + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\nvec3 cp=vB*uFq; vec3 ce=floor(cp); float hr=fh(ce); vec3 fc=fract(cp)-.5; float rd=length(fc.xz+fc.y*.2); if(hr<uLv*.8||rd>.62*(1.-uLv*.55)) discard; float q1=fn(vB*uFq*.13); diffuseColor.rgb*=(.55+.5*uLv)*(.8+.35*q1);'); };
+          nm.customProgramCacheKey = function () { return 'furS'; }; return nm; });
+        var sh2 = new T.SkinnedMesh(q.geometry, Array.isArray(q.material) ? sm : sm[0]); sh2.userData.shell = 1; sh2.castShadow = false; sh2.frustumCulled = false; q.parent.add(sh2); sh2.position.copy(q.position); sh2.quaternion.copy(q.quaternion); sh2.scale.copy(q.scale); sh2.bind(q.skeleton, q.bindMatrix); } }); }
   function loadAll() { if (LOADQ || !T.GLTFLoader) return; LOADQ = true; var L = new T.GLTFLoader(), keys = Object.keys(K), i = 0;
     (function next() { if (i >= keys.length) return; var k = keys[i++], D = K[k]; L.load('models/animaux/' + D.f + '.glb', function (g) { var o = g.scene; o.updateMatrixWorld(true); var bb = new T.Box3();
         o.traverse(function (q) { if (q.isMesh) { q.geometry.computeBoundingBox(); bb.union(q.geometry.boundingBox.clone().applyMatrix4(q.matrixWorld)); q.castShadow = true; q.frustumCulled = false; } });
         var sz = bb.getSize(new T.Vector3()), sc = D.hgt / Math.max(.01, sz.y); var A = {}; g.animations.forEach(function (c) { A[c.name.split('|').pop()] = c; });
-        TPLS[k] = { scene: o, sc: sc, r: Math.max(sz.x, sz.z) * sc * .33, len: sz.z * sc, A: A }; next(); }, undefined, function () { next(); }); })(); }
+        prepFur(o, sz.y); TPLS[k] = { scene: o, sc: sc, hb: sz.y, r: Math.max(sz.x, sz.z) * sc * .33, len: sz.z * sc, A: A }; next(); }, undefined, function () { next(); }); })(); }
   function model(k, tame) { var tp = TPLS[k]; if (!tp || !window.THREE.SkeletonUtils) return null; var D = K[k], o = THREE.SkeletonUtils.clone(tp.scene), R = new T.Group(); o.scale.setScalar(tp.sc); R.add(o);
     var mx = new T.AnimationMixer(o), act = {}; ['Walk', 'Gallop', 'Idle', 'Idle_2', 'Eating', 'Attack', 'Attack_Headbutt', 'Death', 'Idle_2_HeadLow', 'Idle_Headlow', 'Idle_HitReact1'].forEach(function (n) { if (tp.A[n]) act[n] = mx.clipAction(tp.A[n]); });
     if (act.Death) { act.Death.setLoop(T.LoopOnce); act.Death.clampWhenFinished = true; } ['Attack', 'Attack_Headbutt', 'Idle_HitReact1'].forEach(function (n) { if (act[n]) { act[n].setLoop(T.LoopOnce); act[n].clampWhenFinished = false; } });
@@ -92,6 +115,7 @@
       if (d < 70 || a.tame) m.mx.update(dt); else if ((a.lod = (a.lod || 0) + dt) > .2) { m.mx.update(a.lod); a.lod = 0; }
       if (a.flash > 0) { a.flash -= dt; m.root.visible = Math.sin(now * 60) > -.3; } else m.root.visible = true; } }
   window.FAUNE = {
+    _demo: function (TT, sc) { if (!T) T = TT; loadAll(); var keys = Object.keys(K); if (!keys.every(function (k) { return TPLS[k]; })) return null; var c0 = C; C = { scene: sc }; var out = keys.map(function (k) { var m = model(k); m.k = k; return m; }); C = c0; return out; },
     on: false,
     init: function (THREE, ctx, extra) { T = THREE; C = ctx; X = extra || {}; GB = new T.BoxGeometry(1, 1, 1); load(); loadAll(); ON = this.on = true; uiInit(); setTimeout(tamedSpawn, 1500);
       addEventListener('keydown', function (e) { if (e.code === 'KeyN' && !e.repeat && C.state() === 'play' && !(e.target && /INPUT|TEXTAREA/.test(e.target.tagName))) eat(); }); },
