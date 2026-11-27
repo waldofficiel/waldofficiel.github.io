@@ -92,7 +92,7 @@
     brasier: { sex: 'm', h: HZ({ o: 'suit', pat: 5, c1: '#140806', c2: '#ff4a00', c3: '#2a1008', skinC: '#4a2a20', rot: .9, eye: '#ff8a2a', em: 1.8, acc: ['cornes'], accC: '#1a1210', add: ['Feet_Boots', 'Pauldron', 'Bracer'], B: '#1a0a06' }) },
     titan: { sex: 'm', h: HZ({ o: 'suit', pat: 1, c1: '#b8d8e8', c2: '#2a4a6a', c3: '#bff4ff', skinC: '#b8d8e8', rot: .4, eye: '#ffffff', acc: ['cristaux'], accC: '#bff4ff', beard: 1, hc: '#e8f4ff', add: ['Feet_Boots', 'Pauldron'], B: '#3a5a7a' }) },
     devoreur: { sex: 'm', h: HZ({ o: 'suit', pat: 8, c1: '#d8d0c0', c2: '#2a2020', c3: '#d8d0c0', skinC: '#d8d0c0', rot: .6, eye: '#c040ff', acc: ['bois'], accC: '#e8e0d0', add: ['Pauldron', 'Bracer', 'Feet_Boots'], B: '#2a2020' }) } };
-  var GL = {}, GLB = {}, MDIR = 'models/mons/';
+  var GL = {}, GLB = {}, MDIR = (window.WG_BASE || '') + 'models/mons/';
   function glLoad(n) { if (GL[n] !== undefined || GLB[n] || !T.GLTFLoader) return; GLB[n] = 1; new T.GLTFLoader().load(MDIR + n + '.glb', function (g) { GL[n] = g; delete GLB[n]; }, null, function () { GL[n] = null; delete GLB[n]; }); }
   function clipFind(list, res) { for (var i = 0; i < res.length; i++) for (var j = 0; j < list.length; j++) if (res[i].test(list[j].name)) return list[j]; return null; }
   /* crée le modèle v2 d'une espèce ; null si pas encore chargé (on garde l'ancien modèle en attendant) */

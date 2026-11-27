@@ -9,7 +9,7 @@
    QS.apply(c, id) accroche (charge à la demande), QS.drive(c, st, dt, pitch) anime. ===== */
 (function () {
   var T = null, F = {}, FB = {}, AN = null, ABUSY = 0, CL = {}, GEO = {}, MATC = {};
-  var DIR = 'models/u/';
+  var DIR = (window.WG_BASE || '') + 'models/u/';
   /* [clé, sexe, nom, rareté] : même ordre et mêmes noms qu'avant (achats gardés) */
   var BASES = [
     ['punk', 'm', 'Punk', 0], ['explo', 'm', 'Explorateur', 1], ['surf', 'm', 'Surfeur', 0], ['chill', 'm', 'Chill', 0], ['sweat', 'm', 'Sweat Violet', 0],

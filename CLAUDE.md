@@ -615,3 +615,7 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v155 — Radeau Pétard + poupée Soleil au nouveau format
 - Radeau : `farterQ(i)` = `QS.mon(FREC[i])` (corps des skins, maillot pat 10, `fat` = ventre/fesses dans le shader, `uSq` = fesses qui gonflent au pet, bonnet/lunettes/barbe/couronne de fleurs). `farterPose` : mixer Idle + flexion du dos via `boneTurn` (axe monde) avec restauration `q0` chaque frame (sinon ça s'accumule). Ancien perso cartoon gardé en secours pendant le chargement, remplacé dès que prêt.
 - 1, 2, 3 Soleil : `dollQ(d, dt)` remplace la poupée en primitives par une géante au nouveau format (couettes `buns`, haut jaune, robe cloche, yeux rouges au feu rouge).
+
+## v156 — Cinématiques du launcher au nouveau format
+- `launcher/cine.js` charge `qskins.js` ; `window.WG_BASE = '../jeu/'` sert de préfixe aux dossiers de modèles (`qskins` DIR, `zombies` MDIR).
+- Les zombies des plans (horde, rares, boss, titre) sont les mêmes que dans la Survie (`ZOMB._vis`), animés par `zd()` (mixer idle/walk/run) ; attente 25 s max sinon anciens modèles.

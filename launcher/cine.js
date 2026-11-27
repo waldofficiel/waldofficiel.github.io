@@ -2,8 +2,9 @@
    window.CINE.load(cb)  : charge three + modèles du jeu (créatures, loups, cerfs, taureau, arbres)
    window.CINE.frame(id, t, W, H) -> canvas : dessine le plan « id » au temps t (secondes dans le plan) */
 (function () {
-  var J = '../jeu/', SRC = ['three.min.js', 'GLTFLoader.js', 'SkeletonUtils.js', 'anim.js', 'skins.js', 'zombies.js'], READY = false, LOADING = false, CBS = [];
+  var J = '../jeu/', SRC = ['three.min.js', 'GLTFLoader.js', 'SkeletonUtils.js', 'anim.js', 'skins.js', 'qskins.js', 'zombies.js'], READY = false, LOADING = false, CBS = [];
   var T, R, S, CAM, FOG, HEMI, MOON, RIM, RIM2, FIRE, FLASH, ground, stars, motes, Z = [], ANI = {}, MIX = [], TREES = [], WALLS = [], BOSS = null, CAMPF = null, last = 0;
+  window.WG_BASE = J;
   function js(i, cb) { if (i >= SRC.length) return cb(); if (i === 0 && window.THREE) return js(1, cb); var s = document.createElement('script'); s.src = J + SRC[i]; s.onload = function () { js(i + 1, cb); }; s.onerror = function () { js(i + 1, cb); }; document.head.appendChild(s); }
   function rnd(a) { var s = a || 1; return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
   function setup(done) { T = window.THREE; var cv = document.createElement('canvas'); R = new T.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); R.outputEncoding = T.sRGBEncoding; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.15; R.shadowMap.enabled = true; R.shadowMap.type = T.PCFSoftShadowMap;
@@ -24,10 +25,15 @@
       L.load(J + 'models/trees/' + n + '.glb', function (g) { g.scene.traverse(function (o) { if (!o.isMesh) return; o.castShadow = true; var lf = /leaves/i.test(o.name) || /leaves/i.test(o.material.name || '');
           o.material = new T.MeshStandardMaterial(lf ? { map: tex(pre + '_Leaves.png'), color: '#7a9a8a', alphaTest: .42, side: T.DoubleSide, roughness: .9 } : { map: tex(bark), color: '#b8a8a0', roughness: .95 }); }); TR0[n] = g.scene; fin(); }, null, fin); });
     ['Wolf', 'Stag', 'Bull', 'Deer'].forEach(function (n) { left++; L.load(J + 'models/animaux/' + n + '.glb', function (g) { ANI[n] = g; fin(); }, null, fin); });
-    buildZombies(); buildWalls(); buildCamp(); }
+    left++; waitZ(Date.now(), function () { buildZombies(); fin(); }); buildWalls(); buildCamp(); }
+  /* zombies au NOUVEAU FORMAT (les mêmes que dans la Survie) : on attend qu'ils soient chargés (25 s max, sinon anciens modèles) */
+  var ZK = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  function waitZ(t0, cb) { var Zb = window.ZOMB; if (!Zb || !Zb._ready) return cb(); var ok = ZK.every(function (k) { return Zb._ready(k, T); }); if (ok || Date.now() - t0 > 25000) return cb(); setTimeout(function () { waitZ(t0, cb); }, 250); }
+  function zd(c, now, spd) { if (!c.e) { if (window.ZOMB) window.ZOMB.demo(c.ki, c, now, spd); return; } var e = c.e, n = spd > 1.25 ? 'run' : spd > 0 ? 'walk' : 'idle', a = e.act[n] || e.act.idle; if (a) { a.timeScale = n === 'idle' ? 1 : Math.max(.6, spd) * (n === 'run' ? 1 : e.wsp || 1); if (e.cur !== a) { a.reset(); a.play(); if (e.cur) e.cur.crossFadeTo(a, .25, false); e.cur = a; } }
+    var d = c.lt == null ? .016 : Math.max(0, Math.min(.1, now - c.lt)); c.lt = now; e.mix.update(d); }
   function placeTrees(TR0) { var r = rnd(21), ks = Object.keys(TR0); if (!ks.length) return; for (var i = 0; i < 140; i++) { var a = r() * 6.28, d = 9 + r() * 70, x = Math.cos(a) * d, z = Math.sin(a) * d; if ((Math.abs(x) < 7 && z > -40 && z < 30) || (Math.abs(z) < 11 && Math.abs(x) < 70)) continue; var k = ks[i % ks.length], t = T.SkeletonUtils ? TR0[k].clone() : TR0[k].clone(); t.position.set(x, 0, z); t.rotation.y = r() * 6; t.scale.setScalar(1.6 + r() * 1.4); S.add(t); TREES.push(t); } }
-  function zomb(i, o) { var K = window.ZOMB.kinds()[i], ch = window.buildSkin(T, 'zombie', Object.assign({ sk: 'zombie', zv: K.m, v: i * 3 + 1 }, K.o || {}, o || {})); ch.root.scale.setScalar(K.sc); ch.root.traverse(function (q) { if (q.isMesh) q.castShadow = true; }); ch.ki = i; S.add(ch.root); return ch; }
-  function buildZombies() { if (!window.ZOMB || !window.buildSkin) return; var K = window.ZOMB.kinds(), r = rnd(4);
+  function zomb(i, o) { var K = window.ZOMB.kinds()[i], e = window.ZOMB._ready && window.ZOMB._ready(i, T) ? window.ZOMB._vis(i, T) : null; if (e) { var c2 = { root: e.root, e: e, ki: i }; e.root.scale.setScalar(K.sc); S.add(e.root); return c2; } var ch = window.buildSkin(T, 'zombie', Object.assign({ sk: 'zombie', zv: K.m, v: i * 3 + 1 }, K.o || {}, o || {})); ch.root.scale.setScalar(K.sc); ch.root.traverse(function (q) { if (q.isMesh) q.castShadow = true; }); ch.ki = i; S.add(ch.root); return ch; }
+  function buildZombies() { if (!window.ZOMB) return; var K = window.ZOMB.kinds(), r = rnd(4);
     for (var i = 0; i < 18; i++) { var ki = [0, 1, 2, 3, 0, 2, 4, 5, 0, 6, 7, 2, 1, 8, 9, 0, 10, 11][i] % K.length, ch = zomb(ki); ch.bx = (r() - .5) * 12; ch.bz = -6 - r() * 22; ch.sp = .9 + r() * .7; ch.ph = r() * 9; Z.push(ch); }
     var bi = 0; K.forEach(function (k, i) { if (k.id === 'roi') bi = i; }); BOSS = zomb(bi); BOSS.root.scale.setScalar(4.2); }
   function buildWalls() { var c = document.createElement('canvas'); c.width = 512; c.height = 358; var g = c.getContext('2d'), r = rnd(8); g.fillStyle = '#6a3c18'; g.fillRect(0, 0, 512, 358);
@@ -58,10 +64,10 @@
     MIX.forEach(function (m) { m.update(dt); }); motes.rotation.y += dt * .05; var mp = motes.geometry.attributes.position; for (var i = 0; i < mp.count; i += 7) mp.setY(i, (mp.getY(i) + dt * .4) % 8); mp.needsUpdate = true;
     var fl = Math.random() < .012 ? 1 : 0; FLASH.intensity = Math.max(FLASH.intensity * .85, fl * (id === 'boss' || id === 'brume' || id === 'titre' ? 2.6 : 0));
     if (id === 'brume') { FOG.density = .05 + Math.sin(t) * .01; cam(20 + Math.sin(t * .2) * 2, 1.6 + t * .15, 30 - t * 5, 20 + Math.sin(t * .3) * 3, 1.8, -20, 46); }
-    else if (id === 'horde' || id === 'titre') { Z.forEach(function (c) { var z = c.bz + t * c.sp * 1.1; c.root.position.set(c.bx, 0, z); c.root.rotation.y = -Math.PI / 2 + Math.sin(c.ph + t) * .1; if (window.ZOMB) window.ZOMB.demo(c.ki, c, now + c.ph, 1.2 + c.sp * .3); });
-      if (id === 'horde') cam(Math.sin(t * .4) * 1.2, .5 + t * .06, 4 - t * .2, 0, 1.5, -10, 46); else { cam(0, 1.6, 8, 0, 3.5, -8, 50); if (window.ZOMB) window.ZOMB.demo(BOSS.ki, BOSS, now, .6); BOSS.root.position.z = -26 + t * .8; } }
-    else if (id === 'rares') { [Z[6], Z[7], Z[9]].forEach(function (c, i) { if (!c) return; if (window.ZOMB) window.ZOMB.demo(c.ki, c, now + i, 0); c.root.rotation.y = -Math.PI / 2 + Math.sin(t * .8 + i) * .4; }); RIM.position.set(Math.cos(t) * 10, 4, Math.sin(t) * 10); var a2 = t * .25; cam(Math.sin(a2) * 7, 2.2, 8 + Math.cos(a2) * 1.5, 0, 1.4, 0, 34); }
-    else if (id === 'boss') { if (window.ZOMB) window.ZOMB.demo(BOSS.ki, BOSS, now, t > 1.2 ? 1.3 : 0); BOSS.root.position.z = -6 + Math.max(0, t - 1.2) * 1.2; RIM.intensity = 2 + Math.sin(t * 13) * .8; cam(Math.sin(t * .3) * 1.2, .4, 6 - t * .25, 0, 4.5, -6, 42 + t * 2); }
+    else if (id === 'horde' || id === 'titre') { Z.forEach(function (c) { var z = c.bz + t * c.sp * 1.1; c.root.position.set(c.bx, 0, z); c.root.rotation.y = -Math.PI / 2 + Math.sin(c.ph + t) * .1; zd(c, now + c.ph, 1.2 + c.sp * .3); });
+      if (id === 'horde') cam(Math.sin(t * .4) * 1.2, .5 + t * .06, 4 - t * .2, 0, 1.5, -10, 46); else { cam(0, 1.6, 8, 0, 3.5, -8, 50); zd(BOSS, now, .6); BOSS.root.position.z = -26 + t * .8; } }
+    else if (id === 'rares') { [Z[6], Z[7], Z[9]].forEach(function (c, i) { if (!c) return; zd(c, now + i, 0); c.root.rotation.y = -Math.PI / 2 + Math.sin(t * .8 + i) * .4; }); RIM.position.set(Math.cos(t) * 10, 4, Math.sin(t) * 10); var a2 = t * .25; cam(Math.sin(a2) * 7, 2.2, 8 + Math.cos(a2) * 1.5, 0, 1.4, 0, 34); }
+    else if (id === 'boss') { zd(BOSS, now, t > 1.2 ? 1.3 : 0); BOSS.root.position.z = -6 + Math.max(0, t - 1.2) * 1.2; RIM.intensity = 2 + Math.sin(t * 13) * .8; cam(Math.sin(t * .3) * 1.2, .4, 6 - t * .25, 0, 4.5, -6, 42 + t * 2); }
     else if (id === 'loups') { ACT.forEach(function (q) { q.o.position.x = q.x0 + t * 11.5; }); cam(-14 + t * 10.5, 1.2, 8.5, -12 + t * 11.5, .9, 0, 42); }
     else if (id === 'faune') { var a3 = t * .18; cam(Math.sin(a3) * 12, 2.6, Math.cos(a3) * 12, 0, 1, -4, 40); }
     else if (id === 'base') { WALLS.forEach(function (w) { var k = Math.min(1, Math.max(0, (t - w.userData.d) / .35)); w.scale.set(1, Math.max(.001, k), 1); w.position.y = w.userData.y - (1 - k) * 1.75; }); var a4 = .35 + t * .2; cam(Math.sin(a4) * 12, 4.5, Math.cos(a4) * 12 - 4, 0, 3, -4, 42); }
