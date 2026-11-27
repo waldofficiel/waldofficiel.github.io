@@ -3865,10 +3865,33 @@ function farter(i) { var S = FSTY[i % 4], g = new THREE.Group(), L = function (c
   if (S.hat === 'moustache') { add(hd, new THREE.BoxGeometry(.04, .04, .2), L(S.hc), .235, -.05, 0); add(hd, new THREE.SphereGeometry(.25, 14, 10, 0, Math.PI * 2, 0, Math.PI / 3), L(S.hc), -.02, .04, 0); }
   if (S.hat === 'fleurs') for (var f2 = 0; f2 < 8; f2++) { var a2 = f2 / 8 * 6.283; add(hd, new THREE.SphereGeometry(.05, 8, 6), L(f2 % 2 ? S.hc : '#ffd23d'), Math.cos(a2) * .2, .17, Math.sin(a2) * .2); }
   g.userData.dyn = true; scene.add(g); return g; }
-function farterPose(g, sq, t, i) { var u = g.userData, k = Math.min(1, sq / .2); u.tor.rotation.z = -.75 * k + Math.sin(t * 1.7 + i) * .03; u.hip.rotation.z = -.12 * k; u.hip.position.y = .72 - .06 * k;
+/* persos du radeau au NOUVEAU FORMAT (même corps et squelette que les skins) : gros ventre et grosses fesses dans le shader (uFat), fesses qui gonflent au pet (uSq) */
+var FREC = [{ o: 'suit', pat: 10, c1: '#ff3b6a', c2: '#ffffff', c3: '#2a2a2e', opt: [0, 0, 0, 0], skinC: '#f1c6a0', fat: 1, acc: ['bonnet'], capC: '#3dd6ff' },
+  { o: 'suit', pat: 10, c1: '#ffd23d', c2: '#ffffff', c3: '#2a2a2e', opt: [1, 0, 0, 0], skinC: '#8a5a3a', fat: 1, acc: ['lunettes'], hair: 'buzzed', hc: '#111111' },
+  { o: 'suit', pat: 10, c1: '#3dd6ff', c2: '#ffffff', c3: '#2a2a2e', opt: [0, 0, 0, 0], skinC: '#e8b08a', fat: 1.1, beard: 1, hair: 'simpleparted', hc: '#4a2a14' },
+  { o: 'suit', pat: 10, c1: '#7dff6a', c2: '#ff7ab8', c3: '#2a2a2e', opt: [1, 0, 0, 0], skinC: '#c8906a', fat: .9, acc: ['fleurs'], capC: '#ff4fa8', hair: 'buzzed', hc: '#3a2a1a' }];
+/* GÉANTE DU 1, 2, 3 SOLEIL au NOUVEAU FORMAT : même corps que les skins (fille à couettes, haut jaune, robe orange), qui respire (Idle) ; yeux qui virent au rouge */
+var DOLLR = { o: 'suit', pat: 0, c1: '#ffd23d', c2: '#ff7a1a', c3: '#ff7a1a', opt: [0, 0, 0, 0], hair: 'buns', hc: '#1a1410', skinC: '#f6d2b4', shoes: '#c8304a', sole: '#3a1410', lace: '#ffffff' };
+function dollQ(d, dt) { var u = d.g.userData; if (u.q) { u.q.mix.update(Math.min(.1, dt)); return; } if (!u.top || !window.QS || !QS.monReady || !QS.monReady(DOLLR, 'f')) return; var M = QS.mon(Object.assign({}, DOLLR), 'f'); if (!M) return;
+  var top = u.top; while (top.children.length) top.remove(top.children[0]); var k = 3.55; M.g.scale.setScalar(k); top.add(M.g); var a = M.A.Idle_Loop; if (a) a.play(); M.mix.update(.01); top.updateMatrixWorld(true);
+  var B = {}, V = new THREE.Vector3(); M.o.traverse(function (q) { if (q.isBone) B[q.name] = q; });
+  /* robe cloche (cône) autour du bassin */
+  if (B.pelvis) { B.pelvis.getWorldPosition(V); top.worldToLocal(V); var sk = new THREE.Mesh(new THREE.CylinderGeometry(.16 * k, .42 * k, .52 * k, 22, 1, true), new THREE.MeshLambertMaterial({ color: '#ff7a1a', side: THREE.DoubleSide })); sk.position.set(V.x, V.y - .17 * k, V.z); top.add(sk);
+    var bd = new THREE.Mesh(new THREE.TorusGeometry(.415 * k, .025 * k, 6, 24), new THREE.MeshLambertMaterial({ color: '#ffd23d' })); bd.rotation.x = Math.PI / 2; bd.position.set(V.x, V.y - .42 * k, V.z); top.add(bd); }
+  u.eyes = []; if (B.Head) { B.Head.getWorldPosition(V); top.worldToLocal(V); [-1, 1].forEach(function (e) { var ey = new THREE.Mesh(new THREE.SphereGeometry(.022 * k, 10, 8), new THREE.MeshBasicMaterial({ color: '#ff1a1a' })); ey.position.set(V.x + e * .033 * k, V.y + .075 * k, V.z + .085 * k); ey.visible = false; ey.userData.red = 1; top.add(ey); u.eyes.push(ey); }); }
+  u.q = M; }
+function farterQ(i) { if (!window.QS || !QS.monReady || !QS.monReady(FREC[i % 4], 'm')) return null; var M = QS.mon(Object.assign({}, FREC[i % 4]), 'm'); if (!M) return null;
+  var g = new THREE.Group(); M.g.rotation.y = Math.PI / 2; M.g.scale.setScalar(.8); g.add(M.g); var B = {}; M.o.traverse(function (q) { if (q.isBone) B[q.name] = q; }); var a = M.A.Idle_Loop || M.A.Zombie_Idle_Loop; if (a) a.play();
+  g.userData = { q: M, B: B, bu: M.o.userData.bu, lt: 0, q0: {} }; ['spine_01', 'spine_02', 'Head'].forEach(function (n) { if (B[n]) g.userData.q0[n] = B[n].quaternion.clone(); }); g.userData.dyn = true; scene.add(g); return g; }
+var FAX = new THREE.Vector3(), FQ = new THREE.Quaternion(), FQ2 = new THREE.Quaternion();
+function boneTurn(b, axisW, ang) { b.updateMatrixWorld(true); var wq = b.getWorldQuaternion(FQ2.clone()); FQ.setFromAxisAngle(axisW, ang); wq.premultiply(FQ); var pq = b.parent.getWorldQuaternion(new THREE.Quaternion()); b.quaternion.copy(pq.invert().multiply(wq)); b.updateMatrixWorld(true); }
+function farterPose(g, sq, t, i) { var u = g.userData, k = Math.min(1, sq / .2);
+  if (u.q) { var dt2 = u.lt ? Math.min(.1, Math.max(0, t - u.lt)) : .016; u.lt = t; for (var bn in u.q0) u.B[bn].quaternion.copy(u.q0[bn]); u.q.mix.update(dt2); for (var bn2 in u.q0) u.q0[bn2].copy(u.B[bn2].quaternion); g.updateMatrixWorld(true); FAX.set(0, 0, 1).applyQuaternion(g.getWorldQuaternion(new THREE.Quaternion()));
+    if (u.B.spine_01) boneTurn(u.B.spine_01, FAX, -.38 * k + Math.sin(t * 1.7 + i) * .02); if (u.B.spine_02) boneTurn(u.B.spine_02, FAX, -.3 * k); if (u.B.Head) boneTurn(u.B.Head, FAX, .45 * k);
+    if (u.bu) u.bu.uSq.value = k * (1 + Math.sin(t * 40 + i) * .25); return; } u.tor.rotation.z = -.75 * k + Math.sin(t * 1.7 + i) * .03; u.hip.rotation.z = -.12 * k; u.hip.position.y = .72 - .06 * k;
   u.cheeks.forEach(function (c, j) { var w = 1 + .16 * k + (k > 0 ? Math.sin(t * 40 + j) * .05 * k : 0); c.scale.set(1.05 * w, .95 * w, w); }); u.head.rotation.z = .3 * k; }
 var RFF = [], RFDIR = [0, 0, 0, 0], RFSQ = [0, 0, 0, 0];
-function rfBots() { var ids = rfSeats(); for (var i = 0; i < 4; i++) { if (!RFF[i]) RFF[i] = farter(i); var human = i < ids.length; if (human && RFB[i]) RFB[i] = null; if (!human && !RFB[i]) RFB[i] = { cd: 1 + Math.random(), sq: 0 }; } }
+function rfBots() { var ids = rfSeats(); for (var i = 0; i < 4; i++) { if (!RFF[i]) RFF[i] = farterQ(i) || farter(i); else if (!RFF[i].userData.q && (RFF[i].userData.tq = (RFF[i].userData.tq || 0) + 1) % 15 === 0) { var nq = farterQ(i); if (nq) { scene.remove(RFF[i]); RFF[i] = nq; } } var human = i < ids.length; if (human && RFB[i]) RFB[i] = null; if (!human && !RFB[i]) RFB[i] = { cd: 1 + Math.random(), sq: 0 }; } }
 function raftTick(dt) { if (!RAFTM || state !== 'play') return; if (!RF || !RF.built) { if (SV && SV.netPlace) { rfMap(); RFT0 = performance.now(); toast('💨 RADEAU PÉTARD · PÈTE (tir / F) pour pousser le radeau là où tu regardes · évite les pièges !'); } return; }
   var now = performance.now(), host = rfHost(), ids = rfSeats(), my = ids.indexOf(NETID), M = rfMesh(); rfBots(); dt = Math.min(dt, .05);
   if (host && !RF.won) {
@@ -3936,7 +3959,7 @@ function soleilTick(dt) { if (!SOLM || state !== 'play') return; if (!SOL.built)
   else if (ph !== 'rouge') SOL.lastP = null;
   if (!SOL.won && me.z >= SOLZ1 && ph !== 'prep' && ph !== 'fin') { SOL.won = true; var tt = tc - 5; if (!SOL.winner) { SOL.winner = netName(); netPub({ t: 'sw', n: netName(), c: cyc, tt: +tt.toFixed(1) }); victory(); } else toast('🏁 ARRIVÉ ! (' + SOL.winner + ' a gagné la manche)'); burst(me.x, me.y + 1, me.z, 50, ['#ffd23d', '#ff2bd6', '#3dd6ff'], 8, .3, 1.2); }
   /* poupée : dos tourné au feu vert, face aux joueurs au feu rouge, yeux rouges */
-  DEV.forEach(function (d) { if (d.k !== 'poupee' || !d.g) return; var u = d.g.userData, want = ph === 'rouge' || ph === 'tourne' || ph === 'prep' || ph === 'fin' ? Math.PI : 0; u.ry = (u.ry || 0) + (want - (u.ry || 0)) * Math.min(1, dt * (ph === 'tourne' ? 9 : 5)); if (u.top) u.top.rotation.y = u.ry; if (u.eyes) u.eyes.forEach(function (e) { e.material.color.set(ph === 'rouge' ? '#ff1a1a' : '#1a1a1a'); }); });
+  DEV.forEach(function (d) { if (d.k !== 'poupee' || !d.g) return; dollQ(d, dt); var u = d.g.userData, want = ph === 'rouge' || ph === 'tourne' || ph === 'prep' || ph === 'fin' ? Math.PI : 0; u.ry = (u.ry || 0) + (want - (u.ry || 0)) * Math.min(1, dt * (ph === 'tourne' ? 9 : 5)); if (u.top) u.top.rotation.y = u.ry; if (u.eyes) u.eyes.forEach(function (e) { if (e.userData.red) e.visible = ph === 'rouge'; else e.material.color.set(ph === 'rouge' ? '#ff1a1a' : '#1a1a1a'); }); });
   /* bots */
   var nb = 0; SOL.bots.forEach(function (b) { var st = ph === 'prep' ? { x: -SOLW + 2 + (b.i + .5) / 9 * (SOLW * 2 - 4), z: SOLZ0 - 1.5, mv: false } : solBotState(b, cyc, Math.min(tc, 70), seq), c = b.m;
     if (st.out) { st.z = SOLZ0 - 1.5; } if (st.fin) nb++; c.root.position.set(st.x, hgt(st.x, st.z), st.z); c.root.rotation.y = -Math.PI / 2; c.root.visible = true;
