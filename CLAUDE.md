@@ -619,3 +619,8 @@ cd /home/claude/wo && (python3 -m http.server 8765 >/dev/null 2>&1 &); sleep 1
 ## v156 — Cinématiques du launcher au nouveau format
 - `launcher/cine.js` charge `qskins.js` ; `window.WG_BASE = '../jeu/'` sert de préfixe aux dossiers de modèles (`qskins` DIR, `zombies` MDIR).
 - Les zombies des plans (horde, rares, boss, titre) sont les mêmes que dans la Survie (`ZOMB._vis`), animés par `zd()` (mixer idle/walk/run) ; attente 25 s max sinon anciens modèles.
+
+## v157 — CS : HUD façon CS, grenades, sites sans couleurs
+- HUD CS (`csHud`/`csTop`) : santé ✚ / gilet 🛡 / argent en bas à gauche, munitions en bas à droite, en haut score des 2 équipes + chrono (rouge si bombe posée) + barres des joueurs en vie. Fil des éliminations à droite (`csFeedFmt` : tueur ︻デ═ arme victime, couleurs d'équipe). On cache barres/EN VIE/ÉLIM en mode cs.
+- Grenades achetables (slots 2-4, `CSGS`) : `gren` (explose, 98 dégâts, rayon 5,5), `flash` (`flashBoom` : écran blanc selon la distance et si on la regarde ; bots `cs.blind`), `fumi` (`smokeBoom` : nuage 15 s, `smokeBlocks` coupe la vue des bots). Elles rebondissent (`grenStep`) puis partent après la mèche (`fuse`). Les bots en lancent une par manche. Réseau : message 'f' comme la patate (`WEAPONS[k].thr`).
+- Plus de dalles roses/bleues aux spawns ; sites A/B juste une légère trace de peinture.
